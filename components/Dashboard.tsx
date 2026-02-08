@@ -142,6 +142,12 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
             <div className="text-sky-100 text-sm max-w-xl italic leading-relaxed">
               {/* Formatting the text a bit better than just P tags if plain text */}
               "{aiAdvice}"
+              {/* Debug Info: Show only if generic error message appears */}
+              {aiAdvice.includes("Desculpe") && (
+                <div className="mt-3 text-[10px] text-rose-200 bg-rose-950/30 p-2 rounded-lg border border-rose-500/30 backdrop-blur-sm">
+                  <strong>Debug:</strong> Verifique se a chave da API (VITE_GEMINI_API_KEY) está configurada corretamente no seu painel da Vercel ou arquivo .env local.
+                </div>
+              )}
             </div>
           </div>
           <div className="bg-white/10 p-4 rounded-full backdrop-blur-md z-10 border border-white/20 hidden md:block">
