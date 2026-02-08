@@ -131,34 +131,48 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
         </button>
       </div>
 
-      {aiAdvice && (
-        <div className="bg-gradient-to-r from-sky-600 to-indigo-700 p-6 rounded-3xl text-white shadow-xl shadow-sky-200 flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden relative group animate-in fade-in slide-in-from-top-4 duration-700">
-          <div className="z-10 relative">
-            <div className="flex items-center gap-2 mb-2">
-              <Sparkles size={18} className="text-sky-200 animate-pulse" />
-              <span className="text-xs font-bold uppercase tracking-widest text-sky-100">Consultor IA - FinAI</span>
+      {/* AI Insight Card - On Demand */}
+      <div className="bg-gradient-to-r from-sky-600 to-indigo-700 p-6 rounded-3xl text-white shadow-xl shadow-sky-200 flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden relative group transition-all duration-500">
+        <div className="z-10 relative w-full md:w-2/3">
+          <div className="flex items-center gap-2 mb-2">
+            <Sparkles size={18} className="text-sky-200 animate-pulse" />
+            <span className="text-xs font-bold uppercase tracking-widest text-sky-100">Consultor IA - FinAI</span>
+          </div>
+          <h3 className="text-xl font-bold mb-3">Análise Inteligente</h3>
+
+          {!aiAdvice && !loadingAdvice ? (
+            <div className="flex flex-col items-start gap-4">
+              <p className="text-sky-100/80 text-sm">Toque abaixo para receber um resumo rápido da sua saúde financeira.</p>
+              <button
+                onClick={handleRequestAnalysis}
+                className="bg-white text-sky-700 px-5 py-2 rounded-full font-bold text-sm shadow-lg hover:bg-sky-50 transition-transform active:scale-95 flex items-center gap-2"
+              >
+                <Sparkles size={16} /> Solicitar Análise Rápida
+              </button>
             </div>
-            <h3 className="text-xl font-bold mb-2">Análise Inteligente</h3>
-            <div className="text-sky-100 text-sm max-w-xl italic leading-relaxed">
-              {/* Formatting the text a bit better than just P tags if plain text */}
+          ) : loadingAdvice ? (
+            <div className="flex items-center gap-3 text-sky-100 bg-white/10 p-3 rounded-xl animate-pulse w-fit">
+              <Loader2 size={20} className="animate-spin" />
+              <span className="text-sm font-medium">Processando seus dados...</span>
+            </div>
+          ) : (
+            <div className="text-sky-100 text-sm max-w-xl italic leading-relaxed animate-in fade-in slide-in-from-bottom-2">
               "{aiAdvice}"
-              {/* Debug Info: Show only if generic error message appears */}
-              {aiAdvice.includes("Desculpe") && (
-                <div className="mt-3 text-[10px] text-rose-200 bg-rose-950/30 p-2 rounded-lg border border-rose-500/30 backdrop-blur-sm">
-                  <strong>Debug:</strong> Verifique se a chave da API (VITE_GEMINI_API_KEY) está configurada corretamente no seu painel da Vercel ou arquivo .env local.
-                </div>
-              )}
+              <div className="mt-3 flex items-center gap-2 text-[10px] text-sky-300 font-medium bg-black/20 w-fit px-2 py-1 rounded-lg">
+                <Info size={12} /> Para detalhes completos, acesse a aba Assistente IA
+              </div>
             </div>
-          </div>
-          <div className="bg-white/10 p-4 rounded-full backdrop-blur-md z-10 border border-white/20 hidden md:block">
-            <div className="text-center">
-              <p className="text-[10px] font-bold text-sky-200 uppercase mb-1">Score</p>
-              <p className="text-3xl font-black">88</p>
-            </div>
-          </div>
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-20 -mt-20 blur-3xl group-hover:bg-white/10 transition-all duration-700"></div>
+          )}
         </div>
-      )}
+
+        <div className="bg-white/10 p-4 rounded-full backdrop-blur-md z-10 border border-white/20 hidden md:block">
+          <div className="text-center">
+            <p className="text-[10px] font-bold text-sky-200 uppercase mb-1">Score</p>
+            <p className="text-3xl font-black">88</p>
+          </div>
+        </div>
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-20 -mt-20 blur-3xl group-hover:bg-white/10 transition-all duration-700"></div>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-sky-50 flex items-center space-x-4">
