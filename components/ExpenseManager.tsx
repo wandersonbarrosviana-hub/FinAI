@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Transaction, TransactionType } from '../types';
+import { Transaction, TransactionType, Tag as TagType } from '../types';
 import { CATEGORIES_MAP, INCOME_CATEGORIES_MAP } from '../constants';
 import { Calendar, CreditCard, Tag, Plus, Trash2, CheckCircle, Clock, Edit2, Save, X, Repeat, Divide } from 'lucide-react';
 
@@ -9,9 +9,10 @@ interface ExpenseManagerProps {
   onUpdateTransaction: (id: string, updates: Partial<Transaction>) => void;
   onDeleteTransaction: (id: string) => void;
   type: TransactionType;
+  tags: TagType[];
 }
 
-const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTransaction, onUpdateTransaction, onDeleteTransaction, type }) => {
+const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTransaction, onUpdateTransaction, onDeleteTransaction, type, tags }) => {
   const filteredTransactions = transactions.filter(t => t.type === type);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -31,7 +32,8 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
     type: type,
     isPaid: type === 'income',
     recurrence: 'one_time',
-    installmentCount: 2
+    installmentCount: 2,
+    tags: []
   });
 
   const [customCategory, setCustomCategory] = useState('');
@@ -50,7 +52,8 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
       subCategory: targetMap[categoriesList[0]][0],
       isPaid: type === 'income',
       paymentMethod: type === 'income' ? 'PIX' : 'Cartão de Crédito',
-      recurrence: 'one_time'
+      recurrence: 'one_time',
+      tags: []
     }));
   }, [type]);
 
@@ -141,7 +144,8 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
       type: type,
       isPaid: type === 'income',
       recurrence: 'one_time',
-      installmentCount: 2
+      installmentCount: 2,
+      tags: []
     });
     setCustomCategory('');
     setCustomSubCategory('');
@@ -427,6 +431,42 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
                 </span>
               </label>
             </div>
+
+            {/* Tags Selector */}
+            <div className="md:col-span-2 lg:col-span-3 space-y-1">
+              <label className="text-xs font-bold text-slate-500 uppercase ml-1">Tags</label>
+              <div className="flex flex-wrap gap-2 p-3 bg-slate-50 border border-slate-200 rounded-xl min-h-[50px]">
+                {tags.map(tag => {
+                  const isSelected = formData.tags?.includes(tag.id);
+                  return (
+                    <button
+                      key={tag.id}
+                      type="button"
+                      onClick={() => {
+                        const currentTags = formData.tags || [];
+                        const newTags = isSelected
+                          ? currentTags.filter(id => id !== tag.id)
+                          : [...currentTags, tag.id];
+                        setFormData({ ...formData, tags: newTags });
+                      }}
+                      className={`px-3 py-1 text-xs font-bold rounded-full transition-all border-2 ${isSelected
+                        ? 'bg-white shadow-sm'
+                        : 'bg-transparent border-transparent text-slate-400 opacity-50 hover:opacity-100 hover:bg-slate-200'
+                        }`}
+                      style={{
+                        borderColor: isSelected ? tag.color : 'transparent',
+                        color: isSelected ? tag.color : undefined
+                      }}
+                    >
+                      {tag.name}
+                    </button>
+                  );
+                })}
+                {tags.length === 0 && (
+                  <span className="text-xs text-slate-400 italic">Nenhuma tag criada. Vá em "Tags" para adicionar.</span>
+                )}
+              </div>
+            </div>
           </div>
           <div className="mt-6 flex justify-end">
             <button
@@ -490,6 +530,19 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
                         <Tag size={10} className="mr-1" /> {t.category}
                       </span>
                       <span className="text-[10px] text-slate-400 ml-3.5">{t.subCategory}</span>
+                      {t.tags && t.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-1 ml-3.5">
+                          {t.tags.map(tagId => {
+                            const tag = tags.find(tg => tg.id === tagId);
+                            if (!tag) return null;
+                            return (
+                              <span key={tagId} className="px-1.5 py-0.5 rounded text-[9px] font-bold text-white" style={{ backgroundColor: tag.color }}>
+                                {tag.name}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                   </td>
                   <td className="hidden md:table-cell px-6 py-4">
@@ -512,8 +565,8 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
                     <button
                       onClick={() => toggleStatus(t.id, t.isPaid)}
                       className={`md:hidden text-[10px] font-bold px-1.5 py-0.5 rounded border mt-1 ${t.isPaid
-                          ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
-                          : 'bg-amber-50 text-amber-500 border-amber-100'
+                        ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                        : 'bg-amber-50 text-amber-500 border-amber-100'
                         }`}
                     >
                       {t.isPaid ? 'OK' : 'Pendente'}

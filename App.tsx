@@ -10,11 +10,12 @@ import GoalManager from './components/GoalManager';
 import NotificationCenter from './components/NotificationCenter';
 import BudgetManager from './components/BudgetManager';
 import RetirementSimulator from './components/RetirementSimulator';
+import TagManager from './components/TagManager';
 
 import { Bell, Search, User as UserIcon, Plus, Sparkles, AlertCircle, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { parseNotification, getFinancialAdvice } from './geminiService';
 import { supabase } from './supabaseClient';
-import { Transaction, Account, Goal, User, ViewState } from './types';
+import { Transaction, Account, Goal, User, ViewState, Tag } from './types';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -27,6 +28,7 @@ const App: React.FC = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [goals, setGoals] = useState<Goal[]>([]);
+  const [tags, setTags] = useState<Tag[]>([]);
 
   const [showNotificationPopup, setShowNotificationPopup] = useState(false);
   const [notificationData, setNotificationData] = useState<any>(null);
@@ -69,15 +71,18 @@ const App: React.FC = () => {
   const fetchData = async (userId: string) => {
     setLoading(true);
     try {
-      const [txRes, accRes, goalRes] = await Promise.all([
+      const [txRes, accRes, goalRes, tagRes] = await Promise.all([
         supabase.from('transactions').select('*').eq('user_id', userId).order('date', { ascending: false }),
         supabase.from('accounts').select('*').eq('user_id', userId),
-        supabase.from('goals').select('*').eq('user_id', userId)
+        supabase.from('goals').select('*').eq('user_id', userId),
+        supabase.from('tags').select('*').eq('user_id', userId)
       ]);
 
       if (txRes.error) throw txRes.error;
       if (accRes.error) throw accRes.error;
       if (goalRes.error) throw goalRes.error;
+      // Tag error check ?
+
 
       // Map DB fields to Frontend Interface if needed (e.g. snake_case to camelCase if inconsistent)
       // Currently interface matches mostly, check specific fields
@@ -88,9 +93,8 @@ const App: React.FC = () => {
         dueDate: t.due_date ? t.due_date.split('T')[0] : undefined,
         installmentCount: t.installment_count,
         installmentTotal: t.installment_total,
-        subCategory: t.sub_category,
-        paymentMethod: t.payment_method,
-        isPaid: t.is_paid
+        isPaid: t.is_paid,
+        tags: t.tag_ids || []
       }));
 
       const mappedAccs = accRes.data.map((a: any) => ({
@@ -102,6 +106,13 @@ const App: React.FC = () => {
       setTransactions(mappedTxs);
       setAccounts(mappedAccs);
       setGoals(goalRes.data);
+      setTags(tagRes.data || []);
+
+      // Accessing promise result array logic
+      // The Promise.all returns [txRes, accRes, goalRes, tagRes] (if I added it)
+      // I need to destructure correctly above.
+
+      /* Re-doing the destructuring block in next lines to be safe */
 
       // After fetching data, run initial AI logic
       if (mappedTxs.length > 0) {
@@ -237,6 +248,7 @@ const App: React.FC = () => {
     if (updates.isPaid !== undefined) dbUpdates.is_paid = updates.isPaid;
     if (updates.category) dbUpdates.category = updates.category;
     if (updates.subCategory) dbUpdates.sub_category = updates.subCategory;
+    if (updates.tags) dbUpdates.tag_ids = updates.tags;
     // ... add others as needed
 
     await supabase.from('transactions').update(dbUpdates).eq('id', id);
@@ -275,7 +287,8 @@ const App: React.FC = () => {
       isPaid: data.isPaid !== undefined ? data.isPaid : data.type === 'income',
       recurrence: data.recurrence || 'one_time',
       installmentCount: data.installmentCount,
-      installmentTotal: data.installmentTotal
+      installmentTotal: data.installmentTotal,
+      tags: data.tags || []
     };
 
     if (!baseTx.account) {
@@ -343,7 +356,9 @@ const App: React.FC = () => {
         account_id: baseTx.account,
         payment_method: baseTx.paymentMethod,
         is_paid: baseTx.isPaid,
-        recurrence: 'one_time'
+        is_paid: baseTx.isPaid,
+        recurrence: 'one_time',
+        tag_ids: baseTx.tags
       });
     }
 
@@ -363,7 +378,8 @@ const App: React.FC = () => {
           paymentMethod: t.payment_method,
           isPaid: t.is_paid,
           installmentCount: t.installment_count,
-          installmentTotal: t.installment_total
+          installmentTotal: t.installment_total,
+          tags: t.tag_ids || []
         }));
 
         setTransactions(prev => [...mappedNew, ...prev]);
@@ -491,6 +507,33 @@ const App: React.FC = () => {
     await supabase.from('goals').delete().eq('id', id);
   };
 
+  const handleAddTag = async (data: Partial<Tag>) => {
+    if (!user) return;
+    const newTag = {
+      user_id: user.id,
+      name: data.name || 'Nova Tag',
+      color: data.color || '#64748b'
+    };
+
+    const { data: inserted, error } = await supabase.from('tags').insert(newTag).select().single();
+    if (inserted && !error) {
+      setTags(prev => [...prev, inserted]);
+    }
+  };
+
+  const handleUpdateTag = async (id: string, data: Partial<Tag>) => {
+    setTags(prev => prev.map(t => t.id === id ? { ...t, ...data } : t));
+    await supabase.from('tags').update({
+      name: data.name,
+      color: data.color
+    }).eq('id', id);
+  };
+
+  const handleDeleteTag = async (id: string) => {
+    setTags(prev => prev.filter(t => t.id !== id));
+    await supabase.from('tags').delete().eq('id', id);
+  };
+
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center bg-slate-50 text-sky-600"><Loader2 size={40} className="animate-spin" /></div>;
   }
@@ -600,13 +643,13 @@ const App: React.FC = () => {
                       </div>
                       <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-20 -mt-20 blur-3xl group-hover:bg-white/10 transition-all duration-700"></div>
                     </div>
-                    <Dashboard transactions={filteredTransactions} accounts={accounts} onAddClick={() => setCurrentView('expenses')} />
+                    <Dashboard transactions={filteredTransactions} accounts={accounts} onAddClick={() => setCurrentView('expenses')} tags={tags} />
                   </div>
                 );
               case 'expenses':
-                return <ExpenseManager type="expense" transactions={filteredTransactions} onAddTransaction={handleAddTransaction} onDeleteTransaction={handleDeleteTransaction} onUpdateTransaction={handleUpdateTransaction} />;
+                return <ExpenseManager type="expense" transactions={filteredTransactions} onAddTransaction={handleAddTransaction} onDeleteTransaction={handleDeleteTransaction} onUpdateTransaction={handleUpdateTransaction} tags={tags} />;
               case 'income':
-                return <ExpenseManager type="income" transactions={filteredTransactions} onAddTransaction={handleAddTransaction} onDeleteTransaction={handleDeleteTransaction} onUpdateTransaction={handleUpdateTransaction} />;
+                return <ExpenseManager type="income" transactions={filteredTransactions} onAddTransaction={handleAddTransaction} onDeleteTransaction={handleDeleteTransaction} onUpdateTransaction={handleUpdateTransaction} tags={tags} />;
               case 'accounts':
                 return <AccountManager accounts={accounts} onAddAccount={handleAddAccount} onDeleteAccount={handleDeleteAccount} />;
               case 'goals':
@@ -615,7 +658,10 @@ const App: React.FC = () => {
                 return <BudgetManager transactions={filteredTransactions} />;
               case 'retirement':
                 return <RetirementSimulator transactions={transactions} />;
+              case 'tags':
+                return <TagManager tags={tags} onAddTag={handleAddTag} onDeleteTag={handleDeleteTag} onUpdateTag={handleUpdateTag} />;
               case 'ai-assistant':
+
                 return <FinancialAssistant transactions={transactions} accounts={accounts} />; // AI might need full context? Or just current month? Keeping full for now.
               default:
                 return (

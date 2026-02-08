@@ -26,7 +26,7 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, onAddClic
 
   // Processar dados para o gráfico de linha (fluxo semanal)
   const processChartData = () => {
-    const weeks: { [key: string]: { income: number; expense: number } } = {};
+    const weeks: { [key: string]: { Receitas: number; Despesas: number } } = {};
 
     // Inicializar 4-5 semanas
     const lastDay = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
@@ -37,7 +37,7 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, onAddClic
 
     // Vamos criar 4 semanas padrão
     for (let i = 1; i <= 4; i++) {
-      weeks[`Semana ${i}`] = { income: 0, expense: 0 };
+      weeks[`Semana ${i}`] = { Receitas: 0, Despesas: 0 };
     }
 
     transactions.forEach(t => {
@@ -50,16 +50,16 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, onAddClic
       else if (day > 7) weekKey = 'Semana 2';
 
       if (t.type === 'income') {
-        weeks[weekKey].income += t.amount;
+        weeks[weekKey].Receitas += t.amount;
       } else {
-        weeks[weekKey].expense += t.amount;
+        weeks[weekKey].Despesas += t.amount;
       }
     });
 
     return Object.keys(weeks).map(key => ({
       name: key,
-      income: weeks[key].income,
-      expense: weeks[key].expense
+      Receitas: weeks[key].Receitas,
+      Despesas: weeks[key].Despesas
     }));
   };
 
@@ -87,7 +87,8 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, onAddClic
   const pieData = processPieData();
 
   // Cores dinâmicas para o gráfico de pizza (se houver muitas categorias, repetir)
-  const BASE_COLORS = ['#0ea5e9', '#38bdf8', '#7dd3fc', '#bae6fd', '#e0f2fe'];
+  // Cores dinâmicas para o gráfico de pizza
+  const BASE_COLORS = ['#0ea5e9', '#f43f5e', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#6366f1', '#14b8a6'];
   const COLORS = pieData.length > 0 ? BASE_COLORS.slice(0, pieData.length) : BASE_COLORS;
 
 
@@ -151,8 +152,8 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, onAddClic
                 <Tooltip
                   contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                 />
-                <Line type="monotone" dataKey="income" stroke="#10b981" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
-                <Line type="monotone" dataKey="expense" stroke="#f43f5e" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+                <Line type="monotone" dataKey="Receitas" stroke="#10b981" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+                <Line type="monotone" dataKey="Despesas" stroke="#f43f5e" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
               </LineChart>
             </ResponsiveContainer>
           </div>

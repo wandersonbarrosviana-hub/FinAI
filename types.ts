@@ -17,6 +17,14 @@ export interface Transaction {
   installmentNumber?: number;
   paymentMethod?: string;
   isPaid: boolean;
+  tags?: string[]; // Array of Tag IDs
+}
+
+export interface Tag {
+  id: string;
+  name: string;
+  color: string;
+  userId?: string;
 }
 
 export interface Account {
