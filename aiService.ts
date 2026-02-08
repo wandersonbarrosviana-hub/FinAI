@@ -1,12 +1,16 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+
+import OpenAI from 'openai';
 import { Transaction, Account } from './types';
 
-// Initialize the API
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
-const genAI = new GoogleGenerativeAI(API_KEY);
+// Initialize the OpenAI API
+const API_KEY = import.meta.env.VITE_OPENAI_API_KEY || '';
 
-// Helper to get the model
-const getModel = () => genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+const openai = new OpenAI({
+    apiKey: API_KEY,
+    dangerouslyAllowBrowser: true // Client-side usage for demo purposes
+});
+
+const MODEL = 'gpt-4o-mini';
 
 interface VoiceCommandResult {
     intent: 'CREATE' | 'UPDATE_STATUS' | 'UNKNOWN' | 'ADVICE_REQUEST' | 'CREATE_ACCOUNT' | 'CREATE_GOAL' | 'CREATE_BUDGET';
@@ -15,31 +19,33 @@ interface VoiceCommandResult {
 }
 
 export const generateContent = async (prompt: string): Promise<string> => {
-    if (!API_KEY) return "";
+    console.log("generateContent called. API Key length:", API_KEY?.length);
+    if (!API_KEY) {
+        console.error("API Key is missing in generateContent");
+        return "Erro: Chave API não encontrada.";
+    }
     try {
-        const model = getModel();
-        const result = await model.generateContent(prompt);
-        return result.response.text();
+        const completion = await openai.chat.completions.create({
+            model: MODEL,
+            messages: [{ role: "user", content: prompt }],
+        });
+        return completion.choices[0].message.content || "";
     } catch (error) {
-        console.error("Gemini Generate Error:", error);
-        return "";
+        console.error("OpenAI Generate Error:", error);
+        return "Erro ao conectar com a IA.";
     }
 };
 
 export const parseVoiceCommand = async (text: string): Promise<VoiceCommandResult> => {
     if (!API_KEY) {
-        console.warn('Gemini API Key missing');
-        return { intent: 'UNKNOWN', data: {}, message: 'Erro: Chave API da IA não configurada.' };
+        console.warn('OpenAI API Key missing');
+        return { intent: 'UNKNOWN', data: {}, message: 'Erro: Chave API da IA não configurada no .env.local' };
     }
 
     try {
-        const model = getModel();
-        // Prompt design for robust extraction
-        const prompt = `
+        const systemPrompt = `
       Act as a Financial Parsing API. Analyze the user's spoken command regarding finances.
       Current Date: ${new Date().toISOString().split('T')[0]}
-
-      User Input: "${text}"
 
       Possible Intents:
       1. CREATE: New transaction (expense/income).
@@ -86,25 +92,33 @@ export const parseVoiceCommand = async (text: string): Promise<VoiceCommandResul
       }
     `;
 
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const jsonStr = response.text().replace(/```json/g, '').replace(/```/g, '').trim();
+        const completion = await openai.chat.completions.create({
+            model: MODEL,
+            messages: [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: text }
+            ],
+            response_format: { type: "json_object" }
+        });
 
-        const parsed = JSON.parse(jsonStr);
+        const content = completion.choices[0].message.content;
+        if (!content) throw new Error("No content");
+
+        const parsed = JSON.parse(content);
         // Inject original text for context
         if (parsed.data) {
             parsed.data.originalText = text;
         }
         return parsed;
     } catch (error) {
-        console.error('Gemini API Error:', error);
+        console.error('OpenAI API Error:', error);
         return { intent: 'UNKNOWN', data: { originalText: text }, message: 'Desculpe, não consegui entender.' };
     }
 };
 
 
 export const getFinancialAdvice = async (transactions: Transaction[], accounts: Account[]): Promise<string> => {
-    // Legacy function, can redirect to chat or keep simple
+    // Legacy function, using chat
     return chatWithFinancialAssistant("Dê uma dica rápida baseada no meu saldo atual.", transactions, accounts, [], []);
 };
 
@@ -115,11 +129,10 @@ export const chatWithFinancialAssistant = async (
     goals: any[],
     budgets: any[]
 ): Promise<string> => {
-    if (!API_KEY) return "Erro: Chave API não configurada.";
+    console.log("chatWithFinancialAssistant called. API Key available:", !!API_KEY);
+    if (!API_KEY) return "Erro: Chave API não configurada. Verifique o .env.local";
 
     try {
-        const model = getModel();
-
         // Safe helpers
         const safeNum = (n: any) => typeof n === 'number' ? n : Number(n) || 0;
 
@@ -143,16 +156,14 @@ export const chatWithFinancialAssistant = async (
             - Metas Ativas: ${JSON.stringify(safeGoals)}
             - Orçamentos: ${JSON.stringify(safeBudgets)}
             
-            ÚLTIVAS 10 TRANSAÇÕES:
+            ÚLTIMAS 10 TRANSAÇÕES:
             ${recentTrans}
         `;
 
-        const prompt = `
+        const systemPrompt = `
             Você é o FinAI, um assistente financeiro pessoal inteligente, amigável e extremamente capaz.
             
             ${context}
-            
-            PERGUNTA DO USUÁRIO: "${userMessage}"
             
             INSTRUÇÕES:
             1. Analise os dados acima para responder com precisão.
@@ -163,12 +174,17 @@ export const chatWithFinancialAssistant = async (
             6. Use formatação Markdown (negrito, listas) para facilitar a leitura.
         `;
 
-        const result = await model.generateContent(prompt);
-        return result.response.text();
+        const completion = await openai.chat.completions.create({
+            model: MODEL,
+            messages: [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: userMessage }
+            ]
+        });
+
+        return completion.choices[0].message.content || "Desculpe, não consegui gerar uma resposta.";
     } catch (error) {
         console.error("Chat Error Details:", error);
-        // Return a visible error for the UI to show
-        if ((error as any).message?.includes('API key')) return "Erro de Configuração: Chave API inválida ou ausente.";
         return "Desculpe, estou com dificuldades para processar seus dados agora. Tente novamente em instantes.";
     }
 };
@@ -177,7 +193,6 @@ export const performDeepAnalysis = async (transactions: Transaction[], accounts:
     if (!API_KEY) return "Erro: Chave API ausente.";
 
     try {
-        const model = getModel();
         // Aggregating data for token efficiency
         const balance = accounts.reduce((sum, acc) => sum + acc.balance, 0);
 
@@ -192,7 +207,7 @@ export const performDeepAnalysis = async (transactions: Transaction[], accounts:
             .map(([cat, val]) => `${cat}: R$ ${val.toFixed(2)}`)
             .join(', ');
 
-        const prompt = `
+        const systemPrompt = `
             Realize uma ANÁLISE PROFUNDA da saúde financeira deste usuário.
             
             DADOS:
@@ -209,8 +224,14 @@ export const performDeepAnalysis = async (transactions: Transaction[], accounts:
             Tom profissional mas acessível.
         `;
 
-        const result = await model.generateContent(prompt);
-        return result.response.text();
+        const completion = await openai.chat.completions.create({
+            model: "gpt-4o", // Use stronger model for deep analysis if possible, typically available. If not, fallback to mini.
+            messages: [
+                { role: "user", content: systemPrompt } // System prompt fits in user for simple analysis or spread it.
+            ]
+        });
+
+        return completion.choices[0].message.content || "Não foi possível realizar a análise.";
 
     } catch (error) {
         console.error("Deep Analysis Error:", error);
@@ -222,25 +243,31 @@ export const parseNotification = async (notificationText: string): Promise<any> 
     if (!API_KEY) return null;
 
     try {
-        const model = getModel();
-        const prompt = `
-      Parse this notification text for a financial app.
-      Text: "${notificationText}"
-      
-      Return JSON:
-      {
-        "description": "Merchant Name or Description",
-        "amount": 123.45,
-        "type": "expense" | "income",
-        "category": "Best guess category",
-        "subCategory": "Best guess subcategory",
-        "date": "YYYY-MM-DD" (assume today if missing)
-      }
-    `;
+        const systemPrompt = `
+            Parse this notification text for a financial app.
+            
+            Return JSON:
+            {
+                "description": "Merchant Name or Description",
+                "amount": 123.45,
+                "type": "expense" | "income",
+                "category": "Best guess category",
+                "subCategory": "Best guess subcategory",
+                "date": "YYYY-MM-DD" (assume today if missing)
+            }
+        `;
 
-        const result = await model.generateContent(prompt);
-        const jsonStr = result.response.text().replace(/```json/g, '').replace(/```/g, '').trim();
-        return JSON.parse(jsonStr);
+        const completion = await openai.chat.completions.create({
+            model: MODEL,
+            messages: [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: notificationText }
+            ],
+            response_format: { type: "json_object" }
+        });
+
+        const content = completion.choices[0].message.content;
+        return content ? JSON.parse(content) : null;
     } catch (error) {
         return null;
     }

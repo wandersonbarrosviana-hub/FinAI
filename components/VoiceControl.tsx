@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Mic, MicOff, Loader2, CheckCircle, AlertCircle, Sparkles, MessageSquare, Volume2 } from 'lucide-react';
-import { parseVoiceCommand } from '../geminiService';
+import { parseVoiceCommand } from '../aiService';
 
 interface VoiceControlProps {
   onAddTransaction: (result: any) => boolean | void;
@@ -117,7 +117,7 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
 
     setStatus('processing');
     try {
-      const result = await parseVoiceCommand(text); // Use the real Gemini service
+      const result = await parseVoiceCommand(text); // Use the real OpenAI service
       console.log("Voice command parsed:", result);
 
       if (result.intent === 'UNKNOWN') {

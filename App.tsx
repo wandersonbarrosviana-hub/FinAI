@@ -14,7 +14,7 @@ import TagManager from './components/TagManager';
 import { Budget } from './types';
 
 import { Bell, Search, User as UserIcon, Plus, Sparkles, AlertCircle, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
-import { parseNotification, chatWithFinancialAssistant, getFinancialAdvice } from './geminiService';
+import { parseNotification, chatWithFinancialAssistant, getFinancialAdvice } from './aiService';
 import { supabase } from './supabaseClient';
 import { Transaction, Account, Goal, User, ViewState, Tag } from './types';
 
@@ -131,24 +131,14 @@ const App: React.FC = () => {
     }
   };
 
+  /* 
+   * Simulation of incoming SMS removed to prevent automatic API calls (429 errors).
+   * To test notifications, use the Bell icon manually.
+   */
   useEffect(() => {
-    if (!user) return;
-
-    // Simulate incoming SMS after 10s (Only once per session mount to be annoying? No, implementation kept simple)
-    const timer = setTimeout(async () => {
-      const fakeSMS = "Compra aprovada R$ 127,50 em LOJAS RENNER 14:30";
-      const parsed = await parseNotification(fakeSMS);
-      if (parsed) {
-        setNotificationData({
-          raw: fakeSMS,
-          parsed: { ...parsed, isPaid: true, paymentMethod: 'Cartão de Crédito' }
-        });
-        setShowNotificationPopup(true);
-      }
-    }, 15000);
-
-    return () => clearTimeout(timer);
-  }, [user]); // Run when user logs in
+    // Keep empty or remove entirely if not needed for anything else.
+    // The original hook only had the simulation.
+  }, [user]);
 
   // const updateAdvice = async () => {
   //   const advice = await getFinancialAdvice(transactions, accounts);

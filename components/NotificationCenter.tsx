@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Bell, MessageSquare, Check, X, Plus } from 'lucide-react';
 import { Transaction } from '../types';
-import { generateContent } from '../geminiService';
+import { generateContent } from '../aiService';
 
 interface NotificationCenterProps {
     onAddTransaction: (t: Partial<Transaction>) => void;
@@ -20,7 +20,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ onAddTransactio
         setDetectedTransaction(null);
 
         try {
-            // Analyze with Gemini
+            // Analyze with ChatGPT
             const prompt = `
         Analise a seguinte notificação de SMS bancário e extraia os dados para uma transação financeira (JSON):
         Texto: "${smsText}"
