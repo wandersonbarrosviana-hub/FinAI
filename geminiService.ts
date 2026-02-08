@@ -14,6 +14,18 @@ interface VoiceCommandResult {
     message?: string;
 }
 
+export const generateContent = async (prompt: string): Promise<string> => {
+    if (!API_KEY) return "";
+    try {
+        const model = getModel();
+        const result = await model.generateContent(prompt);
+        return result.response.text();
+    } catch (error) {
+        console.error("Gemini Generate Error:", error);
+        return "";
+    }
+};
+
 export const parseVoiceCommand = async (text: string): Promise<VoiceCommandResult> => {
     if (!API_KEY) {
         console.warn('Gemini API Key missing');
