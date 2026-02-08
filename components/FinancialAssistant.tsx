@@ -90,7 +90,8 @@ const FinancialAssistant: React.FC<FinancialAssistantProps> = ({ transactions, a
           <div>
             <h2 className="font-extrabold text-slate-800 text-lg leading-tight">FinAI Intelligence</h2>
             <div className="flex items-center text-[10px] text-sky-600 font-bold uppercase tracking-wider mt-0.5">
-              <Sparkles size={10} className="mr-1" /> ChatGPT 4o Mini (v3.0 - FINAL)
+              <Sparkles size={10} className="mr-1" /> ChatGPT 4o Mini (v3.1 - ONLINE)
+
 
 
             </div>
