@@ -11,7 +11,7 @@ type VoiceStatus = 'idle' | 'standby' | 'active_command' | 'processing' | 'succe
 const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
   const [status, setStatus] = useState<VoiceStatus>('idle');
   const [transcript, setTranscript] = useState('');
-  const [isWakingUp, setIsWakingUp] = useState(false);
+  // Removed duplicates
 
   // Refs to avoid obsolete closures in SpeechRecognition callbacks
   const statusRef = useRef<VoiceStatus>('idle');
@@ -26,7 +26,7 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
     if (statusRef.current !== 'idle') {
       stopListening();
     } else {
-      startStandby();
+      startListening();
     }
   };
 
@@ -40,7 +40,7 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
     setTranscript('');
   };
 
-  const startStandby = () => {
+  const startListening = () => {
     if (!('webkitSpeechRecognition' in window)) {
       alert('Seu navegador não suporta reconhecimento de voz.');
       return;
@@ -50,11 +50,14 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
     const recognition = new SpeechRecognition();
 
     recognition.lang = 'pt-BR';
+    recognition.continuous = false; // Stop after one command usually? Or keep listening? User said "ao clicar e solicitar ele ja cumpra". Implies one command. But let's keep continuous for safety and manual stop, or stop on silence. 
+    // Actually, "continuous = false" is better for single command. Let's try false to auto-stop on silence?
+    // User might pause. Let's keep continuous = true but manually stop after processing.
     recognition.continuous = true;
     recognition.interimResults = true;
 
     recognition.onstart = () => {
-      setStatus('standby');
+      setStatus('active_command'); // Immediate active
     };
 
     recognition.onresult = async (event: any) => {
@@ -70,33 +73,25 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
         }
       }
 
-      const currentSpeech = (interimTranscript || finalTranscript).toLowerCase();
       setTranscript(interimTranscript || finalTranscript);
 
-      // Check for Wake Word ("Oi Fini", etc) OR if manual trigger (implied active)
-      // For now, let's keep the wake word logic but also allow button press to jump straight to 'active_command' if we wanted (UI logic below handles toggle to standby)
-
-      const wakeWords = ['oi fini', 'hey fini', 'ei fini', 'fani', 'finni'];
-      const detectedWakeWord = wakeWords.some(word => currentSpeech.includes(word));
-
-      if (detectedWakeWord && statusRef.current === 'standby') {
-        activateFini();
-      }
-
-      // If active command mode and we get final text
-      if (statusRef.current === 'active_command' && finalTranscript) {
+      // Directly process final text
+      if (finalTranscript && statusRef.current === 'active_command') {
+        // Debounce or just take it?
+        // If continuous is true, we might get multiple finals.
+        // We should probably stop listening after one command to "cumprir a ordem".
+        stopListening(); // Stop immediately on final result to process
         processFinalText(finalTranscript);
       }
     };
 
     recognition.onend = () => {
-      // Auto-restart to keep it alive in standby/active
-      if (statusRef.current === 'standby' || statusRef.current === 'active_command') {
-        try {
-          recognition.start();
-        } catch (e) {
-          console.error("Erro ao reiniciar reconhecimento:", e);
-        }
+      // No auto-restart if we want one-shot, or restart if we want to keep listening?
+      // "ao clicar ... cumpra". Implies interaction.
+      // If we stopped manually in onresult, status should be 'processing' or 'idle' soon.
+      // If error or silence, we might want to go to idle.
+      if (statusRef.current === 'active_command') {
+        setStatus('idle');
       }
     };
 
@@ -112,15 +107,12 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
     recognitionRef.current = recognition;
   };
 
-  const activateFini = () => {
-    setStatus('active_command');
-    setIsWakingUp(true);
-    setTimeout(() => setIsWakingUp(false), 1200);
-  };
+  // Removed activateFini
+
 
   const processFinalText = async (text: string) => {
-    // Remove wake word if present
-    const cleanText = text.toLowerCase().replace(/oi fini|hey fini|ei fini|fani|finni/g, '').trim();
+    // No wake word cleanup needed, but keeping trim
+    const cleanText = text.trim();
     if (!cleanText) return;
 
     setStatus('processing');
@@ -193,22 +185,15 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
 
       <div className="flex-1">
         <div className="flex items-center space-x-3">
-          <span className={`text-base font-black tracking-tight transition-colors duration-300 ${status === 'standby' ? 'text-amber-700' :
-            status === 'active_command' ? 'text-sky-800' :
-              'text-slate-800'
+          <span className={`text-base font-black tracking-tight transition-colors duration-300 ${status === 'active_command' ? 'text-sky-800' :
+            'text-slate-800'
             }`}>
-            {status === 'idle' && 'Ativar Assistente Vocal'}
-            {status === 'standby' && 'Aguardando "Oi Fini"...'}
-            {status === 'active_command' && 'Ouvindo! Pode falar...'}
-            {status === 'processing' && 'A Fini está analisando...'}
-            {status === 'success' && 'Lançamento realizado!'}
-            {status === 'error' && 'Ops! Não entendi o comando.'}
+            {status === 'idle' && 'Toque para Falar'}
+            {status === 'active_command' && 'Ouvindo...'}
+            {status === 'processing' && 'Processando...'}
+            {status === 'success' && 'Feito!'}
+            {status === 'error' && 'Não entendi.'}
           </span>
-          {isWakingUp && (
-            <div className="flex gap-1 animate-in zoom-in duration-300">
-              <span className="text-xs font-bold bg-amber-100 text-amber-600 px-2 py-0.5 rounded-full">Olá!</span>
-            </div>
-          )}
         </div>
 
         <div className="mt-1 flex items-center text-sm">

@@ -1,19 +1,42 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   BarChart, Bar, Cell, PieChart, Pie
 } from 'recharts';
-import { Transaction, Account } from '../types';
-import { TrendingUp, TrendingDown, Wallet, PlusCircle } from 'lucide-react';
+import { Transaction, Account, Goal, Budget } from '../types';
+import { TrendingUp, TrendingDown, Wallet, PlusCircle, Sparkles } from 'lucide-react';
+import { chatWithFinancialAssistant } from '../geminiService';
 
 interface DashboardProps {
   transactions: Transaction[];
   accounts: Account[];
+  goals: Goal[];
+  budgets: Budget[];
   onAddClick: () => void;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, onAddClick }) => {
+const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, budgets, onAddClick }) => {
+  const [aiAdvice, setAiAdvice] = useState<string>('');
+
+  React.useEffect(() => {
+    const fetchAdvice = async () => {
+      // Simple cache or check if already fetched? 
+      // For now, fetch on mount.
+      if (transactions.length > 0) {
+        const advice = await chatWithFinancialAssistant(
+          "Analise meu estado financeiro atual brevemente (máx 3 frases) e me dê um insight valioso.",
+          transactions,
+          accounts,
+          goals,
+          budgets
+        );
+        setAiAdvice(advice);
+      }
+    };
+    fetchAdvice();
+  }, [transactions, accounts]);
+
   const totalBalance = accounts.reduce((acc, curr) => acc + curr.balance, 0);
   // Calcular totais do mês (já filtrado pelo pai)
   const monthIncome = transactions
@@ -107,6 +130,28 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, onAddClic
           <span>Lançar Manual</span>
         </button>
       </div>
+
+      {aiAdvice && (
+        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 rounded-2xl shadow-lg text-white relative overflow-hidden animate-in fade-in slide-in-from-top-4 duration-700">
+          <div className="absolute top-0 right-0 p-4 opacity-10">
+            <Sparkles size={64} />
+          </div>
+          <div className="flex items-start gap-4 relative z-10">
+            <div className="bg-white/20 p-2 rounded-xl backdrop-blur-sm">
+              <Sparkles size={24} className="text-yellow-300" />
+            </div>
+            <div>
+              <h3 className="font-bold text-lg mb-1">Insight FinAI</h3>
+              <div className="text-indigo-100 text-sm leading-relaxed prose prose-invert max-w-none">
+                {/* Render basic markdown if needed or just text */}
+                {aiAdvice.split('\n').map((line, i) => (
+                  <p key={i} className="mb-1">{line}</p>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-sky-50 flex items-center space-x-4">
