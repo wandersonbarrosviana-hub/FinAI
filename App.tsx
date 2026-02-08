@@ -14,7 +14,7 @@ import TagManager from './components/TagManager';
 import { Budget } from './types';
 
 import { Bell, Search, User as UserIcon, Plus, Sparkles, AlertCircle, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
-import { parseNotification, getFinancialAdvice } from './geminiService';
+import { parseNotification } from './geminiService';
 import { supabase } from './supabaseClient';
 import { Transaction, Account, Goal, User, ViewState, Tag } from './types';
 
@@ -34,7 +34,7 @@ const App: React.FC = () => {
 
   const [showNotificationPopup, setShowNotificationPopup] = useState(false);
   const [notificationData, setNotificationData] = useState<any>(null);
-  const [aiAdvice, setAiAdvice] = useState<string>('Analisando suas finanças...');
+  // aiAdvice moved to Dashboard component
 
   // Date State for Global Filter
   const [currentDate, setCurrentDate] = useState(() => {
@@ -120,9 +120,9 @@ const App: React.FC = () => {
       setBudgets(budRes.data || []);
 
       // After fetching data, run initial AI logic
-      if (mappedTxs.length > 0) {
-        getFinancialAdvice(mappedTxs, mappedAccs).then(setAiAdvice);
-      }
+      // if (mappedTxs.length > 0) {
+      //   getFinancialAdvice(mappedTxs, mappedAccs).then(setAiAdvice);
+      // }
 
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -150,10 +150,10 @@ const App: React.FC = () => {
     return () => clearTimeout(timer);
   }, [user]); // Run when user logs in
 
-  const updateAdvice = async () => {
-    const advice = await getFinancialAdvice(transactions, accounts);
-    setAiAdvice(advice);
-  };
+  // const updateAdvice = async () => {
+  //   const advice = await getFinancialAdvice(transactions, accounts);
+  //   setAiAdvice(advice);
+  // };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -360,7 +360,6 @@ const App: React.FC = () => {
         type: baseTx.type,
         account_id: baseTx.account,
         payment_method: baseTx.paymentMethod,
-        is_paid: baseTx.isPaid,
         is_paid: baseTx.isPaid,
         recurrence: 'one_time',
         tag_ids: baseTx.tags
@@ -656,39 +655,8 @@ const App: React.FC = () => {
               case 'dashboard':
                 return (
                   <div className="space-y-6">
-                    <div className="bg-gradient-to-r from-sky-600 to-indigo-700 p-6 rounded-3xl text-white shadow-xl shadow-sky-200 flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden relative group">
-                      <div className="z-10 relative">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Sparkles size={18} className="text-sky-200 animate-pulse" />
-                          <span className="text-xs font-bold uppercase tracking-widest text-sky-100">Consultor IA - FinAI</span>
-                        </div>
-                        <h3 className="text-xl font-bold mb-2">Análise Inteligente</h3>
-                        <p className="text-sky-100 text-sm max-w-xl italic">"{aiAdvice}"</p>
-                        <div className="flex gap-2 mt-4">
-                          <button
-                            onClick={updateAdvice}
-                            className="bg-white/10 border border-white/20 text-white px-3 py-1.5 rounded-lg text-xs hover:bg-white/20 transition-all"
-                          >
-                            Atualizar Análise
-                          </button>
-                          <button
-                            onClick={() => setCurrentView('ai-assistant')}
-                            className="bg-white text-sky-600 px-4 py-1.5 rounded-lg text-xs font-bold hover:bg-sky-50 transition-all"
-                          >
-                            Ver Detalhes
-                          </button>
-                        </div>
-                      </div>
-                      <div className="bg-white/10 p-4 rounded-full backdrop-blur-md z-10 border border-white/20 hidden md:block">
-
-                        <div className="text-center">
-                          <p className="text-[10px] font-bold text-sky-200 uppercase mb-1">Score</p>
-                          <p className="text-3xl font-black">82</p>
-                        </div>
-                      </div>
-                      <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-20 -mt-20 blur-3xl group-hover:bg-white/10 transition-all duration-700"></div>
-                    </div>
-                    <Dashboard transactions={filteredTransactions} accounts={accounts} onAddClick={() => setCurrentView('expenses')} tags={tags} />
+                    {/* Replaced legacy card with Dashboard's internal card */}
+                    <Dashboard transactions={filteredTransactions} accounts={accounts} onAddClick={() => setCurrentView('expenses')} tags={tags} goals={goals} budgets={budgets} />
                   </div>
                 );
               case 'expenses':

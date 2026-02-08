@@ -132,24 +132,25 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
       </div>
 
       {aiAdvice && (
-        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 rounded-2xl shadow-lg text-white relative overflow-hidden animate-in fade-in slide-in-from-top-4 duration-700">
-          <div className="absolute top-0 right-0 p-4 opacity-10">
-            <Sparkles size={64} />
-          </div>
-          <div className="flex items-start gap-4 relative z-10">
-            <div className="bg-white/20 p-2 rounded-xl backdrop-blur-sm">
-              <Sparkles size={24} className="text-yellow-300" />
+        <div className="bg-gradient-to-r from-sky-600 to-indigo-700 p-6 rounded-3xl text-white shadow-xl shadow-sky-200 flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden relative group animate-in fade-in slide-in-from-top-4 duration-700">
+          <div className="z-10 relative">
+            <div className="flex items-center gap-2 mb-2">
+              <Sparkles size={18} className="text-sky-200 animate-pulse" />
+              <span className="text-xs font-bold uppercase tracking-widest text-sky-100">Consultor IA - FinAI</span>
             </div>
-            <div>
-              <h3 className="font-bold text-lg mb-1">Insight FinAI</h3>
-              <div className="text-indigo-100 text-sm leading-relaxed prose prose-invert max-w-none">
-                {/* Render basic markdown if needed or just text */}
-                {aiAdvice.split('\n').map((line, i) => (
-                  <p key={i} className="mb-1">{line}</p>
-                ))}
-              </div>
+            <h3 className="text-xl font-bold mb-2">Análise Inteligente</h3>
+            <div className="text-sky-100 text-sm max-w-xl italic leading-relaxed">
+              {/* Formatting the text a bit better than just P tags if plain text */}
+              "{aiAdvice}"
             </div>
           </div>
+          <div className="bg-white/10 p-4 rounded-full backdrop-blur-md z-10 border border-white/20 hidden md:block">
+            <div className="text-center">
+              <p className="text-[10px] font-bold text-sky-200 uppercase mb-1">Score</p>
+              <p className="text-3xl font-black">88</p>
+            </div>
+          </div>
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-20 -mt-20 blur-3xl group-hover:bg-white/10 transition-all duration-700"></div>
         </div>
       )}
 

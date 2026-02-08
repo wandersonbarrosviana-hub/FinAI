@@ -115,22 +115,28 @@ export const chatWithFinancialAssistant = async (
     try {
         const model = getModel();
 
+        // Safe helpers
+        const safeNum = (n: any) => typeof n === 'number' ? n : Number(n) || 0;
+
         // Prepare Context
-        const balance = accounts.reduce((sum, acc) => sum + acc.balance, 0);
-        const expenses = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
-        const income = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+        const balance = accounts.reduce((sum, acc) => sum + safeNum(acc.balance), 0);
+        const expenses = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + safeNum(t.amount), 0);
+        const income = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + safeNum(t.amount), 0);
 
         const recentTrans = transactions.slice(0, 10).map(t =>
-            `- ${t.date}: ${t.description} (R$ ${t.amount}) [${t.category}]`
+            `- ${t.date}: ${t.description} (R$ ${safeNum(t.amount).toFixed(2)}) [${t.category}]`
         ).join('\n');
+
+        const safeGoals = Array.isArray(goals) ? goals.map(g => ({ title: g.title, target: safeNum(g.target), current: safeNum(g.current) })) : [];
+        const safeBudgets = Array.isArray(budgets) ? budgets.map(b => ({ category: b.category, amount: safeNum(b.amount) })) : [];
 
         const context = `
             CONTEXTO FINANCEIRO DO USUÁRIO:
             - Saldo Total Atual: R$ ${balance.toFixed(2)}
             - Total Receitas (Histórico): R$ ${income.toFixed(2)}
             - Total Despesas (Histórico): R$ ${expenses.toFixed(2)}
-            - Metas Ativas: ${JSON.stringify(goals)}
-            - Orçamentos: ${JSON.stringify(budgets)}
+            - Metas Ativas: ${JSON.stringify(safeGoals)}
+            - Orçamentos: ${JSON.stringify(safeBudgets)}
             
             ÚLTIVAS 10 TRANSAÇÕES:
             ${recentTrans}
@@ -155,8 +161,10 @@ export const chatWithFinancialAssistant = async (
         const result = await model.generateContent(prompt);
         return result.response.text();
     } catch (error) {
-        console.error("Chat Error:", error);
-        return "Desculpe, estou com dificuldades para processar seus dados agora.";
+        console.error("Chat Error Details:", error);
+        // Return a visible error for the UI to show
+        if ((error as any).message?.includes('API key')) return "Erro de Configuração: Chave API inválida ou ausente.";
+        return "Desculpe, estou com dificuldades para processar seus dados agora. Tente novamente em instantes.";
     }
 };
 
