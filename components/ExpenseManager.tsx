@@ -155,7 +155,7 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-2xl font-bold text-slate-800">
           Gerenciar {type === 'expense' ? 'Despesas' : 'Receitas'}
         </h2>
@@ -164,7 +164,7 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
             if (isFormOpen && editingId) { setIsFormOpen(false); setEditingId(null); resetForm(); }
             else setIsFormOpen(!isFormOpen);
           }}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all shadow-lg ${isFormOpen ? 'bg-slate-200 text-slate-600 hover:bg-slate-300' : 'bg-sky-600 text-white hover:bg-sky-700 shadow-sky-100'}`}
+          className={`w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 rounded-xl transition-all shadow-lg ${isFormOpen ? 'bg-slate-200 text-slate-600 hover:bg-slate-300' : 'bg-sky-600 text-white hover:bg-sky-700 shadow-sky-100'}`}
         >
           {isFormOpen ? <X size={20} /> : <Plus size={20} />}
           <span>{isFormOpen ? 'Cancelar' : 'Novo Lançamento'}</span>
@@ -172,7 +172,7 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
       </div>
 
       {isFormOpen && (
-        <form onSubmit={handleSubmit} className="bg-white p-6 rounded-2xl border border-sky-100 shadow-sm animate-in fade-in slide-in-from-top-4 duration-300">
+        <form onSubmit={handleSubmit} className="bg-white p-4 md:p-6 rounded-2xl border border-sky-100 shadow-sm animate-in fade-in slide-in-from-top-4 duration-300">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-bold text-slate-500 uppercase flex items-center gap-2">
               {editingId ? <Edit2 size={16} /> : <Plus size={16} />}
@@ -241,8 +241,8 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
                 </div>
                 <div className="space-y-1 md:col-span-2">
                   <label className="text-xs font-bold text-sky-700 uppercase ml-1">O valor informado é:</label>
-                  <div className="flex gap-4 mt-2">
-                    <label className="flex items-center gap-2 cursor-pointer">
+                  <div className="flex flex-col md:flex-row gap-2 md:gap-4 mt-2">
+                    <label className="flex items-center gap-2 cursor-pointer bg-white/50 p-2 rounded-lg border border-sky-100">
                       <input
                         type="radio"
                         name="valueType"
@@ -251,10 +251,10 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
                         className="text-sky-600 focus:ring-sky-500"
                       />
                       <span className="text-sm font-medium text-slate-700">
-                        {type === 'income' ? 'Valor Mensal (por mês)' : 'Valor da Parcela (Mensal)'}
+                        {type === 'income' ? 'Valor Mensal' : 'Valor da Parcela'}
                       </span>
                     </label>
-                    <label className="flex items-center gap-2 cursor-pointer">
+                    <label className="flex items-center gap-2 cursor-pointer bg-white/50 p-2 rounded-lg border border-sky-100">
                       <input
                         type="radio"
                         name="valueType"
@@ -263,7 +263,7 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
                         className="text-sky-600 focus:ring-sky-500"
                       />
                       <span className="text-sm font-medium text-slate-700">
-                        {type === 'income' ? 'Valor Total a Receber' : 'Valor Total da Compra'}
+                        {type === 'income' ? 'Valor Total' : 'Valor Total'}
                       </span>
                     </label>
                   </div>
