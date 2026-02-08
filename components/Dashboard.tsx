@@ -1,8 +1,8 @@
 
 import React from 'react';
-import { 
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
-  BarChart, Bar, Cell, PieChart, Pie 
+import {
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  BarChart, Bar, Cell, PieChart, Pie
 } from 'recharts';
 import { Transaction, Account } from '../types';
 import { TrendingUp, TrendingDown, Wallet, PlusCircle } from 'lucide-react';
@@ -15,28 +15,81 @@ interface DashboardProps {
 
 const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, onAddClick }) => {
   const totalBalance = accounts.reduce((acc, curr) => acc + curr.balance, 0);
+  // Calcular totais do mês (já filtrado pelo pai)
   const monthIncome = transactions
-    .filter(t => t.type === 'income' && new Date(t.date).getMonth() === new Date().getMonth())
+    .filter(t => t.type === 'income')
     .reduce((acc, curr) => acc + curr.amount, 0);
+
   const monthExpense = transactions
-    .filter(t => t.type === 'expense' && new Date(t.date).getMonth() === new Date().getMonth())
+    .filter(t => t.type === 'expense')
     .reduce((acc, curr) => acc + curr.amount, 0);
 
-  const chartData = [
-    { name: 'Semana 1', income: 1200, expense: 800 },
-    { name: 'Semana 2', income: 1500, expense: 1100 },
-    { name: 'Semana 3', income: 900, expense: 1400 },
-    { name: 'Semana 4', income: 2100, expense: 950 },
-  ];
+  // Processar dados para o gráfico de linha (fluxo semanal)
+  const processChartData = () => {
+    const weeks: { [key: string]: { income: number; expense: number } } = {};
 
-  const pieData = [
-    { name: 'Alimentação', value: 400 },
-    { name: 'Lazer', value: 300 },
-    { name: 'Transporte', value: 300 },
-    { name: 'Moradia', value: 800 },
-  ];
+    // Inicializar 4-5 semanas
+    const lastDay = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
+    // Nota: Como transactions já vem filtrado por mês, podemos pegar o mês da primeira transação ou assumir o atual se vazio,
+    // mas o ideal seria receber a data atual via props. 
+    // Para simplificar e garantir consistência com transactions, vamos agrupar apenas os dias existentes.
+    // Melhor: Agrupar em 4 semanas fixas para consistência visual.
 
-  const COLORS = ['#0ea5e9', '#38bdf8', '#7dd3fc', '#bae6fd'];
+    // Vamos criar 4 semanas padrão
+    for (let i = 1; i <= 4; i++) {
+      weeks[`Semana ${i}`] = { income: 0, expense: 0 };
+    }
+
+    transactions.forEach(t => {
+      const date = new Date(t.date);
+      const day = date.getDate();
+      // Divisão simples por semanas (1-7, 8-14, 15-21, 22+)
+      let weekKey = 'Semana 1';
+      if (day > 21) weekKey = 'Semana 4';
+      else if (day > 14) weekKey = 'Semana 3';
+      else if (day > 7) weekKey = 'Semana 2';
+
+      if (t.type === 'income') {
+        weeks[weekKey].income += t.amount;
+      } else {
+        weeks[weekKey].expense += t.amount;
+      }
+    });
+
+    return Object.keys(weeks).map(key => ({
+      name: key,
+      income: weeks[key].income,
+      expense: weeks[key].expense
+    }));
+  };
+
+  const chartData = processChartData();
+
+  // Processar dados para o gráfico de pizza (categorias de despesa)
+  const processPieData = () => {
+    const expenses = transactions.filter(t => t.type === 'expense');
+    const categoryMap: { [key: string]: number } = {};
+
+    expenses.forEach(t => {
+      if (categoryMap[t.category]) {
+        categoryMap[t.category] += t.amount;
+      } else {
+        categoryMap[t.category] = t.amount;
+      }
+    });
+
+    return Object.keys(categoryMap).map(category => ({
+      name: category,
+      value: categoryMap[category]
+    })).sort((a, b) => b.value - a.value).slice(0, 5); // Top 5 categories
+  };
+
+  const pieData = processPieData();
+
+  // Cores dinâmicas para o gráfico de pizza (se houver muitas categorias, repetir)
+  const BASE_COLORS = ['#0ea5e9', '#38bdf8', '#7dd3fc', '#bae6fd', '#e0f2fe'];
+  const COLORS = pieData.length > 0 ? BASE_COLORS.slice(0, pieData.length) : BASE_COLORS;
+
 
   return (
     <div className="space-y-6">
@@ -45,7 +98,7 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, onAddClic
           <h2 className="text-2xl font-bold text-slate-800">Visão Geral</h2>
           <p className="text-slate-500">Bem-vindo de volta! Aqui está o resumo das suas finanças.</p>
         </div>
-        <button 
+        <button
           onClick={onAddClick}
           className="flex items-center gap-2 bg-sky-600 text-white px-4 py-2 rounded-lg hover:bg-sky-700 transition-all shadow-md shadow-sky-100"
         >
@@ -93,13 +146,13 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, onAddClic
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} />
-                <Tooltip 
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} dy={10} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
+                <Tooltip
                   contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                 />
-                <Line type="monotone" dataKey="income" stroke="#10b981" strokeWidth={3} dot={{r: 4}} activeDot={{r: 6}} />
-                <Line type="monotone" dataKey="expense" stroke="#f43f5e" strokeWidth={3} dot={{r: 4}} activeDot={{r: 6}} />
+                <Line type="monotone" dataKey="income" stroke="#10b981" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+                <Line type="monotone" dataKey="expense" stroke="#f43f5e" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
               </LineChart>
             </ResponsiveContainer>
           </div>
