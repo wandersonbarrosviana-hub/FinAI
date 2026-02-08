@@ -9,36 +9,24 @@ import AccountManager from './components/AccountManager';
 import GoalManager from './components/GoalManager';
 import BudgetManager from './components/BudgetManager';
 import { Transaction, Account, ViewState, User, Goal } from './types';
-import { Bell, Search, User as UserIcon, Plus, Sparkles, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
-
-const MOCK_ACCOUNTS: Account[] = [
-  { id: '1', name: 'Principal Corrente', balance: 5240.50, type: 'checking', bankId: 'itau', color: '#EC7000' },
-  { id: '2', name: 'Minha Reserva', balance: 12400.00, type: 'investment', bankId: 'nubank', color: '#8A05BE' },
-];
-
-const MOCK_TRANSACTIONS: Transaction[] = [
-  { id: '1', description: 'Salário', amount: 8000.00, date: '2023-11-01', category: 'Investimentos', subCategory: 'Ações', type: 'income', account: '1', isPaid: true, paymentMethod: 'PIX', recurrence: 'one_time' },
-  { id: '2', description: 'Supermercado', amount: 450.20, date: '2023-11-05', dueDate: '2023-11-10', category: 'Alimentação', subCategory: 'Supermercado', type: 'expense', account: '1', isPaid: true, paymentMethod: 'Débito', recurrence: 'one_time' },
-  { id: '3', description: 'Aluguel', amount: 2200.00, date: '2023-11-01', dueDate: '2023-11-05', category: 'Moradia', subCategory: 'Aluguel', type: 'expense', account: '1', isPaid: false, paymentMethod: 'Boleto', recurrence: 'fixed' },
-  { id: '4', description: 'Restaurante', amount: 120.00, date: '2023-11-08', category: 'Lazer', subCategory: 'Restaurante', type: 'expense', account: '1', isPaid: true, paymentMethod: 'Cartão de Crédito', recurrence: 'one_time' },
-];
-
-const MOCK_GOALS: Goal[] = [
-  { id: 'g1', title: 'Independência Financeira', target: 500000, current: 15000, deadline: '2035-12-31', category: 'Aposentadoria' },
-  { id: 'g2', title: 'Troca de Carro', target: 80000, current: 12000, deadline: '2026-06-30', category: 'Veículos' },
-];
-
+import { Bell, Search, User as UserIcon, Plus, Sparkles, AlertCircle, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { parseNotification, getFinancialAdvice } from './geminiService';
+import { supabase } from './supabaseClient';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [currentView, setCurrentView] = useState<ViewState>('dashboard');
-  const [transactions, setTransactions] = useState<Transaction[]>(MOCK_TRANSACTIONS);
-  const [accounts, setAccounts] = useState<Account[]>(MOCK_ACCOUNTS);
-  const [goals, setGoals] = useState<Goal[]>(MOCK_GOALS);
+
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [goals, setGoals] = useState<Goal[]>([]);
+
   const [showNotificationPopup, setShowNotificationPopup] = useState(false);
-  const [notificationData, setNotificationData] = useState<any>(null); // Store parsed notification
+  const [notificationData, setNotificationData] = useState<any>(null);
   const [aiAdvice, setAiAdvice] = useState<string>('Analisando suas finanças...');
 
   // Date State for Global Filter
@@ -48,38 +36,108 @@ const App: React.FC = () => {
   });
 
   useEffect(() => {
-    // Simulate incoming SMS after 10s
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      if (session?.user) {
+        setUser({ id: session.user.id, email: session.user.email!, name: session.user.user_metadata.name || session.user.email!.split('@')[0] });
+        fetchData(session.user.id);
+      } else {
+        setLoading(false);
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      if (session?.user) {
+        setUser({ id: session.user.id, email: session.user.email!, name: session.user.user_metadata.name || session.user.email!.split('@')[0] });
+        fetchData(session.user.id);
+      } else {
+        setUser(null);
+        setTransactions([]);
+        setAccounts([]);
+        setGoals([]);
+        setLoading(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const fetchData = async (userId: string) => {
+    setLoading(true);
+    try {
+      const [txRes, accRes, goalRes] = await Promise.all([
+        supabase.from('transactions').select('*').eq('user_id', userId).order('date', { ascending: false }),
+        supabase.from('accounts').select('*').eq('user_id', userId),
+        supabase.from('goals').select('*').eq('user_id', userId)
+      ]);
+
+      if (txRes.error) throw txRes.error;
+      if (accRes.error) throw accRes.error;
+      if (goalRes.error) throw goalRes.error;
+
+      // Map DB fields to Frontend Interface if needed (e.g. snake_case to camelCase if inconsistent)
+      // Currently interface matches mostly, check specific fields
+
+      const mappedTxs = txRes.data.map((t: any) => ({
+        ...t,
+        date: t.date.split('T')[0], // Ensure YYYY-MM-DD
+        dueDate: t.due_date ? t.due_date.split('T')[0] : undefined,
+        installmentCount: t.installment_count,
+        installmentTotal: t.installment_total,
+        subCategory: t.sub_category,
+        paymentMethod: t.payment_method,
+        isPaid: t.is_paid
+      }));
+
+      const mappedAccs = accRes.data.map((a: any) => ({
+        ...a,
+        bankId: a.bank_id,
+        isCredit: a.is_credit
+      }));
+
+      setTransactions(mappedTxs);
+      setAccounts(mappedAccs);
+      setGoals(goalRes.data);
+
+      // After fetching data, run initial AI logic
+      if (mappedTxs.length > 0) {
+        getFinancialAdvice(mappedTxs, mappedAccs).then(setAiAdvice);
+      }
+
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!user) return;
+
+    // Simulate incoming SMS after 10s (Only once per session mount to be annoying? No, implementation kept simple)
     const timer = setTimeout(async () => {
       const fakeSMS = "Compra aprovada R$ 127,50 em LOJAS RENNER 14:30";
       const parsed = await parseNotification(fakeSMS);
       if (parsed) {
         setNotificationData({
           raw: fakeSMS,
-          parsed: { ...parsed, isPaid: true, paymentMethod: 'Cartão de Crédito' } // augment with context defaults
+          parsed: { ...parsed, isPaid: true, paymentMethod: 'Cartão de Crédito' }
         });
         setShowNotificationPopup(true);
       }
-    }, 10000);
-
-    // Get AI Advice on load
-    updateAdvice();
+    }, 15000);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [user]); // Run when user logs in
 
   const updateAdvice = async () => {
-    // Basic debounce or check to avoid spamming API could be added here
     const advice = await getFinancialAdvice(transactions, accounts);
     setAiAdvice(advice);
   };
 
-
-  const handleLogin = (email: string) => {
-    setUser({ id: '1', email, name: email.split('@')[0] });
-  };
-
-  const handleLogout = () => {
-    setUser(null);
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
   };
 
   // Navigation Logic
@@ -102,16 +160,10 @@ const App: React.FC = () => {
   // Global Filter
   const filteredTransactions = transactions.filter(t => {
     const tDate = new Date(t.date);
-    // Ensure we compare year/month ignoring time/day
     return tDate.getMonth() === currentDate.getMonth() &&
       tDate.getFullYear() === currentDate.getFullYear();
   });
 
-  // Calculate Monthly Balance (Income - Expense for the selected month)
-  // Logic: Sum of all Income - Sum of all Expenses (regardless of paid status? 
-  // Usually for a budget view, we look at projected. But maybe user wants realised.
-  // The most useful metric for "Saldo do Mês" header is usually (Receitas Previstas - Despesas Previstas) or (Receitas Realizadas - Despesas Realizadas).
-  // Given the earlier context, let's show the Projected Balance (All Income - All Expenses) for the month.
   const monthlyBalance = filteredTransactions.reduce((acc, t) => {
     if (t.type === 'income') return acc + t.amount;
     if (t.type === 'expense') return acc - t.amount;
@@ -119,82 +171,72 @@ const App: React.FC = () => {
   }, 0);
 
 
-  const handleUpdateTransaction = (id: string, updates: Partial<Transaction>) => {
+  const handleUpdateTransaction = async (id: string, updates: Partial<Transaction>) => {
+    /* 
+       Optimistic Update:
+       1. Update local state immediately
+       2. Send via API
+       3. If fail, revert
+    */
+
+    // Calculate Balance Diff for Account update logic (Optimistic)
+    // Finding original transaction
+    const originalTx = transactions.find(t => t.id === id);
+    if (!originalTx) return;
+
+    // Apply updates locally
     setTransactions(prev => prev.map(t => {
       if (t.id === id) {
-        const updated = { ...t, ...updates };
-        if (updates.isPaid !== undefined && updates.isPaid !== t.isPaid) {
-          const diff = updated.amount;
-          setAccounts(accs => accs.map(acc => {
-            if (acc.id === updated.account) {
-              if (updated.type === 'expense') {
-                return { ...acc, balance: updates.isPaid ? acc.balance - diff : acc.balance + diff };
-              } else {
-                return { ...acc, balance: updates.isPaid ? acc.balance + diff : acc.balance - diff };
-              }
-            }
-            return acc;
-          }));
-        }
-        return updated;
+        return { ...t, ...updates };
       }
       return t;
     }));
-  };
 
-  const handleAICommand = (result: any) => {
-    if (result.intent === 'CREATE') {
-      const data = result.data;
-      const newTx: Transaction = {
-        id: Math.random().toString(36).substr(2, 9),
-        description: data.description || 'Novo Lançamento',
-        amount: data.amount || 0,
-        date: new Date().toISOString().split('T')[0],
-        dueDate: data.dueDate || new Date().toISOString().split('T')[0],
-        category: data.category || 'Outros',
-        subCategory: data.subCategory || 'Diversos',
-        type: data.type || 'expense',
-        account: accounts[0]?.id || '1',
-        paymentMethod: 'IA Voice',
-        isPaid: data.isPaid !== undefined ? data.isPaid : data.type === 'income',
-        recurrence: 'one_time'
-      };
+    // Handle Balance Update Logic (Sync with Account Balance)
+    if (updates.isPaid !== undefined && updates.isPaid !== originalTx.isPaid) {
+      const accountId = updates.account || originalTx.account;
+      const amount = updates.amount || originalTx.amount;
+      const type = updates.type || originalTx.type;
 
-      setTransactions([newTx, ...transactions]);
-
-      if (newTx.isPaid) {
-        setAccounts(prev => prev.map(acc => {
-          if (acc.id === newTx.account) {
-            return { ...acc, balance: newTx.type === 'expense' ? acc.balance - newTx.amount : acc.balance + newTx.amount };
+      // Fetch current account balance first or use local?
+      // Using local logic for immediate feedback
+      setAccounts(accs => accs.map(acc => {
+        if (acc.id === accountId) {
+          const diff = amount;
+          if (type === 'expense') {
+            return { ...acc, balance: updates.isPaid ? acc.balance - diff : acc.balance + diff };
+          } else {
+            return { ...acc, balance: updates.isPaid ? acc.balance + diff : acc.balance - diff };
           }
-          return acc;
-        }));
-      }
-    } else if (result.intent === 'UPDATE_STATUS') {
-      const { searchDescription, newStatus } = result.data;
-      const tx = transactions.find(t =>
-        t.description.toLowerCase().includes(searchDescription.toLowerCase())
-      );
-      if (tx) {
-        handleUpdateTransaction(tx.id, { isPaid: newStatus });
-        return true;
-      }
-      return false;
-    }
-    return true;
-  };
+        }
+        return acc;
+      }));
 
-  const handleDeleteTransaction = (id: string) => {
-    const tx = transactions.find(t => t.id === id);
-    if (!tx) return;
-    setTransactions(prev => prev.filter(t => t.id !== id));
-    if (tx.isPaid) {
-      if (tx.type === 'expense') {
-        setAccounts(prev => prev.map(acc => acc.id === tx.account ? { ...acc, balance: acc.balance + tx.amount } : acc));
-      } else {
-        setAccounts(prev => prev.map(acc => acc.id === tx.account ? { ...acc, balance: acc.balance - tx.amount } : acc));
+      // Also update account in DB
+      const acc = accounts.find(a => a.id === accountId);
+      if (acc) {
+        const diff = amount;
+        let newBalance = acc.balance;
+        if (type === 'expense') {
+          newBalance = updates.isPaid ? acc.balance - diff : acc.balance + diff;
+        } else {
+          newBalance = updates.isPaid ? acc.balance + diff : acc.balance - diff;
+        }
+        supabase.from('accounts').update({ balance: newBalance }).eq('id', accountId);
       }
     }
+
+    // Map updates to DB columns
+    const dbUpdates: any = {};
+    if (updates.description) dbUpdates.description = updates.description;
+    if (updates.amount) dbUpdates.amount = updates.amount;
+    if (updates.date) dbUpdates.date = updates.date;
+    if (updates.isPaid !== undefined) dbUpdates.is_paid = updates.isPaid;
+    if (updates.category) dbUpdates.category = updates.category;
+    if (updates.subCategory) dbUpdates.sub_category = updates.subCategory;
+    // ... add others as needed
+
+    await supabase.from('transactions').update(dbUpdates).eq('id', id);
   };
 
   // Helper to add months to a date string (YYYY-MM-DD) handling end-of-month correctly
@@ -205,9 +247,7 @@ const App: React.FC = () => {
     const day = parseInt(dayStr);
 
     const date = new Date(year, month + months, 1);
-    // To avoid overflow (e.g. Jan 31 -> Feb 28), we check the last day of the new month
     const lastDayOfNewMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
-
     const newDay = Math.min(day, lastDayOfNewMonth);
     date.setDate(newDay);
 
@@ -218,14 +258,16 @@ const App: React.FC = () => {
     return `${y}-${m}-${d}`;
   };
 
-  const handleAddTransaction = (data: Partial<Transaction>) => {
+  const handleAddTransaction = async (data: Partial<Transaction>) => {
+    if (!user) return;
+
     const baseTx = {
       description: data.description || 'Novo Lançamento',
       amount: data.amount || 0,
       category: data.category || 'Outros',
       subCategory: data.subCategory || 'Diversos',
       type: data.type || 'expense',
-      account: data.account || accounts[0]?.id || '1',
+      account: data.account || accounts[0]?.id, // Must fix this logic if no accounts
       paymentMethod: data.paymentMethod || 'PIX',
       isPaid: data.isPaid !== undefined ? data.isPaid : data.type === 'income',
       recurrence: data.recurrence || 'one_time',
@@ -233,169 +275,239 @@ const App: React.FC = () => {
       installmentTotal: data.installmentTotal
     };
 
-    const newTransactions: Transaction[] = [];
+    if (!baseTx.account) {
+      alert("Por favor, crie uma conta antes de adicionar transações.");
+      return;
+    }
+
+    const newTransactions: any[] = []; // for DB
+    const newOptimisticTxs: Transaction[] = []; // for State
+
     const baseDate = data.date || new Date().toISOString().split('T')[0];
     const baseDueDate = data.dueDate || baseDate;
 
+    // Helper to generate IDs safely? Supabase generates UUIDs.
+    // Ideally we let Supabase generate IDs and return them.
+    // BUT for recurrence we are generating multiple.
+    // Strategy: Insert to DB, wait for response, then update state.
+
+    // Construct payload objects (without IDs)
     if (baseTx.recurrence === 'fixed') {
-      // Generate for next 12 months
       for (let i = 0; i < 12; i++) {
         newTransactions.push({
-          ...baseTx,
-          id: Math.random().toString(36).substr(2, 9),
+          user_id: user.id,
+          description: baseTx.description,
+          amount: baseTx.amount,
           date: addMonths(baseDate, i),
-          dueDate: addMonths(baseDueDate, i),
-          // For fixed, we usually don't append (1/12) unless requested, but let's keep it clean
-          // We might want to mark them as 'pending' for future months even if first is paid?
-          // Logic: if user says "Paid", usually they mean the current one.
-          // But for simplicity, let's respect the form's choice for the *first* one, and mark others as pending?
-          // User Request: "Fixed monthly... adds to future months".
-          // Let's make future ones pending by default if expense? Or copy status?
-          // Safest: Copy status for first, others pending.
-          isPaid: i === 0 ? baseTx.isPaid : false
-        } as Transaction);
+          category: baseTx.category,
+          sub_category: baseTx.subCategory,
+          type: baseTx.type,
+          account_id: baseTx.account,
+          payment_method: baseTx.paymentMethod,
+          is_paid: i === 0 ? baseTx.isPaid : false,
+          recurrence: 'fixed',
+          installment_total: baseTx.installmentTotal,
+          installment_count: baseTx.installmentCount
+        });
       }
     } else if (baseTx.recurrence === 'installment' && baseTx.installmentCount && baseTx.installmentCount > 1) {
-      // Generate N installments
       for (let i = 0; i < baseTx.installmentCount; i++) {
         newTransactions.push({
-          ...baseTx,
-          id: Math.random().toString(36).substr(2, 9),
+          user_id: user.id,
           description: `${baseTx.description} (${i + 1}/${baseTx.installmentCount})`,
+          amount: baseTx.amount,
           date: addMonths(baseDate, i),
-          dueDate: addMonths(baseDueDate, i),
-          isPaid: i === 0 ? baseTx.isPaid : false
-        } as Transaction);
+          category: baseTx.category,
+          sub_category: baseTx.subCategory,
+          type: baseTx.type,
+          account_id: baseTx.account,
+          payment_method: baseTx.paymentMethod,
+          is_paid: i === 0 ? baseTx.isPaid : false,
+          recurrence: 'installment',
+          installment_total: baseTx.installmentTotal,
+          installment_count: baseTx.installmentCount
+        });
       }
     } else {
-      // Single transaction
       newTransactions.push({
-        ...baseTx,
-        id: Math.random().toString(36).substr(2, 9),
+        user_id: user.id,
+        description: baseTx.description,
+        amount: baseTx.amount,
         date: baseDate,
-        dueDate: baseDueDate
-      } as Transaction);
+        category: baseTx.category,
+        sub_category: baseTx.subCategory,
+        type: baseTx.type,
+        account_id: baseTx.account,
+        payment_method: baseTx.paymentMethod,
+        is_paid: baseTx.isPaid,
+        recurrence: 'one_time'
+      });
     }
 
-    setTransactions(prev => [...newTransactions, ...prev]);
+    try {
+      const { data: insertedData, error } = await supabase.from('transactions').insert(newTransactions).select();
 
-    // Update accounts for PAID transactions only
-    newTransactions.forEach(tx => {
-      if (tx.isPaid) {
-        const diff = tx.amount;
-        setAccounts(prev => prev.map(acc => {
-          if (acc.id === tx.account) {
-            return {
-              ...acc,
-              balance: tx.type === 'expense' ? acc.balance - diff : acc.balance + diff
-            };
-          }
-          return acc;
+      if (error) throw error;
+
+      // Map back to Frontend Types
+      if (insertedData) {
+        const mappedNew = insertedData.map((t: any) => ({
+          ...t,
+          date: t.date.split('T')[0],
+          // account: t.account_id, // interface uses 'account' string
+          account: t.account_id,
+          subCategory: t.sub_category,
+          paymentMethod: t.payment_method,
+          isPaid: t.is_paid,
+          installmentCount: t.installment_count,
+          installmentTotal: t.installment_total
         }));
+
+        setTransactions(prev => [...mappedNew, ...prev]);
+
+        // Handle Account Balance Update
+        mappedNew.forEach((tx: any) => {
+          if (tx.isPaid) {
+            // Update Local
+            setAccounts(prev => prev.map(acc => {
+              const diff = tx.amount;
+              if (acc.id === tx.account) {
+                return { ...acc, balance: tx.type === 'expense' ? acc.balance - diff : acc.balance + diff };
+              }
+              return acc;
+            }));
+
+            // Update DB (Optimized: could do one update per account at end, but simplistic here)
+            const acc = accounts.find(a => a.id === tx.account);
+            if (acc) {
+              const diff = tx.amount;
+              const newBalance = tx.type === 'expense' ? acc.balance - diff : acc.balance + diff;
+              supabase.from('accounts').update({ balance: newBalance }).eq('id', tx.account);
+            }
+          }
+        });
       }
-    });
+    } catch (err) {
+      console.error("Error creating transaction", err);
+      alert("Erro ao salvar transação");
+    }
   };
 
-  const handleAddAccount = (data: Partial<Account>) => {
-    const newAcc: Account = {
-      id: Math.random().toString(36).substr(2, 9),
+  const handleAICommand = (result: any) => {
+    // Reuse handleAddTransaction logic? Or create specific logic?
+    // Reuse is better to get DB persistence.
+    if (result.intent === 'CREATE') {
+      handleAddTransaction(result.data);
+    } else if (result.intent === 'UPDATE_STATUS') {
+      // ... find tx ...
+      const { searchDescription, newStatus } = result.data;
+      const tx = transactions.find(t =>
+        t.description.toLowerCase().includes(searchDescription.toLowerCase())
+      );
+      if (tx) {
+        handleUpdateTransaction(tx.id, { isPaid: newStatus });
+        return true;
+      }
+      return false;
+    }
+  };
+
+  const handleDeleteTransaction = async (id: string) => {
+    const tx = transactions.find(t => t.id === id);
+    if (!tx) return;
+
+    // Optimistic Delete
+    setTransactions(prev => prev.filter(t => t.id !== id));
+
+    // Balance Revert
+    if (tx.isPaid) {
+      setAccounts(prev => prev.map(acc => {
+        if (acc.id === tx.account) {
+          return { ...acc, balance: tx.type === 'expense' ? acc.balance + tx.amount : acc.balance - tx.amount };
+        }
+        return acc;
+      }));
+      // DB Balance Revert... ideally async in background
+      const acc = accounts.find(a => a.id === tx.account);
+      if (acc) {
+        const newBalance = tx.type === 'expense' ? acc.balance + tx.amount : acc.balance - tx.amount;
+        await supabase.from('accounts').update({ balance: newBalance }).eq('id', tx.account);
+      }
+    }
+
+    await supabase.from('transactions').delete().eq('id', id);
+  };
+
+  const handleAddAccount = async (data: Partial<Account>) => {
+    if (!user) return;
+    const newAccPayload = {
+      user_id: user.id,
       name: data.name || 'Nova Conta',
       balance: data.balance || 0,
       type: data.type || 'checking',
-      bankId: data.bankId || 'outro',
-      color: data.color || '#64748b'
+      bank_id: data.bankId || 'outro',
+      color: data.color || '#64748b',
+      is_credit: false // default
     };
-    setAccounts([...accounts, newAcc]);
+
+    const { data: inserted, error } = await supabase.from('accounts').insert(newAccPayload).select().single();
+    if (inserted && !error) {
+      const newAcc = {
+        ...inserted,
+        bankId: inserted.bank_id,
+        isCredit: inserted.is_credit
+      };
+      setAccounts(prev => [...prev, newAcc]);
+    }
   };
 
-  const handleDeleteAccount = (id: string) => {
+  const handleDeleteAccount = async (id: string) => {
     setAccounts(prev => prev.filter(acc => acc.id !== id));
+    await supabase.from('accounts').delete().eq('id', id);
   };
 
-  const handleAddGoal = (data: Partial<Goal>) => {
-    const newGoal: Goal = {
-      id: Math.random().toString(36).substr(2, 9),
+  const handleAddGoal = async (data: Partial<Goal>) => {
+    if (!user) return;
+    const newGoalPayload = {
+      user_id: user.id,
       title: data.title || 'Novo Objetivo',
       target: data.target || 0,
       current: data.current || 0,
-      deadline: data.deadline || '',
-      category: data.category || 'Investimentos'
+      deadline: data.deadline || null,
+      category: data.category || 'Geral'
     };
-    setGoals([...goals, newGoal]);
-  };
 
-  const handleDeleteGoal = (id: string) => {
-    setGoals(prev => prev.filter(g => g.id !== id));
-  };
-
-  if (!user) {
-    return <Auth onLogin={handleLogin} />;
-  }
-
-  const renderContent = () => {
-    // We pass the FILTERED transactions to views, so they only see the selected month's data
-    switch (currentView) {
-      case 'dashboard':
-        return (
-          <div className="space-y-6">
-            <div className="bg-gradient-to-r from-sky-600 to-indigo-700 p-6 rounded-3xl text-white shadow-xl shadow-sky-200 flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden relative group">
-              <div className="z-10 relative">
-                <div className="flex items-center gap-2 mb-2">
-                  <Sparkles size={18} className="text-sky-200 animate-pulse" />
-                  <span className="text-xs font-bold uppercase tracking-widest text-sky-100">Consultor IA - FinAI</span>
-                </div>
-                <h3 className="text-xl font-bold mb-2">Análise Inteligente</h3>
-                <p className="text-sky-100 text-sm max-w-xl italic">"{aiAdvice}"</p>
-                <div className="flex gap-2 mt-4">
-                  <button
-                    onClick={updateAdvice}
-                    className="bg-white/10 border border-white/20 text-white px-3 py-1.5 rounded-lg text-xs hover:bg-white/20 transition-all"
-                  >
-                    Atualizar Análise
-                  </button>
-                  <button
-                    onClick={() => setCurrentView('ai-assistant')}
-                    className="bg-white text-sky-600 px-4 py-1.5 rounded-lg text-xs font-bold hover:bg-sky-50 transition-all"
-                  >
-                    Ver Detalhes
-                  </button>
-                </div>
-              </div>
-              <div className="bg-white/10 p-4 rounded-full backdrop-blur-md z-10 border border-white/20 hidden md:block">
-
-                <div className="text-center">
-                  <p className="text-[10px] font-bold text-sky-200 uppercase mb-1">Score</p>
-                  <p className="text-3xl font-black">82</p>
-                </div>
-              </div>
-              <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-20 -mt-20 blur-3xl group-hover:bg-white/10 transition-all duration-700"></div>
-            </div>
-            <Dashboard transactions={filteredTransactions} accounts={accounts} onAddClick={() => setCurrentView('expenses')} />
-          </div>
-        );
-      case 'expenses':
-        return <ExpenseManager type="expense" transactions={filteredTransactions} onAddTransaction={handleAddTransaction} onDeleteTransaction={handleDeleteTransaction} onUpdateTransaction={handleUpdateTransaction} />;
-      case 'income':
-        return <ExpenseManager type="income" transactions={filteredTransactions} onAddTransaction={handleAddTransaction} onDeleteTransaction={handleDeleteTransaction} onUpdateTransaction={handleUpdateTransaction} />;
-      case 'accounts':
-        return <AccountManager accounts={accounts} onAddAccount={handleAddAccount} onDeleteAccount={handleDeleteAccount} />;
-      case 'goals':
-        return <GoalManager goals={goals} transactions={filteredTransactions} accounts={accounts} onAddGoal={handleAddGoal} onDeleteGoal={handleDeleteGoal} />;
-      case 'budgets':
-        return <BudgetManager transactions={filteredTransactions} />;
-      case 'ai-assistant':
-        return <FinancialAssistant transactions={transactions} accounts={accounts} />; // AI might need full context? Or just current month? Keeping full for now.
-      default:
-        return (
-          <div className="flex flex-col items-center justify-center h-full text-slate-400 space-y-4">
-            <div className="p-8 bg-white rounded-3xl border border-sky-100 text-center max-w-md shadow-sm">
-              <h3 className="text-xl font-bold text-slate-800 mb-2">Módulo em Desenvolvimento</h3>
-              <p>A seção de <strong>{currentView.charAt(0).toUpperCase() + currentView.slice(1)}</strong> está sendo finalizada pela nossa equipe. Em breve você terá acesso total.</p>
-            </div>
-          </div>
-        );
+    const { data: inserted, error } = await supabase.from('goals').insert(newGoalPayload).select().single();
+    if (inserted && !error) {
+      setGoals(prev => [...prev, inserted]);
     }
   };
+
+  const handleDeleteGoal = async (id: string) => {
+    setGoals(prev => prev.filter(g => g.id !== id));
+    await supabase.from('goals').delete().eq('id', id);
+  };
+
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center bg-slate-50 text-sky-600"><Loader2 size={40} className="animate-spin" /></div>;
+  }
+
+  if (!user) {
+    // Auth component doesn't need onLogin anymore if we rely on session state
+    // But let's keep it to satisfy interface if needed, or update props.
+    // Actually Auth calls onLogin, which calls old handleLogin.
+    // Let's refactor Auth usage.
+    /* 
+       Wait, Auth component internally calls supabase.auth.signIn...
+       So on successful login, the onAuthStateChange in App.tsx will trigger.
+       So onLogin prop is actually redundant if Auth does the call.
+       But Auth component implementation I wrote:
+          if (data.user?.email) { onLogin(data.user.email); }
+       So it calls it.
+       I can just pass a no-op or simple function.
+    */
+    return <Auth onLogin={() => { }} />;
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 flex overflow-hidden">
@@ -439,7 +551,7 @@ const App: React.FC = () => {
                 <p className="text-xs text-slate-500 mt-1 uppercase font-bold tracking-tighter">Premium</p>
               </div>
               <div className="w-10 h-10 rounded-full bg-sky-600 flex items-center justify-center text-white font-bold shadow-lg shadow-sky-100">
-                {user.name.charAt(0).toUpperCase()}
+                {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
               </div>
             </div>
           </div>
@@ -448,7 +560,72 @@ const App: React.FC = () => {
           <div className="mb-8">
             <VoiceControl onAddTransaction={handleAICommand} />
           </div>
-          {renderContent()}
+
+          {/* We pass the FILTERED transactions to views, so they only see the selected month's data */}
+          {(() => {
+            switch (currentView) {
+              case 'dashboard':
+                return (
+                  <div className="space-y-6">
+                    <div className="bg-gradient-to-r from-sky-600 to-indigo-700 p-6 rounded-3xl text-white shadow-xl shadow-sky-200 flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden relative group">
+                      <div className="z-10 relative">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Sparkles size={18} className="text-sky-200 animate-pulse" />
+                          <span className="text-xs font-bold uppercase tracking-widest text-sky-100">Consultor IA - FinAI</span>
+                        </div>
+                        <h3 className="text-xl font-bold mb-2">Análise Inteligente</h3>
+                        <p className="text-sky-100 text-sm max-w-xl italic">"{aiAdvice}"</p>
+                        <div className="flex gap-2 mt-4">
+                          <button
+                            onClick={updateAdvice}
+                            className="bg-white/10 border border-white/20 text-white px-3 py-1.5 rounded-lg text-xs hover:bg-white/20 transition-all"
+                          >
+                            Atualizar Análise
+                          </button>
+                          <button
+                            onClick={() => setCurrentView('ai-assistant')}
+                            className="bg-white text-sky-600 px-4 py-1.5 rounded-lg text-xs font-bold hover:bg-sky-50 transition-all"
+                          >
+                            Ver Detalhes
+                          </button>
+                        </div>
+                      </div>
+                      <div className="bg-white/10 p-4 rounded-full backdrop-blur-md z-10 border border-white/20 hidden md:block">
+
+                        <div className="text-center">
+                          <p className="text-[10px] font-bold text-sky-200 uppercase mb-1">Score</p>
+                          <p className="text-3xl font-black">82</p>
+                        </div>
+                      </div>
+                      <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-20 -mt-20 blur-3xl group-hover:bg-white/10 transition-all duration-700"></div>
+                    </div>
+                    <Dashboard transactions={filteredTransactions} accounts={accounts} onAddClick={() => setCurrentView('expenses')} />
+                  </div>
+                );
+              case 'expenses':
+                return <ExpenseManager type="expense" transactions={filteredTransactions} onAddTransaction={handleAddTransaction} onDeleteTransaction={handleDeleteTransaction} onUpdateTransaction={handleUpdateTransaction} />;
+              case 'income':
+                return <ExpenseManager type="income" transactions={filteredTransactions} onAddTransaction={handleAddTransaction} onDeleteTransaction={handleDeleteTransaction} onUpdateTransaction={handleUpdateTransaction} />;
+              case 'accounts':
+                return <AccountManager accounts={accounts} onAddAccount={handleAddAccount} onDeleteAccount={handleDeleteAccount} />;
+              case 'goals':
+                return <GoalManager goals={goals} transactions={filteredTransactions} accounts={accounts} onAddGoal={handleAddGoal} onDeleteGoal={handleDeleteGoal} />;
+              case 'budgets':
+                return <BudgetManager transactions={filteredTransactions} />;
+              case 'ai-assistant':
+                return <FinancialAssistant transactions={transactions} accounts={accounts} />; // AI might need full context? Or just current month? Keeping full for now.
+              default:
+                return (
+                  <div className="flex flex-col items-center justify-center h-full text-slate-400 space-y-4">
+                    <div className="p-8 bg-white rounded-3xl border border-sky-100 text-center max-w-md shadow-sm">
+                      <h3 className="text-xl font-bold text-slate-800 mb-2">Módulo em Desenvolvimento</h3>
+                      <p>A seção de <strong>{currentView.charAt(0).toUpperCase() + currentView.slice(1)}</strong> está sendo finalizada pela nossa equipe. Em breve você terá acesso total.</p>
+                    </div>
+                  </div>
+                );
+            }
+          })()}
+
         </div>
       </main>
       {showNotificationPopup && notificationData && (
