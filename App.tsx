@@ -514,8 +514,8 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-50 flex overflow-hidden">
       <Sidebar currentView={currentView} onViewChange={setCurrentView} isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} onLogout={handleLogout} />
-      <main className={`flex-1 flex flex-col transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-20'}`}>
-        <header className="h-20 bg-white/80 backdrop-blur-md border-b border-sky-100 flex items-center justify-between px-8 sticky top-0 z-40">
+      <main className={`flex-1 flex flex-col transition-all duration-300 mb-24 md:mb-0 ml-0 ${isSidebarOpen ? 'md:ml-64' : 'md:ml-20'}`}>
+        <header className="h-20 bg-white/80 backdrop-blur-md border-b border-sky-100 flex items-center justify-between px-4 md:px-8 sticky top-0 z-40">
           {/* Global Month Filter in Center */}
           <div className="flex-1 flex justify-center">
             <div className="flex items-center gap-6 bg-slate-100/50 p-2 rounded-2xl border border-slate-200 shadow-inner">
@@ -558,7 +558,7 @@ const App: React.FC = () => {
             </div>
           </div>
         </header>
-        <div className="p-8 overflow-y-auto scrollbar-hide">
+        <div className="p-4 md:p-8 overflow-y-auto scrollbar-hide">
           <div className="mb-8">
             <VoiceControl onAddTransaction={handleAICommand} />
           </div>
