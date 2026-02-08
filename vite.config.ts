@@ -45,8 +45,7 @@ export default defineConfig(({ mode }) => {
       // })
     ],
     define: {
-      'process.env.VITE_OPENAI_API_KEY': JSON.stringify(env.VITE_OPENAI_API_KEY),
-      'process.env.OPENAI_API_KEY': JSON.stringify(env.VITE_OPENAI_API_KEY)
+      // 'process.env.VITE_OPENAI_API_KEY': JSON.stringify(env.VITE_OPENAI_API_KEY), // Removed: Let Vite handle import.meta.env
     },
     resolve: {
       alias: {

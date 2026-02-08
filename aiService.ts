@@ -3,11 +3,14 @@ import OpenAI from 'openai';
 import { Transaction, Account } from './types';
 
 // Initialize the OpenAI API
-const API_KEY = import.meta.env.VITE_OPENAI_API_KEY || '';
+const API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
+
+console.log("FinAI AI Service Initializing...");
+console.log("API Key Status:", API_KEY ? "Present (starts with " + API_KEY.substring(0, 7) + "...)" : "MISSING");
 
 const openai = new OpenAI({
-    apiKey: API_KEY,
-    dangerouslyAllowBrowser: true // Client-side usage for demo purposes
+    apiKey: API_KEY || 'dummy-key', // Prevent crash on init, handle error in calls
+    dangerouslyAllowBrowser: true
 });
 
 const MODEL = 'gpt-4o-mini';
