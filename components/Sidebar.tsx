@@ -36,8 +36,8 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, isOpen, se
               key={item.id}
               onClick={() => onViewChange(item.id)}
               className={`w-full flex items-center p-3 my-1 transition-colors relative group ${currentView === item.id
-                  ? 'bg-sky-50 text-sky-600 font-semibold border-r-4 border-sky-600'
-                  : 'text-slate-500 hover:bg-sky-50/50 hover:text-sky-500'
+                ? 'bg-sky-50 text-sky-600 font-semibold border-r-4 border-sky-600'
+                : 'text-slate-500 hover:bg-sky-50/50 hover:text-sky-500'
                 }`}
             >
               <div className={`flex items-center ${isOpen ? 'ml-2' : 'mx-auto'}`}>
@@ -65,26 +65,26 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, isOpen, se
       </aside>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="md:hidden fixed bottom-0 left-0 w-full bg-white border-t border-sky-100 z-50 flex justify-around items-center px-2 py-2 pb-safe">
-        {NAV_ITEMS.slice(0, 5).map((item) => (
+      <nav className="md:hidden fixed bottom-0 left-0 w-full bg-white border-t border-sky-100 z-50 flex items-center px-4 py-2 pb-safe overflow-x-auto gap-4 scrollbar-hide">
+        {NAV_ITEMS.map((item) => (
           <button
             key={item.id}
             onClick={() => onViewChange(item.id)}
-            className={`flex flex-col items-center p-2 rounded-xl transition-colors ${currentView === item.id
-                ? 'text-sky-600'
+            className={`flex flex-col items-center justify-center min-w-[64px] p-2 rounded-xl transition-colors ${currentView === item.id
+                ? 'text-sky-600 bg-sky-50'
                 : 'text-slate-400 hover:text-sky-500'
               }`}
           >
             {React.cloneElement(item.icon as React.ReactElement, { size: 24 })}
-            <span className="text-[10px] font-medium mt-1">{item.label}</span>
+            <span className="text-[10px] font-medium mt-1 whitespace-nowrap">{item.label}</span>
           </button>
         ))}
         <button
           onClick={onLogout}
-          className="flex flex-col items-center p-2 text-rose-400 hover:text-rose-600 transition-colors"
+          className="flex flex-col items-center justify-center min-w-[64px] p-2 text-rose-400 hover:text-rose-600 transition-colors"
         >
           <LogOut size={24} />
-          <span className="text-[10px] font-medium mt-1">Sair</span>
+          <span className="text-[10px] font-medium mt-1 whitespace-nowrap">Sair</span>
         </button>
       </nav>
     </>
