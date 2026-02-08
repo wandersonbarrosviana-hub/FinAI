@@ -90,10 +90,15 @@ export const parseVoiceCommand = async (text: string): Promise<VoiceCommandResul
         const response = await result.response;
         const jsonStr = response.text().replace(/```json/g, '').replace(/```/g, '').trim();
 
-        return JSON.parse(jsonStr);
+        const parsed = JSON.parse(jsonStr);
+        // Inject original text for context
+        if (parsed.data) {
+            parsed.data.originalText = text;
+        }
+        return parsed;
     } catch (error) {
         console.error('Gemini API Error:', error);
-        return { intent: 'UNKNOWN', data: {}, message: 'Desculpe, não consegui entender.' };
+        return { intent: 'UNKNOWN', data: { originalText: text }, message: 'Desculpe, não consegui entender.' };
     }
 };
 

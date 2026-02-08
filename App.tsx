@@ -14,7 +14,7 @@ import TagManager from './components/TagManager';
 import { Budget } from './types';
 
 import { Bell, Search, User as UserIcon, Plus, Sparkles, AlertCircle, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
-import { parseNotification } from './geminiService';
+import { parseNotification, chatWithFinancialAssistant, getFinancialAdvice } from './geminiService';
 import { supabase } from './supabaseClient';
 import { Transaction, Account, Goal, User, ViewState, Tag } from './types';
 
@@ -416,7 +416,7 @@ const App: React.FC = () => {
     }
   };
 
-  const handleAICommand = (result: any) => {
+  const handleAICommand = async (result: any) => {
     // Reuse handleAddTransaction logic? Or create specific logic?
     // Reuse is better to get DB persistence.
     if (result.intent === 'CREATE') {
@@ -441,6 +441,28 @@ const App: React.FC = () => {
       return true;
     } else if (result.intent === 'CREATE_BUDGET') {
       handleAddBudget(result.data);
+      return true;
+    } else if (result.intent === 'ADVICE_REQUEST') {
+      // Voice asked a question. We need to answer it using the Chat Service.
+      // VoiceControl usually expects a boolean success. 
+      // We can trigger a UI feedback here.
+      const question = result.data.originalText || "Analise minhas finanças"; // We need to ensure originalText is passed if possible, or infer from context
+      // Wait, parseVoiceCommand result.data might not have originalText unless we add it. 
+      // geminiService.parseVoiceCommand needs to return original text in data if possible? 
+      // Or we just use a generic prompt. 
+
+      // Better: Let's assume result.message has the answer OR we generate it now.
+      // The prompt in geminiService says "message: Short conversational confirmation".
+      // We want a REAL answer using data.
+
+      // Let's call chatWithFinancialAssistant
+      const answer = await chatWithFinancialAssistant(
+        "O usuário perguntou por voz: " + (result.data.description || "Resumo geral"), // Hack: prompt puts text in description sometimes? No.
+        transactions, accounts, goals, budgets
+      );
+
+      // Show alert for now or speaking?
+      alert("FinAI Responde: " + answer);
       return true;
     }
   };

@@ -200,7 +200,7 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
           {status === 'idle' ? (
             <div className="text-slate-400 font-medium flex items-center gap-2">
               <MessageSquare size={14} className="text-slate-300" />
-              <span>Clique para ligar o microfone e usar a Wake Word.</span>
+              <span>Clique no microfone para dar um comando ou fazer uma pergunta.</span>
             </div>
           ) : (
             <p className={`italic font-medium transition-all max-w-md truncate ${status === 'active_command' ? 'text-sky-600' : 'text-slate-400'
@@ -224,7 +224,7 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
             {status === 'idle' ? 'Offline' : 'Escuta Ativa'}
           </span>
         </div>
-        <span className="text-[9px] text-slate-300 mt-1 font-mono uppercase">Gatilho: "Oi Fini"</span>
+        <span className="text-[9px] text-slate-300 mt-1 font-mono uppercase">IA Pronta</span>
       </div>
     </div>
   );
