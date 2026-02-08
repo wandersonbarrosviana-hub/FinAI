@@ -197,25 +197,25 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
             {/* Recurrence Selector */}
             <div className="space-y-1">
               <label className="text-xs font-bold text-slate-500 uppercase ml-1">Periodicidade</label>
-              <div className="flex bg-slate-50 p-1 rounded-xl border border-slate-200">
+              <div className="flex bg-slate-50 p-1 rounded-xl border border-slate-200 overflow-x-auto">
                 <button
                   type="button"
                   onClick={() => setFormData({ ...formData, recurrence: 'one_time' })}
-                  className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${formData.recurrence === 'one_time' ? 'bg-white shadow-sm text-sky-600' : 'text-slate-400 hover:text-slate-600'}`}
+                  className={`flex-1 py-2 px-2 text-xs font-bold rounded-lg transition-all whitespace-nowrap ${formData.recurrence === 'one_time' ? 'bg-white shadow-sm text-sky-600' : 'text-slate-400 hover:text-slate-600'}`}
                 >
                   Única
                 </button>
                 <button
                   type="button"
                   onClick={() => setFormData({ ...formData, recurrence: 'installment' })}
-                  className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${formData.recurrence === 'installment' ? 'bg-white shadow-sm text-sky-600' : 'text-slate-400 hover:text-slate-600'}`}
+                  className={`flex-1 py-2 px-2 text-xs font-bold rounded-lg transition-all whitespace-nowrap ${formData.recurrence === 'installment' ? 'bg-white shadow-sm text-sky-600' : 'text-slate-400 hover:text-slate-600'}`}
                 >
                   Parcelada
                 </button>
                 <button
                   type="button"
                   onClick={() => setFormData({ ...formData, recurrence: 'fixed' })}
-                  className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${formData.recurrence === 'fixed' ? 'bg-white shadow-sm text-sky-600' : 'text-slate-400 hover:text-slate-600'}`}
+                  className={`flex-1 py-2 px-2 text-xs font-bold rounded-lg transition-all whitespace-nowrap ${formData.recurrence === 'fixed' ? 'bg-white shadow-sm text-sky-600' : 'text-slate-400 hover:text-slate-600'}`}
                 >
                   Fixa Mensal
                 </button>
