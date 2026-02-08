@@ -1,0 +1,7 @@
+{
+  "name": "FinAI - Gerenciador Financeiro Inteligente",
+  "description": "Um gerenciador de finanças robusto com IA (Gemini) para controle de gastos por voz, análise de notificações e sugestões estratégicas de investimento.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}

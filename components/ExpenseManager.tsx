@@ -1,0 +1,540 @@
+import React, { useState, useEffect } from 'react';
+import { Transaction, TransactionType } from '../types';
+import { CATEGORIES_MAP, INCOME_CATEGORIES_MAP } from '../constants';
+import { Calendar, CreditCard, Tag, Plus, Trash2, CheckCircle, Clock, Edit2, Save, X, Repeat, Divide } from 'lucide-react';
+
+interface ExpenseManagerProps {
+  transactions: Transaction[];
+  onAddTransaction: (t: Partial<Transaction>) => void;
+  onUpdateTransaction: (id: string, updates: Partial<Transaction>) => void;
+  onDeleteTransaction: (id: string) => void;
+  type: TransactionType;
+}
+
+const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTransaction, onUpdateTransaction, onDeleteTransaction, type }) => {
+  const filteredTransactions = transactions.filter(t => t.type === type);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  const targetMap = type === 'income' ? INCOME_CATEGORIES_MAP : CATEGORIES_MAP;
+  const categoriesList = Object.keys(targetMap);
+
+  // Form State
+  const [formData, setFormData] = useState<Partial<Transaction>>({
+    description: '',
+    amount: 0,
+    category: categoriesList[0],
+    subCategory: targetMap[categoriesList[0]][0],
+    date: new Date().toISOString().split('T')[0],
+    dueDate: new Date().toISOString().split('T')[0],
+    paymentMethod: type === 'income' ? 'PIX' : 'Cartão de Crédito',
+    type: type,
+    isPaid: type === 'income',
+    recurrence: 'one_time',
+    installmentCount: 2
+  });
+
+  const [customCategory, setCustomCategory] = useState('');
+  const [customSubCategory, setCustomSubCategory] = useState('');
+
+  // Installment Logic State
+  const [installmentValueType, setInstallmentValueType] = useState<'total' | 'installment'>('total');
+  const [inputValue, setInputValue] = useState<string>(''); // Raw input for amount
+
+  useEffect(() => {
+    // Reset defaults when type changes
+    setFormData(prev => ({
+      ...prev,
+      type: type,
+      category: categoriesList[0],
+      subCategory: targetMap[categoriesList[0]][0],
+      isPaid: type === 'income',
+      paymentMethod: type === 'income' ? 'PIX' : 'Cartão de Crédito',
+      recurrence: 'one_time'
+    }));
+  }, [type]);
+
+  // Handle Input Value Change
+  useEffect(() => {
+    if (formData.amount) {
+      setInputValue(formData.amount.toString());
+    } else if (!editingId) {
+      setInputValue('');
+    }
+  }, [formData.amount, editingId]);
+
+  const handleEdit = (t: Transaction) => {
+    setEditingId(t.id);
+    setFormData({ ...t });
+    setInputValue(t.amount.toString()); // Load amount into input
+
+    if (categoriesList.includes(t.category)) {
+      setCustomCategory('');
+      setCustomSubCategory('');
+    } else {
+      setFormData(prev => ({ ...prev, category: 'Outros' }));
+      setCustomCategory(t.category);
+      setCustomSubCategory(t.subCategory || '');
+    }
+
+    // When editing, we usually see the per-installment value
+    setInstallmentValueType('installment');
+
+    setIsFormOpen(true);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    let finalCategory = formData.category;
+    let finalSubCategory = formData.subCategory;
+
+    if (formData.category === 'Outros') {
+      finalCategory = customCategory || 'Outros';
+      finalSubCategory = customSubCategory || 'Diversos';
+    }
+
+    // Calculate final monthly amount based on installment logic
+    let finalAmount = parseFloat(inputValue);
+    let finalInstallmentTotal = undefined;
+
+    if (formData.recurrence === 'installment' && formData.installmentCount && formData.installmentCount > 1) {
+      if (installmentValueType === 'total') {
+        finalInstallmentTotal = finalAmount;
+        finalAmount = finalAmount / formData.installmentCount;
+      } else {
+        finalInstallmentTotal = finalAmount * formData.installmentCount;
+        // finalAmount is already the installment value
+      }
+    }
+
+    const transactionData: Partial<Transaction> = {
+      ...formData,
+      amount: finalAmount,
+      category: finalCategory,
+      subCategory: finalSubCategory,
+      installmentTotal: finalInstallmentTotal,
+      // Ensure type is correct
+      type: type
+    };
+
+    if (editingId) {
+      onUpdateTransaction(editingId, transactionData);
+      setEditingId(null);
+    } else {
+      onAddTransaction(transactionData);
+    }
+
+    setIsFormOpen(false);
+    resetForm();
+  };
+
+  const resetForm = () => {
+    setFormData({
+      description: '',
+      amount: 0,
+      category: categoriesList[0],
+      subCategory: targetMap[categoriesList[0]][0],
+      date: new Date().toISOString().split('T')[0],
+      dueDate: new Date().toISOString().split('T')[0],
+      paymentMethod: type === 'income' ? 'PIX' : 'Cartão de Crédito',
+      type: type,
+      isPaid: type === 'income',
+      recurrence: 'one_time',
+      installmentCount: 2
+    });
+    setCustomCategory('');
+    setCustomSubCategory('');
+    setInputValue('');
+    setInstallmentValueType('total');
+  };
+
+  const toggleStatus = (id: string, currentStatus: boolean) => {
+    onUpdateTransaction(id, { isPaid: !currentStatus });
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold text-slate-800">
+          Gerenciar {type === 'expense' ? 'Despesas' : 'Receitas'}
+        </h2>
+        <button
+          onClick={() => {
+            if (isFormOpen && editingId) { setIsFormOpen(false); setEditingId(null); resetForm(); }
+            else setIsFormOpen(!isFormOpen);
+          }}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all shadow-lg ${isFormOpen ? 'bg-slate-200 text-slate-600 hover:bg-slate-300' : 'bg-sky-600 text-white hover:bg-sky-700 shadow-sky-100'}`}
+        >
+          {isFormOpen ? <X size={20} /> : <Plus size={20} />}
+          <span>{isFormOpen ? 'Cancelar' : 'Novo Lançamento'}</span>
+        </button>
+      </div>
+
+      {isFormOpen && (
+        <form onSubmit={handleSubmit} className="bg-white p-6 rounded-2xl border border-sky-100 shadow-sm animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-bold text-slate-500 uppercase flex items-center gap-2">
+              {editingId ? <Edit2 size={16} /> : <Plus size={16} />}
+              {editingId ? 'Editar Lançamento' : 'Novo Lançamento'}
+            </h3>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* Description */}
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-500 uppercase ml-1">Descrição</label>
+              <input
+                type="text"
+                required
+                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-sky-500 transition-all font-medium"
+                placeholder={type === 'income' ? "Ex: Salário" : "Ex: Compra"}
+                value={formData.description}
+                onChange={e => setFormData({ ...formData, description: e.target.value })}
+              />
+            </div>
+
+            {/* Recurrence Selector */}
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-500 uppercase ml-1">Periodicidade</label>
+              <div className="flex bg-slate-50 p-1 rounded-xl border border-slate-200">
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, recurrence: 'one_time' })}
+                  className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${formData.recurrence === 'one_time' ? 'bg-white shadow-sm text-sky-600' : 'text-slate-400 hover:text-slate-600'}`}
+                >
+                  Única
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, recurrence: 'installment' })}
+                  className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${formData.recurrence === 'installment' ? 'bg-white shadow-sm text-sky-600' : 'text-slate-400 hover:text-slate-600'}`}
+                >
+                  Parcelada
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, recurrence: 'fixed' })}
+                  className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${formData.recurrence === 'fixed' ? 'bg-white shadow-sm text-sky-600' : 'text-slate-400 hover:text-slate-600'}`}
+                >
+                  Fixa Mensal
+                </button>
+              </div>
+            </div>
+
+            {/* Installments Logic - Only if Parcelada */}
+            {formData.recurrence === 'installment' && (
+              <div className="space-y-1 md:col-span-2 lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-4 bg-sky-50 p-4 rounded-xl border border-sky-100 animate-in fade-in zoom-in duration-300">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-sky-700 uppercase ml-1">
+                    {type === 'income' ? 'Nº de Meses/Vezes' : 'Nº Parcelas'}
+                  </label>
+                  <input
+                    type="number"
+                    min="2"
+                    max="999"
+                    required
+                    className="w-full px-4 py-2.5 bg-white border border-sky-200 rounded-xl outline-none focus:ring-2 focus:ring-sky-500 transition-all font-bold text-sky-700 text-center"
+                    value={formData.installmentCount}
+                    onChange={e => setFormData({ ...formData, installmentCount: parseInt(e.target.value) })}
+                  />
+                </div>
+                <div className="space-y-1 md:col-span-2">
+                  <label className="text-xs font-bold text-sky-700 uppercase ml-1">O valor informado é:</label>
+                  <div className="flex gap-4 mt-2">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="valueType"
+                        checked={installmentValueType === 'installment'}
+                        onChange={() => setInstallmentValueType('installment')}
+                        className="text-sky-600 focus:ring-sky-500"
+                      />
+                      <span className="text-sm font-medium text-slate-700">
+                        {type === 'income' ? 'Valor Mensal (por mês)' : 'Valor da Parcela (Mensal)'}
+                      </span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="valueType"
+                        checked={installmentValueType === 'total'}
+                        onChange={() => setInstallmentValueType('total')}
+                        className="text-sky-600 focus:ring-sky-500"
+                      />
+                      <span className="text-sm font-medium text-slate-700">
+                        {type === 'income' ? 'Valor Total a Receber' : 'Valor Total da Compra'}
+                      </span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Value Input */}
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-500 uppercase ml-1">
+                {formData.recurrence === 'installment'
+                  ? (installmentValueType === 'total' ? 'Valor Total (R$)' : 'Valor da Parcela (R$)')
+                  : 'Valor (R$)'
+                }
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                required
+                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-sky-500 transition-all font-black text-slate-700"
+                placeholder="0.00"
+                value={inputValue}
+                onChange={e => setInputValue(e.target.value)}
+              />
+              {formData.recurrence === 'installment' && inputValue && (
+                <div className="text-[10px] font-bold text-slate-400 text-right px-1">
+                  {installmentValueType === 'total'
+                    ? `~ R$ ${(parseFloat(inputValue) / (formData.installmentCount || 1)).toFixed(2)} por mês`
+                    : `Total: R$ ${(parseFloat(inputValue) * (formData.installmentCount || 1)).toFixed(2)}`
+                  }
+                </div>
+              )}
+            </div>
+
+            {/* Category Select */}
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-500 uppercase ml-1">Categoria</label>
+              <select
+                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-sky-500 transition-all"
+                value={formData.category}
+                onChange={e => {
+                  const cat = e.target.value;
+                  setFormData({ ...formData, category: cat, subCategory: targetMap[cat] ? targetMap[cat][0] : '' });
+                }}
+              >
+                {categoriesList.map(cat => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Custom Input for 'Outros' */}
+            {formData.category === 'Outros' ? (
+              <>
+                <div className="space-y-1 animate-in fade-in zoom-in duration-300">
+                  <label className="text-xs font-bold text-sky-600 uppercase ml-1">Nome da Categoria</label>
+                  <input
+                    type="text"
+                    required
+                    className="w-full px-4 py-2.5 bg-sky-50 border border-sky-200 rounded-xl outline-none focus:ring-2 focus:ring-sky-500 transition-all"
+                    placeholder="Digite a categoria..."
+                    value={customCategory}
+                    onChange={e => setCustomCategory(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1 animate-in fade-in zoom-in duration-300">
+                  <label className="text-xs font-bold text-sky-600 uppercase ml-1">Nome da Subcategoria</label>
+                  <input
+                    type="text"
+                    required
+                    className="w-full px-4 py-2.5 bg-sky-50 border border-sky-200 rounded-xl outline-none focus:ring-2 focus:ring-sky-500 transition-all"
+                    placeholder="Digite a subcategoria..."
+                    value={customSubCategory}
+                    onChange={e => setCustomSubCategory(e.target.value)}
+                  />
+                </div>
+              </>
+            ) : (
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-500 uppercase ml-1">Subcategoria</label>
+                <select
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-sky-500 transition-all"
+                  value={formData.subCategory}
+                  onChange={e => setFormData({ ...formData, subCategory: e.target.value })}
+                >
+                  {targetMap[formData.category as string]?.map(sub => (
+                    <option key={sub} value={sub}>{sub}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Date Input */}
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-500 uppercase ml-1">Data Lançamento</label>
+              <input
+                type="date"
+                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-sky-500 transition-all"
+                value={formData.date}
+                onChange={e => setFormData({ ...formData, date: e.target.value })}
+              />
+            </div>
+
+            {type === 'expense' && (
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-500 uppercase ml-1">Data Vencimento</label>
+                <input
+                  type="date"
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-sky-500 transition-all"
+                  value={formData.dueDate}
+                  onChange={e => setFormData({ ...formData, dueDate: e.target.value })}
+                />
+              </div>
+            )}
+
+            {/* Payment Method - Dynamic based on Type */}
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-500 uppercase ml-1">Método</label>
+              <select
+                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-sky-500 transition-all"
+                value={formData.paymentMethod}
+                onChange={e => setFormData({ ...formData, paymentMethod: e.target.value })}
+              >
+                {type === 'expense' ? (
+                  <>
+                    <option value="Cartão de Crédito">Cartão de Crédito</option>
+                    <option value="PIX">PIX</option>
+                    <option value="Dinheiro">Dinheiro</option>
+                    <option value="Boleto">Boleto</option>
+                    <option value="Débito">Débito</option>
+                    <option value="Transferência">Transferência</option>
+                  </>
+                ) : (
+                  <>
+                    <option value="PIX">PIX</option>
+                    <option value="Dinheiro">Dinheiro</option>
+                    <option value="Transferência">Transferência</option>
+                    <option value="Boleto">Boleto</option>
+                    <option value="Outros">Outros</option>
+                  </>
+                )}
+              </select>
+            </div>
+
+            {/* Paid Toggle */}
+            <div className="flex items-end pb-1 md:col-span-2 lg:col-span-1">
+              <label className={`flex items-center space-x-3 cursor-pointer p-2.5 rounded-xl border transition-all w-full ${formData.isPaid ? 'bg-emerald-50 border-emerald-200' : 'bg-slate-50 border-slate-200'}`}>
+                <input
+                  type="checkbox"
+                  className="w-5 h-5 rounded-lg border-slate-300 text-sky-600 focus:ring-sky-500"
+                  checked={formData.isPaid}
+                  onChange={e => setFormData({ ...formData, isPaid: e.target.checked })}
+                />
+                <span className={`text-sm font-bold ${formData.isPaid ? 'text-emerald-700' : 'text-slate-500'}`}>
+                  {formData.isPaid
+                    ? (type === 'income' ? 'Recebido' : 'Pago')
+                    : (type === 'income' ? 'Pendente de Recebimento' : 'Pendente de Pagamento')
+                  }
+                </span>
+              </label>
+            </div>
+          </div>
+          <div className="mt-6 flex justify-end">
+            <button
+              type="submit"
+              className="flex items-center gap-2 bg-emerald-600 text-white px-8 py-2.5 rounded-xl font-bold hover:bg-emerald-700 shadow-lg shadow-emerald-100 transition-all"
+            >
+              <Save size={18} />
+              <span>{editingId ? 'Atualizar' : 'Salvar Registro'}</span>
+            </button>
+          </div>
+        </form>
+      )}
+
+      <div className="bg-white rounded-2xl shadow-sm border border-sky-50 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left">
+            <thead className="bg-slate-50">
+              <tr>
+                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Info</th>
+                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Categoria</th>
+                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Recorrência</th>
+                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Valor</th>
+                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Ações</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {filteredTransactions.map((t) => (
+                <tr key={t.id} className="hover:bg-sky-50/20 transition-colors group">
+                  <td className="px-6 py-4">
+                    <button
+                      onClick={() => toggleStatus(t.id, t.isPaid)}
+                      className="transition-transform active:scale-95 focus:outline-none"
+                      title="Clique para alterar status"
+                    >
+                      {t.isPaid ? (
+                        <div className="flex items-center text-emerald-600 text-xs font-bold bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-100">
+                          <CheckCircle size={14} className="mr-1" /> {type === 'income' ? 'RECEBIDO' : 'PAGO'}
+                        </div>
+                      ) : (
+                        <div className="flex items-center text-amber-500 text-xs font-bold bg-amber-50 px-2 py-1 rounded-lg border border-amber-100">
+                          <Clock size={14} className="mr-1" /> PENDENTE
+                        </div>
+                      )}
+                    </button>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="font-bold text-slate-800 text-sm">{t.description}</div>
+                    <div className="flex items-center text-[10px] text-slate-400 mt-0.5">
+                      <CreditCard size={10} className="mr-1" /> {t.paymentMethod}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-sky-700 flex items-center">
+                        <Tag size={10} className="mr-1" /> {t.category}
+                      </span>
+                      <span className="text-[10px] text-slate-400 ml-3.5">{t.subCategory}</span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    {t.recurrence === 'fixed' && (
+                      <div className="flex items-center text-xs font-bold text-indigo-500 bg-indigo-50 px-2 py-1 rounded-lg w-fit">
+                        <Repeat size={12} className="mr-1" /> Mensal
+                      </div>
+                    )}
+                    {t.recurrence === 'installment' && (
+                      <div className="flex items-center text-xs font-bold text-orange-500 bg-orange-50 px-2 py-1 rounded-lg w-fit">
+                        <Divide size={12} className="mr-1" /> {t.installmentCount}x
+                      </div>
+                    )}
+                    {(!t.recurrence || t.recurrence === 'one_time') && (
+                      <span className="text-xs text-slate-400 font-medium">Única</span>
+                    )}
+                  </td>
+                  <td className={`px-6 py-4 text-sm font-black text-right ${t.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                    R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <button
+                        onClick={() => handleEdit(t)}
+                        className="p-2 text-slate-300 hover:text-sky-600 transition-colors rounded-lg hover:bg-sky-50"
+                        title="Editar"
+                      >
+                        <Edit2 size={18} />
+                      </button>
+                      <button
+                        onClick={() => onDeleteTransaction(t.id)}
+                        className="p-2 text-slate-300 hover:text-rose-500 transition-colors rounded-lg hover:bg-rose-50"
+                        title="Excluir"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {filteredTransactions.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="px-6 py-12 text-center text-slate-400 italic">
+                    Nenhum registro encontrado para {type === 'income' ? 'receitas' : 'despesas'}.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+};
+export default ExpenseManager;
