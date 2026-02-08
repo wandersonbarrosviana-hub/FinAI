@@ -185,7 +185,7 @@ export const chatWithFinancialAssistant = async (
         return completion.choices[0].message.content || "Desculpe, não consegui gerar uma resposta.";
     } catch (error) {
         console.error("Chat Error Details:", error);
-        return "Desculpe, estou com dificuldades para processar seus dados agora. Tente novamente em instantes.";
+        return `Erro ao processar: ${(error as any).message || "Falha desconhecida"}`;
     }
 };
 
@@ -235,7 +235,7 @@ export const performDeepAnalysis = async (transactions: Transaction[], accounts:
 
     } catch (error) {
         console.error("Deep Analysis Error:", error);
-        return "Não foi possível realizar a análise completa no momento.";
+        return `Erro na análise: ${(error as any).message || "Falha desconhecida"}`;
     }
 };
 
