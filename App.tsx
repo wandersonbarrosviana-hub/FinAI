@@ -11,10 +11,10 @@ import NotificationCenter from './components/NotificationCenter';
 import BudgetManager from './components/BudgetManager';
 import RetirementSimulator from './components/RetirementSimulator';
 
-
 import { Bell, Search, User as UserIcon, Plus, Sparkles, AlertCircle, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { parseNotification, getFinancialAdvice } from './geminiService';
 import { supabase } from './supabaseClient';
+import { Transaction, Account, Goal, User, ViewState } from './types';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
