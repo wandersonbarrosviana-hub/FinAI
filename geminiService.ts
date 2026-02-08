@@ -6,7 +6,7 @@ const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
 const genAI = new GoogleGenerativeAI(API_KEY);
 
 // Helper to get the model
-const getModel = () => genAI.getGenerativeModel({ model: 'gemini-pro' });
+const getModel = () => genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
 interface VoiceCommandResult {
     intent: 'CREATE' | 'UPDATE_STATUS' | 'UNKNOWN' | 'ADVICE_REQUEST' | 'CREATE_ACCOUNT' | 'CREATE_GOAL' | 'CREATE_BUDGET';
