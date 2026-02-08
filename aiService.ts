@@ -25,7 +25,9 @@ export const generateContent = async (prompt: string): Promise<string> => {
     console.log("generateContent called. API Key length:", API_KEY?.length);
     if (!API_KEY) {
         console.error("API Key is missing in generateContent");
-        return "Erro: Chave API não encontrada.";
+        const envDump = JSON.stringify(import.meta.env, null, 2);
+        console.log("Env Dump:", envDump); // Log full env to console for user to inspect if asked
+        return `Erro: Chave API não encontrada (VITE_OPENAI_API_KEY is ${typeof API_KEY}). Verifique o Vercel > Settings.`;
     }
     try {
         const completion = await openai.chat.completions.create({
@@ -133,7 +135,7 @@ export const chatWithFinancialAssistant = async (
     budgets: any[]
 ): Promise<string> => {
     console.log("chatWithFinancialAssistant called. API Key available:", !!API_KEY);
-    if (!API_KEY) return "Erro: Chave API não configurada. Verifique o .env.local";
+    if (!API_KEY) return `Erro Config: Chave não detectada. (Status: ${import.meta.env.VITE_OPENAI_API_KEY ? 'Presente' : 'Ausente/Undefined'}).`;
 
     try {
         // Safe helpers
