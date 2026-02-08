@@ -4,12 +4,14 @@ import {
   Send, Bot, User, Loader2, Sparkles, TrendingUp, ShieldCheck,
   Zap, PieChart, BarChart3, Calculator, Info, RotateCcw, ZapOff
 } from 'lucide-react';
-// import { getFinancialAdvice, performDeepAnalysis } from '../geminiService';
-import { Transaction, Account } from '../types';
+import { chatWithFinancialAssistant, performDeepAnalysis } from '../geminiService';
+import { Transaction, Account, Goal, Budget } from '../types';
 
 interface FinancialAssistantProps {
   transactions: Transaction[];
   accounts: Account[];
+  goals: Goal[];
+  budgets: Budget[];
 }
 
 interface Message {
@@ -19,7 +21,7 @@ interface Message {
   isFromCache?: boolean;
 }
 
-const FinancialAssistant: React.FC<FinancialAssistantProps> = ({ transactions, accounts }) => {
+const FinancialAssistant: React.FC<FinancialAssistantProps> = ({ transactions, accounts, goals, budgets }) => {
   const [messages, setMessages] = useState<Message[]>([
     { role: 'ai', text: 'Olá! A assistência por IA está temporariamente desativada.' }
   ]);
@@ -46,12 +48,20 @@ const FinancialAssistant: React.FC<FinancialAssistantProps> = ({ transactions, a
     setIsLoading(true);
 
     try {
-      // Simulação de resposta
-      setTimeout(() => {
-        setMessages(prev => [...prev, { role: 'ai', text: 'O assistente de IA está em manutenção. Por favor, tente novamente mais tarde.' }]);
+      // Check Cache
+      if (responseCache.current[textToSend]) {
+        setMessages(prev => [...prev, { role: 'ai', text: responseCache.current[textToSend], isFromCache: true }]);
         setIsLoading(false);
-      }, 1000);
+        return;
+      }
+
+      const response = await chatWithFinancialAssistant(textToSend, transactions, accounts, goals, budgets);
+
+      responseCache.current[textToSend] = response;
+      setMessages(prev => [...prev, { role: 'ai', text: response }]);
+      setIsLoading(false);
     } catch (err) {
+      setMessages(prev => [...prev, { role: 'ai', text: 'Desculpe, tive um problema ao processar sua solicitação.' }]);
       setIsLoading(false);
     }
   };
@@ -59,10 +69,9 @@ const FinancialAssistant: React.FC<FinancialAssistantProps> = ({ transactions, a
   const runFullAnalysis = async () => {
     setMessages(prev => [...prev, { role: 'user', text: 'Gere um relatório completo de saúde financeira.' }]);
     setIsLoading(true);
-    setTimeout(() => {
-      setMessages(prev => [...prev, { role: 'ai', text: 'A análise profunda está desativada no momento.', isAnalysis: true }]);
-      setIsLoading(false);
-    }, 1000);
+    const response = await performDeepAnalysis(transactions, accounts, goals);
+    setMessages(prev => [...prev, { role: 'ai', text: response, isAnalysis: true }]);
+    setIsLoading(false);
   };
 
   const clearCache = () => {
@@ -120,10 +129,10 @@ const FinancialAssistant: React.FC<FinancialAssistantProps> = ({ transactions, a
                 {m.role === 'user' ? <User size={20} /> : <Bot size={20} />}
               </div>
               <div className={`p-5 rounded-2xl text-sm leading-relaxed shadow-sm relative ${m.role === 'user'
-                  ? 'bg-sky-600 text-white rounded-tr-none'
-                  : m.isAnalysis
-                    ? 'bg-white text-slate-700 border-2 border-sky-200 rounded-tl-none prose prose-sky max-w-none'
-                    : 'bg-white text-slate-700 border border-sky-100 rounded-tl-none'
+                ? 'bg-sky-600 text-white rounded-tr-none'
+                : m.isAnalysis
+                  ? 'bg-white text-slate-700 border-2 border-sky-200 rounded-tl-none prose prose-sky max-w-none'
+                  : 'bg-white text-slate-700 border border-sky-100 rounded-tl-none'
                 }`}>
                 {m.text.split('\n').map((line, idx) => (
                   <p key={idx} className={line.trim() === '' ? 'h-2' : 'mb-2'}>

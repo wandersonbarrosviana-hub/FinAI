@@ -11,6 +11,7 @@ import NotificationCenter from './components/NotificationCenter';
 import BudgetManager from './components/BudgetManager';
 import RetirementSimulator from './components/RetirementSimulator';
 import TagManager from './components/TagManager';
+import { Budget } from './types';
 
 import { Bell, Search, User as UserIcon, Plus, Sparkles, AlertCircle, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { parseNotification, getFinancialAdvice } from './geminiService';
@@ -29,6 +30,7 @@ const App: React.FC = () => {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
+  const [budgets, setBudgets] = useState<Budget[]>([]);
 
   const [showNotificationPopup, setShowNotificationPopup] = useState(false);
   const [notificationData, setNotificationData] = useState<any>(null);
@@ -71,11 +73,12 @@ const App: React.FC = () => {
   const fetchData = async (userId: string) => {
     setLoading(true);
     try {
-      const [txRes, accRes, goalRes, tagRes] = await Promise.all([
+      const [txRes, accRes, goalRes, tagRes, budRes] = await Promise.all([
         supabase.from('transactions').select('*').eq('user_id', userId).order('date', { ascending: false }),
         supabase.from('accounts').select('*').eq('user_id', userId),
         supabase.from('goals').select('*').eq('user_id', userId),
-        supabase.from('tags').select('*').eq('user_id', userId)
+        supabase.from('tags').select('*').eq('user_id', userId),
+        supabase.from('budgets').select('*').eq('user_id', userId)
       ]);
 
       if (txRes.error) throw txRes.error;
@@ -107,12 +110,14 @@ const App: React.FC = () => {
       setAccounts(mappedAccs);
       setGoals(goalRes.data);
       setTags(tagRes.data || []);
-
-      // Accessing promise result array logic
-      // The Promise.all returns [txRes, accRes, goalRes, tagRes] (if I added it)
-      // I need to destructure correctly above.
-
-      /* Re-doing the destructuring block in next lines to be safe */
+      // Access 5th element from promise result (budgets)
+      // Since destructuring didn't include it in original code, need to adjust destructuring above.
+      // Wait, replacement chunk 3 updated destructuring? No, it updated the array passed to Promise.all but not the const [...] destructuring.
+      // I need to fix the destructuring line as well.
+      // Let's do it in a separate chunk or check if I can combine.
+      // The destructuring was: `const [txRes, accRes, goalRes, tagRes] = await Promise.all([...])`
+      // I need `const [txRes, accRes, goalRes, tagRes, budRes] = ...`
+      setBudgets(budRes.data || []);
 
       // After fetching data, run initial AI logic
       if (mappedTxs.length > 0) {
@@ -417,6 +422,7 @@ const App: React.FC = () => {
     // Reuse is better to get DB persistence.
     if (result.intent === 'CREATE') {
       handleAddTransaction(result.data);
+      return true;
     } else if (result.intent === 'UPDATE_STATUS') {
       // ... find tx ...
       const { searchDescription, newStatus } = result.data;
@@ -428,8 +434,47 @@ const App: React.FC = () => {
         return true;
       }
       return false;
+    } else if (result.intent === 'CREATE_ACCOUNT') {
+      handleAddAccount(result.data);
+      return true;
+    } else if (result.intent === 'CREATE_GOAL') {
+      handleAddGoal(result.data);
+      return true;
+    } else if (result.intent === 'CREATE_BUDGET') {
+      handleAddBudget(result.data);
+      return true;
     }
   };
+
+  const handleAddBudget = async (data: Partial<Budget>) => {
+    if (!user) return;
+    const newBudget = {
+      user_id: user.id,
+      category: data.category || 'Outros',
+      amount: data.amount || 1000,
+      month: data.month || new Date().toISOString().slice(0, 7)
+    };
+
+    // Check if budget exists for this category/month
+    const existing = budgets.find(b => b.category === newBudget.category && b.month === newBudget.month);
+
+    if (existing && existing.id) {
+      // Update
+      await handleUpdateBudget(existing.id, { amount: newBudget.amount });
+    } else {
+      // Create
+      const { data: inserted, error } = await supabase.from('budgets').insert(newBudget).select().single();
+      if (inserted && !error) {
+        setBudgets(prev => [...prev, inserted]);
+      }
+    }
+  };
+
+  const handleUpdateBudget = async (id: string, data: Partial<Budget>) => {
+    setBudgets(prev => prev.map(b => b.id === id ? { ...b, ...data } : b));
+    await supabase.from('budgets').update(data).eq('id', id);
+  };
+
 
   const handleDeleteTransaction = async (id: string) => {
     const tx = transactions.find(t => t.id === id);
@@ -655,14 +700,14 @@ const App: React.FC = () => {
               case 'goals':
                 return <GoalManager goals={goals} transactions={filteredTransactions} accounts={accounts} onAddGoal={handleAddGoal} onDeleteGoal={handleDeleteGoal} />;
               case 'budgets':
-                return <BudgetManager transactions={filteredTransactions} />;
+                return <BudgetManager transactions={filteredTransactions} budgets={budgets} onUpdateBudget={handleUpdateBudget} onAddBudget={handleAddBudget} />;
               case 'retirement':
                 return <RetirementSimulator transactions={transactions} />;
               case 'tags':
                 return <TagManager tags={tags} onAddTag={handleAddTag} onDeleteTag={handleDeleteTag} onUpdateTag={handleUpdateTag} />;
               case 'ai-assistant':
 
-                return <FinancialAssistant transactions={transactions} accounts={accounts} />; // AI might need full context? Or just current month? Keeping full for now.
+                return <FinancialAssistant transactions={transactions} accounts={accounts} goals={goals} budgets={budgets} />; // AI might need full context? Or just current month? Keeping full for now.
               default:
                 return (
                   <div className="flex flex-col items-center justify-center h-full text-slate-400 space-y-4">

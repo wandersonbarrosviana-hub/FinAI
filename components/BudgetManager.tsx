@@ -1,14 +1,17 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { BudgetWithSpending, Transaction } from '../types';
+import { BudgetWithSpending, Transaction, Budget } from '../types';
 import { CATEGORIES } from '../constants';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, LabelList } from 'recharts';
 import { Sparkles, TrendingUp, AlertTriangle, CheckCircle, Wallet } from 'lucide-react';
 
 interface BudgetManagerProps {
     transactions: Transaction[];
+    budgets: Budget[];
+    onUpdateBudget: (id: string, updates: Partial<Budget>) => void;
+    onAddBudget: (budget: Partial<Budget>) => void;
 }
 
-const BudgetManager: React.FC<BudgetManagerProps> = ({ transactions }) => {
+const BudgetManager: React.FC<BudgetManagerProps> = ({ transactions, budgets: persistedBudgets, onUpdateBudget, onAddBudget }) => {
     const [budgets, setBudgets] = useState<BudgetWithSpending[]>([]);
     const [currentMonth] = useState(new Date().toISOString().slice(0, 7));
     const [monthlyIncome, setMonthlyIncome] = useState(0);
@@ -32,17 +35,17 @@ const BudgetManager: React.FC<BudgetManagerProps> = ({ transactions }) => {
         });
 
         // Initialize or Update Budgets
-        // Note: In a real app, we'd persist the 'amount' (budget limit) in a database.
-        // Here we preserve existing amounts if state exists, else default.
+        // Using persisted budgets from props or defaulting
         setBudgets(prev => {
             return CATEGORIES.map(category => {
-                const existing = prev.find(b => b.category === category);
+                const persisted = persistedBudgets.find(b => b.category === category);
                 const spent = spendingByCategory[category] || 0;
-                // Default budget is 10% of income if no specific income, or 1000 fallback
-                // If previous amount exists, keep it.
-                const amount = existing ? existing.amount : (income > 0 ? income * 0.1 : 500);
+
+                // If persisted exists, use its amount. Else default relative to income or base.
+                const amount = persisted ? persisted.amount : (income > 0 ? income * 0.1 : 500);
 
                 return {
+                    id: persisted?.id, // Keep ID for updates
                     category,
                     amount,
                     spent,
@@ -51,16 +54,28 @@ const BudgetManager: React.FC<BudgetManagerProps> = ({ transactions }) => {
                 };
             });
         });
-    }, [transactions, currentMonth]);
+    }, [transactions, currentMonth, persistedBudgets]);
 
     const handleBudgetChange = (category: string, newAmountStr: string) => {
         const newAmount = parseFloat(newAmountStr);
         if (!isNaN(newAmount) && newAmount >= 0) {
+            // Update Local
             setBudgets(prev => prev.map(b =>
                 b.category === category
                     ? { ...b, amount: newAmount, percentage: newAmount > 0 ? (b.spent / newAmount) * 100 : 0 }
                     : b
             ));
+
+            const b = budgets.find(b => b.category === category);
+            if (b?.id) {
+                onUpdateBudget(b.id, { amount: newAmount });
+            } else {
+                onAddBudget({
+                    category,
+                    amount: newAmount,
+                    month: currentMonth
+                });
+            }
         }
     };
 
