@@ -5,8 +5,7 @@ import {
   BarChart, Bar, Cell, PieChart, Pie
 } from 'recharts';
 import { Transaction, Account, Goal, Budget } from '../types';
-import { TrendingUp, TrendingDown, Wallet, PlusCircle, Sparkles } from 'lucide-react';
-import { chatWithFinancialAssistant } from '../geminiService';
+import { TrendingUp, TrendingDown, Wallet, PlusCircle } from 'lucide-react';
 
 interface DashboardProps {
   transactions: Transaction[];
@@ -19,23 +18,23 @@ interface DashboardProps {
 const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, budgets, onAddClick }) => {
   const [aiAdvice, setAiAdvice] = useState<string>('');
 
-  React.useEffect(() => {
-    const fetchAdvice = async () => {
-      // Simple cache or check if already fetched? 
-      // For now, fetch on mount.
-      if (transactions.length > 0) {
-        const advice = await chatWithFinancialAssistant(
-          "Analise meu estado financeiro atual brevemente (máx 3 frases) e me dê um insight valioso.",
-          transactions,
-          accounts,
-          goals,
-          budgets
-        );
-        setAiAdvice(advice);
-      }
-    };
-    fetchAdvice();
-  }, [transactions, accounts]);
+  const [loadingAdvice, setLoadingAdvice] = useState(false);
+
+  const handleRequestAnalysis = async () => {
+    setLoadingAdvice(true);
+    setAiAdvice('');
+    try {
+      const advice = await chatWithFinancialAssistant(
+        "Faça uma análise EXTREMAMENTE RESUMIDA (máximo 2 frases) do meu estado atual. Diga se estou bem ou mal e um ponto de atenção. Se quiser detalhes, mande eu ir ao assistente.",
+        transactions, accounts, goals, budgets
+      );
+      setAiAdvice(advice);
+    } catch (error) {
+      setAiAdvice("Não foi possível gerar a análise agora.");
+    } finally {
+      setLoadingAdvice(false);
+    }
+  };
 
   const totalBalance = accounts.reduce((acc, curr) => acc + curr.balance, 0);
   // Calcular totais do mês (já filtrado pelo pai)
