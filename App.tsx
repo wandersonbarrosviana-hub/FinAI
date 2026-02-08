@@ -7,6 +7,7 @@ import VoiceControl from './components/VoiceControl';
 import ExpenseManager from './components/ExpenseManager';
 import AccountManager from './components/AccountManager';
 import GoalManager from './components/GoalManager';
+import NotificationCenter from './components/NotificationCenter';
 import BudgetManager from './components/BudgetManager';
 import RetirementSimulator from './components/RetirementSimulator';
 
@@ -543,9 +544,7 @@ const App: React.FC = () => {
           </div>
 
           <div className="flex items-center space-x-6">
-            <button className="relative p-2 text-slate-500 hover:text-sky-600 transition-colors">
-              <Bell size={22} /><span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></span>
-            </button>
+            <NotificationCenter onAddTransaction={(t) => handleAddTransaction({ ...t, type: t.type as any })} />
             <div className="h-8 w-[1px] bg-slate-200"></div>
             <div className="flex items-center space-x-3">
               <div className="text-right hidden sm:block">
@@ -632,38 +631,40 @@ const App: React.FC = () => {
 
         </div>
       </main>
-      {showNotificationPopup && notificationData && (
-        <div className="fixed bottom-6 right-6 z-50 animate-in fade-in slide-in-from-bottom-10 duration-500">
-          <div className="bg-white p-5 rounded-3xl shadow-2xl border border-sky-100 flex flex-col space-y-3 max-w-sm ring-8 ring-sky-50">
-            <div className="flex items-center space-x-3">
-              <div className="p-2.5 bg-sky-600 text-white rounded-2xl shadow-lg shadow-sky-200"><AlertCircle size={20} /></div>
-              <div className="flex-1">
-                <p className="text-[10px] font-black text-sky-600 uppercase tracking-widest">IA - Notificação Detectada</p>
-                <p className="text-sm font-bold text-slate-800">Novo Evento Financeiro</p>
+      {
+        showNotificationPopup && notificationData && (
+          <div className="fixed bottom-6 right-6 z-50 animate-in fade-in slide-in-from-bottom-10 duration-500">
+            <div className="bg-white p-5 rounded-3xl shadow-2xl border border-sky-100 flex flex-col space-y-3 max-w-sm ring-8 ring-sky-50">
+              <div className="flex items-center space-x-3">
+                <div className="p-2.5 bg-sky-600 text-white rounded-2xl shadow-lg shadow-sky-200"><AlertCircle size={20} /></div>
+                <div className="flex-1">
+                  <p className="text-[10px] font-black text-sky-600 uppercase tracking-widest">IA - Notificação Detectada</p>
+                  <p className="text-sm font-bold text-slate-800">Novo Evento Financeiro</p>
+                </div>
+              </div>
+              <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 italic text-xs text-slate-600">"{notificationData.raw}"</div>
+
+              <div className="text-xs text-slate-500">
+                A IA identificou:
+                <span className="font-bold text-slate-700 block mt-1">
+                  {notificationData.parsed.category} &gt; {notificationData.parsed.subCategory}
+                </span>
+                Deseja confirmar o lançamento?
+              </div>
+
+              <div className="flex space-x-2">
+                <button onClick={() => { handleAddTransaction(notificationData.parsed); setShowNotificationPopup(false); }} className="flex-1 py-2.5 bg-sky-600 text-white text-xs font-bold rounded-xl hover:bg-sky-700 transition-all">
+                  Confirmar
+                </button>
+                <button onClick={() => setShowNotificationPopup(false)} className="px-4 py-2.5 border border-slate-200 text-slate-400 text-xs font-bold rounded-xl hover:bg-slate-50 transition-all">
+                  Ignorar
+                </button>
               </div>
             </div>
-            <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 italic text-xs text-slate-600">"{notificationData.raw}"</div>
-
-            <div className="text-xs text-slate-500">
-              A IA identificou:
-              <span className="font-bold text-slate-700 block mt-1">
-                {notificationData.parsed.category} &gt; {notificationData.parsed.subCategory}
-              </span>
-              Deseja confirmar o lançamento?
-            </div>
-
-            <div className="flex space-x-2">
-              <button onClick={() => { handleAddTransaction(notificationData.parsed); setShowNotificationPopup(false); }} className="flex-1 py-2.5 bg-sky-600 text-white text-xs font-bold rounded-xl hover:bg-sky-700 transition-all">
-                Confirmar
-              </button>
-              <button onClick={() => setShowNotificationPopup(false)} className="px-4 py-2.5 border border-slate-200 text-slate-400 text-xs font-bold rounded-xl hover:bg-slate-50 transition-all">
-                Ignorar
-              </button>
-            </div>
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+    </div >
   );
 };
 
