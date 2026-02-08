@@ -445,18 +445,18 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
           <table className="w-full text-left">
             <thead className="bg-slate-50">
               <tr>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Info</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Categoria</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Recorrência</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Valor</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Ações</th>
+                <th className="hidden md:table-cell px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
+                <th className="px-4 md:px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Info</th>
+                <th className="hidden md:table-cell px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Categoria</th>
+                <th className="hidden md:table-cell px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Recorrência</th>
+                <th className="px-4 md:px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Valor</th>
+                <th className="px-4 md:px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filteredTransactions.map((t) => (
                 <tr key={t.id} className="hover:bg-sky-50/20 transition-colors group">
-                  <td className="px-6 py-4">
+                  <td className="hidden md:table-cell px-6 py-4">
                     <button
                       onClick={() => toggleStatus(t.id, t.isPaid)}
                       className="transition-transform active:scale-95 focus:outline-none"
@@ -473,13 +473,18 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
                       )}
                     </button>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-4 md:px-6 py-4">
                     <div className="font-bold text-slate-800 text-sm">{t.description}</div>
-                    <div className="flex items-center text-[10px] text-slate-400 mt-0.5">
-                      <CreditCard size={10} className="mr-1" /> {t.paymentMethod}
+                    <div className="flex flex-wrap items-center gap-1 text-[10px] text-slate-400 mt-0.5">
+                      <span className="md:hidden flex items-center bg-slate-100 px-1.5 py-0.5 rounded">
+                        {t.category}
+                      </span>
+                      <span className="flex items-center">
+                        <CreditCard size={10} className="mr-1" /> {t.paymentMethod}
+                      </span>
                     </div>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="hidden md:table-cell px-6 py-4">
                     <div className="flex flex-col">
                       <span className="text-xs font-bold text-sky-700 flex items-center">
                         <Tag size={10} className="mr-1" /> {t.category}
@@ -487,7 +492,7 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
                       <span className="text-[10px] text-slate-400 ml-3.5">{t.subCategory}</span>
                     </div>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="hidden md:table-cell px-6 py-4">
                     {t.recurrence === 'fixed' && (
                       <div className="flex items-center text-xs font-bold text-indigo-500 bg-indigo-50 px-2 py-1 rounded-lg w-fit">
                         <Repeat size={12} className="mr-1" /> Mensal
@@ -502,10 +507,19 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
                       <span className="text-xs text-slate-400 font-medium">Única</span>
                     )}
                   </td>
-                  <td className={`px-6 py-4 text-sm font-black text-right ${t.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}`}>
-                    R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  <td className={`px-4 md:px-6 py-4 text-sm font-black text-right ${t.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                    <div>R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+                    <button
+                      onClick={() => toggleStatus(t.id, t.isPaid)}
+                      className={`md:hidden text-[10px] font-bold px-1.5 py-0.5 rounded border mt-1 ${t.isPaid
+                          ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                          : 'bg-amber-50 text-amber-500 border-amber-100'
+                        }`}
+                    >
+                      {t.isPaid ? 'OK' : 'Pendente'}
+                    </button>
                   </td>
-                  <td className="px-6 py-4 text-right">
+                  <td className="px-4 md:px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">
                       <button
                         onClick={() => handleEdit(t)}
