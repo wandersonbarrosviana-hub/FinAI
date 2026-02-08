@@ -197,7 +197,7 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
             {/* Recurrence Selector */}
             <div className="space-y-1">
               <label className="text-xs font-bold text-slate-500 uppercase ml-1">Periodicidade</label>
-              <div className="flex bg-slate-50 p-1 rounded-xl border border-slate-200 overflow-x-auto">
+              <div className="flex flex-col sm:flex-row bg-slate-50 p-1 rounded-xl border border-slate-200 gap-1 sm:gap-0">
                 <button
                   type="button"
                   onClick={() => setFormData({ ...formData, recurrence: 'one_time' })}
@@ -224,7 +224,7 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
 
             {/* Installments Logic - Only if Parcelada */}
             {formData.recurrence === 'installment' && (
-              <div className="space-y-1 md:col-span-2 lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-4 bg-sky-50 p-4 rounded-xl border border-sky-100 animate-in fade-in zoom-in duration-300">
+              <div className="space-y-4 md:col-span-2 lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-4 bg-sky-50 p-4 rounded-xl border border-sky-100 animate-in fade-in zoom-in duration-300">
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-sky-700 uppercase ml-1">
                     {type === 'income' ? 'Nº de Meses/Vezes' : 'Nº Parcelas'}
@@ -241,7 +241,7 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
                 </div>
                 <div className="space-y-1 md:col-span-2">
                   <label className="text-xs font-bold text-sky-700 uppercase ml-1">O valor informado é:</label>
-                  <div className="flex flex-col md:flex-row gap-2 md:gap-4 mt-2">
+                  <div className="flex flex-col gap-2 mt-2">
                     <label className="flex items-center gap-2 cursor-pointer bg-white/50 p-2 rounded-lg border border-sky-100">
                       <input
                         type="radio"
@@ -249,8 +249,9 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
                         checked={installmentValueType === 'installment'}
                         onChange={() => setInstallmentValueType('installment')}
                         className="text-sky-600 focus:ring-sky-500"
+                        style={{ minWidth: '16px' }}
                       />
-                      <span className="text-sm font-medium text-slate-700">
+                      <span className="text-sm font-medium text-slate-700 break-words">
                         {type === 'income' ? 'Valor Mensal' : 'Valor da Parcela'}
                       </span>
                     </label>
@@ -261,8 +262,9 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
                         checked={installmentValueType === 'total'}
                         onChange={() => setInstallmentValueType('total')}
                         className="text-sky-600 focus:ring-sky-500"
+                        style={{ minWidth: '16px' }}
                       />
-                      <span className="text-sm font-medium text-slate-700">
+                      <span className="text-sm font-medium text-slate-700 break-words">
                         {type === 'income' ? 'Valor Total' : 'Valor Total'}
                       </span>
                     </label>
