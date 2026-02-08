@@ -8,7 +8,9 @@ import ExpenseManager from './components/ExpenseManager';
 import AccountManager from './components/AccountManager';
 import GoalManager from './components/GoalManager';
 import BudgetManager from './components/BudgetManager';
-import { Transaction, Account, ViewState, User, Goal } from './types';
+import RetirementSimulator from './components/RetirementSimulator';
+
+
 import { Bell, Search, User as UserIcon, Plus, Sparkles, AlertCircle, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { parseNotification, getFinancialAdvice } from './geminiService';
 import { supabase } from './supabaseClient';
@@ -612,6 +614,8 @@ const App: React.FC = () => {
                 return <GoalManager goals={goals} transactions={filteredTransactions} accounts={accounts} onAddGoal={handleAddGoal} onDeleteGoal={handleDeleteGoal} />;
               case 'budgets':
                 return <BudgetManager transactions={filteredTransactions} />;
+              case 'retirement':
+                return <RetirementSimulator transactions={transactions} />;
               case 'ai-assistant':
                 return <FinancialAssistant transactions={transactions} accounts={accounts} />; // AI might need full context? Or just current month? Keeping full for now.
               default:
