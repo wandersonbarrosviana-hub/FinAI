@@ -37,7 +37,7 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions 
         let currentTarget = baseTarget;
 
         const data = [];
-        const yearsFixed = 70; // Fixed 70 years per user request
+        const yearsFixed = 60; // Fixed 60 years per user request
         const months = yearsFixed * 12;
 
         for (let i = 0; i <= months; i++) {
@@ -153,6 +153,12 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions 
             displayTotal: showRealValues ? (d.realTotal || 0) : (d.total || 0),
             displayPassiveIncome: showRealValues ? (d.realPassiveIncome || 0) : (d.passiveIncome || 0),
             displayRequiredIncome: showRealValues ? (d.requiredIncomeReal || 0) : (d.requiredIncomeNominal || 0),
+            // New Calculation: Interest Earned (Total - Invested)
+            // If showing Real Values: Real Total - Invested (Real Invested is roughly the same if we assume contribution matches inflation, but simpler: Real Total - Sum(Real Contributions))
+            // Actually, "Invested" is usually Nominal sum.
+            // But let's stick to the user request: "History 60 years and interest obtained is entire final patrimony value minus invested value".
+            // So: displayTotal - invested.
+            displayAccumulatedInterest: (showRealValues ? (d.realTotal || 0) : (d.total || 0)) - d.invested
         }));
 
     }, [simulationData, viewMode, showRealValues]);
@@ -342,7 +348,8 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions 
                                         `R$ ${value.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}`,
                                         name === 'displayPassiveIncome' ? 'Renda Passiva' :
                                             name === 'displayRequiredIncome' ? 'Aposentadoria' :
-                                                name === 'displayTotal' ? 'Patrimônio Total' : name
+                                                name === 'displayTotal' ? 'Patrimônio Total' :
+                                                    name === 'displayAccumulatedInterest' ? 'Juros Acumulados' : name
                                     ];
                                 }}
                                 labelFormatter={(label) => viewMode === 'annual' ? `Ano ${label}` : `Mês ${label}`}
@@ -378,13 +385,15 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions 
                             />
                             {/* Interest Earned Line (Requested separately) */}
                             <Line
-                                yAxisId="right"
+                                yAxisId="left" // Interest is a Stock concept (Total Amount), fits better with Left Axis (Total Patrimony) or Right?
+                                // User said "interest obtained is entire final patrimony minus invested". This is a large amount, comparable to Total Patrimony.
+                                // So it should use 'left' axis (Total Amount), not 'right' (Monthly Income).
                                 type="monotone"
-                                dataKey="displayPassiveIncome"
-                                stroke="#a855f7" // Purple
+                                dataKey="displayAccumulatedInterest"
+                                stroke="#f472b6" // Pink
                                 strokeWidth={2}
                                 dot={false}
-                                name="Juros do Período"
+                                name="Juros Acumulados"
                             />
 
                             {/* Required Income Line (Parabola/Line) */}
