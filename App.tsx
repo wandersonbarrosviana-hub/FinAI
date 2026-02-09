@@ -11,6 +11,7 @@ import NotificationCenter from './components/NotificationCenter';
 import BudgetManager from './components/BudgetManager';
 import RetirementSimulator from './components/RetirementSimulator';
 import TagManager from './components/TagManager';
+import TransactionManager from './components/TransactionManager';
 import { Budget } from './types';
 
 import { Bell, Search, User as UserIcon, Plus, Sparkles, AlertCircle, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
@@ -513,6 +514,38 @@ const App: React.FC = () => {
     await supabase.from('transactions').delete().eq('id', id);
   };
 
+  const handleTransfer = async (data: {
+    sourceAccountId: string;
+    destinationAccountId: string;
+    amount: number;
+    date: string;
+    description: string;
+  }) => {
+    // Create Withdraw (Expense) from Source
+    await handleAddTransaction({
+      description: `Transferência para: ${(accounts.find(a => a.id === data.destinationAccountId)?.name)} - ${data.description}`,
+      amount: data.amount,
+      type: 'expense',
+      account: data.sourceAccountId,
+      category: 'Transferência',
+      subCategory: 'Saída',
+      date: data.date,
+      isPaid: true
+    });
+
+    // Create Deposit (Income) to Destination
+    await handleAddTransaction({
+      description: `Transferência de: ${(accounts.find(a => a.id === data.sourceAccountId)?.name)} - ${data.description}`,
+      amount: data.amount,
+      type: 'income',
+      account: data.destinationAccountId,
+      category: 'Transferência',
+      subCategory: 'Entrada',
+      date: data.date,
+      isPaid: true
+    });
+  };
+
   const handleAddAccount = async (data: Partial<Account>) => {
     if (!user) return;
     const newAccPayload = {
@@ -675,6 +708,32 @@ const App: React.FC = () => {
                 return <ExpenseManager type="expense" transactions={filteredTransactions} onAddTransaction={handleAddTransaction} onDeleteTransaction={handleDeleteTransaction} onUpdateTransaction={handleUpdateTransaction} tags={tags} />;
               case 'income':
                 return <ExpenseManager type="income" transactions={filteredTransactions} onAddTransaction={handleAddTransaction} onDeleteTransaction={handleDeleteTransaction} onUpdateTransaction={handleUpdateTransaction} tags={tags} />;
+              case 'transactions':
+                return <TransactionManager
+                  transactions={filteredTransactions}
+                  accounts={accounts}
+                  tags={tags}
+                  onAddTransaction={handleAddTransaction}
+                  onUpdateTransaction={handleUpdateTransaction}
+                  onDeleteTransaction={handleDeleteTransaction}
+                  onTransfer={handleTransfer}
+                />;
+              case 'transfers':
+                // Redirect or reuse? Let's just render TransactionManager with initial tab if possible, or force tab. 
+                // For now, let's keep it clean and just return TransactionManager, maybe user navigation sets view.
+                // Actually, if we click "Transferências" in sidebar, we want to go to Transfer tab.
+                // TransactionManager doesn't support defaultTab prop yet. 
+                // Let's just map 'transfers' view to 'transactions' view logic if simpler, 
+                // OR render TransactionManager.
+                return <TransactionManager
+                  transactions={filteredTransactions}
+                  accounts={accounts}
+                  tags={tags}
+                  onAddTransaction={handleAddTransaction}
+                  onUpdateTransaction={handleUpdateTransaction}
+                  onDeleteTransaction={handleDeleteTransaction}
+                  onTransfer={handleTransfer}
+                />;
               case 'accounts':
                 return <AccountManager accounts={accounts} onAddAccount={handleAddAccount} onDeleteAccount={handleDeleteAccount} />;
               case 'goals':

@@ -81,4 +81,5 @@ export type ViewState =
   | 'settings'
   | 'plans'
   | 'reports'
+  | 'transactions'
   | 'ai-assistant';

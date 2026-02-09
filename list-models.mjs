@@ -1,4 +1,4 @@
-const key = 'AIzaSyBFDD2FJnZWhNs6exUCIpsIADSztdwDMBk';
+const key = process.env.VITE_GOOGLE_API_KEY || '';
 const url = `https://generativelanguage.googleapis.com/v1beta/models?key=${key}`;
 
 console.log("Listing Models...");
