@@ -398,7 +398,7 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions 
                                     return [
                                         `R$ ${value.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}`,
                                         name === 'displayPassiveIncome' ? 'Renda Passiva' :
-                                            name === 'displayRequiredIncome' ? 'Meta de Renda' :
+                                            name === 'displayRequiredIncome' ? 'Aposentadoria' :
                                                 name === 'displayTotal' ? 'Patrimônio Total' : name
                                     ];
                                 }}
@@ -444,7 +444,7 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions 
                                 strokeWidth={3}
                                 strokeDasharray="5 5"
                                 dot={false}
-                                name="Meta de Renda"
+                                name="Aposentadoria"
                                 isAnimationActive={true}
                                 connectNulls={true}
                             />
