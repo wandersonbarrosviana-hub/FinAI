@@ -12,6 +12,10 @@ import BudgetManager from './components/BudgetManager';
 import RetirementSimulator from './components/RetirementSimulator';
 import TagManager from './components/TagManager';
 import TransactionManager from './components/TransactionManager';
+import CreditCardManager from './components/CreditCardManager';
+import ChartsHub from './components/ChartsHub';
+import CategoryManager from './components/CategoryManager';
+import Reports from './components/Reports';
 import { Budget } from './types';
 
 import { Bell, Search, User as UserIcon, Plus, Sparkles, AlertCircle, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
@@ -718,22 +722,12 @@ const App: React.FC = () => {
                   onDeleteTransaction={handleDeleteTransaction}
                   onTransfer={handleTransfer}
                 />;
-              case 'transfers':
-                // Redirect or reuse? Let's just render TransactionManager with initial tab if possible, or force tab. 
-                // For now, let's keep it clean and just return TransactionManager, maybe user navigation sets view.
-                // Actually, if we click "Transferências" in sidebar, we want to go to Transfer tab.
-                // TransactionManager doesn't support defaultTab prop yet. 
-                // Let's just map 'transfers' view to 'transactions' view logic if simpler, 
-                // OR render TransactionManager.
-                return <TransactionManager
-                  transactions={filteredTransactions}
-                  accounts={accounts}
-                  tags={tags}
-                  onAddTransaction={handleAddTransaction}
-                  onUpdateTransaction={handleUpdateTransaction}
-                  onDeleteTransaction={handleDeleteTransaction}
-                  onTransfer={handleTransfer}
-                />;
+              case 'credit-cards':
+                return <CreditCardManager />;
+              case 'charts':
+                return <ChartsHub />;
+              case 'categories':
+                return <CategoryManager />;
               case 'accounts':
                 return <AccountManager accounts={accounts} onAddAccount={handleAddAccount} onDeleteAccount={handleDeleteAccount} />;
               case 'goals':
@@ -742,8 +736,10 @@ const App: React.FC = () => {
                 return <BudgetManager transactions={filteredTransactions} budgets={budgets} onUpdateBudget={handleUpdateBudget} onAddBudget={handleAddBudget} />;
               case 'retirement':
                 return <RetirementSimulator transactions={transactions} />;
-              case 'tags':
+              case 'tags': // Keeping tags if needed, otherwise maybe merged into Categories?
                 return <TagManager tags={tags} onAddTag={handleAddTag} onDeleteTag={handleDeleteTag} onUpdateTag={handleUpdateTag} />;
+              case 'reports':
+                return <Reports transactions={transactions} accounts={accounts} tags={tags} />;
               case 'ai-assistant':
 
                 return <FinancialAssistant transactions={transactions} accounts={accounts} goals={goals} budgets={budgets} />; // AI might need full context? Or just current month? Keeping full for now.

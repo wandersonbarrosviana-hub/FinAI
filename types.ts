@@ -71,7 +71,10 @@ export type ViewState =
   | 'dashboard'
   | 'income'
   | 'expenses'
-  | 'transfers'
+  // | 'transfers' // Removed
+  | 'credit-cards'
+  | 'charts'
+  | 'categories'
   | 'accounts'
   | 'budgets'
   | 'goals'

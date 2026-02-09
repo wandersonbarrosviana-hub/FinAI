@@ -14,7 +14,10 @@ import {
   Settings,
   ShieldCheck,
   FileText,
-  Bot
+  Bot,
+  CreditCard,
+  BarChart2,
+  Tags
 } from 'lucide-react';
 import { ViewState } from './types';
 
@@ -23,9 +26,12 @@ export const NAV_ITEMS = [
   { id: 'income' as ViewState, label: 'Receitas', icon: <TrendingUp size={20} /> },
   { id: 'expenses' as ViewState, label: 'Despesas', icon: <TrendingDown size={20} /> },
   { id: 'transactions' as ViewState, label: 'Transações', icon: <ArrowRightLeft size={20} /> },
-  { id: 'transfers' as ViewState, label: 'Transferências', icon: <ArrowRightLeft size={20} /> },
+  // { id: 'transfers' as ViewState, label: 'Transferências', icon: <ArrowRightLeft size={20} /> }, // Removed
+  { id: 'credit-cards' as ViewState, label: 'Cartões', icon: <CreditCard size={20} /> },
   { id: 'accounts' as ViewState, label: 'Contas', icon: <Wallet size={20} /> },
   { id: 'budgets' as ViewState, label: 'Orçamento', icon: <PieChart size={20} /> },
+  { id: 'charts' as ViewState, label: 'Gráficos', icon: <BarChart2 size={20} /> },
+  { id: 'categories' as ViewState, label: 'Categorias', icon: <Tags size={20} /> },
   { id: 'goals' as ViewState, label: 'Metas', icon: <Target size={20} /> },
   { id: 'objectives' as ViewState, label: 'Objetivos', icon: <Flag size={20} /> },
   { id: 'simulator' as ViewState, label: 'Simulador', icon: <Calculator size={20} /> },
