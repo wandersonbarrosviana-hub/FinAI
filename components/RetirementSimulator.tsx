@@ -126,6 +126,8 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions 
                 // Sums for the year
                 const yearInterest = monthsOfYear.reduce((sum, m) => sum + m.interest, 0);
                 const yearRealInterest = monthsOfYear.reduce((sum, m) => sum + m.realPassiveIncome, 0);
+                const yearRequiredNominal = monthsOfYear.reduce((sum, m) => sum + m.requiredIncomeNominal, 0);
+                const yearRequiredReal = monthsOfYear.reduce((sum, m) => sum + m.requiredIncomeReal, 0);
 
                 if (lastMonthOfYear) {
                     annualData.push({
@@ -134,6 +136,8 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions 
                         interest: yearInterest,
                         realPassiveIncome: yearRealInterest,
                         passiveIncome: yearInterest, // Nominal Annual Sum
+                        requiredIncomeNominal: yearRequiredNominal,
+                        requiredIncomeReal: yearRequiredReal,
                     });
                 }
             });
@@ -390,7 +394,7 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions 
                             {freedomPoint && (
                                 <ReferenceLine
                                     yAxisId="right"
-                                    x={viewMode === 'annual' ? freedomPoint.yearLabel : freedomPoint.month}
+                                    segment={[{ x: viewMode === 'annual' ? freedomPoint.yearLabel : freedomPoint.month, y: 0 }, { x: viewMode === 'annual' ? freedomPoint.yearLabel : freedomPoint.month, y: freedomPoint.displayPassiveIncome }]}
                                     stroke="#f59e0b" // Amber
                                     strokeDasharray="3 3"
                                     strokeWidth={2}
@@ -401,6 +405,10 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions 
                                         position="top"
                                         content={({ viewBox }) => {
                                             const { x, y } = viewBox as any;
+                                            // Ensure we pick the top point of the segment for the icon
+                                            // The segment prop usually passes the calculated points in props, but Label receives a viewBox of the line bounding box?
+                                            // Actually, for a segment, the labels might behave differently.
+                                            // Let's try to position relative to the bounding box.
                                             return (
                                                 <text x={x} y={y} dy={-10} fontSize={24} textAnchor="middle">
                                                     🏖️
