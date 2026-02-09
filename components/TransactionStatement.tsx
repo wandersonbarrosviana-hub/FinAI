@@ -110,23 +110,24 @@ const TransactionStatement: React.FC<TransactionStatementProps> = ({ transaction
                     <table className="w-full text-left">
                         <thead className="bg-slate-50">
                             <tr>
-                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Data</th>
-                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Descrição</th>
-                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Categoria/Conta</th>
-                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Valor</th>
-                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-center">Status</th>
-                            </tr>
+                                <tr>
+                                    <th className="px-4 py-3 sm:px-6 sm:py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Data</th>
+                                    <th className="px-4 py-3 sm:px-6 sm:py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Descrição</th>
+                                    <th className="px-4 py-3 sm:px-6 sm:py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Categoria/Conta</th>
+                                    <th className="px-4 py-3 sm:px-6 sm:py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Valor</th>
+                                    <th className="px-4 py-3 sm:px-6 sm:py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-center">Status</th>
+                                </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
                             {filtered.map((t) => (
                                 <tr key={t.id} className="hover:bg-sky-50/20 transition-colors">
-                                    <td className="px-6 py-4 text-sm text-slate-600 whitespace-nowrap">
+                                    <td className="px-4 py-3 sm:px-6 sm:py-4 text-sm text-slate-600 whitespace-nowrap">
                                         {new Date(t.date).toLocaleDateString('pt-BR')}
                                     </td>
-                                    <td className="px-6 py-4">
+                                    <td className="px-4 py-3 sm:px-6 sm:py-4">
                                         <div className="text-sm font-bold text-slate-800">{t.description}</div>
                                     </td>
-                                    <td className="px-6 py-4">
+                                    <td className="px-4 py-3 sm:px-6 sm:py-4">
                                         <div className="flex flex-col">
                                             <span className="text-xs font-bold text-slate-600">{t.category}</span>
                                             <span className="text-[10px] text-slate-400">
@@ -134,14 +135,14 @@ const TransactionStatement: React.FC<TransactionStatementProps> = ({ transaction
                                             </span>
                                         </div>
                                     </td>
-                                    <td className={`px-6 py-4 text-right text-sm font-black whitespace-nowrap ${t.type === 'income' ? 'text-emerald-600' : 'text-rose-600'
+                                    <td className={`px-4 py-3 sm:px-6 sm:py-4 text-right text-sm font-black whitespace-nowrap ${t.type === 'income' ? 'text-emerald-600' : 'text-rose-600'
                                         }`}>
                                         {t.type === 'income' ? '+' : '-'} R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                     </td>
-                                    <td className="px-6 py-4 text-center">
+                                    <td className="px-4 py-3 sm:px-6 sm:py-4 text-center">
                                         <span className={`px-2 py-1 rounded-lg text-[10px] font-bold ${t.isPaid
-                                                ? 'bg-emerald-50 text-emerald-600 border border-emerald-100'
-                                                : 'bg-amber-50 text-amber-500 border border-amber-100'
+                                            ? 'bg-emerald-50 text-emerald-600 border border-emerald-100'
+                                            : 'bg-amber-50 text-amber-500 border border-amber-100'
                                             }`}>
                                             {t.isPaid ? 'CONSOLIDADO' : 'PENDENTE'}
                                         </span>
