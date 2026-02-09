@@ -187,7 +187,7 @@ export const performDeepAnalysis = async (transactions: Transaction[], accounts:
     if (!API_KEY) return "Erro: Chave API ausente.";
 
     try {
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' }); // Use Pro for deeper analysis if possible
+        const model = genAI.getGenerativeModel({ model: MODEL_NAME }); // Use defined model constant
 
         const balance = accounts.reduce((sum, acc) => sum + acc.balance, 0);
 
