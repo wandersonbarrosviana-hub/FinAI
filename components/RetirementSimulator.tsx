@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Transaction } from '../types';
-import { ComposedChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Line, Bar } from 'recharts';
-import { Calculator, Table, Calendar, TrendingUp, DollarSign, Info } from 'lucide-react';
+import { ComposedChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Line, Bar, ReferenceDot, Label } from 'recharts';
+import { Calculator, Table, Calendar, TrendingUp, DollarSign, Info, Umbrella } from 'lucide-react';
 
 interface RetirementSimulatorProps {
     transactions: Transaction[]; // passed to calculate "suggested" essential expenses if needed
@@ -18,6 +18,7 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions 
 
     // View State
     const [viewMode, setViewMode] = useState<'monthly' | 'annual'>('annual');
+    const [showRealValues, setShowRealValues] = useState(false);
 
     // Calculations
     const simulationData = useMemo(() => {
@@ -55,15 +56,18 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions 
                     total: currentPatrimony,
                     inflationLoss: 0,
                     target: baseTarget,
-                    contributionNeeded: monthlyContribution
+                    contributionNeeded: monthlyContribution,
+                    // Init new fields
+                    passiveIncome: 0,
+                    requiredIncomeNominal: desiredIncome,
+                    realTotal: currentPatrimony,
+                    realPassiveIncome: 0,
+                    requiredIncomeReal: desiredIncome
                 });
                 continue;
             }
 
             const interestEarned = currentBalance * monthlyRate;
-            // Inflation erosion calculation: How much 'value' is lost compared to start?
-            // Actually, usually we track "Nominal" vs "Real".
-            // Let's track Nominal Balance.
 
             currentBalance += interestEarned + monthlyContribution;
             totalInvested += monthlyContribution;
@@ -75,12 +79,9 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions 
             const realValue = currentBalance / cumulativeInflationFactor;
             const inflationLoss = currentBalance - realValue;
 
-            // "Aporte corrigido" - Extra contribution needed? 
-            // Usually means indexing contribution by inflation.
-            // Let's assume the user increases contribution by inflation annually?
-            // For now, let's keep contribution fixed nominal in input, but show what it *should* be?
-            // The prompt says "quando precisa aportar a mais no proximo mes para compensar a inflacao".
-            // Meaning: Inflation Adjustment for Contribution.
+            // Real Interest (Passive Income in today's money)
+            const realInterest = interestEarned / cumulativeInflationFactor;
+
             const adjustedContribution = monthlyContribution * cumulativeInflationFactor;
 
             data.push({
@@ -88,8 +89,18 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions 
                 year: Math.floor(i / 12),
                 yearLabel: new Date().getFullYear() + Math.floor(i / 12),
                 invested: totalInvested,
-                interest: interestEarned, // This month's interest
+
+                // Nominal
+                interest: interestEarned,
                 total: currentBalance,
+                passiveIncome: interestEarned,
+                requiredIncomeNominal: desiredIncome * cumulativeInflationFactor,
+
+                // Real
+                realTotal: realValue,
+                realPassiveIncome: realInterest,
+                requiredIncomeReal: desiredIncome, // Constant in real terms
+
                 inflationLoss: inflationLoss,
                 target: currentTarget,
                 contributionNeeded: adjustedContribution
@@ -99,33 +110,52 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions 
     }, [desiredIncome, currentPatrimony, monthlyContribution, annualRate, annualInflation, yearsToSimulate]);
 
     // Aggregate for Table/Chart if Annual
+    // Aggregate for Table/Chart if Annual
     const displayData = useMemo(() => {
-        if (viewMode === 'monthly') {
-            return simulationData.map(d => ({ ...d, passiveIncome: d.interest }));
+        let processedData = simulationData;
+
+        // 1. Filter/Group by ViewMode (Monthly vs Annual)
+        if (viewMode === 'annual') {
+            const annualData: any[] = [];
+            const years = Array.from(new Set(simulationData.map(d => d.year)));
+
+            years.forEach(y => {
+                const monthsOfYear = simulationData.filter(d => d.year === y);
+                const lastMonthOfYear = monthsOfYear[monthsOfYear.length - 1];
+
+                // Sums for the year
+                const yearInterest = monthsOfYear.reduce((sum, m) => sum + m.interest, 0);
+                const yearRealInterest = monthsOfYear.reduce((sum, m) => sum + m.realPassiveIncome, 0);
+
+                if (lastMonthOfYear) {
+                    annualData.push({
+                        ...lastMonthOfYear,
+                        // Override monthly values with annual sums for the "flow" metrics
+                        interest: yearInterest,
+                        realPassiveIncome: yearRealInterest,
+                        passiveIncome: yearInterest, // Nominal Annual Sum
+                    });
+                }
+            });
+            processedData = annualData;
         }
 
-        // Group by Year (take the last month of each year)
-        // Except for Year 0
-        const annualData: any[] = [];
-        // Map of years
-        const years = Array.from(new Set(simulationData.map(d => d.year)));
+        // 2. Map based on ShowRealValues
+        return processedData.map(d => ({
+            ...d,
+            // Displayed Values (Dynamic)
+            // Fallback to 0 if undefined to avoid chart errors during hot-reload transitional states
+            displayTotal: showRealValues ? (d.realTotal || 0) : (d.total || 0),
+            displayPassiveIncome: showRealValues ? (d.realPassiveIncome || 0) : (d.passiveIncome || 0),
+            displayRequiredIncome: showRealValues ? (d.requiredIncomeReal || 0) : (d.requiredIncomeNominal || 0),
+        }));
 
-        years.forEach(y => {
-            const monthsOfYear = simulationData.filter(d => d.year === y);
-            const lastMonthOfYear = monthsOfYear[monthsOfYear.length - 1];
+    }, [simulationData, viewMode, showRealValues]);
 
-            // Sum interest for the year (Annual Passive Income)
-            const yearPassiveIncome = monthsOfYear.reduce((sum, m) => sum + m.interest, 0);
-
-            if (lastMonthOfYear) {
-                annualData.push({
-                    ...lastMonthOfYear,
-                    passiveIncome: yearPassiveIncome
-                });
-            }
-        });
-        return annualData;
-    }, [simulationData, viewMode]);
+    // Find Freedom Point (First time Passive Income > Required)
+    const freedomPoint = useMemo(() => {
+        return displayData.find(d => d.displayPassiveIncome >= d.displayRequiredIncome);
+    }, [displayData]);
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
@@ -237,7 +267,23 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions 
                             </div>
                         </div>
 
-                        {/* Toggle */}
+                        {/* Inflation Toggle */}
+                        <div className="flex bg-slate-100 p-1 rounded-xl">
+                            <button
+                                onClick={() => setShowRealValues(false)}
+                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${!showRealValues ? 'bg-white text-emerald-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                            >
+                                Nominal
+                            </button>
+                            <button
+                                onClick={() => setShowRealValues(true)}
+                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${showRealValues ? 'bg-white text-emerald-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                            >
+                                Real (IPCA)
+                            </button>
+                        </div>
+
+                        {/* View Toggle */}
                         <div className="flex bg-slate-100 p-1 rounded-xl">
                             <button
                                 onClick={() => setViewMode('monthly')}
@@ -294,14 +340,16 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions 
                                 contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                                 formatter={(value: number, name: string) => [
                                     `R$ ${value.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}`,
-                                    name === 'passiveIncome' ? 'Renda Passiva' : name
+                                    name === 'displayPassiveIncome' ? 'Renda Passiva' :
+                                        name === 'displayRequiredIncome' ? 'Meta de Renda' :
+                                            name === 'displayTotal' ? 'Patrimônio Total' : name
                                 ]}
                                 labelFormatter={(label) => viewMode === 'annual' ? `Ano ${label}` : `Mês ${label}`}
                             />
                             <Area
                                 yAxisId="left"
                                 type="monotone"
-                                dataKey="total"
+                                dataKey="displayTotal"
                                 stroke="#6366f1"
                                 strokeWidth={3}
                                 fillOpacity={1}
@@ -321,12 +369,44 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions 
                             {/* Passive Income Bar */}
                             <Bar
                                 yAxisId="right"
-                                dataKey="passiveIncome"
+                                dataKey="displayPassiveIncome"
                                 fill="#34d399"
                                 name="Renda Passiva"
                                 barSize={20}
                                 radius={[4, 4, 0, 0]}
                             />
+
+                            {/* Required Income Line (Parabola/Line) */}
+                            <Line
+                                yAxisId="right"
+                                type="monotone"
+                                dataKey="displayRequiredIncome"
+                                stroke="#f59e0b" // Amber
+                                strokeWidth={2}
+                                strokeDasharray="5 5"
+                                dot={false}
+                                name="Meta de Renda"
+                            />
+
+                            {/* Freedom Point (Umbrella) */}
+                            {freedomPoint && (
+                                <ReferenceDot
+                                    yAxisId="right"
+                                    x={viewMode === 'annual' ? freedomPoint.yearLabel : freedomPoint.month}
+                                    y={freedomPoint.displayRequiredIncome}
+                                    r={20}
+                                    fill="transparent"
+                                    stroke="none"
+                                >
+                                    <Label
+                                        content={({ x, y }) => (
+                                            <text x={x} y={y} dy={-10} dx={-10} fontSize={24} textAnchor="middle">
+                                                🏖️
+                                            </text>
+                                        )}
+                                    />
+                                </ReferenceDot>
+                            )}
                         </ComposedChart>
                     </ResponsiveContainer>
                 </div>
@@ -362,13 +442,13 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions 
                                         R$ {row.interest.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
                                     </td>
                                     <td className="px-6 py-4 font-black text-indigo-600">
-                                        R$ {row.total.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
+                                        R$ {row.displayTotal.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
                                     </td>
                                     <td className="px-6 py-4 font-medium text-rose-500">
                                         - R$ {row.inflationLoss.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
                                     </td>
                                     <td className="px-6 py-4 font-bold text-emerald-600 bg-emerald-50/30">
-                                        R$ {row.passiveIncome.toLocaleString('pt-BR', { maximumFractionDigits: 2 })}
+                                        R$ {row.displayPassiveIncome.toLocaleString('pt-BR', { maximumFractionDigits: 2 })}
                                     </td>
                                 </tr>
                             ))}
