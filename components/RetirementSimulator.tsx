@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Transaction } from '../types';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Line } from 'recharts';
+import { ComposedChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Line, Bar } from 'recharts';
 import { Calculator, Table, Calendar, TrendingUp, DollarSign, Info } from 'lucide-react';
 
 interface RetirementSimulatorProps {
@@ -100,21 +100,28 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions 
 
     // Aggregate for Table/Chart if Annual
     const displayData = useMemo(() => {
-        if (viewMode === 'monthly') return simulationData;
+        if (viewMode === 'monthly') {
+            return simulationData.map(d => ({ ...d, passiveIncome: d.interest }));
+        }
 
         // Group by Year (take the last month of each year)
         // Except for Year 0
-        const annualData = [];
+        const annualData: any[] = [];
         // Map of years
-        const years = new Set(simulationData.map(d => d.year));
+        const years = Array.from(new Set(simulationData.map(d => d.year)));
 
         years.forEach(y => {
-            const lastMonthOfYear = simulationData.filter(d => d.year === y).pop();
+            const monthsOfYear = simulationData.filter(d => d.year === y);
+            const lastMonthOfYear = monthsOfYear[monthsOfYear.length - 1];
+
+            // Sum interest for the year (Annual Passive Income)
+            const yearPassiveIncome = monthsOfYear.reduce((sum, m) => sum + m.interest, 0);
+
             if (lastMonthOfYear) {
-                // Approximate interest sum for the year?
-                // The logical "Total" is the end of year balance.
-                // "Invested" is end of year invested.
-                annualData.push(lastMonthOfYear);
+                annualData.push({
+                    ...lastMonthOfYear,
+                    passiveIncome: yearPassiveIncome
+                });
             }
         });
         return annualData;
@@ -226,13 +233,13 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions 
                             <span className="w-3 h-3 rounded-full bg-slate-300"></span> Investido
                         </div>
                         <div className="flex items-center gap-2 text-xs font-bold text-slate-500">
-                            <span className="w-3 h-3 rounded-full bg-emerald-400"></span> Meta Necessária
+                            <span className="w-3 h-3 rounded-full bg-emerald-400"></span> Renda Passiva
                         </div>
                     </div>
                 </div>
                 <div className="h-80 w-full">
                     <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={displayData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                        <ComposedChart data={displayData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                             <defs>
                                 <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
                                     <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
@@ -252,17 +259,30 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions 
                                 minTickGap={30}
                             />
                             <YAxis
+                                yAxisId="left"
                                 axisLine={false}
                                 tickLine={false}
                                 tick={{ fontSize: 10, fill: '#64748b' }}
                                 tickFormatter={(value) => `R$${(value / 1000).toFixed(0)}k`}
                             />
+                            <YAxis
+                                yAxisId="right"
+                                orientation="right"
+                                axisLine={false}
+                                tickLine={false}
+                                tick={{ fontSize: 10, fill: '#34d399' }}
+                                tickFormatter={(value) => `R$${(value / 1000).toFixed(0)}k`}
+                            />
                             <Tooltip
                                 contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                                formatter={(value: number) => [`R$ ${value.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}`, '']}
+                                formatter={(value: number, name: string) => [
+                                    `R$ ${value.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}`,
+                                    name === 'passiveIncome' ? 'Renda Passiva' : name
+                                ]}
                                 labelFormatter={(label) => viewMode === 'annual' ? `Ano ${label}` : `Mês ${label}`}
                             />
                             <Area
+                                yAxisId="left"
                                 type="monotone"
                                 dataKey="total"
                                 stroke="#6366f1"
@@ -272,6 +292,7 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions 
                                 name="Patrimônio Final"
                             />
                             <Area
+                                yAxisId="left"
                                 type="monotone"
                                 dataKey="invested"
                                 stroke="#cbd5e1"
@@ -280,16 +301,16 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions 
                                 fill="url(#colorInvested)"
                                 name="Valor Investido"
                             />
-                            {/* Target Curve */}
-                            <Line
-                                type="monotone"
-                                dataKey="target"
-                                stroke="#34d399"
-                                strokeWidth={2}
-                                dot={false}
-                                name="Meta Necessária"
+                            {/* Passive Income Bar */}
+                            <Bar
+                                yAxisId="right"
+                                dataKey="passiveIncome"
+                                fill="#34d399"
+                                name="Renda Passiva"
+                                barSize={20}
+                                radius={[4, 4, 0, 0]}
                             />
-                        </AreaChart>
+                        </ComposedChart>
                     </ResponsiveContainer>
                 </div>
             </div>
@@ -322,7 +343,7 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions 
                                 <th className="px-6 py-4">Juros (Período)</th>
                                 <th className="px-6 py-4 text-indigo-600">Patrimônio Total</th>
                                 <th className="px-6 py-4 text-rose-500">Perda Inflação</th>
-                                <th className="px-6 py-4 text-emerald-600">Aporte Necessário</th>
+                                <th className="px-6 py-4 text-emerald-600">Renda Passiva</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
@@ -343,8 +364,8 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions 
                                     <td className="px-6 py-4 font-medium text-rose-500">
                                         - R$ {row.inflationLoss.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
                                     </td>
-                                    <td className="px-6 py-4 font-medium text-emerald-600 bg-emerald-50/30">
-                                        R$ {row.contributionNeeded.toLocaleString('pt-BR', { maximumFractionDigits: 2 })}
+                                    <td className="px-6 py-4 font-bold text-emerald-600 bg-emerald-50/30">
+                                        R$ {row.passiveIncome.toLocaleString('pt-BR', { maximumFractionDigits: 2 })}
                                     </td>
                                 </tr>
                             ))}
