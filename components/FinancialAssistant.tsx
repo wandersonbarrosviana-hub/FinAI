@@ -23,7 +23,7 @@ interface Message {
 
 const FinancialAssistant: React.FC<FinancialAssistantProps> = ({ transactions, accounts, goals, budgets }) => {
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'ai', text: 'Olá! Sou seu assistente financeiro inteligente, agora potencializado pelo ChatGPT. Como posso ajudar com suas finanças hoje?' }
+    { role: 'ai', text: 'Olá! Sou seu assistente financeiro inteligente, agora potencializado pelo Google Gemini. Como posso ajudar com suas finanças hoje?' }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -90,7 +90,7 @@ const FinancialAssistant: React.FC<FinancialAssistantProps> = ({ transactions, a
           <div>
             <h2 className="font-extrabold text-slate-800 text-lg leading-tight">FinAI Intelligence</h2>
             <div className="flex items-center text-[10px] text-sky-600 font-bold uppercase tracking-wider mt-0.5">
-              <Sparkles size={10} className="mr-1" /> ChatGPT 4o Mini (v3.5 - FINAL FIX)
+              <Sparkles size={10} className="mr-1" /> Gemini 2.0 Flash (Latest)
 
 
 

@@ -20,7 +20,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ onAddTransactio
         setDetectedTransaction(null);
 
         try {
-            // Analyze with ChatGPT
+            // Analyze with Gemini
             const prompt = `
         Analise a seguinte notificação de SMS bancário e extraia os dados para uma transação financeira (JSON):
         Texto: "${smsText}"
