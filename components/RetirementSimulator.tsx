@@ -157,6 +157,61 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions 
         return displayData.find(d => d.displayPassiveIncome >= d.displayRequiredIncome);
     }, [displayData]);
 
+    // Generate Goal Trajectory (Visual Parabola)
+    // "Line starts at 0, parabola up, then falls showing where it hits the target"
+    const goalTrajectoryData = useMemo(() => {
+        if (!freedomPoint) return displayData;
+
+        const freedomIndex = displayData.indexOf(freedomPoint);
+        if (freedomIndex <= 0) return displayData;
+
+        const startX = 0;
+        const startY = 0;
+        const endX = freedomIndex;
+        const endY = freedomPoint.displayRequiredIncome;
+
+        // Parabola passing through (0,0) and (endX, endY)
+        // With a "jump" effect: Vertex height > endY.
+        // Let's set vertex X at 50% of the way, and vertex Y at 1.5x the target.
+        const midX = endX / 2;
+        const midY = endY * 1.5;
+
+        // Solve y = ax^2 + bx (since c=0)
+        // Eq 1: midY = a(midX^2) + b(midX)
+        // Eq 2: endY = a(endX^2) + b(endX)
+
+        // From Eq 2: b = (endY - a*endX^2) / endX = endY/endX - a*endX
+        // Subst into Eq 1:
+        // midY = a*midX^2 + (endY/endX - a*endX)*midX
+        // midY = a*midX^2 + midX*endY/endX - a*endX*midX
+        // midY - midX*endY/endX = a (midX^2 - endX*midX)
+        // a = (midY - midX*endY/endX) / (midX^2 - endX*midX)
+
+        const term1 = midY - (midX * endY / endX);
+        const term2 = (midX * midX) - (endX * midX);
+
+        // Safety check for divide by zero
+        if (Math.abs(term2) < 0.0001) return displayData;
+
+        const a = term1 / term2;
+        const b = (endY / endX) - (a * endX);
+
+        return displayData.map((d, i) => {
+            let trajectoryValue = null;
+            if (i <= freedomIndex) {
+                trajectoryValue = a * i * i + b * i;
+                // Ensure it doesn't go below 0 visually
+                if (trajectoryValue < 0) trajectoryValue = 0;
+            }
+
+            return {
+                ...d,
+                goalTrajectory: trajectoryValue
+            };
+        });
+
+    }, [displayData, freedomPoint]);
+
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
             {/* Header */}
@@ -302,7 +357,7 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions 
                 </div>
                 <div className="h-80 w-full">
                     <ResponsiveContainer width="100%" height="100%">
-                        <ComposedChart data={displayData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                        <ComposedChart data={goalTrajectoryData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                             <defs>
                                 <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
                                     <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
@@ -338,12 +393,15 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions 
                             />
                             <Tooltip
                                 contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                                formatter={(value: number, name: string) => [
-                                    `R$ ${value.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}`,
-                                    name === 'displayPassiveIncome' ? 'Renda Passiva' :
-                                        name === 'displayRequiredIncome' ? 'Meta de Renda' :
-                                            name === 'displayTotal' ? 'Patrimônio Total' : name
-                                ]}
+                                formatter={(value: number, name: string) => {
+                                    if (name === 'goalTrajectory') return [null, null]; // Hide trajectory from tooltip values
+                                    return [
+                                        `R$ ${value.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}`,
+                                        name === 'displayPassiveIncome' ? 'Renda Passiva' :
+                                            name === 'displayRequiredIncome' ? 'Meta de Renda' :
+                                                name === 'displayTotal' ? 'Patrimônio Total' : name
+                                    ];
+                                }}
                                 labelFormatter={(label) => viewMode === 'annual' ? `Ano ${label}` : `Mês ${label}`}
                             />
                             <Area
@@ -377,15 +435,18 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions 
                             />
 
                             {/* Required Income Line (Parabola/Line) */}
+                            {/* Required Income Trajectory (Parabola) */}
                             <Line
                                 yAxisId="right"
-                                type="monotone"
-                                dataKey="displayRequiredIncome"
+                                type="natural"
+                                dataKey="goalTrajectory"
                                 stroke="#f59e0b" // Amber
-                                strokeWidth={2}
+                                strokeWidth={3}
                                 strokeDasharray="5 5"
                                 dot={false}
                                 name="Meta de Renda"
+                                isAnimationActive={true}
+                                connectNulls={true}
                             />
 
                             {/* Freedom Point (Umbrella) */}
