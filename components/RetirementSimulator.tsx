@@ -14,7 +14,7 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions 
     const [monthlyContribution, setMonthlyContribution] = useState(1000);
     const [annualRate, setAnnualRate] = useState(10); // 10% a.a
     const [annualInflation, setAnnualInflation] = useState(4); // 4% a.a
-    const [yearsToSimulate, setYearsToSimulate] = useState(30);
+    // const [yearsToSimulate, setYearsToSimulate] = useState(30); // Removed per user request, fixed to 70
 
     // View State
     const [viewMode, setViewMode] = useState<'monthly' | 'annual'>('annual');
@@ -37,7 +37,8 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions 
         let currentTarget = baseTarget;
 
         const data = [];
-        const months = yearsToSimulate * 12;
+        const yearsFixed = 70; // Fixed 70 years per user request
+        const months = yearsFixed * 12;
 
         for (let i = 0; i <= months; i++) {
             // Logic:
@@ -107,7 +108,7 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions 
             });
         }
         return data;
-    }, [desiredIncome, currentPatrimony, monthlyContribution, annualRate, annualInflation, yearsToSimulate]);
+    }, [desiredIncome, currentPatrimony, monthlyContribution, annualRate, annualInflation]);
 
     // Aggregate for Table/Chart if Annual
     // Aggregate for Table/Chart if Annual
@@ -157,6 +158,8 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions 
     }, [simulationData, viewMode, showRealValues]);
 
     // Find Freedom Point (First time Passive Income > Required)
+    // We search displayData directly so it respects the current view mode's aggregation
+    // (Annual View: Sum vs Sum, Monthly View: Value vs Value)
     const freedomPoint = useMemo(() => {
         return displayData.find(d => d.displayPassiveIncome >= d.displayRequiredIncome);
     }, [displayData]);
@@ -240,18 +243,6 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions 
                                 type="number"
                                 value={annualInflation}
                                 onChange={(e) => setAnnualInflation(Number(e.target.value))}
-                                className="w-full px-4 py-3 bg-slate-50 rounded-xl border-none font-bold text-slate-700 focus:ring-2 focus:ring-sky-500 transition-all"
-                            />
-                        </div>
-                    </div>
-
-                    <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Anos de Simulação</label>
-                        <div className="relative">
-                            <input
-                                type="number"
-                                value={yearsToSimulate}
-                                onChange={(e) => setYearsToSimulate(Number(e.target.value))}
                                 className="w-full px-4 py-3 bg-slate-50 rounded-xl border-none font-bold text-slate-700 focus:ring-2 focus:ring-sky-500 transition-all"
                             />
                         </div>
@@ -385,6 +376,16 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions 
                                 barSize={20}
                                 radius={[4, 4, 0, 0]}
                             />
+                            {/* Interest Earned Line (Requested separately) */}
+                            <Line
+                                yAxisId="right"
+                                type="monotone"
+                                dataKey="displayPassiveIncome"
+                                stroke="#a855f7" // Purple
+                                strokeWidth={2}
+                                dot={false}
+                                name="Juros do Período"
+                            />
 
                             {/* Required Income Line (Parabola/Line) */}
                             {/* Required Income Line (Parabola/Line) - REMOVED per user request */}
@@ -394,7 +395,10 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions 
                             {freedomPoint && (
                                 <ReferenceLine
                                     yAxisId="right"
-                                    segment={[{ x: viewMode === 'annual' ? freedomPoint.yearLabel : freedomPoint.month, y: 0 }, { x: viewMode === 'annual' ? freedomPoint.yearLabel : freedomPoint.month, y: freedomPoint.displayPassiveIncome }]}
+                                    segment={[
+                                        { x: viewMode === 'annual' ? freedomPoint.yearLabel : freedomPoint.month, y: 0 },
+                                        { x: viewMode === 'annual' ? freedomPoint.yearLabel : freedomPoint.month, y: freedomPoint.displayPassiveIncome }
+                                    ]}
                                     stroke="#f59e0b" // Amber
                                     strokeDasharray="3 3"
                                     strokeWidth={2}
@@ -404,11 +408,12 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions 
                                     <Label
                                         position="top"
                                         content={({ viewBox }) => {
-                                            const { x, y } = viewBox as any;
-                                            // Ensure we pick the top point of the segment for the icon
-                                            // The segment prop usually passes the calculated points in props, but Label receives a viewBox of the line bounding box?
-                                            // Actually, for a segment, the labels might behave differently.
-                                            // Let's try to position relative to the bounding box.
+                                            const { x, y, height } = viewBox as any;
+                                            // The ReferenceLine segment viewBox gives us the bounding box of the line
+                                            // For a vertical line, x is correct, y is the top (since SVG coords go down)
+                                            // We want to place the icon slightly above the top of the line
+                                            // chart coords: y=0 is bottom, y=max is top. SVG: y=0 is top.
+                                            // The `y` in viewBox from Recharts ReferenceLine is usually the top-most pixel of the line.
                                             return (
                                                 <text x={x} y={y} dy={-10} fontSize={24} textAnchor="middle">
                                                     🏖️
