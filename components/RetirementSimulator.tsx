@@ -305,9 +305,19 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions 
                         </div>
                     </div>
                 </div>
-                <div className="h-80 w-full">
+
+                {/* Freedom Point Summary */}
+                {freedomPoint && (
+                    <div className="mb-4 p-4 bg-emerald-50 rounded-2xl border border-emerald-100 flex items-center justify-center text-center">
+                        <p className="text-emerald-800 font-bold text-sm sm:text-base">
+                            🎉 Liberdade Financeira em <span className="text-emerald-600 font-black">{Math.floor(freedomPoint.month / 12)} anos</span> e <span className="text-emerald-600 font-black">{freedomPoint.month % 12} meses</span>!
+                        </p>
+                    </div>
+                )}
+
+                <div className="h-64 sm:h-80 w-full -ml-4 sm:ml-0">
                     <ResponsiveContainer width="100%" height="100%">
-                        <ComposedChart data={displayData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                        <ComposedChart data={displayData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                             <defs>
                                 <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
                                     <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
@@ -442,8 +452,8 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions 
                 <div className="p-6 border-b border-slate-50 flex justify-between items-center">
                     <h3 className="text-lg font-black text-slate-800">Detalhamento da Evolução</h3>
                 </div>
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm">
+                <div className="overflow-x-auto w-full">
+                    <table className="w-full text-left text-sm min-w-[800px]">
                         <thead className="bg-slate-50 text-slate-500 uppercase font-bold text-xs tracking-wider">
                             <tr>
                                 <th className="px-6 py-4">{viewMode === 'annual' ? 'Ano' : 'Mês'}</th>
@@ -455,28 +465,31 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions 
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
-                            {displayData.map((row) => (
-                                <tr key={row.month} className="hover:bg-slate-50/50 transition-colors">
-                                    <td className="px-6 py-4 font-bold text-slate-700">
-                                        {viewMode === 'annual' ? row.yearLabel : row.month}
-                                    </td>
-                                    <td className="px-6 py-4 text-slate-600">
-                                        R$ {row.invested.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
-                                    </td>
-                                    <td className="px-6 py-4 text-slate-600">
-                                        R$ {row.interest.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
-                                    </td>
-                                    <td className="px-6 py-4 font-black text-indigo-600">
-                                        R$ {row.displayTotal.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
-                                    </td>
-                                    <td className="px-6 py-4 font-medium text-rose-500">
-                                        - R$ {row.inflationLoss.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
-                                    </td>
-                                    <td className="px-6 py-4 font-bold text-emerald-600 bg-emerald-50/30">
-                                        R$ {row.displayPassiveIncome.toLocaleString('pt-BR', { maximumFractionDigits: 2 })}
-                                    </td>
-                                </tr>
-                            ))}
+                            {displayData.map((row) => {
+                                const isFreedomPoint = freedomPoint && (viewMode === 'annual' ? row.year === freedomPoint.year : row.month === freedomPoint.month);
+                                return (
+                                    <tr key={row.month} className={`transition-colors ${isFreedomPoint ? 'bg-amber-100 border-l-4 border-amber-400' : 'hover:bg-slate-50/50'}`}>
+                                        <td className="px-6 py-4 font-bold text-slate-700">
+                                            {viewMode === 'annual' ? row.yearLabel : row.month}
+                                        </td>
+                                        <td className="px-6 py-4 text-slate-600">
+                                            R$ {row.invested.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
+                                        </td>
+                                        <td className="px-6 py-4 text-slate-600">
+                                            R$ {row.interest.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
+                                        </td>
+                                        <td className="px-6 py-4 font-black text-indigo-600">
+                                            R$ {row.displayTotal.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
+                                        </td>
+                                        <td className="px-6 py-4 font-medium text-rose-500">
+                                            - R$ {row.inflationLoss.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
+                                        </td>
+                                        <td className="px-6 py-4 font-bold text-emerald-600 bg-emerald-50/30">
+                                            R$ {row.displayPassiveIncome.toLocaleString('pt-BR', { maximumFractionDigits: 2 })}
+                                        </td>
+                                    </tr>
+                                );
+                            })}
                         </tbody>
                     </table>
                 </div>
