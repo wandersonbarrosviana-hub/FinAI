@@ -7,7 +7,7 @@ const API_KEY = import.meta.env.VITE_GOOGLE_API_KEY || "";
 
 const genAI = new GoogleGenerativeAI(API_KEY);
 // Using gemini-2.0-flash as it is the latest stable version available for this key
-const MODEL_NAME = 'gemini-2.0-flash';
+const MODEL_NAME = 'gemini-1.5-flash';
 
 console.log("FinAI AI Service Initializing (Gemini)...");
 console.log("API Key Status:", API_KEY ? "Present" : "MISSING");
