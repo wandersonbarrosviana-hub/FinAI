@@ -23,7 +23,7 @@ interface Message {
 
 const FinancialAssistant: React.FC<FinancialAssistantProps> = ({ transactions, accounts, goals, budgets }) => {
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'ai', text: 'Olá! Sou seu assistente financeiro inteligente, agora potencializado pelo Google Gemini. Como posso ajudar com suas finanças hoje?' }
+    { role: 'ai', text: 'Olá! Sou seu assistente financeiro inteligente. Como posso ajudar com suas finanças hoje?' }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -119,6 +119,13 @@ const FinancialAssistant: React.FC<FinancialAssistantProps> = ({ transactions, a
             className="p-2 bg-slate-100 text-slate-500 rounded-xl hover:bg-slate-200 transition-all"
           >
             <RotateCcw size={16} />
+          </button>
+          <button
+            onClick={() => handleSend("SYSTEM_PROBE_CONNECTION")}
+            title="Diagnóstico de Conexão"
+            className="p-2 bg-slate-100 text-slate-400 rounded-xl hover:bg-slate-200 transition-all opacity-50 hover:opacity-100"
+          >
+            <ZapOff size={16} />
           </button>
         </div>
       </div>

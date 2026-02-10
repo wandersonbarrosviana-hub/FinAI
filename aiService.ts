@@ -58,9 +58,11 @@ export const generateContent = async (prompt: string): Promise<string> => {
             const response = await result.response;
             return response.text();
         });
-    } catch (error) {
+    } catch (error: any) {
         console.error("Gemini Generate Error:", error);
-        return "Erro ao conectar com a IA do Google (Limite de requisições ou rede).";
+        if (error.message?.includes('429')) return "Erro: Limite de uso excedido (tente novamente mais tarde).";
+        if (error.message?.includes('API key')) return "Erro: Chave API inválida ou expirada.";
+        return `Erro de conexão com IA: ${error.message || 'Desconhecido'}`;
     }
 };
 
@@ -208,9 +210,10 @@ export const chatWithFinancialAssistant = async (
             return response.text();
         });
 
-    } catch (error) {
+    } catch (error: any) {
         console.error("Chat Error Details:", error);
-        return "Erro ao processar resposta da IA (Tente novamente em alguns segundos).";
+        if (error.message?.includes('429')) return "Erro: Muito tráfego na IA. Aguarde um momento.";
+        return `Erro na IA: ${error.message?.substring(0, 50)}... (Verifique a Chave)`;
     }
 };
 
