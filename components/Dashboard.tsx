@@ -6,6 +6,7 @@ import {
 } from 'recharts';
 import { Transaction, Account, Goal, Budget } from '../types';
 import { TrendingUp, TrendingDown, Wallet, PlusCircle, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import ChartContainer from './ChartContainer';
 
 interface DashboardProps {
   transactions: Transaction[];
@@ -217,12 +218,15 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-slate-900/50 backdrop-blur-md p-6 rounded-2xl shadow-lg border border-slate-800">
-          <h3 className="text-lg font-bold mb-6 text-white flex items-center gap-2">
-            <span className="w-1 h-6 bg-cyan-500 rounded-full"></span>
-            Fluxo de Caixa
-          </h3>
-          <div className="h-[300px] w-full">
+        <ChartContainer
+          title={
+            <span className="flex items-center gap-2">
+              <span className="w-1 h-6 bg-cyan-500 rounded-full"></span>
+              Fluxo de Caixa
+            </span>
+          }
+        >
+          <div className="h-full min-h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1e293b" />
@@ -236,36 +240,41 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
               </LineChart>
             </ResponsiveContainer>
           </div>
-        </div>
+        </ChartContainer>
 
-        <div className="bg-slate-900/50 backdrop-blur-md p-6 rounded-2xl shadow-lg border border-slate-800">
-          <h3 className="text-lg font-bold mb-6 text-white flex items-center gap-2">
-            <span className="w-1 h-6 bg-purple-500 rounded-full"></span>
-            Gastos por Categoria
-          </h3>
-          <div className="h-[300px] w-full flex items-center">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={pieData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={100}
-                  paddingAngle={5}
-                  dataKey="value"
-                  stroke="none"
-                >
-                  {pieData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  contentStyle={{ backgroundColor: '#0f172a', borderRadius: '12px', border: '1px solid #1e293b', color: '#fff' }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="space-y-3 pr-4">
+        <ChartContainer
+          title={
+            <span className="flex items-center gap-2">
+              <span className="w-1 h-6 bg-purple-500 rounded-full"></span>
+              Gastos por Categoria
+            </span>
+          }
+        >
+          <div className="h-full min-h-[300px] w-full flex items-center md:flex-row flex-col">
+            <div className="flex-1 h-[250px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={pieData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={100}
+                    paddingAngle={5}
+                    dataKey="value"
+                    stroke="none"
+                  >
+                    {pieData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{ backgroundColor: '#0f172a', borderRadius: '12px', border: '1px solid #1e293b', color: '#fff' }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="space-y-3 pr-4 w-full md:w-auto mt-4 md:mt-0">
               {pieData.map((entry, index) => (
                 <div key={entry.name} className="flex items-center text-sm group">
                   <div className="w-3 h-3 rounded-full mr-3 shadow-[0_0_8px_currentColor]" style={{ backgroundColor: COLORS[index % COLORS.length], color: COLORS[index % COLORS.length] }}></div>
@@ -274,7 +283,7 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
               ))}
             </div>
           </div>
-        </div>
+        </ChartContainer>
       </div>
 
       <div className="bg-slate-900/50 backdrop-blur-md rounded-2xl shadow-lg border border-slate-800 overflow-hidden">

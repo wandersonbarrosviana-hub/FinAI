@@ -80,8 +80,8 @@ const TransactionManager: React.FC<TransactionManagerProps> = ({
                 {activeTab === 'transfer' && (
                     <div className="max-w-4xl mx-auto space-y-8">
                         <div className="text-center mb-8">
-                            <h2 className="text-2xl font-bold text-slate-800">Transferência entre Contas</h2>
-                            <p className="text-slate-500">Mova dinheiro entre suas contas de forma simples.</p>
+                            <h2 className="text-2xl font-bold text-white">Transferência entre Contas</h2>
+                            <p className="text-slate-400">Mova dinheiro entre suas contas de forma simples.</p>
                         </div>
                         <TransferForm
                             accounts={accounts}

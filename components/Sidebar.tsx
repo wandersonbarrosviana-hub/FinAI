@@ -89,31 +89,27 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, isOpen, se
       </aside>
 
       {/* Mobile Bottom Navigation (Glassmorphism) */}
-      <nav className="md:hidden fixed bottom-4 left-4 right-4 bg-slate-900/90 backdrop-blur-xl border border-slate-800 rounded-2xl shadow-2xl z-50 flex items-center justify-evenly p-2 pb-safe">
-        {NAV_ITEMS.slice(0, 5).map((item) => { // Limit items for mobile
-          const isActive = currentView === item.id;
-          return (
-            <button
-              key={item.id}
-              onClick={() => onViewChange(item.id)}
-              className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all ${isActive
-                ? 'text-cyan-400'
-                : 'text-slate-500 hover:text-slate-300'
-                }`}
-            >
-              <div className={`p-1.5 rounded-full ${isActive ? 'bg-cyan-500/10' : ''}`}>
-                {React.cloneElement(item.icon as React.ReactElement, { size: 20 })}
-              </div>
-              {/* <span className="text-[10px] font-medium mt-1">{item.label}</span> */}
-            </button>
-          )
-        })}
-        <button
-          onClick={() => setIsOpen(true)} // Or some mobile menu drawer
-          className="flex flex-col items-center justify-center p-2 text-slate-500 hover:text-slate-300"
-        >
-          <Menu size={20} />
-        </button>
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-xl border-t border-slate-800 z-50 flex items-center overflow-x-auto pb-safe">
+        <div className="flex items-center px-4 py-2 space-x-6 min-w-full">
+          {NAV_ITEMS.map((item) => {
+            const isActive = currentView === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => onViewChange(item.id)}
+                className={`flex flex-col items-center justify-center min-w-[60px] p-2 rounded-xl transition-all ${isActive
+                  ? 'text-cyan-400'
+                  : 'text-slate-500 hover:text-slate-300'
+                  }`}
+              >
+                <div className={`p-1.5 rounded-full ${isActive ? 'bg-cyan-500/10' : ''}`}>
+                  {React.cloneElement(item.icon as React.ReactElement, { size: 20 })}
+                </div>
+                {/* <span className="text-[10px] font-medium mt-1">{item.label}</span> */}
+              </button>
+            )
+          })}
+        </div>
       </nav>
     </>
   );
