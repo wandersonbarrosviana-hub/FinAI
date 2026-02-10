@@ -315,187 +315,189 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions 
                     </div>
                 )}
 
-                <div className="h-64 sm:h-80 w-full -ml-4 sm:ml-0">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <ComposedChart data={displayData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                            <defs>
-                                <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
-                                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
-                                </linearGradient>
-                                <linearGradient id="colorInvested" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#cbd5e1" stopOpacity={0.3} />
-                                    <stop offset="95%" stopColor="#cbd5e1" stopOpacity={0} />
-                                </linearGradient>
-                            </defs>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                            <XAxis
-                                dataKey={viewMode === 'annual' ? "yearLabel" : "month"}
-                                axisLine={false}
-                                tickLine={false}
-                                tick={{ fontSize: 10, fill: '#64748b' }}
-                                minTickGap={30}
-                            />
-                            <YAxis
-                                yAxisId="left"
-                                axisLine={false}
-                                tickLine={false}
-                                tick={{ fontSize: 10, fill: '#64748b' }}
-                                tickFormatter={(value) => `R$${(value / 1000).toFixed(0)}k`}
-                            />
-                            <YAxis
-                                yAxisId="right"
-                                orientation="right"
-                                axisLine={false}
-                                tickLine={false}
-                                tick={{ fontSize: 10, fill: '#34d399' }}
-                                tickFormatter={(value) => `R$${(value / 1000).toFixed(0)}k`}
-                            />
-                            <Tooltip
-                                contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                                formatter={(value: number, name: string) => {
-                                    return [
-                                        `R$ ${value.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}`,
-                                        name === 'displayPassiveIncome' ? 'Renda Passiva' :
-                                            name === 'displayRequiredIncome' ? 'Aposentadoria' :
-                                                name === 'displayTotal' ? 'Patrimônio Total' :
-                                                    name === 'displayAccumulatedInterest' ? 'Juros Acumulados' : name
-                                    ];
-                                }}
-                                labelFormatter={(label) => viewMode === 'annual' ? `Ano ${label}` : `Mês ${label}`}
-                            />
-                            <Area
-                                yAxisId="left"
-                                type="monotone"
-                                dataKey="displayTotal"
-                                stroke="#6366f1"
-                                strokeWidth={3}
-                                fillOpacity={1}
-                                fill="url(#colorTotal)"
-                                name="Patrimônio Final"
-                            />
-                            <Area
-                                yAxisId="left"
-                                type="monotone"
-                                dataKey="invested"
-                                stroke="#cbd5e1"
-                                strokeWidth={2}
-                                strokeDasharray="5 5"
-                                fill="url(#colorInvested)"
-                                name="Valor Investido"
-                            />
-                            {/* Passive Income Bar */}
-                            <Bar
-                                yAxisId="right"
-                                dataKey="displayPassiveIncome"
-                                fill="#34d399"
-                                name="Renda Passiva"
-                                barSize={20}
-                                radius={[4, 4, 0, 0]}
-                            />
-                            {/* Interest Earned Line (Requested separately) */}
-                            <Line
-                                yAxisId="left" // Interest is a Stock concept (Total Amount), fits better with Left Axis (Total Patrimony) or Right?
-                                // User said "interest obtained is entire final patrimony minus invested". This is a large amount, comparable to Total Patrimony.
-                                // So it should use 'left' axis (Total Amount), not 'right' (Monthly Income).
-                                type="monotone"
-                                dataKey="displayAccumulatedInterest"
-                                stroke="#f472b6" // Pink
-                                strokeWidth={2}
-                                dot={false}
-                                name="Juros Acumulados"
-                            />
-
-                            {/* Required Income Line (Parabola/Line) */}
-                            {/* Required Income Line (Parabola/Line) - REMOVED per user request */}
-                            {/* Instead, Vertical Line at Freedom Point */}
-
-                            {/* Freedom Point (Vertical Line + Umbrella) */}
-                            {freedomPoint && (
-                                <ReferenceLine
+                {/* Scrollable Chart Container for Mobile */}
+                <div className="overflow-x-auto pb-4 -mx-4 px-4 md:mx-0 md:px-0">
+                    <div className="h-64 sm:h-80 w-[600px] sm:w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <ComposedChart data={displayData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                                <defs>
+                                    <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
+                                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                                    </linearGradient>
+                                    <linearGradient id="colorInvested" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#cbd5e1" stopOpacity={0.3} />
+                                        <stop offset="95%" stopColor="#cbd5e1" stopOpacity={0} />
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                <XAxis
+                                    dataKey={viewMode === 'annual' ? "yearLabel" : "month"}
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tick={{ fontSize: 10, fill: '#64748b' }}
+                                    minTickGap={30}
+                                />
+                                <YAxis
+                                    yAxisId="left"
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tick={{ fontSize: 10, fill: '#64748b' }}
+                                    tickFormatter={(value) => `R$${(value / 1000).toFixed(0)}k`}
+                                />
+                                <YAxis
                                     yAxisId="right"
-                                    segment={[
-                                        { x: viewMode === 'annual' ? freedomPoint.yearLabel : freedomPoint.month, y: 0 },
-                                        { x: viewMode === 'annual' ? freedomPoint.yearLabel : freedomPoint.month, y: freedomPoint.displayPassiveIncome }
-                                    ]}
-                                    stroke="#f59e0b" // Amber
-                                    strokeDasharray="3 3"
+                                    orientation="right"
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tick={{ fontSize: 10, fill: '#34d399' }}
+                                    tickFormatter={(value) => `R$${(value / 1000).toFixed(0)}k`}
+                                />
+                                <Tooltip
+                                    contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                    formatter={(value: number, name: string) => {
+                                        return [
+                                            `R$ ${value.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}`,
+                                            name === 'displayPassiveIncome' ? 'Renda Passiva' :
+                                                name === 'displayRequiredIncome' ? 'Aposentadoria' :
+                                                    name === 'displayTotal' ? 'Patrimônio Total' :
+                                                        name === 'displayAccumulatedInterest' ? 'Juros Acumulados' : name
+                                        ];
+                                    }}
+                                    labelFormatter={(label) => viewMode === 'annual' ? `Ano ${label}` : `Mês ${label}`}
+                                />
+                                <Area
+                                    yAxisId="left"
+                                    type="monotone"
+                                    dataKey="displayTotal"
+                                    stroke="#6366f1"
+                                    strokeWidth={3}
+                                    fillOpacity={1}
+                                    fill="url(#colorTotal)"
+                                    name="Patrimônio Final"
+                                />
+                                <Area
+                                    yAxisId="left"
+                                    type="monotone"
+                                    dataKey="invested"
+                                    stroke="#cbd5e1"
                                     strokeWidth={2}
-                                    ifOverflow="extendDomain"
-                                    isFront={true}
-                                >
-                                    <Label
-                                        position="top"
-                                        content={({ viewBox }) => {
-                                            const { x, y, height } = viewBox as any;
-                                            // The ReferenceLine segment viewBox gives us the bounding box of the line
-                                            // For a vertical line, x is correct, y is the top (since SVG coords go down)
-                                            // We want to place the icon slightly above the top of the line
-                                            // chart coords: y=0 is bottom, y=max is top. SVG: y=0 is top.
-                                            // The `y` in viewBox from Recharts ReferenceLine is usually the top-most pixel of the line.
-                                            return (
-                                                <text x={x} y={y} dy={-10} fontSize={24} textAnchor="middle">
-                                                    🏖️
-                                                </text>
-                                            );
-                                        }}
-                                    />
-                                </ReferenceLine>
-                            )}
-                        </ComposedChart>
-                    </ResponsiveContainer>
-                </div>
-            </div>
+                                    strokeDasharray="5 5"
+                                    fill="url(#colorInvested)"
+                                    name="Valor Investido"
+                                />
+                                {/* Passive Income Bar */}
+                                <Bar
+                                    yAxisId="right"
+                                    dataKey="displayPassiveIncome"
+                                    fill="#34d399"
+                                    name="Renda Passiva"
+                                    barSize={20}
+                                    radius={[4, 4, 0, 0]}
+                                />
+                                {/* Interest Earned Line (Requested separately) */}
+                                <Line
+                                    yAxisId="left" // Interest is a Stock concept (Total Amount), fits better with Left Axis (Total Patrimony) or Right?
+                                    // User said "interest obtained is entire final patrimony minus invested". This is a large amount, comparable to Total Patrimony.
+                                    // So it should use 'left' axis (Total Amount), not 'right' (Monthly Income).
+                                    type="monotone"
+                                    dataKey="displayAccumulatedInterest"
+                                    stroke="#f472b6" // Pink
+                                    strokeWidth={2}
+                                    dot={false}
+                                    name="Juros Acumulados"
+                                />
 
-            {/* Detailed Table */}
-            <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden">
-                <div className="p-6 border-b border-slate-50 flex justify-between items-center">
-                    <h3 className="text-lg font-black text-slate-800">Detalhamento da Evolução</h3>
+                                {/* Required Income Line (Parabola/Line) */}
+                                {/* Required Income Line (Parabola/Line) - REMOVED per user request */}
+                                {/* Instead, Vertical Line at Freedom Point */}
+
+                                {/* Freedom Point (Vertical Line + Umbrella) */}
+                                {freedomPoint && (
+                                    <ReferenceLine
+                                        yAxisId="right"
+                                        segment={[
+                                            { x: viewMode === 'annual' ? freedomPoint.yearLabel : freedomPoint.month, y: 0 },
+                                            { x: viewMode === 'annual' ? freedomPoint.yearLabel : freedomPoint.month, y: freedomPoint.displayPassiveIncome }
+                                        ]}
+                                        stroke="#f59e0b" // Amber
+                                        strokeDasharray="3 3"
+                                        strokeWidth={2}
+                                        ifOverflow="extendDomain"
+                                        isFront={true}
+                                    >
+                                        <Label
+                                            position="top"
+                                            content={({ viewBox }) => {
+                                                const { x, y, height } = viewBox as any;
+                                                // The ReferenceLine segment viewBox gives us the bounding box of the line
+                                                // For a vertical line, x is correct, y is the top (since SVG coords go down)
+                                                // We want to place the icon slightly above the top of the line
+                                                // chart coords: y=0 is bottom, y=max is top. SVG: y=0 is top.
+                                                // The `y` in viewBox from Recharts ReferenceLine is usually the top-most pixel of the line.
+                                                return (
+                                                    <text x={x} y={y} dy={-10} fontSize={24} textAnchor="middle">
+                                                        🏖️
+                                                    </text>
+                                                );
+                                            }}
+                                        />
+                                    </ReferenceLine>
+                                )}
+                            </ComposedChart>
+                        </ResponsiveContainer>
+                    </div>
                 </div>
-                <div className="overflow-x-auto w-full">
-                    <table className="w-full text-left text-sm min-w-[800px]">
-                        <thead className="bg-slate-50 text-slate-500 uppercase font-bold text-xs tracking-wider">
-                            <tr>
-                                <th className="px-6 py-4">{viewMode === 'annual' ? 'Ano' : 'Mês'}</th>
-                                <th className="px-6 py-4">Total Investido</th>
-                                <th className="px-6 py-4">Juros (Período)</th>
-                                <th className="px-6 py-4 text-indigo-600">Patrimônio Total</th>
-                                <th className="px-6 py-4 text-rose-500">Perda Inflação</th>
-                                <th className="px-6 py-4 text-emerald-600">Renda Passiva</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-50">
-                            {displayData.map((row) => {
-                                const isFreedomPoint = freedomPoint && (viewMode === 'annual' ? row.year === freedomPoint.year : row.month === freedomPoint.month);
-                                return (
-                                    <tr key={row.month} className={`transition-colors ${isFreedomPoint ? 'bg-amber-100 border-l-4 border-amber-400' : 'hover:bg-slate-50/50'}`}>
-                                        <td className="px-6 py-4 font-bold text-slate-700">
-                                            {viewMode === 'annual' ? row.yearLabel : row.month}
-                                        </td>
-                                        <td className="px-6 py-4 text-slate-600">
-                                            R$ {row.invested.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
-                                        </td>
-                                        <td className="px-6 py-4 text-slate-600">
-                                            R$ {row.interest.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
-                                        </td>
-                                        <td className="px-6 py-4 font-black text-indigo-600">
-                                            R$ {row.displayTotal.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
-                                        </td>
-                                        <td className="px-6 py-4 font-medium text-rose-500">
-                                            - R$ {row.inflationLoss.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
-                                        </td>
-                                        <td className="px-6 py-4 font-bold text-emerald-600 bg-emerald-50/30">
-                                            R$ {row.displayPassiveIncome.toLocaleString('pt-BR', { maximumFractionDigits: 2 })}
-                                        </td>
-                                    </tr>
-                                );
-                            })}
-                        </tbody>
-                    </table>
+
+                {/* Detailed Table */}
+                <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden">
+                    <div className="p-6 border-b border-slate-50 flex justify-between items-center">
+                        <h3 className="text-lg font-black text-slate-800">Detalhamento da Evolução</h3>
+                    </div>
+                    <div className="overflow-x-auto w-full">
+                        <table className="w-full text-left text-sm min-w-[800px]">
+                            <thead className="bg-slate-50 text-slate-500 uppercase font-bold text-xs tracking-wider">
+                                <tr>
+                                    <th className="px-6 py-4">{viewMode === 'annual' ? 'Ano' : 'Mês'}</th>
+                                    <th className="px-6 py-4">Total Investido</th>
+                                    <th className="px-6 py-4">Juros (Período)</th>
+                                    <th className="px-6 py-4 text-indigo-600">Patrimônio Total</th>
+                                    <th className="px-6 py-4 text-rose-500">Perda Inflação</th>
+                                    <th className="px-6 py-4 text-emerald-600">Renda Passiva</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-50">
+                                {displayData.map((row) => {
+                                    const isFreedomPoint = freedomPoint && (viewMode === 'annual' ? row.year === freedomPoint.year : row.month === freedomPoint.month);
+                                    return (
+                                        <tr key={row.month} className={`transition-colors ${isFreedomPoint ? 'bg-amber-100 border-l-4 border-amber-400' : 'hover:bg-slate-50/50'}`}>
+                                            <td className="px-6 py-4 font-bold text-slate-700">
+                                                {viewMode === 'annual' ? row.yearLabel : row.month}
+                                            </td>
+                                            <td className="px-6 py-4 text-slate-600">
+                                                R$ {row.invested.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
+                                            </td>
+                                            <td className="px-6 py-4 text-slate-600">
+                                                R$ {row.interest.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
+                                            </td>
+                                            <td className="px-6 py-4 font-black text-indigo-600">
+                                                R$ {row.displayTotal.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
+                                            </td>
+                                            <td className="px-6 py-4 font-medium text-rose-500">
+                                                - R$ {row.inflationLoss.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
+                                            </td>
+                                            <td className="px-6 py-4 font-bold text-emerald-600 bg-emerald-50/30">
+                                                R$ {row.displayPassiveIncome.toLocaleString('pt-BR', { maximumFractionDigits: 2 })}
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-        </div>
-    );
+            );
 };
 
-export default RetirementSimulator;
+            export default RetirementSimulator;

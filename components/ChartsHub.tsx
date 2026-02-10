@@ -150,128 +150,131 @@ const ChartsHub: React.FC<ChartsHubProps> = ({ transactions }) => {
                     </div>
                 </div>
 
-                <div className="h-[300px] w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={expenseByCategoryData} layout="vertical" margin={{ left: 10, right: 30, top: 0, bottom: 0 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#334155" horizontal={false} />
-                            <XAxis type="number" hide />
-                            <YAxis
-                                dataKey="name"
-                                type="category"
-                                width={100}
-                                tick={{ fill: '#94a3b8', fontSize: 10 }}
-                                axisLine={false}
-                                tickLine={false}
-                            />
-                            <Tooltip content={<CustomTooltip />} />
-                            <Bar
-                                dataKey={expenseMode === 'value' ? 'value' : 'percent'}
-                                name={expenseMode === 'value' ? 'Valor' : 'Percentual'}
-                                radius={[0, 4, 4, 0]}
-                                barSize={20}
-                            >
-                                {expenseByCategoryData.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                ))}
-                            </Bar>
-                        </BarChart>
-                    </ResponsiveContainer>
-                </div>
-            </div>
-
-            {/* Chart 2: Payment Methods (Pie) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-slate-900/50 border border-slate-800 rounded-3xl p-6">
-                    <h3 className="font-bold text-slate-200 flex items-center gap-2 mb-6">
-                        <CreditCard size={18} className="text-emerald-400" /> Métodos de Pagamento
-                    </h3>
-                    <div className="h-[250px] w-full relative">
+                <div className="overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
+                    <div className="h-[300px] w-[600px] sm:w-full">
                         <ResponsiveContainer width="100%" height="100%">
-                            <PieChart>
-                                <Pie
-                                    data={paymentMethodData}
-                                    innerRadius={60}
-                                    outerRadius={80}
-                                    paddingAngle={5}
-                                    dataKey="value"
-                                    stroke="none"
+                            <BarChart data={expenseByCategoryData} layout="vertical" margin={{ left: 10, right: 30, top: 0, bottom: 0 }}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#334155" horizontal={false} />
+                                <XAxis type="number" hide />
+                                <YAxis
+                                    dataKey="name"
+                                    type="category"
+                                    width={100}
+                                    tick={{ fill: '#94a3b8', fontSize: 10 }}
+                                    axisLine={false}
+                                    tickLine={false}
+                                />
+                                <Tooltip content={<CustomTooltip />} />
+                                <Bar
+                                    dataKey={expenseMode === 'value' ? 'value' : 'percent'}
+                                    name={expenseMode === 'value' ? 'Valor' : 'Percentual'}
+                                    radius={[0, 4, 4, 0]}
+                                    barSize={20}
                                 >
-                                    {paymentMethodData.map((entry, index) => (
+                                    {expenseByCategoryData.map((entry, index) => (
                                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                     ))}
-                                </Pie>
-                                <Tooltip content={<CustomTooltip />} />
-                                <Legend
-                                    layout="vertical"
-                                    verticalAlign="middle"
-                                    align="right"
-                                    iconType="circle"
-                                    iconSize={8}
-                                    wrapperStyle={{ fontSize: '10px', color: '#94a3b8' }}
-                                />
-                            </PieChart>
+                                </Bar>
+                            </BarChart>
                         </ResponsiveContainer>
-                        {/* Center Text */}
-                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none pr-24 md:pr-24">
-                            {/* Padding adjustment for legend */}
-                            <div className="text-xs text-slate-500 font-bold">Total</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+            {/* Chart 2: Payment Methods (Pie) */ }
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-slate-900/50 border border-slate-800 rounded-3xl p-6">
+                        <h3 className="font-bold text-slate-200 flex items-center gap-2 mb-6">
+                            <CreditCard size={18} className="text-emerald-400" /> Métodos de Pagamento
+                        </h3>
+                        <div className="h-[250px] w-full relative">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie
+                                        data={paymentMethodData}
+                                        innerRadius={60}
+                                        outerRadius={80}
+                                        paddingAngle={5}
+                                        dataKey="value"
+                                        stroke="none"
+                                    >
+                                        {paymentMethodData.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip content={<CustomTooltip />} />
+                                    <Legend
+                                        layout="vertical"
+                                        verticalAlign="middle"
+                                        align="right"
+                                        iconType="circle"
+                                        iconSize={8}
+                                        wrapperStyle={{ fontSize: '10px', color: '#94a3b8' }}
+                                    />
+                                </PieChart>
+                            </ResponsiveContainer>
+                            {/* Center Text */}
+                            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none pr-24 md:pr-24">
+                                {/* Padding adjustment for legend */}
+                                <div className="text-xs text-slate-500 font-bold">Total</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Chart 3: Income vs Expense Trend */}
+                    <div className="bg-slate-900/50 border border-slate-800 rounded-3xl p-6">
+                        <h3 className="font-bold text-slate-200 flex items-center gap-2 mb-6">
+                            <TrendingUp size={18} className="text-sky-400" /> Fluxo Diário
+                        </h3>
+                        <div className="h-[250px] w-full">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <AreaChart data={dailyTrendData}>
+                                    <defs>
+                                        <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                                            <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                                        </linearGradient>
+                                        <linearGradient id="colorExpense" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.3} />
+                                            <stop offset="95%" stopColor="#f43f5e" stopOpacity={0} />
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+                                    <XAxis dataKey="day" tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} />
+                                    <YAxis hide />
+                                    <Tooltip content={<CustomTooltip />} />
+                                    <Area
+                                        type="monotone"
+                                        dataKey="income"
+                                        name="Receitas"
+                                        stroke="#10b981"
+                                        strokeWidth={2}
+                                        fillOpacity={1}
+                                        fill="url(#colorIncome)"
+                                    />
+                                    <Area
+                                        type="monotone"
+                                        dataKey="expense"
+                                        name="Despesas"
+                                        stroke="#f43f5e"
+                                        strokeWidth={2}
+                                        fillOpacity={1}
+                                        fill="url(#colorExpense)"
+                                    />
+                                </AreaChart>
+                            </ResponsiveContainer>
                         </div>
                     </div>
                 </div>
 
-                {/* Chart 3: Income vs Expense Trend */}
-                <div className="bg-slate-900/50 border border-slate-800 rounded-3xl p-6">
-                    <h3 className="font-bold text-slate-200 flex items-center gap-2 mb-6">
-                        <TrendingUp size={18} className="text-sky-400" /> Fluxo Diário
-                    </h3>
-                    <div className="h-[250px] w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={dailyTrendData}>
-                                <defs>
-                                    <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
-                                        <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                                    </linearGradient>
-                                    <linearGradient id="colorExpense" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.3} />
-                                        <stop offset="95%" stopColor="#f43f5e" stopOpacity={0} />
-                                    </linearGradient>
-                                </defs>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
-                                <XAxis dataKey="day" tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} />
-                                <YAxis hide />
-                                <Tooltip content={<CustomTooltip />} />
-                                <Area
-                                    type="monotone"
-                                    dataKey="income"
-                                    name="Receitas"
-                                    stroke="#10b981"
-                                    strokeWidth={2}
-                                    fillOpacity={1}
-                                    fill="url(#colorIncome)"
-                                />
-                                <Area
-                                    type="monotone"
-                                    dataKey="expense"
-                                    name="Despesas"
-                                    stroke="#f43f5e"
-                                    strokeWidth={2}
-                                    fillOpacity={1}
-                                    fill="url(#colorExpense)"
-                                />
-                            </AreaChart>
-                        </ResponsiveContainer>
-                    </div>
+                <div className="p-4 bg-slate-800/30 rounded-2xl border border-slate-800 text-center">
+                    <p className="text-xs text-slate-500 italic">
+                        * Os gráficos mostram dados do mês selecionado no topo da tela.
+                    </p>
                 </div>
-            </div>
-
-            <div className="p-4 bg-slate-800/30 rounded-2xl border border-slate-800 text-center">
-                <p className="text-xs text-slate-500 italic">
-                    * Os gráficos mostram dados do mês selecionado no topo da tela.
-                </p>
-            </div>
-        </div>
-    );
+            </div >
+            );
 };
 
 export default ChartsHub;
