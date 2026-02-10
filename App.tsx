@@ -649,30 +649,31 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex overflow-hidden">
+    <div className="min-h-screen bg-slate-950 flex overflow-hidden selection:bg-cyan-500/30">
       <Sidebar currentView={currentView} onViewChange={setCurrentView} isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} onLogout={handleLogout} />
       <main className={`flex-1 flex flex-col transition-all duration-300 mb-24 md:mb-0 ml-0 ${isSidebarOpen ? 'md:ml-64' : 'md:ml-20'}`}>
-        <header className="h-20 bg-white/80 backdrop-blur-md border-b border-sky-100 flex items-center justify-between px-4 md:px-8 sticky top-0 z-40">
+        {/* Header - Dark Glassmorphism */}
+        <header className="h-20 bg-slate-950/80 backdrop-blur-xl border-b border-slate-800 flex items-center justify-between px-4 md:px-8 sticky top-0 z-40">
           {/* Global Month Filter in Center */}
           <div className="flex-1 flex justify-center">
-            <div className="flex items-center gap-6 bg-slate-100/50 p-2 rounded-2xl border border-slate-200 shadow-inner">
+            <div className="flex items-center gap-6 bg-slate-900/50 p-2 rounded-2xl border border-slate-800 shadow-inner">
               <button
                 onClick={handlePrevMonth}
-                className="p-2 hover:bg-white rounded-xl hover:shadow-sm text-slate-500 hover:text-sky-600 transition-all active:scale-95"
+                className="p-2 hover:bg-slate-800/50 rounded-xl hover:shadow-sm text-slate-400 hover:text-cyan-400 transition-all active:scale-95"
               >
                 <ChevronLeft size={20} />
               </button>
               <div className="text-center min-w-[160px]">
-                <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">
+                <div className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">
                   {currentDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
                 </div>
-                <div className={`text-xl font-black ${monthlyBalance >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                <div className={`text-xl font-black ${monthlyBalance >= 0 ? 'text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.3)]' : 'text-rose-400 drop-shadow-[0_0_8px_rgba(251,113,133,0.3)]'}`}>
                   R$ {monthlyBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </div>
               </div>
               <button
                 onClick={handleNextMonth}
-                className="p-2 hover:bg-white rounded-xl hover:shadow-sm text-slate-500 hover:text-sky-600 transition-all active:scale-95"
+                className="p-2 hover:bg-slate-800/50 rounded-xl hover:shadow-sm text-slate-400 hover:text-cyan-400 transition-all active:scale-95"
               >
                 <ChevronRight size={20} />
               </button>
@@ -681,19 +682,20 @@ const App: React.FC = () => {
 
           <div className="flex items-center space-x-6">
             <NotificationCenter onAddTransaction={(t) => handleAddTransaction({ ...t, type: t.type as any })} />
-            <div className="h-8 w-[1px] bg-slate-200"></div>
+            <div className="h-8 w-[1px] bg-slate-800"></div>
             <div className="flex items-center space-x-3">
               <div className="text-right hidden sm:block">
-                <p className="text-sm font-bold text-slate-800 leading-none">{user.name}</p>
-                <p className="text-xs text-slate-500 mt-1 uppercase font-bold tracking-tighter">Premium</p>
+                <p className="text-sm font-bold text-slate-200 leading-none">{user.name}</p>
+                <p className="text-xs text-cyan-400 mt-1 uppercase font-bold tracking-tighter glow-sm">Premium</p>
               </div>
-              <div className="w-10 h-10 rounded-full bg-sky-600 flex items-center justify-center text-white font-bold shadow-lg shadow-sky-100">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-cyan-600 to-blue-600 flex items-center justify-center text-white font-bold shadow-lg shadow-cyan-900/20 ring-2 ring-slate-800">
                 {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
               </div>
             </div>
           </div>
         </header>
-        <div className="p-4 md:p-8 overflow-y-auto scrollbar-hide">
+
+        <div className="p-4 md:p-8 overflow-y-auto scrollbar-hide text-slate-200">
           <div className="mb-8">
             <VoiceControl onAddTransaction={handleAICommand} />
           </div>
@@ -746,9 +748,12 @@ const App: React.FC = () => {
               default:
                 return (
                   <div className="flex flex-col items-center justify-center h-full text-slate-400 space-y-4">
-                    <div className="p-8 bg-white rounded-3xl border border-sky-100 text-center max-w-md shadow-sm">
-                      <h3 className="text-xl font-bold text-slate-800 mb-2">Módulo em Desenvolvimento</h3>
-                      <p>A seção de <strong>{currentView.charAt(0).toUpperCase() + currentView.slice(1)}</strong> está sendo finalizada pela nossa equipe. Em breve você terá acesso total.</p>
+                    <div className="p-8 bg-slate-900 rounded-3xl border border-slate-800 text-center max-w-md shadow-2xl">
+                      <div className="w-16 h-16 bg-slate-800/50 rounded-full flex items-center justify-center mx-auto mb-4 text-cyan-400">
+                        <Sparkles size={32} />
+                      </div>
+                      <h3 className="text-xl font-bold text-white mb-2">Módulo em Desenvolvimento</h3>
+                      <p className="text-slate-400">A seção de <strong className="text-cyan-400">{currentView.charAt(0).toUpperCase() + currentView.slice(1)}</strong> está sendo finalizada pela nossa equipe. Em breve você terá acesso total.</p>
                     </div>
                   </div>
                 );
@@ -760,29 +765,29 @@ const App: React.FC = () => {
       {
         showNotificationPopup && notificationData && (
           <div className="fixed bottom-6 right-6 z-50 animate-in fade-in slide-in-from-bottom-10 duration-500">
-            <div className="bg-white p-5 rounded-3xl shadow-2xl border border-sky-100 flex flex-col space-y-3 max-w-sm ring-8 ring-sky-50">
+            <div className="bg-slate-900/95 backdrop-blur-xl p-5 rounded-3xl shadow-2xl border border-slate-700 flex flex-col space-y-3 max-w-sm ring-1 ring-white/10">
               <div className="flex items-center space-x-3">
-                <div className="p-2.5 bg-sky-600 text-white rounded-2xl shadow-lg shadow-sky-200"><AlertCircle size={20} /></div>
+                <div className="p-2.5 bg-cyan-500/10 text-cyan-400 rounded-2xl border border-cyan-500/20"><AlertCircle size={20} /></div>
                 <div className="flex-1">
-                  <p className="text-[10px] font-black text-sky-600 uppercase tracking-widest">IA - Notificação Detectada</p>
-                  <p className="text-sm font-bold text-slate-800">Novo Evento Financeiro</p>
+                  <p className="text-[10px] font-black text-cyan-400 uppercase tracking-widest">IA - Notificação Detectada</p>
+                  <p className="text-sm font-bold text-white">Novo Evento Financeiro</p>
                 </div>
               </div>
-              <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 italic text-xs text-slate-600">"{notificationData.raw}"</div>
+              <div className="bg-slate-950 p-3 rounded-2xl border border-slate-800 italic text-xs text-slate-400">"{notificationData.raw}"</div>
 
               <div className="text-xs text-slate-500">
                 A IA identificou:
-                <span className="font-bold text-slate-700 block mt-1">
+                <span className="font-bold text-slate-300 block mt-1">
                   {notificationData.parsed.category} &gt; {notificationData.parsed.subCategory}
                 </span>
                 Deseja confirmar o lançamento?
               </div>
 
               <div className="flex space-x-2">
-                <button onClick={() => { handleAddTransaction(notificationData.parsed); setShowNotificationPopup(false); }} className="flex-1 py-2.5 bg-sky-600 text-white text-xs font-bold rounded-xl hover:bg-sky-700 transition-all">
+                <button onClick={() => { handleAddTransaction(notificationData.parsed); setShowNotificationPopup(false); }} className="flex-1 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold rounded-xl transition-all shadow-lg shadow-cyan-900/20">
                   Confirmar
                 </button>
-                <button onClick={() => setShowNotificationPopup(false)} className="px-4 py-2.5 border border-slate-200 text-slate-400 text-xs font-bold rounded-xl hover:bg-slate-50 transition-all">
+                <button onClick={() => setShowNotificationPopup(false)} className="px-4 py-2.5 border border-slate-700 text-slate-400 hover:text-white hover:bg-slate-800 text-xs font-bold rounded-xl transition-all">
                   Ignorar
                 </button>
               </div>
