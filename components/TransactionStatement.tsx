@@ -110,13 +110,12 @@ const TransactionStatement: React.FC<TransactionStatementProps> = ({ transaction
                     <table className="w-full text-left">
                         <thead className="bg-slate-50">
                             <tr>
-                                <tr>
-                                    <th className="px-4 py-3 sm:px-6 sm:py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Data</th>
-                                    <th className="px-4 py-3 sm:px-6 sm:py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Descrição</th>
-                                    <th className="px-4 py-3 sm:px-6 sm:py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Categoria/Conta</th>
-                                    <th className="px-4 py-3 sm:px-6 sm:py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Valor</th>
-                                    <th className="px-4 py-3 sm:px-6 sm:py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-center">Status</th>
-                                </tr>
+                                <th className="px-4 py-3 sm:px-6 sm:py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Data</th>
+                                <th className="px-4 py-3 sm:px-6 sm:py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Descrição</th>
+                                <th className="px-4 py-3 sm:px-6 sm:py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Categoria/Conta</th>
+                                <th className="px-4 py-3 sm:px-6 sm:py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Valor</th>
+                                <th className="px-4 py-3 sm:px-6 sm:py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-center">Status</th>
+                            </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
                             {filtered.map((t) => (
