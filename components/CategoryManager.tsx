@@ -1,8 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-    ChevronLeft,
-    ChevronRight,
     Plus,
     MoreVertical,
     Trash2,
@@ -29,7 +27,596 @@ import {
     Wifi,
     Monitor,
     Gamepad,
-    Dumbbell
+    Dumbbell,
+    GraduationCap,
+    Hammer,
+    Baby,
+    Dog,
+    Cat,
+    Fish,
+    Bus,
+    Train,
+    Bike,
+    CreditCard,
+    Banknote,
+    Landmark,
+    PiggyBank,
+    TrendingUp,
+    TrendingDown,
+    Activity,
+    AlertCircle,
+    Anchor,
+    Archive,
+    Award,
+    Backpack,
+    Bath,
+    Beer,
+    Bell,
+    Bike as Bicycle,
+    Bird,
+    Bitcoin,
+    Book,
+    Box,
+    Brain,
+    Brush,
+    Bug,
+    Building,
+    BusFront,
+    Cake,
+    Calculator,
+    Calendar,
+    Camera,
+    Candy,
+    CarFront,
+    Carrot,
+    Castle,
+    Cat as CatIcon,
+    Check,
+    CheckCircle,
+    ChefHat,
+    Cherry,
+    ChevronDown,
+    ChevronUp,
+    CircleDollarSign,
+    Cloud,
+    CloudRain,
+    CloudSun,
+    Code,
+    Coins,
+    Compass,
+    ConciergeBell,
+    Construction,
+    Contact,
+    Cookie,
+    Copy,
+    Copyright,
+    CornerDownRight,
+    Cpu,
+    Croissant,
+    Crosshair,
+    Crown,
+    CupSoda,
+    Database,
+    Diamond,
+    Dice1,
+    Dna,
+    Dog as DogIcon,
+    DoorOpen,
+    Download,
+    Dribbble,
+    Drumstick,
+    Ear,
+    Egg,
+    Eye,
+    Factory,
+    Fan,
+    Feather,
+    FerrisWheel,
+    File,
+    FileText,
+    Filter,
+    Flame,
+    Flashlight,
+    Flower,
+    Flower2,
+    Focus,
+    Folder,
+    Footprints,
+    Forklift,
+    Frown,
+    Fuel,
+    FunctionSquare,
+    Gamepad2,
+    Gem,
+    Ghost,
+    Gift as GiftIcon,
+    GitBranch,
+    Glasses,
+    Globe,
+    Grab,
+    GraduationCap as GradCap,
+    Grape,
+    Grid,
+    Hammer as HammerIcon,
+    HandCoins,
+    HardDrive,
+    Hash,
+    Haze,
+    Headphones,
+    HeartHandshake,
+    HeartPulse,
+    HelpCircle,
+    Hexagon,
+    Highlighter,
+    History,
+    Home as HomeIcon,
+    Hourglass,
+    IceCream,
+    Image,
+    Inbox,
+    Infinity,
+    Info,
+    InspectionPanel,
+    Instagram,
+    Italic,
+    Joystick,
+    Key,
+    Keyboard,
+    Lamp,
+    Landmark as LandmarkIcon,
+    Languages,
+    Laptop,
+    Laptop2,
+    Layers,
+    Layout,
+    LayoutDashboard,
+    LayoutGrid,
+    Leaf,
+    Library,
+    LifeBuoy,
+    Lightbulb,
+    Link,
+    Linkedin,
+    List,
+    ListChecks,
+    ListMusic,
+    ListOrdered,
+    ListPlus,
+    ListTodo,
+    ListVideo,
+    ListX,
+    Loader,
+    Loader2,
+    Lock,
+    LockKeyhole,
+    LogIn,
+    LogOut,
+    Lollipop,
+    Luggage,
+    Magnet,
+    Mail,
+    Mailbox,
+    Map,
+    MapPin,
+    Martini,
+    Maximize,
+    Maximize2,
+    Medal,
+    Megaphone,
+    Menu,
+    MessageCircle,
+    MessageSquare,
+    Mic,
+    Mic2,
+    Microscope,
+    Microwave,
+    Milestone,
+    Milk,
+    Minimize,
+    Minimize2,
+    Minus,
+    MinusCircle,
+    Monitor as MonitorIcon,
+    Moon,
+    MoreHorizontal,
+    Mountain,
+    MountainSnow,
+    Mouse,
+    Move,
+    Move3d,
+    MoveDiagonal,
+    MoveDiagonal2,
+    MoveHorizontal,
+    MoveVertical,
+    Music2,
+    Music3,
+    Music4,
+    Navigation,
+    Network,
+    Newspaper,
+    Nfc,
+    Nut,
+    Octagon,
+    Option,
+    Orbit,
+    Origami,
+    Package,
+    Package2,
+    PackageCheck,
+    PackageMinus,
+    PackageOpen,
+    PackagePlus,
+    PackageSearch,
+    PackageX,
+    PaintBucket,
+    Paintbrush,
+    Paintbrush2,
+    Palette,
+    Palmtree,
+    PanelBottom,
+    PanelLeft,
+    PanelRight,
+    PanelTop,
+    Paperclip,
+    Parentheses,
+    PartyPopper,
+    Pause,
+    PauseCircle,
+    PawPrint,
+    Pen,
+    PenLine,
+    PenTool,
+    Pencil,
+    PencilLine,
+    PencilRuler,
+    Percent,
+    PersonStanding,
+    Phone,
+    PhoneCall,
+    PhoneForwarded,
+    PhoneIncoming,
+    PhoneMissed,
+    PhoneOff,
+    PhoneOutgoing,
+    PieChart,
+    PiggyBank as Piggy,
+    Pilcrow,
+    Pill,
+    Pin,
+    PinOff,
+    Pipette,
+    Pizza,
+    Plane as PlaneIcon,
+    PlaneLanding,
+    PlaneTakeoff,
+    Play,
+    PlayCircle,
+    Plug,
+    Plug2,
+    PlusCircle,
+    PlusSquare,
+    Pocket,
+    Podcast,
+    Pointer,
+    Popcorn,
+    Popsicle,
+    PoundSterling,
+    Power,
+    PowerOff,
+    Presentation,
+    Printer,
+    Projector,
+    Puzzle,
+    QrCode,
+    Quote,
+    Rabbit,
+    Radar,
+    Radiation,
+    Radio,
+    RadioReceiver,
+    RadioTower,
+    Radius,
+    RailSymbol,
+    Rainbow,
+    Rat,
+    Ratio,
+    Receipt,
+    RectangleHorizontal,
+    RectangleVertical,
+    Recycle,
+    Redo,
+    Redo2,
+    RefreshCcw,
+    RefreshCw,
+    Refrigerator,
+    Regex,
+    RemoveFormatting,
+    Repeat,
+    Repeat1,
+    Repeat2,
+    Replace,
+    ReplaceAll,
+    Reply,
+    ReplyAll,
+    Rewind,
+    Rocket,
+    RockingChair,
+    RollerCoaster,
+    Rotate3d,
+    RotateCcw,
+    RotateCw,
+    Route,
+    Router,
+    Rows,
+    Rss,
+    Ruler,
+    RussianRuble,
+    Sailboat,
+    Salad,
+    Sandwich,
+    Satellite,
+    SatelliteDish,
+    Save as SaveIcon,
+    SaveAll,
+    Scale,
+    Scale3d,
+    Scaling,
+    Scan,
+    ScanBarcode,
+    ScanEye,
+    ScanFace,
+    ScanLine,
+    ScanSearch,
+    ScanText,
+    ScatterChart,
+    School,
+    School2,
+    Scissors,
+    ScreenShare,
+    ScreenShareOff,
+    Scroll,
+    ScrollText,
+    Search,
+    SearchCheck,
+    SearchCode,
+    SearchSlash,
+    SearchX,
+    Send,
+    SeparatorHorizontal,
+    SeparatorVertical,
+    Server,
+    ServerCog,
+    ServerCrash,
+    ServerOff,
+    Settings,
+    Settings2,
+    Share,
+    Share2,
+    Sheet,
+    Shell,
+    Shield,
+    ShieldAlert,
+    ShieldCheck,
+    ShieldClose,
+    ShieldOff,
+    ShieldQuestion,
+    Ship,
+    ShipWheel,
+    Shirt,
+    ShoppingBag as ShoppingBagIcon,
+    ShoppingBasket,
+    ShoppingCart,
+    Shovel,
+    ShowerHead,
+    Shrink,
+    Shuffle,
+    Sigma,
+    Signal,
+    SignalHigh,
+    SignalLow,
+    SignalMedium,
+    SignalZero,
+    Siren,
+    SkipBack,
+    SkipForward,
+    Skull,
+    Slack,
+    Slash,
+    Slice,
+    Sliders,
+    SlidersHorizontal,
+    Smartphone as SmartphoneIcon,
+    SmartphoneCharging,
+    SmartphoneNfc,
+    Smile,
+    SmilePlus,
+    Snowflake,
+    Sofa,
+    Soup,
+    Space,
+    Spade,
+    Sparkle,
+    Sparkles,
+    Speaker,
+    Speech,
+    SpellCheck,
+    Spline,
+    Split,
+    SplitSquareHorizontal,
+    SplitSquareVertical,
+    SprayCan,
+    Sprout,
+    Square,
+    SquareAsterisk,
+    SquareCode,
+    SquareDashedBottom,
+    SquareDashedBottomCode,
+    SquareDot,
+    SquareEqual,
+    SquareSlash,
+    SquareStack,
+    SquareUser,
+    SquareUserRound,
+    Stamp,
+    Star,
+    StarHalf,
+    StarOff,
+    StepBack,
+    StepForward,
+    Stethoscope,
+    Sticker,
+    StickyNote,
+    StopCircle,
+    Store,
+    StretchHorizontal,
+    StretchVertical,
+    Strikethrough,
+    Subscript,
+    Subtitles,
+    Sun,
+    SunDim,
+    SunMedium,
+    SunMoon,
+    SunSnow,
+    Sunrise,
+    Sunset,
+    Superscript,
+    SwissFranc,
+    SwitchCamera,
+    Sword,
+    Swords,
+    Syringe,
+    Table,
+    Table2,
+    Tablet,
+    TabletSmartphone,
+    Tag,
+    Tags,
+    Target,
+    Tent,
+    TentTree,
+    Terminal,
+    TerminalSquare,
+    TestTube,
+    TestTube2,
+    Text,
+    TextCursor,
+    TextCursorInput,
+    TextQuote,
+    TextSelect,
+    Theater,
+    Thermometer,
+    ThermometerSnowflake,
+    ThermometerSun,
+    ThumbsDown,
+    ThumbsUp,
+    Ticket,
+    Timer,
+    TimerOff,
+    TimerReset,
+    ToggleLeft,
+    ToggleRight,
+    Tornado,
+    Torus,
+    Touchpad,
+    TouchpadOff,
+    TowerControl,
+    ToyBrick,
+    Tractor,
+    TrafficCone,
+    TrainFront,
+    TrainTrack,
+    TramFront,
+    Trash,
+    Trash2 as TrashIcon,
+    TreeDeciduous,
+    TreePine,
+    Trees,
+    Trello,
+    TrendingUp as TrendingUpIcon,
+    Triangle,
+    Trophy,
+    Truck,
+    Tv,
+    Tv2,
+    Twitch,
+    Twitter,
+    Type,
+    Umbrella,
+    Underline,
+    Undo,
+    Undo2,
+    UnfoldHorizontal,
+    UnfoldVertical,
+    Ungroup,
+    Unlink,
+    Unlink2,
+    Unlock,
+    UnlockKeyhole,
+    Upload,
+    UploadCloud,
+    Usb,
+    User,
+    UserCheck,
+    UserCog,
+    UserMinus,
+    UserPlus,
+    UserX,
+    Users,
+    Users2,
+    Utensils as UtensilsIcon,
+    UtensilsCrossed,
+    UtilityPole,
+    Variable,
+    Vault,
+    Vegan,
+    VenetianMask,
+    Vibrate,
+    VibrateOff,
+    Video,
+    VideoOff,
+    Videotape,
+    View,
+    Voicemail,
+    Volume,
+    Volume1,
+    Volume2,
+    VolumeX,
+    Vote,
+    Wallet,
+    Wallet2,
+    WalletCards,
+    Wallpaper,
+    Wand,
+    Wand2,
+    Warehouse,
+    WashingMachine,
+    Watch,
+    Waves,
+    Waypoints,
+    Webcam,
+    Webhook,
+    Weight,
+    Wheat,
+    WheatOff,
+    WholeWord,
+    Wifi as WifiIcon,
+    WifiOff,
+    Wind,
+    Wine,
+    WineOff,
+    Workflow,
+    WrapText,
+    Wrench,
+    X as XIcon,
+    XCircle,
+    XOctagon,
+    XSquare,
+    Youtube,
+    Zap as ZapIcon,
+    ZapOff,
+    ZoomIn,
+    ZoomOut
 } from 'lucide-react';
 import { Transaction } from '../types';
 import { CATEGORIES_MAP } from '../constants';
@@ -43,22 +630,32 @@ interface CategoryState {
 }
 
 interface IconState {
-    [key: string]: string; // "categoryName" or "categoryName-subName" -> "IconName"
+    [key: string]: string;
 }
 
-// Icon Map for Dynamic Rendering
+// Extensive Icon Map
 const ICON_MAP: any = {
     ShoppingBag, Briefcase, Home, Utensils, Car, Plane, Heart, BookOpen,
     DollarSign, Coffee, Smartphone, Gift, Music, Film, Zap, Droplet,
-    Wifi, Monitor, Gamepad, Dumbbell
+    Wifi, Monitor, Gamepad, Dumbbell, GraduationCap, Hammer, Baby, Dog,
+    Cat, Fish, Bus, Train, Bike, CreditCard, Banknote, Landmark, PiggyBank,
+    TrendingUp, TrendingDown, Activity, AlertCircle, Award, Beer, Bell,
+    Calendar, Camera, CheckCircle, Cloud, Code, Coins, Crown, Database,
+    Diamond, Eye, Factory, FileText, Flag: FolderOpen, Flame, Flashlight,
+    Flower, Ghost, Globe, Headphones, Image, Key, Laptop, Layers, Layout,
+    Lightbulb, Link, Lock, Mail, MapPin, Medal, MessageCircle, Mic, Moon,
+    Mouse, Package, Paintbrush, Palette, Paperclip, Phone, PieChart,
+    PlayCircle, Power, Printer, Puzzle, Radio, Rocket, Ruler, Save: SaveIcon,
+    Scissors, Search, Server, Settings, Share, Shield, Shirt, ShoppingCart,
+    Signal, Skull, Smile, Speaker, Star, Sun, Table, Tag, Target, Terminal,
+    Thermometer, ThumbsUp, Ticket, Timer, Tool: Wrench, Trash: TrashIcon,
+    Trophy, Truck, Tv, Umbrella, Unlock, Upload, User, Users, Video,
+    Wallet, Watch, Wifi: WifiIcon, Wrench, Zap: ZapIcon, ZoomIn
 };
 
-const ICON_KEYS = Object.keys(ICON_MAP);
+const ICON_KEYS = Object.keys(ICON_MAP).sort();
 
 const CategoryManager: React.FC<CategoryManagerProps> = ({ transactions }) => {
-    // --- State ---
-    const [currentDate, setCurrentDate] = useState(new Date());
-
     // Load initial categories
     const [categories, setCategories] = useState<CategoryState>(() => {
         const saved = localStorage.getItem('finai_categories');
@@ -82,11 +679,11 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ transactions }) => {
     const [editValue, setEditValue] = useState('');
     const [newValue, setNewValue] = useState('');
     const [selectedIcon, setSelectedIcon] = useState('ShoppingBag');
+    const [searchTerm, setSearchTerm] = useState('');
 
     // --- Effects ---
     useEffect(() => {
         localStorage.setItem('finai_categories', JSON.stringify(categories));
-        // Dispatch event
         window.dispatchEvent(new Event('storage'));
     }, [categories]);
 
@@ -95,33 +692,15 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ transactions }) => {
     }, [icons]);
 
     // --- Helpers ---
-    const getMonthTransactions = () => {
-        return transactions.filter(t => {
-            const tDate = new Date(t.date);
-            return (
-                tDate.getMonth() === currentDate.getMonth() &&
-                tDate.getFullYear() === currentDate.getFullYear() &&
-                t.type === 'expense'
-            );
-        });
-    };
-
     const calculateTotal = (category: string, subCategory?: string) => {
-        const monthTxs = getMonthTransactions();
-        return monthTxs
+        // transactions passed are ALREADY filtered by Global Date from App.tsx
+        return transactions
             .filter(t => {
+                if (t.type !== 'expense') return false;
                 if (subCategory) return t.category === category && t.subCategory === subCategory;
                 return t.category === category;
             })
             .reduce((sum, t) => sum + Number(t.amount), 0);
-    };
-
-    const handlePrevMonth = () => {
-        setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
-    };
-
-    const handleNextMonth = () => {
-        setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
     };
 
     const getIcon = (key: string) => {
@@ -240,27 +819,19 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ transactions }) => {
         setMenuOpenId(null);
     };
 
+    const filteredIconKeys = ICON_KEYS.filter(key => key.toLowerCase().includes(searchTerm.toLowerCase()));
+
+
     return (
         <div className="space-y-6 pb-24">
 
-            {/* 1. Header with Month Selector */}
+            {/* 1. Header (Simplificado - sem data) */}
             <div className="flex flex-col items-center justify-center space-y-4 sticky top-0 bg-slate-950/80 backdrop-blur-md z-10 py-4 -mx-4 px-4 border-b border-slate-800">
                 <h2 className="text-xl font-bold text-slate-100 flex items-center gap-2">
                     <FolderOpen className="text-cyan-400" />
                     Gerenciar Categorias
                 </h2>
-
-                <div className="flex items-center gap-6 bg-slate-900 p-1.5 rounded-2xl border border-slate-800 shadow-lg">
-                    <button onClick={handlePrevMonth} className="p-2 hover:bg-slate-800 rounded-xl text-slate-400 hover:text-cyan-400 transition-all">
-                        <ChevronLeft size={20} />
-                    </button>
-                    <span className="text-sm font-bold text-slate-200 uppercase tracking-widest min-w-[140px] text-center">
-                        {currentDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
-                    </span>
-                    <button onClick={handleNextMonth} className="p-2 hover:bg-slate-800 rounded-xl text-slate-400 hover:text-cyan-400 transition-all">
-                        <ChevronRight size={20} />
-                    </button>
-                </div>
+                {/* Date Selector Removed - Using Global App Date */}
             </div>
 
             {/* 2. Main List */}
@@ -270,7 +841,6 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ transactions }) => {
                     const isExpanded = expandedCategory === category;
 
                     return (
-                        // REMOVED overflow-hidden to allow Menu to pop out
                         <div key={category} className="bg-slate-900/50 border border-slate-800 rounded-2xl transition-all hover:border-slate-700">
 
                             {/* Category Header Row */}
@@ -424,11 +994,20 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ transactions }) => {
                                 />
                             </div>
 
-                            {/* Icon Picker */}
+                            {/* Icon Picker with Filter */}
                             <div>
-                                <label className="block text-xs font-bold text-slate-400 uppercase mb-3">Ícone</label>
+                                <div className="flex items-center justify-between mb-3">
+                                    <label className="block text-xs font-bold text-slate-400 uppercase">Ícone</label>
+                                    <input
+                                        type="text"
+                                        placeholder="Buscar ícone..."
+                                        className="bg-slate-950 border border-slate-800 text-xs px-2 py-1 rounded-lg text-white w-32 focus:border-cyan-500 outline-none"
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                    />
+                                </div>
                                 <div className="grid grid-cols-5 gap-3 max-h-48 overflow-y-auto p-1 scrollbar-hide">
-                                    {ICON_KEYS.map((iconKey) => {
+                                    {filteredIconKeys.map((iconKey) => {
                                         const IconComp = ICON_MAP[iconKey];
                                         const isSelected = selectedIcon === iconKey;
                                         return (
@@ -439,6 +1018,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ transactions }) => {
                                                         ? 'bg-cyan-600 border-cyan-400 text-white shadow-lg shadow-cyan-500/20'
                                                         : 'bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700 hover:text-white'
                                                     }`}
+                                                title={iconKey}
                                             >
                                                 <IconComp size={20} />
                                             </button>

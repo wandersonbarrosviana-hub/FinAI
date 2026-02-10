@@ -727,9 +727,9 @@ const App: React.FC = () => {
               case 'credit-cards':
                 return <CreditCardManager />;
               case 'charts':
-                return <ChartsHub />;
+                return <ChartsHub transactions={filteredTransactions} />;
               case 'categories':
-                return <CategoryManager transactions={transactions} />;
+                return <CategoryManager transactions={filteredTransactions} />;
               case 'accounts':
                 return <AccountManager accounts={accounts} onAddAccount={handleAddAccount} onDeleteAccount={handleDeleteAccount} />;
               case 'goals':
