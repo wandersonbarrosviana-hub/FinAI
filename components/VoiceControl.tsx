@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Mic, MicOff, Loader2, CheckCircle, AlertCircle, Sparkles, MessageSquare, Volume2 } from 'lucide-react';
 import { parseVoiceCommand } from '../aiService';
@@ -11,7 +12,6 @@ type VoiceStatus = 'idle' | 'standby' | 'active_command' | 'processing' | 'succe
 const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
   const [status, setStatus] = useState<VoiceStatus>('idle');
   const [transcript, setTranscript] = useState('');
-  // Removed duplicates
 
   // Refs to avoid obsolete closures in SpeechRecognition callbacks
   const statusRef = useRef<VoiceStatus>('idle');
@@ -32,7 +32,7 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
 
   const stopListening = () => {
     if (recognitionRef.current) {
-      recognitionRef.current.onend = null; // Remove auto-restart
+      recognitionRef.current.onend = null;
       recognitionRef.current.stop();
       recognitionRef.current = null;
     }
@@ -42,7 +42,7 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
 
   const startListening = () => {
     if (!('webkitSpeechRecognition' in window)) {
-      alert('Seu navegador não suporta reconhecimento de voz.');
+      alert('Seu navegador não suporta reconhecimento de voz. Tente usar o Google Chrome.');
       return;
     }
 
@@ -50,14 +50,11 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
     const recognition = new SpeechRecognition();
 
     recognition.lang = 'pt-BR';
-    recognition.continuous = false; // Stop after one command usually? Or keep listening? User said "ao clicar e solicitar ele ja cumpra". Implies one command. But let's keep continuous for safety and manual stop, or stop on silence. 
-    // Actually, "continuous = false" is better for single command. Let's try false to auto-stop on silence?
-    // User might pause. Let's keep continuous = true but manually stop after processing.
-    recognition.continuous = true;
+    recognition.continuous = true; // Keep true to allow longer phrases
     recognition.interimResults = true;
 
     recognition.onstart = () => {
-      setStatus('active_command'); // Immediate active
+      setStatus('active_command');
     };
 
     recognition.onresult = async (event: any) => {
@@ -77,19 +74,12 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
 
       // Directly process final text
       if (finalTranscript && statusRef.current === 'active_command') {
-        // Debounce or just take it?
-        // If continuous is true, we might get multiple finals.
-        // We should probably stop listening after one command to "cumprir a ordem".
         stopListening(); // Stop immediately on final result to process
         processFinalText(finalTranscript);
       }
     };
 
     recognition.onend = () => {
-      // No auto-restart if we want one-shot, or restart if we want to keep listening?
-      // "ao clicar ... cumpra". Implies interaction.
-      // If we stopped manually in onresult, status should be 'processing' or 'idle' soon.
-      // If error or silence, we might want to go to idle.
       if (statusRef.current === 'active_command') {
         setStatus('idle');
       }
@@ -103,43 +93,44 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
       }
     };
 
-    recognition.start();
-    recognitionRef.current = recognition;
+    try {
+      recognition.start();
+      recognitionRef.current = recognition;
+    } catch (e) {
+      console.error("Erro ao iniciar:", e);
+    }
   };
-
-  // Removed activateFini
 
 
   const processFinalText = async (text: string) => {
-    // No wake word cleanup needed, but keeping trim
     const cleanText = text.trim();
     if (!cleanText) return;
 
     setStatus('processing');
     try {
-      const result = await parseVoiceCommand(text); // Use the real OpenAI service
+      const result = await parseVoiceCommand(text);
       console.log("Voice command parsed:", result);
 
       if (result.intent === 'UNKNOWN') {
         setStatus('error');
-        setTimeout(() => setStatus('standby'), 3000); // Go back to standby
+        setTimeout(() => setStatus('idle'), 3000);
       } else {
         const success = onAddTransaction(result);
         if (success !== false) {
           setStatus('success');
           setTimeout(() => {
-            setStatus('standby');
+            setStatus('idle');
             setTranscript('');
           }, 3000);
         } else {
           setStatus('error');
-          setTimeout(() => setStatus('standby'), 3000);
+          setTimeout(() => setStatus('idle'), 3000);
         }
       }
     } catch (err) {
       console.error("Erro ao processar comando:", err);
       setStatus('error');
-      setTimeout(() => setStatus('standby'), 3000);
+      setTimeout(() => setStatus('idle'), 3000);
     }
   };
 
@@ -147,7 +138,7 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
     <div className={`bg-white p-5 rounded-[2.5rem] border transition-all duration-500 flex items-center space-x-5 shadow-2xl relative overflow-hidden group ${status === 'standby' ? 'border-amber-200 shadow-amber-100/20' :
       status === 'active_command' ? 'border-sky-300 shadow-sky-200/40 ring-2 ring-sky-100' :
         status === 'processing' ? 'border-indigo-200 shadow-indigo-100' :
-          'border-slate-100 shadow-slate-200/30'
+          'border-slate-800 shadow-slate-900/10' // Darker default border for contrast
       }`}>
 
       {/* Layers of background glow */}
@@ -161,8 +152,8 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
       <div className="relative">
         <button
           onClick={toggleListening}
-          title={status === 'idle' ? 'Ativar escuta da Fini' : 'Desativar'}
-          className={`p-6 rounded-[2rem] transition-all duration-500 shadow-2xl transform active:scale-95 z-10 relative ${status === 'idle' ? 'bg-slate-200 text-slate-500 hover:bg-slate-300' :
+          title={status === 'idle' ? 'Ativar escuta' : 'Desativar'}
+          className={`p-6 rounded-[2rem] transition-all duration-500 shadow-2xl transform active:scale-95 z-10 relative ${status === 'idle' ? 'bg-slate-800 text-sky-400 hover:bg-slate-700 shadow-cyan-900/20' : // Dark theme button
             status === 'standby' ? 'bg-amber-500 text-white shadow-amber-200 ring-4 ring-amber-50' :
               status === 'active_command' ? 'bg-sky-600 text-white animate-bounce shadow-sky-300 ring-4 ring-sky-100' :
                 status === 'processing' ? 'bg-indigo-600 text-white' :
@@ -188,7 +179,7 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
           <span className={`text-base font-black tracking-tight transition-colors duration-300 ${status === 'active_command' ? 'text-sky-800' :
             'text-slate-800'
             }`}>
-            {status === 'idle' && 'Toque para Falar'}
+            {status === 'idle' && 'Comando de Voz'}
             {status === 'active_command' && 'Ouvindo...'}
             {status === 'processing' && 'Processando...'}
             {status === 'success' && 'Feito!'}
@@ -200,12 +191,12 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
           {status === 'idle' ? (
             <div className="text-slate-400 font-medium flex items-center gap-2">
               <MessageSquare size={14} className="text-slate-300" />
-              <span>Clique no microfone para dar um comando ou fazer uma pergunta.</span>
+              <span>Toque para ativar o assistente.</span>
             </div>
           ) : (
             <p className={`italic font-medium transition-all max-w-md truncate ${status === 'active_command' ? 'text-sky-600' : 'text-slate-400'
               }`}>
-              "{transcript || (status === 'standby' ? 'Estou atenta...' : 'Diga algo...')}"
+              "{transcript || (status === 'standby' ? 'Aguardando...' : 'Diga algo...')}"
             </p>
           )}
         </div>
@@ -214,17 +205,17 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
       <div className="hidden lg:flex flex-col items-end pr-4">
         <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full border transition-all ${status === 'standby' ? 'bg-amber-50 border-amber-100 text-amber-600' :
           status === 'active_command' ? 'bg-sky-50 border-sky-100 text-sky-600' :
-            'bg-slate-50 border-slate-100 text-slate-400'
+            'bg-slate-100 border-slate-200 text-slate-400'
           }`}>
           <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${status === 'standby' ? 'bg-amber-500' :
             status === 'active_command' ? 'bg-sky-500' :
-              'bg-slate-300'
+              'bg-slate-400'
             }`}></div>
           <span className="text-[10px] font-bold uppercase tracking-widest">
-            {status === 'idle' ? 'Offline' : 'Escuta Ativa'}
+            {status === 'idle' ? 'Aguardando' : 'Escuta Ativa'}
           </span>
         </div>
-        <span className="text-[9px] text-slate-300 mt-1 font-mono uppercase">IA Pronta</span>
+        <span className="text-[9px] text-slate-400 mt-1 font-mono uppercase">IA Pronta</span>
       </div>
     </div>
   );
