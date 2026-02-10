@@ -9,7 +9,27 @@ import {
     Edit2,
     Save,
     X,
-    FolderOpen
+    FolderOpen,
+    ShoppingBag,
+    Briefcase,
+    Home,
+    Utensils,
+    Car,
+    Plane,
+    Heart,
+    BookOpen,
+    DollarSign,
+    Coffee,
+    Smartphone,
+    Gift,
+    Music,
+    Film,
+    Zap,
+    Droplet,
+    Wifi,
+    Monitor,
+    Gamepad,
+    Dumbbell
 } from 'lucide-react';
 import { Transaction } from '../types';
 import { CATEGORIES_MAP } from '../constants';
@@ -22,33 +42,57 @@ interface CategoryState {
     [category: string]: string[];
 }
 
+interface IconState {
+    [key: string]: string; // "categoryName" or "categoryName-subName" -> "IconName"
+}
+
+// Icon Map for Dynamic Rendering
+const ICON_MAP: any = {
+    ShoppingBag, Briefcase, Home, Utensils, Car, Plane, Heart, BookOpen,
+    DollarSign, Coffee, Smartphone, Gift, Music, Film, Zap, Droplet,
+    Wifi, Monitor, Gamepad, Dumbbell
+};
+
+const ICON_KEYS = Object.keys(ICON_MAP);
+
 const CategoryManager: React.FC<CategoryManagerProps> = ({ transactions }) => {
     // --- State ---
     const [currentDate, setCurrentDate] = useState(new Date());
 
-    // Load initial categories from LocalStorage or fall back to constants
+    // Load initial categories
     const [categories, setCategories] = useState<CategoryState>(() => {
         const saved = localStorage.getItem('finai_categories');
         return saved ? JSON.parse(saved) : CATEGORIES_MAP;
     });
 
+    // Load Icons
+    const [icons, setIcons] = useState<IconState>(() => {
+        const saved = localStorage.getItem('finai_category_icons');
+        return saved ? JSON.parse(saved) : {};
+    });
+
     // UI States
     const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
-    const [menuOpenId, setMenuOpenId] = useState<string | null>(null); // "cat-Name" or "sub-Name-SubName"
+    const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
 
     // Editing / Creating States
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingType, setEditingType] = useState<'category' | 'subcategory' | null>(null);
-    const [targetCategory, setTargetCategory] = useState<string>(''); // For adding subcategory to specific cat
-    const [editValue, setEditValue] = useState(''); // Old value (for rename)
-    const [newValue, setNewValue] = useState(''); // New value input
+    const [targetCategory, setTargetCategory] = useState<string>('');
+    const [editValue, setEditValue] = useState('');
+    const [newValue, setNewValue] = useState('');
+    const [selectedIcon, setSelectedIcon] = useState('ShoppingBag');
 
     // --- Effects ---
     useEffect(() => {
         localStorage.setItem('finai_categories', JSON.stringify(categories));
-        // Dispatch event for other components to listen (optional future proofing)
+        // Dispatch event
         window.dispatchEvent(new Event('storage'));
     }, [categories]);
+
+    useEffect(() => {
+        localStorage.setItem('finai_category_icons', JSON.stringify(icons));
+    }, [icons]);
 
     // --- Helpers ---
     const getMonthTransactions = () => {
@@ -80,6 +124,12 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ transactions }) => {
         setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
     };
 
+    const getIcon = (key: string) => {
+        const iconName = icons[key];
+        const IconComponent = ICON_MAP[iconName] || FolderOpen;
+        return <IconComponent size={20} />;
+    };
+
     // --- CRUD Operations ---
 
     // 1. Add Category
@@ -88,6 +138,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ transactions }) => {
         if (categories[newValue]) return alert('Categoria já existe!');
 
         setCategories(prev => ({ ...prev, [newValue]: [] }));
+        setIcons(prev => ({ ...prev, [newValue]: selectedIcon }));
         closeModal();
     };
 
@@ -102,6 +153,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ transactions }) => {
             ...prev,
             [targetCategory]: [...currentSubs, newValue]
         }));
+        setIcons(prev => ({ ...prev, [`${targetCategory}-${newValue}`]: selectedIcon }));
         closeModal();
     };
 
@@ -110,17 +162,27 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ transactions }) => {
         if (!newValue.trim()) return;
 
         if (editingType === 'category') {
-            // Renaming Category: Need to create new key, move subs, delete old key
-            // AND technically update transactions (but user didn't ask for generic migration yet, just UI)
             const subs = categories[editValue];
             const newCats = { ...categories };
             delete newCats[editValue];
             newCats[newValue] = subs;
             setCategories(newCats);
+
+            // Update Icon Key
+            const newIcons = { ...icons };
+            newIcons[newValue] = selectedIcon; // Update icon
+            if (editValue !== newValue) delete newIcons[editValue];
+            setIcons(newIcons);
+
         } else if (editingType === 'subcategory') {
-            // Renaming Subcategory
             const subs = categories[targetCategory].map(s => s === editValue ? newValue : s);
             setCategories(prev => ({ ...prev, [targetCategory]: subs }));
+
+            // Update Icon Key
+            const newIcons = { ...icons };
+            newIcons[`${targetCategory}-${newValue}`] = selectedIcon;
+            if (editValue !== newValue) delete newIcons[`${targetCategory}-${editValue}`];
+            setIcons(newIcons);
         }
         closeModal();
     };
@@ -133,6 +195,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ transactions }) => {
             const newCats = { ...categories };
             delete newCats[cat];
             setCategories(newCats);
+            // Clean icons? Maybe, but low priority.
         } else {
             const subs = categories[cat].filter(s => s !== sub);
             setCategories(prev => ({ ...prev, [cat]: subs }));
@@ -145,6 +208,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ transactions }) => {
         setEditingType('category');
         setEditValue('');
         setNewValue('');
+        setSelectedIcon('ShoppingBag');
         setIsModalOpen(true);
     };
 
@@ -153,6 +217,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ transactions }) => {
         setTargetCategory(cat);
         setEditValue(''); // New (no old value)
         setNewValue('');
+        setSelectedIcon('ShoppingBag');
         setIsModalOpen(true);
     };
 
@@ -161,6 +226,10 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ transactions }) => {
         setTargetCategory(cat);
         setEditValue(sub || cat);
         setNewValue(sub || cat);
+        // Load existing icon
+        const key = sub ? `${cat}-${sub}` : cat;
+        setSelectedIcon(icons[key] || 'ShoppingBag');
+
         setIsModalOpen(true);
         setMenuOpenId(null);
     };
@@ -201,17 +270,18 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ transactions }) => {
                     const isExpanded = expandedCategory === category;
 
                     return (
-                        <div key={category} className="bg-slate-900/50 border border-slate-800 rounded-2xl overflow-hidden transition-all hover:border-slate-700">
+                        // REMOVED overflow-hidden to allow Menu to pop out
+                        <div key={category} className="bg-slate-900/50 border border-slate-800 rounded-2xl transition-all hover:border-slate-700">
 
                             {/* Category Header Row */}
                             <div
-                                className="flex items-center justify-between p-4 cursor-pointer hover:bg-slate-800/30 transition-colors"
+                                className="flex items-center justify-between p-4 cursor-pointer hover:bg-slate-800/30 transition-colors rounded-2xl"
                                 onClick={() => setExpandedCategory(isExpanded ? null : category)}
                             >
                                 <div className="flex items-center gap-4">
-                                    {/* Icon Placeholder (could map icons later) */}
-                                    <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-cyan-400 font-bold text-lg">
-                                        {category.charAt(0).toUpperCase()}
+                                    {/* Icon Display */}
+                                    <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-cyan-400 font-bold text-lg shadow-sm border border-slate-700/50">
+                                        {getIcon(category)}
                                     </div>
                                     <div>
                                         <h3 className="font-bold text-slate-200">{category}</h3>
@@ -235,16 +305,16 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ transactions }) => {
 
                                         {/* Kebab Menu */}
                                         {menuOpenId === `cat-${category}` && (
-                                            <div className="absolute right-0 top-full mt-2 w-32 bg-slate-800 border border-slate-700 rounded-xl shadow-xl z-20 overflow-hidden animate-in fade-in zoom-in-95">
+                                            <div className="absolute right-0 top-full mt-2 w-32 bg-slate-800 border border-slate-700 rounded-xl shadow-xl z-20 animate-in fade-in zoom-in-95">
                                                 <button
                                                     onClick={() => openEditModal('category', category)}
-                                                    className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-slate-300 hover:bg-slate-700"
+                                                    className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-slate-300 hover:bg-slate-700 first:rounded-t-xl"
                                                 >
                                                     <Edit2 size={14} /> Editar
                                                 </button>
                                                 <button
                                                     onClick={() => handleDelete('category', category)}
-                                                    className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-rose-400 hover:bg-rose-500/10"
+                                                    className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-rose-400 hover:bg-rose-500/10 last:rounded-b-xl"
                                                 >
                                                     <Trash2 size={14} /> Excluir
                                                 </button>
@@ -256,11 +326,13 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ transactions }) => {
 
                             {/* Subcategories List (Collapsible) */}
                             {isExpanded && (
-                                <div className="border-t border-slate-800 bg-slate-950/30 p-2 space-y-1">
+                                <div className="border-t border-slate-800 bg-slate-950/30 p-2 space-y-1 rounded-b-2xl">
                                     {subcategories.map(sub => (
                                         <div key={sub} className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-800/50 group">
                                             <div className="flex items-center gap-3 pl-2">
-                                                <div className="w-1.5 h-1.5 rounded-full bg-cyan-500/50"></div>
+                                                <div className="text-slate-500 group-hover:text-cyan-400 transition-colors">
+                                                    {getIcon(`${category}-${sub}`)}
+                                                </div>
                                                 <span className="text-sm text-slate-300">{sub}</span>
                                             </div>
 
@@ -282,13 +354,13 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ transactions }) => {
                                                         <div className="absolute right-0 top-full mt-1 w-32 bg-slate-800 border border-slate-700 rounded-xl shadow-xl z-30">
                                                             <button
                                                                 onClick={() => openEditModal('subcategory', category, sub)}
-                                                                className="w-full flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-300 hover:bg-slate-700"
+                                                                className="w-full flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-300 hover:bg-slate-700 first:rounded-t-xl"
                                                             >
                                                                 <Edit2 size={12} /> Editar
                                                             </button>
                                                             <button
                                                                 onClick={() => handleDelete('subcategory', category, sub)}
-                                                                className="w-full flex items-center gap-2 px-4 py-2 text-xs font-bold text-rose-400 hover:bg-rose-500/10"
+                                                                className="w-full flex items-center gap-2 px-4 py-2 text-xs font-bold text-rose-400 hover:bg-rose-500/10 last:rounded-b-xl"
                                                             >
                                                                 <Trash2 size={12} /> Excluir
                                                             </button>
@@ -325,7 +397,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ transactions }) => {
             {/* Modal (Create/Edit) */}
             {isModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
-                    <div className="bg-slate-900 border border-slate-800 w-full max-w-md rounded-3xl p-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
+                    <div className="bg-slate-900 border border-slate-800 w-full max-w-md rounded-3xl p-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200 text-white overflow-hidden max-h-[90vh] overflow-y-auto">
                         <button
                             onClick={closeModal}
                             className="absolute top-4 right-4 text-slate-500 hover:text-white transition-colors"
@@ -338,7 +410,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ transactions }) => {
                             {editValue ? 'Editar' : 'Adicionar'} {editingType === 'category' ? 'Categoria' : 'Subcategoria'}
                         </h3>
 
-                        <div className="space-y-4">
+                        <div className="space-y-6">
                             <div>
                                 <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Nome</label>
                                 <input
@@ -350,6 +422,29 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ transactions }) => {
                                     className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 outline-none transition-all"
                                     placeholder={editingType === 'category' ? "Ex: Investimentos" : "Ex: Ações"}
                                 />
+                            </div>
+
+                            {/* Icon Picker */}
+                            <div>
+                                <label className="block text-xs font-bold text-slate-400 uppercase mb-3">Ícone</label>
+                                <div className="grid grid-cols-5 gap-3 max-h-48 overflow-y-auto p-1 scrollbar-hide">
+                                    {ICON_KEYS.map((iconKey) => {
+                                        const IconComp = ICON_MAP[iconKey];
+                                        const isSelected = selectedIcon === iconKey;
+                                        return (
+                                            <button
+                                                key={iconKey}
+                                                onClick={() => setSelectedIcon(iconKey)}
+                                                className={`aspect-square flex items-center justify-center rounded-xl border transition-all ${isSelected
+                                                        ? 'bg-cyan-600 border-cyan-400 text-white shadow-lg shadow-cyan-500/20'
+                                                        : 'bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700 hover:text-white'
+                                                    }`}
+                                            >
+                                                <IconComp size={20} />
+                                            </button>
+                                        )
+                                    })}
+                                </div>
                             </div>
 
                             {editingType === 'subcategory' && (
