@@ -87,3 +87,64 @@ export const processLocalQuery = (
         text: "Desculpe, ainda estou aprendendo. Tente perguntar sobre 'saldo', 'gastos', 'receitas' ou 'resumo'."
     };
 };
+
+export const processVoiceAction = (text: string): any => {
+    const lowerText = text.toLowerCase();
+
+    // Patterns
+    // 1. Expense: "Gastei [Valor] com [Categoria]" or "Compra de [Valor] em [Categoria]"
+    const expensePattern = /(?:gastei|compra de|paguei)\s+(?:r\$)?\s*(\d+(?:[.,]\d{1,2})?)\s*(?:reais)?\s*(?:com|em|no|na)\s+(.+)/i;
+
+    // 2. Income: "Recebi [Valor] de [Fonte]" or "Ganhei [Valor]"
+    const incomePattern = /(?:recebi|ganhei|entrada de)\s+(?:r\$)?\s*(\d+(?:[.,]\d{1,2})?)\s*(?:reais)?\s*(?:de|com)?\s*(.*)/i;
+
+    const expenseMatch = lowerText.match(expensePattern);
+    if (expenseMatch) {
+        const amountStr = expenseMatch[1].replace(',', '.');
+        const amount = parseFloat(amountStr);
+        const categoryRaw = expenseMatch[2].trim();
+
+        // Categorization logic (simple mapping or default)
+        // We'll let the UI handle exact category matching or default to 'Outros'
+        return {
+            intent: 'CREATE',
+            data: {
+                type: 'expense',
+                amount: amount,
+                category: capitalize(categoryRaw), // Helper needed
+                subCategory: 'Outros',
+                description: `Despesa com ${categoryRaw}`,
+                date: new Date().toISOString().split('T')[0],
+                isPaid: true,
+                paymentMethod: 'Débito' // Default
+            },
+            message: `Entendido! Lançando despesa de R$ ${amount} em ${categoryRaw}.`
+        };
+    }
+
+    const incomeMatch = lowerText.match(incomePattern);
+    if (incomeMatch) {
+        const amountStr = incomeMatch[1].replace(',', '.');
+        const amount = parseFloat(amountStr);
+        const description = incomeMatch[2].trim() || 'Receita Extra';
+
+        return {
+            intent: 'CREATE',
+            data: {
+                type: 'income',
+                amount: amount,
+                category: 'Renda Extra',
+                subCategory: 'Outros',
+                description: capitalize(description),
+                date: new Date().toISOString().split('T')[0],
+                isPaid: true,
+                paymentMethod: 'PIX'
+            },
+            message: `Boa! Registrando receita de R$ ${amount}.`
+        };
+    }
+
+    return { intent: 'UNKNOWN' };
+};
+
+const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);

@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Mic, MicOff, Loader2, CheckCircle, AlertCircle, Sparkles, MessageSquare, Volume2 } from 'lucide-react';
-import { parseVoiceCommand } from '../aiService';
+import { processVoiceAction } from '../localIntelligence';
 
 interface VoiceControlProps {
   onAddTransaction: (result: any) => boolean | void;
