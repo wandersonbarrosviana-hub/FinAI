@@ -729,7 +729,7 @@ const App: React.FC = () => {
               case 'charts':
                 return <ChartsHub />;
               case 'categories':
-                return <CategoryManager />;
+                return <CategoryManager transactions={transactions} />;
               case 'accounts':
                 return <AccountManager accounts={accounts} onAddAccount={handleAddAccount} onDeleteAccount={handleDeleteAccount} />;
               case 'goals':
