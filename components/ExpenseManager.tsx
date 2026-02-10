@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Transaction, TransactionType, Tag as TagType } from '../types';
+import { Transaction, TransactionType, Tag as TagType, Account } from '../types';
 import { CATEGORIES_MAP, INCOME_CATEGORIES_MAP } from '../constants';
-import { Calendar, CreditCard, Tag, Plus, Trash2, CheckCircle, Clock, Edit2, Save, X, Repeat, Divide } from 'lucide-react';
+import { Calendar, CreditCard, Tag, Plus, Trash2, CheckCircle, Clock, Edit2, Save, X, Repeat, Divide, ChevronDown, ChevronUp, Paperclip, FileText, PieChart, Wallet, Calculator } from 'lucide-react';
 
 interface ExpenseManagerProps {
   transactions: Transaction[];
@@ -10,9 +10,10 @@ interface ExpenseManagerProps {
   onDeleteTransaction: (id: string) => void;
   type: TransactionType;
   tags: TagType[];
+  accounts: Account[];
 }
 
-const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTransaction, onUpdateTransaction, onDeleteTransaction, type, tags }) => {
+const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTransaction, onUpdateTransaction, onDeleteTransaction, type, tags, accounts }) => {
   const filteredTransactions = transactions.filter(t => t.type === type);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -39,6 +40,20 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
   const [customCategory, setCustomCategory] = useState('');
   const [customSubCategory, setCustomSubCategory] = useState('');
 
+  // New Income/General Fields
+  const [paymentDate, setPaymentDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [accountId, setAccountId] = useState<string>('');
+  const [attachment, setAttachment] = useState<string>('');
+  const [notes, setNotes] = useState<string>('');
+
+  // Toggles
+  const [ignoreInStatistics, setIgnoreInStatistics] = useState<boolean>(false);
+  const [ignoreInBudgets, setIgnoreInBudgets] = useState<boolean>(false);
+  const [ignoreInTotals, setIgnoreInTotals] = useState<boolean>(false);
+
+  // UI State
+  const [showMoreInfo, setShowMoreInfo] = useState(false);
+
   // Installment Logic State
   const [installmentValueType, setInstallmentValueType] = useState<'total' | 'installment'>('total');
   const [inputValue, setInputValue] = useState<string>(''); // Raw input for amount
@@ -55,7 +70,15 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
       recurrence: 'one_time',
       tags: []
     }));
-  }, [type]);
+    setPaymentDate(new Date().toISOString().split('T')[0]);
+    setAccountId(accounts.length > 0 ? accounts[0].id : '');
+    setAttachment('');
+    setNotes('');
+    setIgnoreInStatistics(false);
+    setIgnoreInBudgets(false);
+    setIgnoreInTotals(false);
+    setShowMoreInfo(false);
+  }, [type, accounts]);
 
   // Handle Input Value Change
   useEffect(() => {
@@ -82,6 +105,15 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
 
     // When editing, we usually see the per-installment value
     setInstallmentValueType('installment');
+
+    // Load extra fields
+    setPaymentDate(t.paymentDate || new Date().toISOString().split('T')[0]);
+    setAccountId(t.account || (accounts.length > 0 ? accounts[0].id : ''));
+    setAttachment(t.attachment || '');
+    setNotes(t.notes || '');
+    setIgnoreInStatistics(!!t.ignoreInStatistics);
+    setIgnoreInBudgets(!!t.ignoreInBudgets);
+    setIgnoreInTotals(!!t.ignoreInTotals);
 
     setIsFormOpen(true);
   };
@@ -118,7 +150,14 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
       subCategory: finalSubCategory,
       installmentTotal: finalInstallmentTotal,
       // Ensure type is correct
-      type: type
+      type: type,
+      paymentDate: paymentDate,
+      account: accountId,
+      attachment: attachment,
+      notes: notes,
+      ignoreInStatistics: ignoreInStatistics,
+      ignoreInBudgets: ignoreInBudgets,
+      ignoreInTotals: ignoreInTotals
     };
 
     if (editingId) {
@@ -151,6 +190,16 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
     setCustomSubCategory('');
     setInputValue('');
     setInstallmentValueType('total');
+
+    // Reset New Fields
+    setPaymentDate(new Date().toISOString().split('T')[0]);
+    setAccountId(accounts.length > 0 ? accounts[0].id : '');
+    setAttachment('');
+    setNotes('');
+    setIgnoreInStatistics(false);
+    setIgnoreInBudgets(false);
+    setIgnoreInTotals(false);
+    setShowMoreInfo(false);
   };
 
   const toggleStatus = (id: string, currentStatus: boolean) => {
@@ -362,6 +411,27 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
               </div>
             )}
 
+            {/* Account Selector */}
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-500 uppercase ml-1">Conta / Carteira</label>
+              <div className="relative">
+                <select
+                  className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all text-slate-200 appearance-none"
+                  value={accountId}
+                  onChange={e => setAccountId(e.target.value)}
+                >
+                  <option value="" disabled>Selecione uma conta</option>
+                  {accounts.map(acc => (
+                    <option key={acc.id} value={acc.id}>{acc.name}</option>
+                  ))}
+                  {accounts.length === 0 && <option value="default">Conta Padrão</option>}
+                </select>
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none">
+                  <Wallet size={16} />
+                </div>
+              </div>
+            </div>
+
             {/* Date Input */}
             <div className="space-y-1">
               <label className="text-xs font-bold text-slate-500 uppercase ml-1">Data Lançamento</label>
@@ -373,9 +443,14 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
               />
             </div>
 
-            {type === 'expense' && (
+
+
+
+            {(type === 'income' || type === 'expense') && (
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-500 uppercase ml-1">Data Vencimento</label>
+                <label className="text-xs font-bold text-slate-500 uppercase ml-1">
+                  {type === 'income' ? 'Data Vencimento (Prevista)' : 'Data Vencimento'}
+                </label>
                 <input
                   type="date"
                   className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all text-slate-200 schema-dark"
@@ -384,6 +459,17 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
                 />
               </div>
             )}
+
+            {/* Effective Date (Data de Efetivação) */}
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-500 uppercase ml-1">Data Efetivação</label>
+              <input
+                type="date"
+                className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all text-slate-200 schema-dark"
+                value={paymentDate}
+                onChange={e => setPaymentDate(e.target.value)}
+              />
+            </div>
 
             {/* Payment Method - Dynamic based on Type */}
             <div className="space-y-1">
@@ -468,7 +554,91 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
                 )}
               </div>
             </div>
-          </div>
+
+
+            {/* Divider for More Info */}
+            <div className="md:col-span-2 lg:col-span-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowMoreInfo(!showMoreInfo)}
+                className="flex items-center gap-2 text-xs font-bold text-cyan-400 hover:text-cyan-300 transition-colors uppercase tracking-wider"
+              >
+                {showMoreInfo ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                Mais Informações
+              </button>
+            </div>
+
+            {/* Expandable Section */}
+            {
+              showMoreInfo && (
+                <div className="md:col-span-2 lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-300 bg-slate-950/30 p-4 rounded-xl border border-slate-800/50">
+
+                  {/* Attachment (Anexo) */}
+                  <div className="space-y-1 md:col-span-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase ml-1 flex items-center gap-1">
+                      <Paperclip size={12} /> Anexo / Comprovante
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Cole o link do documento ou foto aqui..."
+                      className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all text-slate-200 text-sm"
+                      value={attachment}
+                      onChange={e => setAttachment(e.target.value)}
+                    />
+                    <p className="text-[10px] text-slate-600 italic px-1">
+                      * Cole uma URL (Google Drive, Dropbox, etc). Upload direto em breve.
+                    </p>
+                  </div>
+
+                  {/* Observations */}
+                  <div className="space-y-1 md:col-span-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase ml-1 flex items-center gap-1">
+                      <FileText size={12} /> Observações
+                    </label>
+                    <textarea
+                      className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all text-slate-200 text-sm min-h-[80px]"
+                      placeholder="Detalhes adicionais sobre este lançamento..."
+                      value={notes}
+                      onChange={e => setNotes(e.target.value)}
+                    />
+                  </div>
+
+                  {/* Toggles */}
+                  <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-4 paddingTop-2">
+                    <label className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-slate-900 transition-colors">
+                      <input
+                        type="checkbox"
+                        className="w-4 h-4 rounded border-slate-600 bg-slate-800 text-rose-500 focus:ring-rose-500"
+                        checked={ignoreInStatistics}
+                        onChange={e => setIgnoreInStatistics(e.target.checked)}
+                      />
+                      <span className="text-xs font-bold text-slate-400">Ignorar em Gráficos</span>
+                    </label>
+
+                    <label className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-slate-900 transition-colors">
+                      <input
+                        type="checkbox"
+                        className="w-4 h-4 rounded border-slate-600 bg-slate-800 text-rose-500 focus:ring-rose-500"
+                        checked={ignoreInBudgets}
+                        onChange={e => setIgnoreInBudgets(e.target.checked)}
+                      />
+                      <span className="text-xs font-bold text-slate-400">Ignorar Orçamentos</span>
+                    </label>
+
+                    <label className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-slate-900 transition-colors">
+                      <input
+                        type="checkbox"
+                        className="w-4 h-4 rounded border-slate-600 bg-slate-800 text-rose-500 focus:ring-rose-500"
+                        checked={ignoreInTotals}
+                        onChange={e => setIgnoreInTotals(e.target.checked)}
+                      />
+                      <span className="text-xs font-bold text-slate-400">Ignorar Totais</span>
+                    </label>
+                  </div>
+                </div>
+              )
+            }
+          </div >
           <div className="mt-6 flex justify-end">
             <button
               type="submit"
@@ -478,8 +648,9 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
               <span>{editingId ? 'Atualizar' : 'Salvar Registro'}</span>
             </button>
           </div>
-        </form>
-      )}
+        </form >
+      )
+      }
 
       <div className="bg-slate-900/50 backdrop-blur-md rounded-2xl shadow-lg border border-slate-800 overflow-hidden">
         <div className="overflow-x-auto">
@@ -604,7 +775,7 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
           </table>
         </div>
       </div>
-    </div>
+    </div >
   );
 };
 export default ExpenseManager;

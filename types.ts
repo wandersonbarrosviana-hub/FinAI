@@ -18,6 +18,12 @@ export interface Transaction {
   paymentMethod?: string;
   isPaid: boolean;
   tags?: string[]; // Array of Tag IDs
+  paymentDate?: string; // ISO format
+  attachment?: string; // URL or filename
+  notes?: string;
+  ignoreInStatistics?: boolean;
+  ignoreInBudgets?: boolean;
+  ignoreInTotals?: boolean;
 }
 
 export interface Tag {

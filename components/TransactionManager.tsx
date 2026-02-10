@@ -63,6 +63,7 @@ const TransactionManager: React.FC<TransactionManagerProps> = ({
                         onAddTransaction={onAddTransaction}
                         onUpdateTransaction={onUpdateTransaction}
                         onDeleteTransaction={onDeleteTransaction}
+                        accounts={accounts}
                     />
                 )}
 
@@ -74,6 +75,7 @@ const TransactionManager: React.FC<TransactionManagerProps> = ({
                         onAddTransaction={onAddTransaction}
                         onUpdateTransaction={onUpdateTransaction}
                         onDeleteTransaction={onDeleteTransaction}
+                        accounts={accounts}
                     />
                 )}
 
