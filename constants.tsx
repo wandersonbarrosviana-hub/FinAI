@@ -96,7 +96,7 @@ export const BANKS: BankInfo[] = [
   // Bandeiras / Benefícios
   { id: 'visa', name: 'Visa', color: '#1A1F71', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg' },
   { id: 'mastercard', name: 'Mastercard', color: '#EB001B', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg' },
-  { id: 'elo', name: 'Elo', color: '#00A4E0', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/1/15/Elo_logo.svg' },
+  { id: 'elo', name: 'Elo', color: '#00A4E0', logoUrl: 'https://raw.githubusercontent.com/guilhermerodz/input-card/master/assets/images/elo.svg' },
   { id: 'amex', name: 'American Express', color: '#2E77BC', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/3/30/American_Express_logo.svg' },
   { id: 'hipercard', name: 'Hipercard', color: '#BE0000', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/f/fb/Hipercard_logo.svg' },
   { id: 'ticket', name: 'Ticket', color: '#CE0058', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/d/d4/Ticket_logo_2016.svg' }, // Updated Link
