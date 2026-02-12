@@ -93,6 +93,17 @@ export const BANKS: BankInfo[] = [
   { id: 'nuinvest', name: 'NuInvest', color: '#8A05BE', logoUrl: 'https://cdn.jsdelivr.net/gh/yurijserrano/financicons@main/svg/easynvest.svg' },
   { id: 'modalmais', name: 'Modalmais', color: '#141414', logoUrl: 'https://cdn.jsdelivr.net/gh/yurijserrano/financicons@main/svg/modalmais.svg' },
 
+  // Bandeiras / Benefícios
+  { id: 'visa', name: 'Visa', color: '#1A1F71', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg' },
+  { id: 'mastercard', name: 'Mastercard', color: '#EB001B', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg' },
+  { id: 'elo', name: 'Elo', color: '#00A4E0', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/1/15/Elo_logo.svg' },
+  { id: 'amex', name: 'American Express', color: '#2E77BC', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/3/30/American_Express_logo.svg' },
+  { id: 'hipercard', name: 'Hipercard', color: '#BE0000', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/f/fb/Hipercard_logo.svg' },
+  { id: 'ticket', name: 'Ticket', color: '#CE0058', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/d/d4/Ticket_logo_2016.svg' }, // Updated Link
+  { id: 'alelo', name: 'Alelo', color: '#006748', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/2/24/Alelo_logo.svg' },
+  { id: 'sodexo', name: 'Sodexo', color: '#5C5FBA', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/e/e8/Sodexo_logo.svg' },
+  { id: 'vr', name: 'VR Benefícios', color: '#00AA13', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/a/a2/VR_Benef%C3%ADcios_logo.png' }, // Fallback to PNG or find SVG. Using external consistent link if possible.
+
   // Especiais
   {
     id: 'carteira',
@@ -102,10 +113,12 @@ export const BANKS: BankInfo[] = [
   },
   {
     id: 'outro',
-    name: 'Outro Banco',
+    name: 'Outro',
     color: '#64748b',
     logoUrl: 'data:image/svg+xml,%3Csvg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"%3E%3Crect width="100" height="100" rx="20" fill="%2364748b"/%3E%3Cpolygon points="50,20 70,40 70,80 30,80 30,40" fill="white"/%3E%3C/svg%3E'
   }
 ];
+
+export const CARD_NETWORKS = BANKS.filter(b => ['visa', 'mastercard', 'elo', 'amex', 'hipercard', 'ticket', 'alelo', 'sodexo', 'vr'].includes(b.id));
 
 // Automatic deployment trigger: 2026-02-09 21:14:14

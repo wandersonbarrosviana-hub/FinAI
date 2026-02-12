@@ -1,7 +1,8 @@
+
 import React, { useState } from 'react';
 import { CreditCard, Plus, Wallet, CheckCircle, X } from 'lucide-react';
 import { Account } from '../types';
-import { BANKS } from '../constants'; // Using existing BANKS constants
+import { BANKS, CARD_NETWORKS } from '../constants'; // Using existing BANKS constants
 
 interface CreditCardManagerProps {
     accounts: Account[];
@@ -33,8 +34,8 @@ const CreditCardManager: React.FC<CreditCardManagerProps> = ({ accounts, onAddAc
             // In FinAI, 'balance' for credit card usually means "Current Invoice" (negative) or "Available Limit"?
             // Let's assume balance = 0 (no debt yet).
             type: 'credit', // specialized type if supported, or 'checking' with is_credit flag
-            is_credit: true,
-            bank_id: selectedBank ? selectedBank.id : 'outro',
+            isCredit: true,
+            bankId: selectedBank ? selectedBank.id : 'outro',
             color: selectedBank ? selectedBank.color : '#64748b'
         };
 
@@ -62,13 +63,13 @@ const CreditCardManager: React.FC<CreditCardManagerProps> = ({ accounts, onAddAc
                 <div className="flex bg-slate-900 p-1 rounded-xl border border-slate-800">
                     <button
                         onClick={() => setActiveTab('list')}
-                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'list' ? 'bg-slate-800 text-sky-400 shadow-sm' : 'text-slate-500 hover:text-slate-300'}`}
+                        className={`px - 4 py - 2 rounded - lg text - sm font - bold transition - all ${activeTab === 'list' ? 'bg-slate-800 text-sky-400 shadow-sm' : 'text-slate-500 hover:text-slate-300'} `}
                     >
                         Meus Cartões
                     </button>
                     <button
                         onClick={() => setActiveTab('create')}
-                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'create' ? 'bg-slate-800 text-sky-400 shadow-sm' : 'text-slate-500 hover:text-slate-300'}`}
+                        className={`px - 4 py - 2 rounded - lg text - sm font - bold transition - all ${activeTab === 'create' ? 'bg-slate-800 text-sky-400 shadow-sm' : 'text-slate-500 hover:text-slate-300'} `}
                     >
                         Novo Cartão
                     </button>
@@ -114,7 +115,7 @@ const CreditCardManager: React.FC<CreditCardManagerProps> = ({ accounts, onAddAc
                                                 <div className="flex justify-between items-end border-t border-white/5 pt-4">
                                                     <div>
                                                         <p className="text-[10px] uppercase text-slate-500 font-bold tracking-wider mb-1">Fatura Atual</p>
-                                                        <p className={`text-lg font-black ${acc.balance < 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
+                                                        <p className={`text - lg font - black ${acc.balance < 0 ? 'text-rose-400' : 'text-emerald-400'} `}>
                                                             R$ {Math.abs(acc.balance).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                                         </p>
                                                     </div>
@@ -132,11 +133,11 @@ const CreditCardManager: React.FC<CreditCardManagerProps> = ({ accounts, onAddAc
                         {!selectedBank ? (
                             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                                 <div className="text-center mb-8">
-                                    <h3 className="text-xl font-bold text-white mb-2">Escolha o Emissor</h3>
-                                    <p className="text-slate-400 text-sm">Selecione seu banco para preenchimento automático</p>
+                                    <h3 className="text-xl font-bold text-white mb-2">Escolha a Bandeira</h3>
+                                    <p className="text-slate-400 text-sm">Selecione a bandeira ou tipo do cartão</p>
                                 </div>
                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                                    {BANKS.map(bank => (
+                                    {CARD_NETWORKS.map(bank => (
                                         <button
                                             key={bank.id}
                                             onClick={() => handleSelectBank(bank)}

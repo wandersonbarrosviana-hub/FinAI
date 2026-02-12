@@ -37,9 +37,10 @@ export interface Account {
   id: string;
   name: string;
   balance: number;
-  type: 'checking' | 'savings' | 'investment';
+  type: 'checking' | 'savings' | 'investment' | 'credit';
   bankId: string;
   color?: string;
+  isCredit?: boolean;
 }
 
 export interface Goal {
