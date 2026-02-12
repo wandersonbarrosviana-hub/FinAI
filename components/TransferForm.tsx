@@ -43,10 +43,10 @@ const TransferForm: React.FC<TransferFormProps> = ({ accounts, onTransfer, onCan
     };
 
     return (
-        <form onSubmit={handleSubmit} className="bg-slate-900/50 backdrop-blur-md p-6 rounded-2xl border border-slate-800 shadow-xl animate-in fade-in slide-in-from-top-4 duration-300 max-w-2xl mx-auto">
-            <div className="flex items-center gap-2 mb-6 text-cyan-400">
+        <form onSubmit={handleSubmit} className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-xl animate-in fade-in slide-in-from-top-4 duration-300 max-w-2xl mx-auto">
+            <div className="flex items-center gap-2 mb-8 text-sky-600">
                 <ArrowRightLeft size={24} />
-                <h3 className="text-lg font-bold">Nova Transferência</h3>
+                <h3 className="text-2xl font-black tracking-tight text-slate-900">Nova Transferência</h3>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -54,10 +54,10 @@ const TransferForm: React.FC<TransferFormProps> = ({ accounts, onTransfer, onCan
                 <div className="space-y-1">
                     <label className="text-xs font-bold text-slate-500 uppercase ml-1">Conta Origem</label>
                     <div className="relative">
-                        <Wallet className="absolute left-3 top-3 text-cyan-500/50" size={18} />
+                        <Wallet className="absolute left-4 top-3.5 text-slate-400" size={18} />
                         <select
                             required
-                            className="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all appearance-none text-slate-200"
+                            className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all appearance-none text-slate-700 font-medium"
                             value={sourceAccountId}
                             onChange={e => setSourceAccountId(e.target.value)}
                         >
@@ -72,10 +72,10 @@ const TransferForm: React.FC<TransferFormProps> = ({ accounts, onTransfer, onCan
                 <div className="space-y-1">
                     <label className="text-xs font-bold text-slate-500 uppercase ml-1">Conta Destino</label>
                     <div className="relative">
-                        <Wallet className="absolute left-3 top-3 text-cyan-500/50" size={18} />
+                        <Wallet className="absolute left-4 top-3.5 text-slate-400" size={18} />
                         <select
                             required
-                            className="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all appearance-none text-slate-200"
+                            className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all appearance-none text-slate-700 font-medium"
                             value={destinationAccountId}
                             onChange={e => setDestinationAccountId(e.target.value)}
                         >
@@ -91,12 +91,12 @@ const TransferForm: React.FC<TransferFormProps> = ({ accounts, onTransfer, onCan
                 <div className="space-y-1">
                     <label className="text-xs font-bold text-slate-500 uppercase ml-1">Valor (R$)</label>
                     <div className="relative">
-                        <DollarSign className="absolute left-3 top-3 text-slate-500" size={18} />
+                        <DollarSign className="absolute left-4 top-3.5 text-slate-400" size={18} />
                         <input
                             type="number"
                             step="0.01"
                             required
-                            className="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all font-bold text-slate-200 placeholder:text-slate-600"
+                            className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all font-black text-slate-700 placeholder:text-slate-300"
                             placeholder="0.00"
                             value={amount || ''}
                             onChange={e => setAmount(parseFloat(e.target.value))}
@@ -108,11 +108,11 @@ const TransferForm: React.FC<TransferFormProps> = ({ accounts, onTransfer, onCan
                 <div className="space-y-1">
                     <label className="text-xs font-bold text-slate-500 uppercase ml-1">Data</label>
                     <div className="relative">
-                        <Calendar className="absolute left-3 top-3 text-slate-500" size={18} />
+                        <Calendar className="absolute left-4 top-3.5 text-slate-400" size={18} />
                         <input
                             type="date"
                             required
-                            className="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all text-slate-200 schema-dark"
+                            className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all text-slate-700 font-medium"
                             value={date}
                             onChange={e => setDate(e.target.value)}
                         />
@@ -124,7 +124,7 @@ const TransferForm: React.FC<TransferFormProps> = ({ accounts, onTransfer, onCan
                     <label className="text-xs font-bold text-slate-500 uppercase ml-1">Descrição</label>
                     <input
                         type="text"
-                        className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all text-slate-200 placeholder:text-slate-600"
+                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all text-slate-700 font-medium placeholder:text-slate-300"
                         value={description}
                         onChange={e => setDescription(e.target.value)}
                         placeholder="Ex: Transferência para poupança"
@@ -136,13 +136,13 @@ const TransferForm: React.FC<TransferFormProps> = ({ accounts, onTransfer, onCan
                 <button
                     type="button"
                     onClick={onCancel}
-                    className="px-6 py-2.5 border border-slate-700 text-slate-400 font-bold rounded-xl hover:bg-slate-800/50 transition-all"
+                    className="px-6 py-3 border border-slate-200 text-slate-400 font-black text-xs uppercase tracking-widest rounded-2xl hover:bg-slate-50 transition-all"
                 >
                     Cancelar
                 </button>
                 <button
                     type="submit"
-                    className="px-8 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold rounded-xl shadow-lg shadow-cyan-900/20 transition-all"
+                    className="px-8 py-3 bg-sky-600 hover:bg-sky-700 text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-xl shadow-sky-100 transition-all"
                 >
                     Confirmar Transferência
                 </button>

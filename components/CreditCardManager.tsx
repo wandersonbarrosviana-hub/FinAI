@@ -58,18 +58,18 @@ const CreditCardManager: React.FC<CreditCardManagerProps> = ({ accounts, onAddAc
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <CreditCard size={32} className="text-sky-600" />
-                    <h2 className="text-2xl font-bold text-slate-200">Meus Cartões</h2>
+                    <h2 className="text-3xl font-black text-slate-900 tracking-tight">Meus Cartões</h2>
                 </div>
-                <div className="flex bg-slate-900 p-1 rounded-xl border border-slate-800">
+                <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
                     <button
                         onClick={() => setActiveTab('list')}
-                        className={`px - 4 py - 2 rounded - lg text - sm font - bold transition - all ${activeTab === 'list' ? 'bg-slate-800 text-sky-400 shadow-sm' : 'text-slate-500 hover:text-slate-300'} `}
+                        className={`px-4 py-2 rounded-lg text-xs font-black transition-all uppercase tracking-widest ${activeTab === 'list' ? 'bg-white text-sky-600 shadow-sm border border-slate-100' : 'text-slate-400 hover:text-slate-600'} `}
                     >
                         Meus Cartões
                     </button>
                     <button
                         onClick={() => setActiveTab('create')}
-                        className={`px - 4 py - 2 rounded - lg text - sm font - bold transition - all ${activeTab === 'create' ? 'bg-slate-800 text-sky-400 shadow-sm' : 'text-slate-500 hover:text-slate-300'} `}
+                        className={`px-4 py-2 rounded-lg text-xs font-black transition-all uppercase tracking-widest ${activeTab === 'create' ? 'bg-white text-sky-600 shadow-sm border border-slate-100' : 'text-slate-400 hover:text-slate-600'} `}
                     >
                         Novo Cartão
                     </button>
@@ -77,7 +77,7 @@ const CreditCardManager: React.FC<CreditCardManagerProps> = ({ accounts, onAddAc
             </div>
 
             {/* CONTENT */}
-            <div className="bg-slate-900/50 p-6 rounded-[2rem] border border-slate-800 shadow-lg min-h-[400px]">
+            <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm min-h-[400px]">
                 {activeTab === 'list' ? (
                     <div className="space-y-4">
                         {accounts.filter(a => a.isCredit).length === 0 ? (
@@ -96,26 +96,26 @@ const CreditCardManager: React.FC<CreditCardManagerProps> = ({ accounts, onAddAc
                                 {accounts.filter(a => a.isCredit || a.type === 'credit').map(acc => {
                                     const bank = BANKS.find(b => b.id === acc.bankId) || BANKS.find(b => b.id === 'outro');
                                     return (
-                                        <div key={acc.id} className="relative group overflow-hidden bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl border border-slate-700 p-6 transition-all hover:border-sky-500/50 hover:shadow-xl hover:shadow-sky-900/10">
+                                        <div key={acc.id} className="relative group overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 rounded-[2rem] border border-slate-800 p-6 transition-all hover:shadow-2xl hover:shadow-sky-100/40 hover:-translate-y-1">
                                             <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 blur-2xl"></div>
 
-                                            <div className="relative z-10 flex justify-between items-start mb-8">
+                                            <div className="relative z-10 flex justify-between items-start mb-10">
                                                 {bank?.logoUrl && (
-                                                    <img src={bank.logoUrl} alt={bank.name} className="w-12 h-12 rounded-lg bg-white p-1 object-contain shadow-sm" />
+                                                    <img src={bank.logoUrl} alt={bank.name} className="w-12 h-12 rounded-xl bg-white p-2 object-contain shadow-sm" />
                                                 )}
-                                                <div className="bg-slate-950/50 px-3 py-1 rounded-full border border-white/10 text-xs font-mono text-slate-400">
+                                                <div className="bg-white/10 px-3 py-1 rounded-full border border-white/10 text-[10px] font-black text-white/60 uppercase tracking-widest">
                                                     CRÉDITO
                                                 </div>
                                             </div>
 
                                             <div className="relative z-10">
-                                                <h3 className="text-lg font-bold text-white mb-1">{acc.name}</h3>
-                                                <p className="text-slate-400 text-sm mb-4">**** **** **** ****</p>
+                                                <h3 className="text-xl font-black text-white mb-1 tracking-tight">{acc.name}</h3>
+                                                <p className="text-white/40 text-xs mb-6 font-mono tracking-widest">**** **** **** ****</p>
 
-                                                <div className="flex justify-between items-end border-t border-white/5 pt-4">
+                                                <div className="flex justify-between items-end border-t border-white/10 pt-6">
                                                     <div>
-                                                        <p className="text-[10px] uppercase text-slate-500 font-bold tracking-wider mb-1">Fatura Atual</p>
-                                                        <p className={`text - lg font - black ${acc.balance < 0 ? 'text-rose-400' : 'text-emerald-400'} `}>
+                                                        <p className="text-[10px] uppercase text-white/40 font-black tracking-widest mb-1">Fatura Atual</p>
+                                                        <p className={`text-2xl font-black ${acc.balance < 0 ? 'text-rose-400' : 'text-emerald-400'} `}>
                                                             R$ {Math.abs(acc.balance).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                                         </p>
                                                     </div>
@@ -132,21 +132,21 @@ const CreditCardManager: React.FC<CreditCardManagerProps> = ({ accounts, onAddAc
                     <div className="max-w-4xl mx-auto">
                         {!selectedBank ? (
                             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                <div className="text-center mb-8">
-                                    <h3 className="text-xl font-bold text-white mb-2">Escolha a Bandeira</h3>
-                                    <p className="text-slate-400 text-sm">Selecione a bandeira ou tipo do cartão</p>
+                                <div className="text-center mb-10">
+                                    <h3 className="text-2xl font-black text-slate-900 tracking-tight mb-2">Escolha a Bandeira</h3>
+                                    <p className="text-slate-500 text-sm font-medium">Selecione a bandeira ou tipo do cartão</p>
                                 </div>
                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                                     {CARD_NETWORKS.map(bank => (
                                         <button
                                             key={bank.id}
                                             onClick={() => handleSelectBank(bank)}
-                                            className="flex flex-col items-center justify-center gap-3 p-4 bg-slate-950 rounded-2xl border border-slate-800 hover:border-sky-500/50 hover:bg-slate-900 transition-all group"
+                                            className="flex flex-col items-center justify-center gap-4 p-6 bg-slate-50 rounded-[2rem] border border-slate-200 hover:border-sky-500 hover:bg-white hover:shadow-xl hover:shadow-sky-100 transition-all group"
                                         >
-                                            <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center p-2 shadow-sm group-hover:scale-110 transition-transform">
+                                            <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center p-3 shadow-sm group-hover:scale-110 transition-all border border-slate-100">
                                                 <img src={bank.logoUrl} alt={bank.name} className="w-full h-full object-contain" />
                                             </div>
-                                            <span className="text-xs font-bold text-slate-300 group-hover:text-white text-center">{bank.name}</span>
+                                            <span className="text-xs font-black text-slate-500 group-hover:text-slate-900 text-center uppercase tracking-tighter">{bank.name}</span>
                                         </button>
                                     ))}
                                     {/* Generic Option */}
@@ -165,12 +165,12 @@ const CreditCardManager: React.FC<CreditCardManagerProps> = ({ accounts, onAddAc
                             // FORM
                             <div className="max-w-md mx-auto animate-in zoom-in-95 duration-300">
                                 <div className="flex items-center gap-4 mb-6">
-                                    <button onClick={() => setSelectedBank(null)} className="p-2 hover:bg-slate-800 rounded-lg text-slate-400 transition-colors">
+                                    <button onClick={() => setSelectedBank(null)} className="p-2 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-900 transition-all">
                                         <X size={20} />
                                     </button>
-                                    <div className="flex items-center gap-3">
-                                        {selectedBank.logoUrl && <img src={selectedBank.logoUrl} alt="" className="w-8 h-8 rounded bg-white p-1" />}
-                                        <h3 className="text-lg font-bold text-white">Configurar {selectedBank.name}</h3>
+                                    <div className="flex items-center gap-4">
+                                        {selectedBank.logoUrl && <img src={selectedBank.logoUrl} alt="" className="w-10 h-10 rounded-xl bg-white p-2 border border-slate-100 shadow-sm" />}
+                                        <h3 className="text-xl font-black text-slate-900 tracking-tight">Configurar {selectedBank.name}</h3>
                                     </div>
                                 </div>
 
@@ -181,7 +181,7 @@ const CreditCardManager: React.FC<CreditCardManagerProps> = ({ accounts, onAddAc
                                             type="text"
                                             value={cardName}
                                             onChange={e => setCardName(e.target.value)}
-                                            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-sky-500 outline-none transition-all"
+                                            className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-slate-700 font-medium focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 outline-none transition-all placeholder:text-slate-300"
                                             placeholder="Ex: Nubank Platinum"
                                         />
                                     </div>
@@ -194,7 +194,7 @@ const CreditCardManager: React.FC<CreditCardManagerProps> = ({ accounts, onAddAc
                                     <button
                                         onClick={handleCreateCard}
                                         disabled={!cardName}
-                                        className="w-full py-4 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all shadow-lg shadow-sky-900/20 mt-4 flex items-center justify-center gap-2"
+                                        className="w-full py-4 bg-sky-600 hover:bg-sky-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-widest rounded-2xl transition-all shadow-xl shadow-sky-100 mt-4 flex items-center justify-center gap-2"
                                     >
                                         <CheckCircle size={20} />
                                         Criar Cartão

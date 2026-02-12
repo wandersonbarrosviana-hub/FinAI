@@ -38,14 +38,14 @@ const TransactionManager: React.FC<TransactionManagerProps> = ({
     return (
         <div className="space-y-6">
             {/* Tab Navigation */}
-            <div className="flex p-1 bg-slate-900 rounded-2xl w-fit overflow-x-auto border border-slate-800">
+            <div className="flex p-1 bg-white rounded-2xl w-fit overflow-x-auto border border-slate-100 shadow-sm">
                 {tabs.map(tab => (
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id as any)}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === tab.id
-                            ? 'bg-slate-800 text-cyan-400 shadow-sm ring-1 ring-white/5'
-                            : 'text-slate-500 hover:text-slate-300 hover:bg-slate-800/50'
+                        className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-[10px] font-black transition-all whitespace-nowrap uppercase tracking-widest ${activeTab === tab.id
+                            ? 'bg-slate-50 text-sky-600 shadow-sm ring-1 ring-slate-100'
+                            : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50/50'
                             }`}
                     >
                         {tab.icon}
@@ -82,8 +82,8 @@ const TransactionManager: React.FC<TransactionManagerProps> = ({
                 {activeTab === 'transfer' && (
                     <div className="max-w-4xl mx-auto space-y-8">
                         <div className="text-center mb-8">
-                            <h2 className="text-2xl font-bold text-white">Transferência entre Contas</h2>
-                            <p className="text-slate-400">Mova dinheiro entre suas contas de forma simples.</p>
+                            <h2 className="text-2xl font-black text-slate-900 tracking-tight">Transferência entre Contas</h2>
+                            <p className="text-slate-500 font-medium">Mova dinheiro entre suas contas de forma simples.</p>
                         </div>
                         <TransferForm
                             accounts={accounts}

@@ -38,10 +38,10 @@ const Reports: React.FC<ReportsProps> = ({ transactions, accounts, tags }) => {
             <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
                 {/* Header Tabs */}
                 <div className="flex border-b border-slate-100">
-                    <button className="px-6 py-4 text-sm font-bold text-rose-600 border-b-2 border-rose-600">
+                    <button className="px-6 py-4 text-xs font-black text-sky-600 border-b-2 border-sky-600 uppercase tracking-widest">
                         Filtro
                     </button>
-                    <button className="px-6 py-4 text-sm font-bold text-slate-400 hover:text-slate-600 transition-colors">
+                    <button className="px-6 py-4 text-xs font-black text-slate-400 hover:text-slate-600 transition-colors uppercase tracking-widest">
                         Filtros salvos
                     </button>
                 </div>
@@ -82,9 +82,9 @@ const Reports: React.FC<ReportsProps> = ({ transactions, accounts, tags }) => {
                                     <button
                                         key={item.id}
                                         onClick={() => setDateReference(item.id as any)}
-                                        className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all ${dateReference === item.id
-                                            ? 'bg-rose-50 text-rose-600 shadow-sm border border-rose-100'
-                                            : 'text-slate-500 hover:bg-slate-100'
+                                        className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-[10px] font-black transition-all uppercase tracking-widest ${dateReference === item.id
+                                            ? 'bg-sky-50 text-sky-600 shadow-sm border border-sky-100'
+                                            : 'text-slate-400 hover:bg-slate-100'
                                             }`}
                                     >
                                         <item.icon size={14} />
@@ -108,9 +108,9 @@ const Reports: React.FC<ReportsProps> = ({ transactions, accounts, tags }) => {
                                     <button
                                         key={id}
                                         onClick={() => setStatus(id as any)}
-                                        className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${isActive
-                                            ? 'bg-rose-50 text-rose-600 shadow-sm border border-rose-100'
-                                            : 'text-slate-500 hover:bg-slate-100'
+                                        className={`flex-1 py-2.5 rounded-lg text-[10px] font-black transition-all uppercase tracking-widest ${isActive
+                                            ? 'bg-sky-50 text-sky-600 shadow-sm border border-sky-100'
+                                            : 'text-slate-400 hover:bg-slate-100'
                                             }`}
                                     >
                                         {label}
@@ -198,7 +198,7 @@ const Reports: React.FC<ReportsProps> = ({ transactions, accounts, tags }) => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Agrupar por</h3>
-                            <div className="flex bg-slate-50 p-1 rounded-xl border border-slate-200">
+                            <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
                                 {['Nenhum', 'Categoria', 'Subcategoria'].map((label) => {
                                     const id = label === 'Nenhum' ? 'none' : label === 'Categoria' ? 'category' : 'subcategory';
                                     const isActive = groupBy === id;
@@ -206,9 +206,9 @@ const Reports: React.FC<ReportsProps> = ({ transactions, accounts, tags }) => {
                                         <button
                                             key={id}
                                             onClick={() => setGroupBy(id as any)}
-                                            className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${isActive
-                                                ? 'bg-rose-50 text-rose-600 shadow-sm border border-rose-100'
-                                                : 'text-slate-500 hover:bg-slate-100'
+                                            className={`flex-1 py-2.5 rounded-lg text-[10px] font-black transition-all uppercase tracking-widest ${isActive
+                                                ? 'bg-white text-sky-600 shadow-sm border border-slate-100'
+                                                : 'text-slate-400 hover:text-slate-600'
                                                 }`}
                                         >
                                             {label}
@@ -220,12 +220,12 @@ const Reports: React.FC<ReportsProps> = ({ transactions, accounts, tags }) => {
 
                         <div>
                             <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Tipo de visualização</h3>
-                            <div className="flex bg-slate-50 p-1 rounded-xl border border-slate-200">
+                            <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
                                 <button
                                     onClick={() => setViewType('daily')}
-                                    className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${viewType === 'daily'
-                                        ? 'bg-white text-slate-800 shadow-sm border border-slate-200'
-                                        : 'text-slate-500 hover:bg-slate-100'
+                                    className={`flex-1 py-2.5 rounded-lg text-[10px] font-black transition-all uppercase tracking-widest ${viewType === 'daily'
+                                        ? 'bg-white text-sky-600 shadow-sm border border-slate-100'
+                                        : 'text-slate-400 hover:text-slate-600'
                                         }`}
                                 >
                                     Gráfico evolução diária
@@ -233,9 +233,9 @@ const Reports: React.FC<ReportsProps> = ({ transactions, accounts, tags }) => {
                                 <div className="w-[1px] bg-slate-200 my-2"></div>
                                 <button
                                     onClick={() => setViewType('monthly')}
-                                    className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${viewType === 'monthly'
-                                        ? 'bg-white text-slate-800 shadow-sm border border-slate-200'
-                                        : 'text-slate-500 hover:bg-slate-100'
+                                    className={`flex-1 py-2.5 rounded-lg text-[10px] font-black transition-all uppercase tracking-widest ${viewType === 'monthly'
+                                        ? 'bg-white text-sky-600 shadow-sm border border-slate-100'
+                                        : 'text-slate-400 hover:text-slate-600'
                                         }`}
                                 >
                                     Gráfico evolução mensal

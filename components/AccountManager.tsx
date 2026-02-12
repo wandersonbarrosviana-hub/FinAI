@@ -45,7 +45,7 @@ const AccountManager: React.FC<AccountManagerProps> = ({ accounts, onAddAccount,
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-3xl font-black text-slate-800 tracking-tight">Minhas Contas</h2>
+          <h2 className="text-3xl font-black text-slate-900 tracking-tight">Minhas Contas</h2>
           <p className="text-slate-500 text-sm font-medium">Gerencie seus bancos, corretoras e reservas.</p>
         </div>
         <button
@@ -191,7 +191,7 @@ const AccountManager: React.FC<AccountManagerProps> = ({ accounts, onAddAccount,
           return (
             <div
               key={account.id}
-              className="bg-white p-6 rounded-[2.5rem] border border-sky-100 shadow-sm relative group overflow-hidden transition-all hover:shadow-2xl hover:shadow-sky-200/40 hover:-translate-y-1"
+              className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm relative group overflow-hidden transition-all hover:shadow-xl hover:shadow-sky-100/40 hover:-translate-y-1"
             >
               {/* Barra lateral de cor da marca real */}
               <div

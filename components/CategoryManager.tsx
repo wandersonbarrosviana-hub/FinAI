@@ -376,7 +376,6 @@ import {
     ScreenShareOff,
     Scroll,
     ScrollText,
-    Search,
     SearchCheck,
     SearchCode,
     SearchSlash,
@@ -610,13 +609,13 @@ import {
     Wrench,
     X as XIcon,
     XCircle,
-    XOctagon,
     XSquare,
     Youtube,
     Zap as ZapIcon,
     ZapOff,
+    Search,
     ZoomIn,
-    ZoomOut
+    ChevronRight
 } from 'lucide-react';
 import { Transaction } from '../types';
 import { CATEGORIES_MAP } from '../constants';
@@ -641,7 +640,7 @@ const ICON_MAP: any = {
     Cat, Fish, Bus, Train, Bike, CreditCard, Banknote, Landmark, PiggyBank,
     TrendingUp, TrendingDown, Activity, AlertCircle, Award, Beer, Bell,
     Calendar, Camera, CheckCircle, Cloud, Code, Coins, Crown, Database,
-    Diamond, Eye, Factory, FileText, Flag: FolderOpen, Flame, Flashlight,
+    Diamond, Eye, Factory, FileText, FolderOpen, Flame, Flashlight,
     Flower, Ghost, Globe, Headphones, Image, Key, Laptop, Layers, Layout,
     Lightbulb, Link, Lock, Mail, MapPin, Medal, MessageCircle, Mic, Moon,
     Mouse, Package, Paintbrush, Palette, Paperclip, Phone, PieChart,
@@ -650,7 +649,7 @@ const ICON_MAP: any = {
     Signal, Skull, Smile, Speaker, Star, Sun, Table, Tag, Target, Terminal,
     Thermometer, ThumbsUp, Ticket, Timer, Tool: Wrench, Trash: TrashIcon,
     Trophy, Truck, Tv, Umbrella, Unlock, Upload, User, Users, Video,
-    Wallet, Watch, Wifi: WifiIcon, Wrench, Zap: ZapIcon, ZoomIn
+    Wallet, Watch, WifiIcon, Wrench, ZapIcon, ZoomIn
 };
 
 const ICON_KEYS = Object.keys(ICON_MAP).sort();
@@ -836,7 +835,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ transactions }) => {
 
             {/* 2. Main List */}
             <div className="grid gap-4">
-                {Object.entries(categories).map(([category, subcategories]) => {
+                {(Object.entries(categories) as [string, string[]][]).map(([category, subcategories]) => {
                     const catTotal = calculateTotal(category);
                     const isExpanded = expandedCategory === category;
 

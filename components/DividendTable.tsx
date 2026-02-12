@@ -25,66 +25,76 @@ const DividendTable: React.FC<DividendTableProps> = ({ dividends }) => {
 
     if (dividends.length === 0) {
         return (
-            <div className="p-6 bg-[#1A1B1E] rounded-xl border border-[#2C2D33] text-center text-gray-500">
-                Sem dados de proventos.
+            <div className="p-12 text-center">
+                <p className="text-slate-400 font-black text-[10px] uppercase tracking-widest">Sem dados de proventos disponíveis.</p>
             </div>
         )
     }
 
     return (
-        <div className="bg-[#1A1B1E] rounded-xl border border-[#2C2D33] overflow-hidden">
-            <div className="p-4 border-b border-[#2C2D33]">
-                <h3 className="text-lg font-bold text-white">Histórico de Pagamentos</h3>
+        <div className="w-full">
+            <div className="flex justify-between items-center mb-8">
+                <div>
+                    <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-1">Histórico de Pagamentos</h3>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Listagem Detalhada</p>
+                </div>
             </div>
 
-            <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                    <thead>
-                        <tr className="bg-[#25262B] text-slate-400 text-xs uppercase tracking-wider">
-                            <th className="p-4 font-semibold">Tipo</th>
-                            <th className="p-4 font-semibold">Data Com</th>
-                            <th className="p-4 font-semibold">Pagamento</th>
-                            <th className="p-4 font-semibold text-right">Valor</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#2C2D33]">
-                        {currentItems.map((item, idx) => (
-                            <tr key={idx} className="hover:bg-slate-800/30 transition-colors">
-                                <td className="p-4 text-sm text-white font-medium">
-                                    <span className="bg-blue-500/10 text-blue-400 px-2 py-1 rounded text-xs">{item.type}</span>
-                                </td>
-                                <td className="p-4 text-sm text-slate-300">{item.dateCom}</td>
-                                <td className="p-4 text-sm text-slate-300">{item.paymentDate}</td>
-                                <td className="p-4 text-sm text-[#00D084] font-bold text-right">
-                                    {item.value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                                </td>
+            <div className="overflow-hidden bg-slate-50/50 rounded-3xl border border-slate-100">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr className="border-b border-slate-100">
+                                <th className="p-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Tipo</th>
+                                <th className="p-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Data Com</th>
+                                <th className="p-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Pagamento</th>
+                                <th className="p-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Valor</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
+                        </thead>
+                        <tbody className="divide-y divide-slate-50">
+                            {currentItems.map((item, idx) => (
+                                <tr key={idx} className="hover:bg-white transition-colors group">
+                                    <td className="p-5">
+                                        <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${item.type.includes('Dividendo')
+                                                ? 'bg-emerald-50 text-emerald-600'
+                                                : 'bg-indigo-50 text-indigo-600'
+                                            }`}>
+                                            {item.type}
+                                        </span>
+                                    </td>
+                                    <td className="p-5 text-sm text-slate-500 font-bold">{item.dateCom}</td>
+                                    <td className="p-5 text-sm text-slate-500 font-bold">{item.paymentDate}</td>
+                                    <td className="p-5 text-sm text-slate-900 font-black text-right">
+                                        {item.value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
 
-            {/* Pagination Footer */}
-            <div className="p-4 border-t border-[#2C2D33] flex justify-between items-center bg-[#25262B]">
-                <button
-                    onClick={handlePrev}
-                    disabled={currentPage === 1}
-                    className="p-2 rounded-lg hover:bg-slate-700 text-slate-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-1 text-xs font-bold"
-                >
-                    <ChevronLeft size={16} /> Anterior
-                </button>
+                {/* Pagination Footer */}
+                <div className="p-4 border-t border-slate-100 flex justify-between items-center bg-white/50">
+                    <button
+                        onClick={handlePrev}
+                        disabled={currentPage === 1}
+                        className="px-4 py-2 rounded-xl hover:bg-white border border-transparent hover:border-slate-100 text-slate-400 hover:text-slate-900 disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center gap-2 text-[10px] font-black uppercase tracking-widest"
+                    >
+                        <ChevronLeft size={16} /> Anterior
+                    </button>
 
-                <span className="text-xs text-slate-500 font-medium">
-                    Página {currentPage} de {totalPages}
-                </span>
+                    <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
+                        {currentPage} <span className="mx-1 text-slate-200">/</span> {totalPages}
+                    </span>
 
-                <button
-                    onClick={handleNext}
-                    disabled={currentPage === totalPages}
-                    className="p-2 rounded-lg hover:bg-slate-700 text-slate-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-1 text-xs font-bold"
-                >
-                    Próximo <ChevronRight size={16} />
-                </button>
+                    <button
+                        onClick={handleNext}
+                        disabled={currentPage === totalPages}
+                        className="px-4 py-2 rounded-xl hover:bg-white border border-transparent hover:border-slate-100 text-slate-400 hover:text-slate-900 disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center gap-2 text-[10px] font-black uppercase tracking-widest"
+                    >
+                        Próximo <ChevronRight size={16} />
+                    </button>
+                </div>
             </div>
         </div>
     );

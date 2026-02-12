@@ -99,11 +99,11 @@ const ChartsHub: React.FC<ChartsHubProps> = ({ transactions }) => {
     const CustomTooltip = ({ active, payload, label }: any) => {
         if (active && payload && payload.length) {
             return (
-                <div className="bg-slate-900 border border-slate-700 p-3 rounded-xl shadow-xl text-xs">
-                    <p className="font-bold text-slate-100 mb-1">{label}</p>
+                <div className="bg-white border border-slate-100 p-4 rounded-2xl shadow-xl text-xs">
+                    <p className="font-black text-slate-900 mb-2 uppercase tracking-widest">{label}</p>
                     {payload.map((p: any, index: number) => (
-                        <p key={index} style={{ color: p.color }} className="flex items-center gap-1">
-                            {p.name}: <span className="font-mono font-bold">
+                        <p key={index} style={{ color: p.color }} className="flex items-center gap-2 font-bold">
+                            {p.name}: <span className="font-black">
                                 {p.dataKey === 'percent'
                                     ? `${Number(p.value).toFixed(1)}%`
                                     : `R$ ${Number(p.value).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
@@ -119,11 +119,12 @@ const ChartsHub: React.FC<ChartsHubProps> = ({ transactions }) => {
     return (
         <div className="space-y-8 pb-24">
             {/* Header */}
-            <div className="flex flex-col items-center justify-center space-y-2 sticky top-0 bg-slate-950/80 backdrop-blur-md z-10 py-4 -mx-4 px-4 border-b border-slate-800">
-                <h2 className="text-xl font-bold text-slate-100 flex items-center gap-2">
-                    <BarChart2 className="text-cyan-400" />
+            <div className="flex flex-col items-center justify-center space-y-2 sticky top-0 bg-white/80 backdrop-blur-xl z-20 py-6 -mx-8 px-8 border-b border-slate-100">
+                <h2 className="text-2xl font-black text-slate-900 flex items-center gap-3 tracking-tight">
+                    <BarChart2 className="text-sky-600" size={28} />
                     Central de Gráficos
                 </h2>
+                <p className="text-slate-500 text-sm font-medium">Análise detalhada do seu desempenho financeiro</p>
             </div>
 
             {/* Chart 1: Expenses by Category */}
@@ -134,17 +135,17 @@ const ChartsHub: React.FC<ChartsHubProps> = ({ transactions }) => {
                     </span>
                 }
                 headerAction={
-                    <div className="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
+                    <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
                         <button
                             onClick={() => setExpenseMode('value')}
-                            className={`p-2 rounded-lg transition-all ${expenseMode === 'value' ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-500 hover:text-slate-300'}`}
+                            className={`p-2 rounded-lg transition-all ${expenseMode === 'value' ? 'bg-white text-sky-600 shadow-sm border border-slate-100' : 'text-slate-400 hover:text-slate-600'}`}
                             title="Ver em R$"
                         >
                             <DollarSign size={16} />
                         </button>
                         <button
                             onClick={() => setExpenseMode('percent')}
-                            className={`p-2 rounded-lg transition-all ${expenseMode === 'percent' ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-500 hover:text-slate-300'}`}
+                            className={`p-2 rounded-lg transition-all ${expenseMode === 'percent' ? 'bg-white text-sky-600 shadow-sm border border-slate-100' : 'text-slate-400 hover:text-slate-600'}`}
                             title="Ver em %"
                         >
                             <Percent size={16} />
@@ -155,13 +156,13 @@ const ChartsHub: React.FC<ChartsHubProps> = ({ transactions }) => {
                 <div className="h-full w-full min-h-[300px]">
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={expenseByCategoryData} layout="vertical" margin={{ left: 10, right: 30, top: 0, bottom: 0 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#334155" horizontal={false} />
+                            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
                             <XAxis type="number" hide />
                             <YAxis
                                 dataKey="name"
                                 type="category"
                                 width={100}
-                                tick={{ fill: '#94a3b8', fontSize: 10 }}
+                                tick={{ fill: '#64748b', fontSize: 10, fontWeight: 'bold' }}
                                 axisLine={false}
                                 tickLine={false}
                             />
@@ -244,8 +245,8 @@ const ChartsHub: React.FC<ChartsHubProps> = ({ transactions }) => {
                                         <stop offset="95%" stopColor="#f43f5e" stopOpacity={0} />
                                     </linearGradient>
                                 </defs>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
-                                <XAxis dataKey="day" tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} />
+                                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                                <XAxis dataKey="day" tick={{ fill: '#64748b', fontSize: 10, fontWeight: 'bold' }} axisLine={false} tickLine={false} />
                                 <YAxis hide />
                                 <Tooltip content={<CustomTooltip />} />
                                 <Area
@@ -272,8 +273,8 @@ const ChartsHub: React.FC<ChartsHubProps> = ({ transactions }) => {
                 </ChartContainer>
             </div>
 
-            <div className="p-4 bg-slate-800/30 rounded-2xl border border-slate-800 text-center">
-                <p className="text-xs text-slate-500 italic">
+            <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100 text-center">
+                <p className="text-[10px] text-slate-400 italic font-medium uppercase tracking-widest">
                     * Os gráficos mostram dados do mês selecionado no topo da tela.
                 </p>
             </div>

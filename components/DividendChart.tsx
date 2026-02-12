@@ -13,9 +13,9 @@ const DividendChart: React.FC<DividendChartProps> = ({ data }) => {
         if (active && payload && payload.length) {
             const val = payload[0].value;
             return (
-                <div className="bg-slate-900 border border-slate-700 p-3 rounded-lg shadow-xl">
-                    <p className="text-slate-300 font-bold mb-1">{label}</p>
-                    <p className="text-white text-sm">
+                <div className="bg-white border border-slate-100 p-4 rounded-2xl shadow-xl ring-1 ring-black/5">
+                    <p className="text-slate-400 font-black text-[10px] uppercase tracking-widest mb-1">{label}</p>
+                    <p className="text-slate-900 font-black text-lg tracking-tight">
                         {mode === 'value'
                             ? `R$ ${val.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
                             : `${val.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}%`
@@ -28,24 +28,27 @@ const DividendChart: React.FC<DividendChartProps> = ({ data }) => {
     };
 
     return (
-        <div className="p-6 bg-[#1A1B1E] rounded-xl border border-[#2C2D33]">
-            <div className="flex justify-between items-center mb-6">
-                <h3 className="text-lg font-bold text-white">Histórico de Proventos (10 Anos)</h3>
-                <div className="flex bg-slate-800 rounded-lg p-1">
+        <div className="w-full">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
+                <div>
+                    <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-1">Histórico de Proventos</h3>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Últimos 10 Anos</p>
+                </div>
+                <div className="flex bg-slate-100 rounded-2xl p-1.5 border border-slate-200/50">
                     <button
                         onClick={() => setMode('value')}
-                        className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${mode === 'value'
-                                ? 'bg-[#00D084] text-slate-900 shadow-lg'
-                                : 'text-slate-400 hover:text-white'
+                        className={`px-6 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${mode === 'value'
+                            ? 'bg-white text-slate-900 shadow-sm ring-1 ring-black/5'
+                            : 'text-slate-400 hover:text-slate-600'
                             }`}
                     >
                         Valor (R$)
                     </button>
                     <button
                         onClick={() => setMode('yield')}
-                        className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${mode === 'yield'
-                                ? 'bg-[#00D084] text-slate-900 shadow-lg'
-                                : 'text-slate-400 hover:text-white'
+                        className={`px-6 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${mode === 'yield'
+                            ? 'bg-white text-slate-900 shadow-sm ring-1 ring-black/5'
+                            : 'text-slate-400 hover:text-slate-600'
                             }`}
                     >
                         Yield (%)
@@ -53,39 +56,40 @@ const DividendChart: React.FC<DividendChartProps> = ({ data }) => {
                 </div>
             </div>
 
-            <div className="h-[300px] w-full">
+            <div className="h-[350px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
                         <XAxis
                             dataKey="year"
-                            stroke="#666"
-                            tick={{ fill: '#666', fontSize: 12 }}
+                            stroke="#94a3b8"
+                            tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }}
                             tickLine={false}
                             axisLine={false}
+                            dy={10}
                         />
                         <YAxis
-                            stroke="#666"
-                            tick={{ fill: '#666', fontSize: 12 }}
+                            stroke="#94a3b8"
+                            tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }}
                             tickLine={false}
                             axisLine={false}
-                            tickFormatter={(val) => mode === 'value' ? `R$${val}` : `${val}%`}
+                            tickFormatter={(val) => mode === 'value' ? `R$${val >= 1000 ? (val / 1000) + 'k' : val}` : `${val}%`}
                         />
-                        <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }} />
-                        <Bar dataKey={mode} radius={[4, 4, 0, 0]}>
+                        <Tooltip content={<CustomTooltip />} cursor={{ fill: '#f8fafc', radius: 4 }} />
+                        <Bar dataKey={mode} radius={[6, 6, 6, 6]} barSize={32}>
                             {data.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={mode === 'value' ? '#00D084' : '#3B82F6'} />
+                                <Cell key={`cell-${index}`} fill={mode === 'value' ? '#10b981' : '#6366f1'} fillOpacity={0.8} />
                             ))}
                         </Bar>
                     </BarChart>
                 </ResponsiveContainer>
             </div>
 
-            <div className="mt-4 flex justify-center gap-6">
-                <div className="flex items-center gap-2">
-                    <div className={`w-3 h-3 rounded-full ${mode === 'value' ? 'bg-[#00D084]' : 'bg-[#3B82F6]'}`}></div>
-                    <span className="text-xs text-slate-400">
-                        {mode === 'value' ? 'Total Pago no Ano' : 'Dividend Yield Médio'}
+            <div className="mt-8 flex justify-center gap-8">
+                <div className="flex items-center gap-3">
+                    <div className={`w-3 h-3 rounded-full ${mode === 'value' ? 'bg-emerald-500' : 'bg-indigo-500 shadow-sm shadow-indigo-200'}`}></div>
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                        {mode === 'value' ? 'Total Pago (R$)' : 'Dividend Yield (%)'}
                     </span>
                 </div>
             </div>

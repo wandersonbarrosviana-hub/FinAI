@@ -179,188 +179,167 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions 
         <div className="space-y-8 animate-in fade-in duration-500 pb-24">
             {/* Header */}
             <div>
-                <h2 className="text-3xl font-black text-white tracking-tight flex items-center gap-3">
-                    <TrendingUp className="text-sky-600" size={32} />
+                <h2 className="text-4xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+                    <TrendingUp className="text-sky-600" size={40} />
                     Simulador de Aposentadoria
                 </h2>
-                <p className="text-slate-400 text-sm font-medium mt-1">Planeje sua liberdade financeira com base em juros compostos.</p>
+                <p className="text-slate-500 text-sm font-medium mt-1">Planeje sua liberdade financeira com base em juros compostos.</p>
             </div>
 
             {/* Inputs Grid */}
-            <div className="bg-slate-900/50 p-6 rounded-[2rem] shadow-sm border border-slate-800">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-white p-8 rounded-[3rem] shadow-sm border border-slate-100 ring-1 ring-black/5">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-8">
                     <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Renda Mensal Desejada</label>
-                        <div className="relative">
-                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">R$</span>
+                        <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Renda Desejada</label>
+                        <div className="relative group">
+                            <span className="absolute left-4 top-4 text-slate-300 font-black">R$</span>
                             <input
                                 type="number"
                                 value={desiredIncome}
                                 onChange={(e) => setDesiredIncome(Number(e.target.value))}
-                                className="w-full pl-12 pr-4 py-3 bg-slate-950 rounded-xl border border-slate-800 font-bold text-slate-200 focus:ring-2 focus:ring-sky-500 transition-all outline-none"
+                                className="w-full pl-12 pr-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-sky-500/5 focus:border-sky-500/50 outline-none transition-all text-slate-700 font-bold"
                             />
                         </div>
-                        <p className="text-[10px] text-slate-500 flex items-center gap-1">
-                            <Info size={10} /> Baseado em despesas essenciais
-                        </p>
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Patrimônio Atual</label>
-                        <div className="relative">
-                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">R$</span>
+                        <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Patrimônio Inicial</label>
+                        <div className="relative group">
+                            <span className="absolute left-4 top-4 text-slate-300 font-black">R$</span>
                             <input
                                 type="number"
                                 value={currentPatrimony}
                                 onChange={(e) => setCurrentPatrimony(Number(e.target.value))}
-                                className="w-full pl-12 pr-4 py-3 bg-slate-950 rounded-xl border border-slate-800 font-bold text-slate-200 focus:ring-2 focus:ring-sky-500 transition-all outline-none"
+                                className="w-full pl-12 pr-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-sky-500/5 focus:border-sky-500/50 outline-none transition-all text-slate-700 font-bold"
                             />
                         </div>
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Aporte Mensal</label>
-                        <div className="relative">
-                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">R$</span>
+                        <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Aporte Mensal</label>
+                        <div className="relative group">
+                            <span className="absolute left-4 top-4 text-slate-300 font-black">R$</span>
                             <input
                                 type="number"
                                 value={monthlyContribution}
                                 onChange={(e) => setMonthlyContribution(Number(e.target.value))}
-                                className="w-full pl-12 pr-4 py-3 bg-slate-950 rounded-xl border border-slate-800 font-bold text-slate-200 focus:ring-2 focus:ring-sky-500 transition-all outline-none"
+                                className="w-full pl-12 pr-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-sky-500/5 focus:border-sky-500/50 outline-none transition-all text-slate-700 font-bold"
                             />
                         </div>
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Rentabilidade Anual (%)</label>
-                        <div className="relative">
-                            <input
-                                type="number"
-                                value={annualRate}
-                                onChange={(e) => setAnnualRate(Number(e.target.value))}
-                                className="w-full px-4 py-3 bg-slate-950 rounded-xl border border-slate-800 font-bold text-slate-200 focus:ring-2 focus:ring-sky-500 transition-all outline-none"
-                            />
-                        </div>
+                        <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Rentabilidade (%)</label>
+                        <input
+                            type="number"
+                            value={annualRate}
+                            onChange={(e) => setAnnualRate(Number(e.target.value))}
+                            className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-sky-500/5 focus:border-sky-500/50 outline-none transition-all text-slate-700 font-bold"
+                        />
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Inflação Anual (%)</label>
-                        <div className="relative">
-                            <input
-                                type="number"
-                                value={annualInflation}
-                                onChange={(e) => setAnnualInflation(Number(e.target.value))}
-                                className="w-full px-4 py-3 bg-slate-950 rounded-xl border border-slate-800 font-bold text-slate-200 focus:ring-2 focus:ring-sky-500 transition-all outline-none"
-                            />
-                        </div>
+                        <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Inflação (%)</label>
+                        <input
+                            type="number"
+                            value={annualInflation}
+                            onChange={(e) => setAnnualInflation(Number(e.target.value))}
+                            className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-sky-500/5 focus:border-sky-500/50 outline-none transition-all text-slate-700 font-bold"
+                        />
                     </div>
                 </div>
             </div>
 
-            {/* Chart */}
-            <ChartContainer title="Projeção Patrimonial" className="bg-slate-900/50">
-                <div className="mb-6 flex flex-col xl:flex-row justify-between items-center gap-4">
-                    {/* Legend */}
-                    <div className="flex gap-2 flex-wrap justify-center">
-                        <div className="flex items-center gap-2 text-xs font-bold text-slate-400">
-                            <span className="w-3 h-3 rounded-full bg-indigo-500"></span> Total
-                        </div>
-                        <div className="flex items-center gap-2 text-xs font-bold text-slate-400">
-                            <span className="w-3 h-3 rounded-full bg-emerald-400"></span> Renda
-                        </div>
+            {/* Chart Area */}
+            <div className="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-sm ring-1 ring-black/5">
+                <div className="mb-8 flex flex-col md:flex-row justify-between items-center gap-6">
+                    <div>
+                        <h3 className="text-xl font-black text-slate-900 tracking-tight">Projeção de Longo Prazo</h3>
+                        <p className="text-xs font-medium text-slate-400 mt-1">Simulação nominal vs real pelos próximos 60 anos.</p>
                     </div>
 
-                    <div className="flex flex-wrap gap-2 justify-center">
-                        {/* Inflation Toggle */}
-                        <div className="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
+                    <div className="flex gap-4">
+                        <div className="flex bg-slate-50 p-1.5 rounded-2xl border border-slate-200">
                             <button
                                 onClick={() => setShowRealValues(false)}
-                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${!showRealValues ? 'bg-slate-800 text-emerald-400 shadow-sm' : 'text-slate-500 hover:text-slate-300'}`}
+                                className={`px-4 py-2 rounded-xl text-xs font-black tracking-widest transition-all ${!showRealValues ? 'bg-white text-sky-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
                             >
-                                Nominal
+                                NOMINAL
                             </button>
                             <button
                                 onClick={() => setShowRealValues(true)}
-                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${showRealValues ? 'bg-slate-800 text-emerald-400 shadow-sm' : 'text-slate-500 hover:text-slate-300'}`}
+                                className={`px-4 py-2 rounded-xl text-xs font-black tracking-widest transition-all ${showRealValues ? 'bg-white text-sky-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
                             >
-                                Real (IPCA)
+                                REAL
                             </button>
                         </div>
 
-                        {/* View Toggle */}
-                        <div className="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
+                        <div className="flex bg-slate-50 p-1.5 rounded-2xl border border-slate-200">
                             <button
                                 onClick={() => setViewMode('monthly')}
-                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${viewMode === 'monthly' ? 'bg-slate-800 text-sky-400 shadow-sm' : 'text-slate-500 hover:text-slate-300'}`}
+                                className={`px-4 py-2 rounded-xl text-xs font-black tracking-widest transition-all ${viewMode === 'monthly' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
                             >
-                                Mensal
+                                MENSAL
                             </button>
                             <button
                                 onClick={() => setViewMode('annual')}
-                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${viewMode === 'annual' ? 'bg-slate-800 text-sky-400 shadow-sm' : 'text-slate-500 hover:text-slate-300'}`}
+                                className={`px-4 py-2 rounded-xl text-xs font-black tracking-widest transition-all ${viewMode === 'annual' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
                             >
-                                Anual
+                                ANUAL
                             </button>
                         </div>
                     </div>
                 </div>
 
-                {/* Freedom Point Summary */}
                 {freedomPoint && (
-                    <div className="mb-4 p-4 bg-emerald-900/20 rounded-2xl border border-emerald-500/20 flex items-center justify-center text-center">
-                        <p className="text-emerald-400 font-bold text-sm sm:text-base">
-                            🎉 Liberdade Financeira em <span className="text-emerald-300 font-black">{Math.floor(freedomPoint.month / 12)} anos</span> e <span className="text-emerald-300 font-black">{freedomPoint.month % 12} meses</span>!
+                    <div className="mb-8 p-6 bg-emerald-50 rounded-3xl border border-emerald-100 flex items-center justify-center gap-4">
+                        <span className="text-3xl">🏖️</span>
+                        <p className="text-emerald-700 font-black text-lg tracking-tight">
+                            Independência Financeira em <span className="text-emerald-900 underline decoration-emerald-200 underline-offset-4">{Math.floor(freedomPoint.month / 12)} anos e {freedomPoint.month % 12} meses</span>!
                         </p>
                     </div>
                 )}
 
-                <div className="h-64 sm:h-[400px] w-full">
+                <div className="h-[450px] w-full mt-4">
                     <ResponsiveContainer width="100%" height="100%">
-                        <ComposedChart data={displayData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                        <ComposedChart data={displayData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
                             <defs>
                                 <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
+                                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.1} />
                                     <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
                                 </linearGradient>
-                                <linearGradient id="colorInvested" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#cbd5e1" stopOpacity={0.1} />
-                                    <stop offset="95%" stopColor="#cbd5e1" stopOpacity={0} />
-                                </linearGradient>
                             </defs>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1e293b" />
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                             <XAxis
                                 dataKey={viewMode === 'annual' ? "yearLabel" : "month"}
                                 axisLine={false}
                                 tickLine={false}
-                                tick={{ fontSize: 10, fill: '#64748b' }}
+                                tick={{ fontSize: 10, fontWeight: 700, fill: '#94a3b8' }}
                                 minTickGap={30}
+                                dy={15}
                             />
                             <YAxis
                                 yAxisId="left"
                                 axisLine={false}
                                 tickLine={false}
-                                tick={{ fontSize: 10, fill: '#64748b' }}
-                                tickFormatter={(value) => `R$${(value / 1000).toFixed(0)}k`}
+                                tick={{ fontSize: 10, fontWeight: 700, fill: '#94a3b8' }}
+                                tickFormatter={(value) => `R$${(value / 1000).toLocaleString()}k`}
+                                dx={-10}
                             />
                             <YAxis
                                 yAxisId="right"
                                 orientation="right"
                                 axisLine={false}
                                 tickLine={false}
-                                tick={{ fontSize: 10, fill: '#34d399' }}
-                                tickFormatter={(value) => `R$${(value / 1000).toFixed(0)}k`}
+                                tick={{ fontSize: 10, fontWeight: 700, fill: '#10b981' }}
+                                tickFormatter={(value) => `R$${value.toLocaleString()}`}
+                                dx={10}
                             />
                             <Tooltip
-                                contentStyle={{ backgroundColor: '#0f172a', borderRadius: '16px', border: '1px solid #1e293b', color: '#fff' }}
-                                formatter={(value: number, name: string) => {
-                                    return [
-                                        `R$ ${value.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}`,
-                                        name === 'displayPassiveIncome' ? 'Renda Passiva' :
-                                            name === 'displayRequiredIncome' ? 'Aposentadoria' :
-                                                name === 'displayTotal' ? 'Patrimônio Total' :
-                                                    name === 'displayAccumulatedInterest' ? 'Juros Acumulados' : name
-                                    ];
-                                }}
+                                contentStyle={{ backgroundColor: '#fff', borderRadius: '24px', border: '1px solid #f1f5f9', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', color: '#0f172a', padding: '16px' }}
+                                itemStyle={{ fontSize: '12px', fontWeight: 900, textTransform: 'uppercase' }}
+                                formatter={(value: number) => `R$ ${value.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}`}
+                                labelStyle={{ color: '#64748b', fontWeight: 700, marginBottom: '8px' }}
                                 labelFormatter={(label) => viewMode === 'annual' ? `Ano ${label}` : `Mês ${label}`}
                             />
                             <Area
@@ -368,112 +347,92 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions 
                                 type="monotone"
                                 dataKey="displayTotal"
                                 stroke="#6366f1"
-                                strokeWidth={3}
+                                strokeWidth={4}
                                 fillOpacity={1}
                                 fill="url(#colorTotal)"
-                                name="Patrimônio Final"
+                                name="Patrimônio Total"
                             />
-                            <Area
-                                yAxisId="left"
-                                type="monotone"
-                                dataKey="invested"
-                                stroke="#cbd5e1"
-                                strokeWidth={2}
-                                strokeDasharray="5 5"
-                                fill="url(#colorInvested)"
-                                name="Valor Investido"
-                            />
-                            {/* Passive Income Bar */}
-                            <Bar
-                                yAxisId="right"
-                                dataKey="displayPassiveIncome"
-                                fill="#34d399"
-                                name="Renda Passiva"
-                                barSize={20}
-                                radius={[4, 4, 0, 0]}
-                            />
-                            {/* Interest Earned Line (Requested separately) */}
                             <Line
                                 yAxisId="left"
                                 type="monotone"
-                                dataKey="displayAccumulatedInterest"
-                                stroke="#f472b6" // Pink
+                                dataKey="invested"
+                                stroke="#94a3b8"
                                 strokeWidth={2}
+                                strokeDasharray="6 6"
                                 dot={false}
-                                name="Juros Acumulados"
+                                name="Total Investido"
                             />
-
-                            {/* Freedom Point (Vertical Line + Umbrella) */}
-                            {freedomPoint && (
-                                <ReferenceLine
-                                    yAxisId="right"
-                                    segment={[
-                                        { x: viewMode === 'annual' ? freedomPoint.yearLabel : freedomPoint.month, y: 0 },
-                                        { x: viewMode === 'annual' ? freedomPoint.yearLabel : freedomPoint.month, y: freedomPoint.displayPassiveIncome }
-                                    ]}
-                                    stroke="#f59e0b" // Amber
-                                    strokeDasharray="3 3"
-                                    strokeWidth={2}
-                                    ifOverflow="extendDomain"
-                                    isFront={true}
-                                >
-                                    <Label
-                                        position="top"
-                                        content={({ viewBox }) => {
-                                            const { x, y } = viewBox as any;
-                                            return (
-                                                <text x={x} y={y} dy={-10} fontSize={24} textAnchor="middle">
-                                                    🏖️
-                                                </text>
-                                            );
-                                        }}
-                                    />
-                                </ReferenceLine>
-                            )}
+                            <Bar
+                                yAxisId="right"
+                                dataKey="displayPassiveIncome"
+                                fill="#10b981"
+                                name="Renda Mensal"
+                                barSize={viewMode === 'annual' ? 30 : 5}
+                                radius={[8, 8, 0, 0]}
+                                opacity={0.6}
+                            />
+                            <Line
+                                yAxisId="right"
+                                type="stepAfter"
+                                dataKey="displayRequiredIncome"
+                                stroke="#f43f5e"
+                                strokeWidth={2}
+                                strokeDasharray="4 4"
+                                dot={false}
+                                name="Meta de Renda"
+                            />
                         </ComposedChart>
                     </ResponsiveContainer>
                 </div>
-            </ChartContainer>
+            </div>
 
-            {/* Detailed Table */}
-            <div className="bg-slate-900/50 rounded-[2rem] border border-slate-800 shadow-sm overflow-hidden">
-                <div className="p-6 border-b border-slate-800 flex justify-between items-center">
-                    <h3 className="text-lg font-black text-white">Detalhamento da Evolução</h3>
+            {/* Table Area */}
+            <div className="bg-white rounded-[3rem] border border-slate-100 shadow-sm overflow-hidden ring-1 ring-black/5">
+                <div className="p-8 border-b border-slate-50 flex items-center gap-4">
+                    <div className="p-3 bg-sky-50 text-sky-600 rounded-2xl">
+                        <Table size={24} />
+                    </div>
+                    <div>
+                        <h3 className="text-xl font-black text-slate-900 tracking-tight">Detalhamento Numérico</h3>
+                        <p className="text-xs font-medium text-slate-400">Evolução detalhada período a período.</p>
+                    </div>
                 </div>
-                <div className="overflow-x-auto w-full">
-                    <table className="w-full text-left text-sm min-w-[800px]">
-                        <thead className="bg-slate-950 text-slate-500 uppercase font-bold text-xs tracking-wider">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm whitespace-nowrap">
+                        <thead className="bg-slate-50 text-slate-400 uppercase font-black text-[10px] tracking-widest">
                             <tr>
-                                <th className="px-6 py-4">{viewMode === 'annual' ? 'Ano' : 'Mês'}</th>
-                                <th className="px-6 py-4">Total Investido</th>
-                                <th className="px-6 py-4">Juros (Período)</th>
-                                <th className="px-6 py-4 text-indigo-400">Patrimônio Total</th>
-                                <th className="px-6 py-4 text-rose-400">Perda Inflação</th>
-                                <th className="px-6 py-4 text-emerald-400">Renda Passiva</th>
+                                <th className="px-8 py-5">Período</th>
+                                <th className="px-8 py-5">Investido</th>
+                                <th className="px-8 py-5">Juros</th>
+                                <th className="px-8 py-5">Patrimônio</th>
+                                <th className="px-8 py-5">Poder de Compra (Real)</th>
+                                <th className="px-8 py-5">Renda Passiva</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-800 text-slate-300">
-                            {displayData.map((row) => {
-                                const isFreedomPoint = freedomPoint && (viewMode === 'annual' ? row.year === freedomPoint.year : row.month === freedomPoint.month);
+                        <tbody className="divide-y divide-slate-50">
+                            {displayData.filter((_, idx) => viewMode === 'annual' || idx % 12 === 0 || idx === displayData.length - 1).map((row) => {
+                                const isFreedom = freedomPoint && (viewMode === 'annual' ? row.year === freedomPoint.year : row.month === freedomPoint.month);
                                 return (
-                                    <tr key={row.month} className={`transition-colors ${isFreedomPoint ? 'bg-emerald-900/20 border-l-4 border-emerald-500' : 'hover:bg-slate-800/50'}`}>
-                                        <td className="px-6 py-4 font-bold text-white">
-                                            {viewMode === 'annual' ? row.yearLabel : row.month}
+                                    <tr key={row.month} className={`group transition-all ${isFreedom ? 'bg-emerald-50/50' : 'hover:bg-slate-50/50'}`}>
+                                        <td className="px-8 py-5">
+                                            <span className={`px-4 py-1 rounded-full text-[10px] font-black tracking-widest ${isFreedom ? 'bg-emerald-500 text-white shadow-xl shadow-emerald-100' : 'bg-slate-100 text-slate-400 group-hover:bg-white group-hover:text-slate-600'}`}>
+                                                {viewMode === 'annual' ? `ANO ${row.yearLabel}` : `MÊS ${row.month}`}
+                                            </span>
                                         </td>
-                                        <td className="px-6 py-4 text-slate-400">
+                                        <td className="px-8 py-5 text-slate-600 font-bold">
                                             R$ {row.invested.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
                                         </td>
-                                        <td className="px-6 py-4 text-slate-400">
-                                            R$ {row.interest.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
+                                        <td className="px-8 py-5 text-emerald-500 font-bold">
+                                            + R$ {row.interest.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
                                         </td>
-                                        <td className="px-6 py-4 font-black text-indigo-400">
+                                        <td className="px-8 py-5 text-slate-900 font-black">
                                             R$ {row.displayTotal.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
                                         </td>
-                                        <td className="px-6 py-4 font-medium text-rose-400">
-                                            - R$ {row.inflationLoss.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
+                                        <td className="px-8 py-5 text-slate-400 font-medium italic">
+                                            R$ {row.realTotal.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
                                         </td>
-                                        <td className="px-6 py-4 font-bold text-emerald-400 bg-emerald-500/5">
-                                            R$ {row.displayPassiveIncome.toLocaleString('pt-BR', { maximumFractionDigits: 2 })}
+                                        <td className="px-8 py-5">
+                                            <span className="text-emerald-700 font-black">R$ {row.displayPassiveIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                                         </td>
                                     </tr>
                                 );

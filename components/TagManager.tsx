@@ -53,9 +53,9 @@ const TagManager: React.FC<TagManagerProps> = ({ tags, onAddTag, onDeleteTag, on
     }
 
     return (
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
             <div className="flex justify-between items-center mb-6">
-                <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                <h3 className="text-lg font-black text-slate-900 flex items-center gap-2">
                     <TagIcon size={20} className="text-sky-600" />
                     Gerenciar Tags
                 </h3>

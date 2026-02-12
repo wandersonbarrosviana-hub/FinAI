@@ -54,43 +54,43 @@ const DailyHistory: React.FC<DailyHistoryProps> = ({ transactions, accounts, onC
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-            <div className="bg-slate-900 w-full max-w-2xl max-h-[90vh] rounded-3xl border border-slate-800 shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+            <div className="bg-white w-full max-w-2xl max-h-[90vh] rounded-[2.5rem] border border-slate-100 shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
 
                 {/* Header */}
-                <div className="p-6 border-b border-slate-800 flex items-center justify-between bg-slate-950/50">
+                <div className="p-8 border-b border-slate-50 flex items-center justify-between">
                     <div>
-                        <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                            <Calendar className="text-cyan-400" size={24} />
+                        <h2 className="text-2xl font-black text-slate-900 flex items-center gap-2 tracking-tight">
+                            <Calendar className="text-sky-600" size={24} />
                             Extrato Diário
                         </h2>
-                        <p className="text-sm text-slate-400 mt-1">Histórico completo de movimentações</p>
+                        <p className="text-sm text-slate-400 mt-1 font-medium">Histórico completo de movimentações</p>
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-2 hover:bg-slate-800 rounded-full text-slate-400 hover:text-white transition-colors"
+                        className="p-2 hover:bg-slate-50 rounded-full text-slate-400 hover:text-slate-900 transition-colors"
                     >
                         <X size={24} />
                     </button>
                 </div>
 
                 {/* Summary Cards */}
-                <div className="grid grid-cols-3 gap-4 p-6 bg-slate-950/30 border-b border-slate-800">
-                    <div className="bg-emerald-500/10 p-3 rounded-2xl border border-emerald-500/20 text-center">
-                        <p className="text-xs font-bold text-emerald-400 uppercase mb-1">Entradas</p>
-                        <p className="text-lg font-black text-emerald-400">
+                <div className="grid grid-cols-3 gap-4 p-6 bg-slate-50/50 border-b border-slate-100">
+                    <div className="bg-emerald-50 p-3 rounded-2xl border border-emerald-100 text-center">
+                        <p className="text-[10px] font-black text-emerald-600 uppercase mb-1 tracking-widest">Entradas</p>
+                        <p className="text-lg font-black text-emerald-700">
                             R$ {totalIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                         </p>
                     </div>
-                    <div className="bg-rose-500/10 p-3 rounded-2xl border border-rose-500/20 text-center">
-                        <p className="text-xs font-bold text-rose-400 uppercase mb-1">Saídas</p>
-                        <p className="text-lg font-black text-rose-400">
+                    <div className="bg-rose-50 p-3 rounded-2xl border border-rose-100 text-center">
+                        <p className="text-[10px] font-black text-rose-600 uppercase mb-1 tracking-widest">Saídas</p>
+                        <p className="text-lg font-black text-rose-700">
                             R$ {totalExpense.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                         </p>
                     </div>
-                    <div className={`p-3 rounded-2xl border text-center ${balance >= 0 ? 'bg-cyan-500/10 border-cyan-500/20' : 'bg-slate-800 border-slate-700'}`}>
-                        <p className="text-xs font-bold text-slate-400 uppercase mb-1">Saldo Período</p>
-                        <p className={`text-lg font-black ${balance >= 0 ? 'text-cyan-400' : 'text-slate-300'}`}>
+                    <div className={`p-3 rounded-2xl border text-center ${balance >= 0 ? 'bg-sky-50 border-sky-100 text-sky-700' : 'bg-slate-50 border-slate-200 text-slate-700'}`}>
+                        <p className="text-[10px] font-black uppercase mb-1 tracking-widest text-slate-400">Saldo</p>
+                        <p className={`text-lg font-black ${balance >= 0 ? 'text-sky-700' : 'text-slate-700'}`}>
                             R$ {balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                         </p>
                     </div>
@@ -106,13 +106,13 @@ const DailyHistory: React.FC<DailyHistoryProps> = ({ transactions, accounts, onC
                     ) : (
                         <div className="divide-y divide-slate-800/50">
                             {groupedTransactions.map((group) => (
-                                <div key={group.date} className="bg-slate-900/50">
+                                <div key={group.date} className="bg-white">
                                     {/* Date Header */}
-                                    <div className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur-sm px-6 py-3 border-y border-slate-800/50 flex items-baseline justify-between shadow-sm">
-                                        <h3 className="text-sm font-bold text-slate-300">
+                                    <div className="sticky top-0 z-10 bg-slate-50/95 backdrop-blur-sm px-6 py-4 border-y border-slate-100 flex items-baseline justify-between shadow-sm">
+                                        <h3 className="text-xs font-black text-slate-800 uppercase tracking-widest">
                                             {formatDate(group.date)}
                                         </h3>
-                                        <span className="text-xs font-medium text-slate-500 lowercase">
+                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
                                             {getDayOfWeek(group.date)}
                                         </span>
                                     </div>
@@ -122,21 +122,21 @@ const DailyHistory: React.FC<DailyHistoryProps> = ({ transactions, accounts, onC
                                         {group.items.map((t, index) => (
                                             <div
                                                 key={t.id}
-                                                className={`flex items-center justify-between p-4 hover:bg-slate-800/50 rounded-xl transition-colors mx-2 my-1 ${index !== group.items.length - 1 ? 'border-b border-slate-800/30' : ''
+                                                className={`flex items-center justify-between p-4 hover:bg-slate-50 rounded-2xl transition-all mx-2 my-1 ${index !== group.items.length - 1 ? 'border-b border-slate-50' : ''
                                                     }`}
                                             >
                                                 {/* Icon & Info */}
                                                 <div className="flex items-center gap-4">
-                                                    <div className={`p-3 rounded-full ${t.type === 'income'
-                                                            ? 'bg-emerald-500/10 text-emerald-400'
-                                                            : 'bg-rose-500/10 text-rose-400'
+                                                    <div className={`p-3 rounded-2xl ${t.type === 'income'
+                                                        ? 'bg-emerald-50 text-emerald-600'
+                                                        : 'bg-rose-50 text-rose-600'
                                                         }`}>
                                                         {t.type === 'income' ? <ArrowUpCircle size={20} /> : <ArrowDownCircle size={20} />}
                                                     </div>
                                                     <div>
-                                                        <p className="font-bold text-slate-200 text-sm">{t.description}</p>
-                                                        <p className="text-xs text-slate-500 flex items-center gap-2 mt-0.5">
-                                                            <span className="bg-slate-800 px-1.5 py-0.5 rounded text-[10px] uppercase tracking-wide">
+                                                        <p className="font-bold text-slate-900 text-sm">{t.description}</p>
+                                                        <p className="text-xs text-slate-400 flex items-center gap-2 mt-0.5 font-medium uppercase tracking-tighter">
+                                                            <span className="bg-slate-50 px-1.5 py-0.5 rounded text-[10px] border border-slate-100">
                                                                 {t.category}
                                                             </span>
                                                             <span>•</span>
@@ -147,17 +147,17 @@ const DailyHistory: React.FC<DailyHistoryProps> = ({ transactions, accounts, onC
 
                                                 {/* Amount & Status */}
                                                 <div className="text-right">
-                                                    <p className={`font-black text-sm ${t.type === 'income' ? 'text-emerald-400' : 'text-rose-400'
+                                                    <p className={`font-black text-sm ${t.type === 'income' ? 'text-emerald-600' : 'text-rose-600'
                                                         }`}>
                                                         {t.type === 'income' ? '+' : '-'} R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                                     </p>
                                                     <div className="mt-1">
                                                         {t.isPaid ? (
-                                                            <span className="text-[10px] font-bold text-emerald-500/70 flex items-center justify-end gap-1">
+                                                            <span className="text-[10px] font-black text-emerald-600/70 flex items-center justify-end gap-1 uppercase tracking-widest">
                                                                 ● Efetuado
                                                             </span>
                                                         ) : (
-                                                            <span className="text-[10px] font-bold text-amber-500/70 flex items-center justify-end gap-1">
+                                                            <span className="text-[10px] font-black text-amber-600/70 flex items-center justify-end gap-1 uppercase tracking-widest">
                                                                 ○ Pendente
                                                             </span>
                                                         )}

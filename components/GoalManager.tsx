@@ -45,54 +45,54 @@ const GoalManager: React.FC<GoalManagerProps> = ({ goals, transactions, accounts
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
         <div>
-          <h2 className="text-3xl font-black text-slate-800 tracking-tight">Metas de Longo Prazo</h2>
+          <h2 className="text-4xl font-black text-slate-900 tracking-tight">Metas de Longo Prazo</h2>
           <p className="text-slate-500 text-sm font-medium">Transformando sua sobra mensal em patrimônio real.</p>
         </div>
         <button
           onClick={() => setIsFormOpen(!isFormOpen)}
-          className="flex items-center gap-2 bg-sky-600 text-white px-6 py-3 rounded-2xl hover:bg-sky-700 transition-all shadow-xl shadow-sky-100 font-bold"
+          className="flex items-center gap-2 bg-sky-600 text-white px-8 py-4 rounded-[1.5rem] hover:bg-sky-700 transition-all shadow-xl shadow-sky-100 font-extrabold text-sm uppercase tracking-widest"
         >
-          <Plus size={20} />
+          {isFormOpen ? <Trash2 size={20} /> : <Plus size={20} />}
           <span>{isFormOpen ? 'Fechar' : 'Nova Meta'}</span>
         </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Surplus Analysis Card */}
-        <div className="col-span-1 bg-white p-6 rounded-[2.5rem] border border-sky-100 shadow-sm flex flex-col justify-between overflow-hidden relative group">
+        <div className="col-span-1 bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col justify-between overflow-hidden relative group">
           <div className="relative z-10">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="p-2 bg-emerald-100 text-emerald-600 rounded-xl">
-                <TrendingUp size={20} />
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-3 bg-emerald-50 text-emerald-600 rounded-2xl border border-emerald-100">
+                <TrendingUp size={24} />
               </div>
-              <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Análise de Sobra</span>
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Análise de Sobra</span>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-6">
               <div>
-                <p className="text-sm text-slate-500 font-medium">Este Mês</p>
-                <p className={`text-3xl font-black ${surplus >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                <p className="text-xs text-slate-400 font-black uppercase tracking-widest mb-1">Este Mês</p>
+                <p className={`text-4xl font-black ${surplus >= 0 ? 'text-emerald-600' : 'text-rose-600'} tracking-tight`}>
                   R$ {surplus.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </p>
               </div>
 
-              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-2">
-                <div className="flex justify-between text-xs">
-                  <span className="text-slate-400 font-bold">GANHOS</span>
-                  <span className="text-emerald-600 font-bold">+R$ {monthlyIncome.toLocaleString('pt-BR')}</span>
+              <div className="bg-slate-50 p-6 rounded-[2rem] border border-slate-100 space-y-3 shadow-inner">
+                <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
+                  <span className="text-slate-400">GANHOS</span>
+                  <span className="text-emerald-600">+R$ {monthlyIncome.toLocaleString('pt-BR')}</span>
                 </div>
-                <div className="flex justify-between text-xs">
-                  <span className="text-slate-400 font-bold">GASTOS</span>
-                  <span className="text-rose-500 font-bold">-R$ {monthlyExpenses.toLocaleString('pt-BR')}</span>
+                <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
+                  <span className="text-slate-400">GASTOS</span>
+                  <span className="text-rose-500">-R$ {monthlyExpenses.toLocaleString('pt-BR')}</span>
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-slate-100">
-                <p className="text-xs text-slate-400 font-bold mb-1">PROJEÇÃO ANUAL</p>
-                <p className="text-xl font-extrabold text-slate-700">R$ {(surplus * 12).toLocaleString('pt-BR')}</p>
-                <p className="text-[10px] text-slate-400 italic mt-1">Baseado na média de sobra do mês atual.</p>
+              <div className="pt-6 border-t border-slate-100">
+                <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2">PROJEÇÃO ANUAL</p>
+                <p className="text-2xl font-black text-slate-900 tracking-tight">R$ {(surplus * 12).toLocaleString('pt-BR')}</p>
+                <p className="text-[10px] text-slate-400 italic mt-2 font-medium">Baseado na média de sobra do mês atual.</p>
               </div>
             </div>
           </div>
@@ -100,41 +100,41 @@ const GoalManager: React.FC<GoalManagerProps> = ({ goals, transactions, accounts
       </div>
 
       {isFormOpen && (
-        <form onSubmit={handleSubmit} className="bg-white p-8 rounded-3xl border border-sky-100 shadow-2xl animate-in zoom-in duration-300 max-w-2xl mx-auto">
-          <h3 className="text-xl font-black text-slate-800 mb-6">Nova Meta Financeira</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-500 uppercase">Título da Meta</label>
+        <form onSubmit={handleSubmit} className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-2xl animate-in zoom-in duration-300 max-w-2xl mx-auto ring-1 ring-black/5">
+          <h3 className="text-3xl font-black text-slate-900 mb-8 tracking-tight">Nova Meta Financeira</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-2">
+              <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Título da Meta</label>
               <input
                 type="text" required
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-sky-500"
+                className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-[1.5rem] outline-none focus:ring-4 focus:ring-sky-500/5 focus:border-sky-500/50 transition-all text-slate-700 font-bold placeholder:text-slate-300"
                 placeholder="Ex: Viagem Japão 2026"
                 value={formData.title}
                 onChange={e => setFormData({ ...formData, title: e.target.value })}
               />
             </div>
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-500 uppercase">Valor Objetivo (R$)</label>
+            <div className="space-y-2">
+              <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Valor Objetivo (R$)</label>
               <input
                 type="number" required
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-sky-500"
+                className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-[1.5rem] outline-none focus:ring-4 focus:ring-sky-500/5 focus:border-sky-500/50 transition-all text-slate-700 font-bold"
                 value={formData.target || ''}
                 onChange={e => setFormData({ ...formData, target: parseFloat(e.target.value) })}
               />
             </div>
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-500 uppercase">Data Limite</label>
+            <div className="space-y-2">
+              <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Data Limite</label>
               <input
                 type="date" required
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-sky-500"
+                className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-[1.5rem] outline-none focus:ring-4 focus:ring-sky-500/5 focus:border-sky-500/50 transition-all text-slate-700 font-bold"
                 value={formData.deadline}
                 onChange={e => setFormData({ ...formData, deadline: e.target.value })}
               />
             </div>
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-500 uppercase">Categoria</label>
+            <div className="space-y-2">
+              <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Categoria</label>
               <select
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-sky-500"
+                className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-[1.5rem] outline-none focus:ring-4 focus:ring-sky-500/5 focus:border-sky-500/50 transition-all text-slate-700 font-bold appearance-none"
                 value={formData.category}
                 onChange={e => setFormData({ ...formData, category: e.target.value })}
               >
@@ -147,9 +147,9 @@ const GoalManager: React.FC<GoalManagerProps> = ({ goals, transactions, accounts
               </select>
             </div>
           </div>
-          <div className="mt-8 flex justify-end gap-3">
-            <button type="button" onClick={() => setIsFormOpen(false)} className="px-6 py-3 text-slate-400 font-bold hover:text-slate-600">Cancelar</button>
-            <button type="submit" className="bg-sky-600 text-white px-10 py-3 rounded-2xl font-bold hover:bg-sky-700 shadow-xl shadow-sky-100">Criar Meta</button>
+          <div className="mt-10 flex justify-end gap-6">
+            <button type="button" onClick={() => setIsFormOpen(false)} className="px-8 py-4 text-slate-400 font-black text-xs uppercase tracking-widest hover:text-slate-900 transition-all">Cancelar</button>
+            <button type="submit" className="bg-sky-600 text-white px-12 py-4 rounded-[1.5rem] font-black text-xs uppercase tracking-widest hover:bg-sky-700 shadow-xl shadow-sky-100 transition-all">Criar Meta</button>
           </div>
         </form>
       )}
@@ -160,39 +160,39 @@ const GoalManager: React.FC<GoalManagerProps> = ({ goals, transactions, accounts
           const progress = Math.min((goal.current / goal.target) * 100, 100);
 
           return (
-            <div key={goal.id} className="bg-white p-6 rounded-[2.5rem] border border-sky-100 shadow-sm hover:shadow-xl transition-all group overflow-hidden relative">
-              <div className="flex justify-between items-start mb-6">
-                <div className="p-4 bg-sky-50 text-sky-600 rounded-3xl group-hover:scale-110 transition-transform duration-500">
-                  <Target size={28} />
+            <div key={goal.id} className="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-sm hover:shadow-2xl hover:shadow-sky-100 transition-all group overflow-hidden relative group">
+              <div className="flex justify-between items-start mb-10">
+                <div className="p-5 bg-sky-50 text-sky-600 rounded-[1.5rem] group-hover:scale-110 transition-all duration-500 border border-sky-100 shadow-sm">
+                  <Target size={32} />
                 </div>
                 <button
                   onClick={() => onDeleteGoal(goal.id)}
-                  className="p-2 text-slate-200 hover:text-rose-500 transition-colors hover:bg-rose-50 rounded-xl"
+                  className="p-3 text-slate-200 hover:text-rose-500 transition-all hover:bg-rose-50 rounded-2xl border border-transparent hover:border-rose-100"
                 >
-                  <Trash2 size={20} />
+                  <Trash2 size={24} />
                 </button>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <p className="text-[10px] font-black text-sky-600 uppercase tracking-widest">{goal.category}</p>
-                <h4 className="text-xl font-black text-slate-800 truncate">{goal.title}</h4>
+                <h4 className="text-2xl font-black text-slate-900 tracking-tight truncate">{goal.title}</h4>
                 <div className="flex justify-between items-end">
-                  <p className="text-sm font-bold text-slate-400">R$ {goal.current.toLocaleString()} / <span className="text-slate-800">R$ {goal.target.toLocaleString()}</span></p>
-                  <span className="text-xs font-black text-sky-600">{progress.toFixed(0)}%</span>
+                  <p className="text-sm font-black text-slate-400 tracking-tight">R$ <span className="text-slate-900">{goal.current.toLocaleString()}</span> / <span className="text-slate-300">R$ {goal.target.toLocaleString()}</span></p>
+                  <span className="text-sm font-black text-sky-600">{progress.toFixed(0)}%</span>
                 </div>
               </div>
 
-              <div className="mt-4 h-2.5 bg-slate-100 rounded-full overflow-hidden">
+              <div className="mt-6 h-3 bg-slate-50 border border-slate-100 rounded-full overflow-hidden shadow-inner">
                 <div
-                  className="h-full bg-gradient-to-r from-sky-400 to-sky-600 rounded-full transition-all duration-1000"
+                  className="h-full bg-gradient-to-r from-sky-400 to-sky-600 rounded-full transition-all duration-1000 shadow-lg shadow-sky-500/30"
                   style={{ width: `${progress}%` }}
                 ></div>
               </div>
 
-              <div className="mt-6 pt-4 border-t border-slate-50 flex items-center justify-between">
-                <div className="flex items-center gap-2 text-slate-500">
-                  <Calendar size={14} />
-                  <span className="text-xs font-bold">{new Date(goal.deadline).toLocaleDateString()}</span>
+              <div className="mt-8 pt-6 border-t border-slate-50 flex items-center justify-between">
+                <div className="flex items-center gap-3 text-slate-400">
+                  <Calendar size={16} />
+                  <span className="text-xs font-black uppercase tracking-widest">Até {new Date(goal.deadline).toLocaleDateString()}</span>
                 </div>
               </div>
             </div>

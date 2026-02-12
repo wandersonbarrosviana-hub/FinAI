@@ -19,14 +19,14 @@ const ChartContainer: React.FC<ChartContainerProps> = ({ title, children, classN
     // If full screen, render a modal overlay
     if (isFullScreen) {
         return (
-            <div className="fixed inset-0 z-[100] bg-slate-950 flex flex-col animate-in fade-in duration-200">
-                <div className="flex items-center justify-between p-4 border-b border-slate-800 bg-slate-900/50 backdrop-blur-md">
-                    <div className="text-lg font-bold text-slate-100 flex items-center gap-2">
+            <div className="fixed inset-0 z-[100] bg-white flex flex-col animate-in fade-in duration-200">
+                <div className="flex items-center justify-between p-8 border-b border-slate-100 bg-white/80 backdrop-blur-xl">
+                    <div className="text-2xl font-black text-slate-900 flex items-center gap-2 tracking-tight">
                         {title}
                     </div>
                     <button
                         onClick={toggleFullScreen}
-                        className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-full transition-colors"
+                        className="p-3 bg-slate-50 hover:bg-slate-100 text-slate-400 hover:text-slate-900 rounded-full transition-all"
                     >
                         <Minimize2 size={24} />
                     </button>
@@ -42,16 +42,16 @@ const ChartContainer: React.FC<ChartContainerProps> = ({ title, children, classN
     }
 
     return (
-        <div className={`bg-slate-900/50 border border-slate-800 rounded-3xl p-6 relative flex flex-col ${className}`}>
-            <div className="flex items-center justify-between mb-6">
-                <h3 className="font-bold text-slate-200 flex items-center gap-2 text-sm sm:text-base">
+        <div className={`bg-white border border-slate-100 rounded-[2.5rem] p-8 relative flex flex-col shadow-sm ${className}`}>
+            <div className="flex items-center justify-between mb-8">
+                <h3 className="font-black text-slate-900 flex items-center gap-2 text-sm sm:text-base tracking-tight">
                     {title}
                 </h3>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                     {headerAction}
                     <button
                         onClick={toggleFullScreen}
-                        className="p-2 text-slate-500 hover:text-cyan-400 hover:bg-slate-800/50 rounded-lg transition-all"
+                        className="p-2 text-slate-400 hover:text-sky-600 hover:bg-slate-50 rounded-xl transition-all border border-transparent hover:border-slate-100"
                         title="Expandir"
                     >
                         <Maximize2 size={18} />

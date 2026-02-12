@@ -189,62 +189,62 @@ const FinancialAssistant: React.FC<FinancialAssistantProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-[600px] bg-slate-900 rounded-3xl border border-slate-800 shadow-2xl overflow-hidden relative">
+    <div className="flex flex-col h-[700px] bg-white rounded-[2.5rem] border border-slate-100 shadow-xl overflow-hidden relative">
 
       {/* Header */}
-      <div className="p-4 bg-slate-950/80 backdrop-blur-md border-b border-slate-800 flex items-center justify-between sticky top-0 z-10">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-500/20">
-            <Sparkles size={20} className="text-white" />
+      <div className="p-6 bg-white/80 backdrop-blur-xl border-b border-slate-100 flex items-center justify-between sticky top-0 z-10">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-sky-200">
+            <Sparkles size={24} className="text-white" />
           </div>
           <div>
-            <h3 className="font-bold text-slate-100 text-sm">FinAI Intelligence</h3>
+            <h3 className="font-black text-slate-900 text-base tracking-tight">FinAI Intelligence</h3>
             <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span className="text-[10px] text-emerald-400 font-medium uppercase tracking-wider">Gemini Live</span>
+              <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+              <span className="text-[10px] text-emerald-600 font-black uppercase tracking-widest">Gemini 1.5 Pro</span>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <button
             onClick={() => setShowImportModal(true)}
-            className="p-2 hover:bg-slate-800 rounded-xl text-cyan-400 hover:text-cyan-300 transition-colors flex items-center gap-2 bg-cyan-950/30 border border-cyan-500/20"
+            className="p-2.5 hover:bg-sky-50 rounded-xl text-sky-600 hover:text-sky-700 transition-all flex items-center gap-2 bg-sky-50/50 border border-sky-100"
             title="Importar Notificação"
           >
             <Bell size={16} />
-            <span className="text-xs font-bold hidden sm:inline">Importar</span>
+            <span className="text-[10px] font-black uppercase tracking-widest hidden sm:inline">Importar</span>
           </button>
           <button
             onClick={clearChat}
-            className="p-2 hover:bg-slate-800 rounded-xl text-slate-500 hover:text-rose-400 transition-colors"
+            className="p-2.5 hover:bg-rose-50 rounded-xl text-slate-400 hover:text-rose-600 transition-all border border-transparent hover:border-rose-100"
             title="Limpar conversa"
           >
-            <Trash2 size={18} />
+            <Trash2 size={20} />
           </button>
         </div>
       </div>
 
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-6 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
+      <div className="flex-1 overflow-y-auto p-6 space-y-8 scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
         {messages.map((msg, index) => (
           <div
             key={index}
-            className={`flex items-start gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''} animate-in fade-in slide-in-from-bottom-2 duration-300`}
+            className={`flex items-start gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : ''} animate-in fade-in slide-in-from-bottom-2 duration-300`}
           >
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${msg.role === 'user'
-              ? 'bg-slate-700 text-slate-300'
-              : 'bg-indigo-900/30 text-indigo-400 border border-indigo-500/20'
+            <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 shadow-sm ${msg.role === 'user'
+              ? 'bg-sky-600 text-white'
+              : 'bg-gradient-to-tr from-sky-50 to-indigo-50 text-sky-600 border border-sky-100'
               }`}>
-              {msg.role === 'user' ? <User size={14} /> : <Bot size={14} />}
+              {msg.role === 'user' ? <User size={18} /> : <Bot size={18} />}
             </div>
 
-            <div className={`max-w-[85%] p-3.5 rounded-2xl text-sm leading-relaxed ${msg.role === 'user'
-              ? 'bg-slate-800 text-white rounded-tr-none'
-              : 'bg-slate-800/50 text-slate-200 border border-slate-700/50 rounded-tl-none'
+            <div className={`max-w-[80%] p-5 rounded-3xl text-sm leading-relaxed shadow-sm ${msg.role === 'user'
+              ? 'bg-sky-600 text-white rounded-tr-none'
+              : 'bg-slate-50 text-slate-700 border border-slate-100 rounded-tl-none'
               }`}>
-              <div dangerouslySetInnerHTML={{ __html: msg.content.replace(/\n/g, '<br/>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }} />
-              <span className="text-[10px] text-slate-500 block mt-2 opacity-70">
+              <div dangerouslySetInnerHTML={{ __html: msg.content.replace(/\n/g, '<br/>').replace(/\*\*(.*?)\*\*/g, msg.role === 'user' ? '<strong class="font-black text-white">$1</strong>' : '<strong class="font-black text-sky-600">$1</strong>') }} />
+              <span className={`text-[10px] font-bold block mt-3 uppercase tracking-widest ${msg.role === 'user' ? 'text-sky-100' : 'text-slate-400'}`}>
                 {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </span>
             </div>
@@ -252,14 +252,14 @@ const FinancialAssistant: React.FC<FinancialAssistantProps> = ({
         ))}
 
         {isTyping && (
-          <div className="flex items-start gap-3 animate-in fade-in zoom-in-90">
-            <div className="w-8 h-8 rounded-full bg-indigo-900/30 text-indigo-400 border border-indigo-500/20 flex items-center justify-center shrink-0">
-              <Bot size={14} />
+          <div className="flex items-start gap-4 animate-in fade-in zoom-in-95">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-sky-50 to-indigo-50 text-sky-600 border border-sky-100 flex items-center justify-center shrink-0 shadow-sm">
+              <Bot size={18} />
             </div>
-            <div className="bg-slate-800/50 p-4 rounded-2xl rounded-tl-none border border-slate-700/50 flex gap-1">
-              <span className="w-1.5 h-1.5 bg-indigo-500/50 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-              <span className="w-1.5 h-1.5 bg-indigo-500/50 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
-              <span className="w-1.5 h-1.5 bg-indigo-500/50 rounded-full animate-bounce"></span>
+            <div className="bg-slate-50 p-5 rounded-3xl rounded-tl-none border border-slate-100 flex gap-1.5 shadow-sm">
+              <span className="w-2 h-2 bg-sky-400 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+              <span className="w-2 h-2 bg-sky-400 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+              <span className="w-2 h-2 bg-sky-400 rounded-full animate-bounce"></span>
             </div>
           </div>
         )}
@@ -268,12 +268,12 @@ const FinancialAssistant: React.FC<FinancialAssistantProps> = ({
 
       {/* Suggestions */}
       {messages.length < 3 && !isTyping && (
-        <div className="px-4 pb-2 flex gap-2 overflow-x-auto scrollbar-hide">
+        <div className="px-6 pb-4 flex gap-3 overflow-x-auto scrollbar-hide">
           {suggestions.map((s, i) => (
             <button
               key={i}
               onClick={() => handleSuggestionClick(s)}
-              className="whitespace-nowrap px-3 py-1.5 bg-slate-800/50 border border-slate-700 rounded-full text-xs text-indigo-300 hover:bg-indigo-500/10 hover:border-indigo-500/50 transition-colors"
+              className="whitespace-nowrap px-4 py-2 bg-white border border-slate-200 rounded-full text-xs font-black text-sky-600 uppercase tracking-widest hover:bg-sky-50 hover:border-sky-300 transition-all shadow-sm"
             >
               {s}
             </button>
@@ -282,78 +282,78 @@ const FinancialAssistant: React.FC<FinancialAssistantProps> = ({
       )}
 
       {/* Input Area */}
-      <div className="p-4 bg-slate-950 border-t border-slate-800">
-        <div className="flex items-center gap-2 bg-slate-900 p-1.5 rounded-2xl border border-slate-700 ring-1 ring-white/5 focus-within:ring-indigo-500/50 focus-within:border-indigo-500/50 transition-all">
+      <div className="p-6 bg-white border-t border-slate-100">
+        <div className="flex items-center gap-3 bg-slate-50 p-2 rounded-[2rem] border border-slate-200 focus-within:ring-4 focus-within:ring-sky-500/5 focus-within:border-sky-500/30 focus-within:bg-white transition-all shadow-inner">
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Peça uma análise ou dica..."
-            className="flex-1 bg-transparent px-3 py-2 text-sm text-white placeholder-slate-500 outline-none"
+            className="flex-1 bg-transparent px-4 py-3 text-sm text-slate-700 font-medium placeholder:text-slate-300 outline-none"
             disabled={isTyping}
           />
           <button
             onClick={handleSend}
             disabled={!input.trim() || isTyping}
-            className="p-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:hover:bg-indigo-600 text-white rounded-xl transition-all shadow-lg shadow-indigo-900/20 active:scale-95"
+            className="p-4 bg-sky-600 hover:bg-sky-700 disabled:opacity-50 text-white rounded-2xl transition-all shadow-xl shadow-sky-100 active:scale-95"
           >
-            {isTyping ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
+            {isTyping ? <Loader2 size={18} className="animate-spin" /> : <Send size={20} />}
           </button>
         </div>
       </div>
 
       {/* Import Modal Overlay */}
       {showImportModal && (
-        <div className="absolute inset-0 z-50 bg-slate-950/90 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-slate-900 border border-slate-700 w-full max-w-sm rounded-3xl shadow-2xl p-6 relative">
+        <div className="absolute inset-0 z-50 bg-white/90 backdrop-blur-xl flex items-center justify-center p-6 animate-in fade-in duration-300">
+          <div className="bg-white border border-slate-100 w-full max-w-md rounded-[2.5rem] shadow-2xl p-8 relative ring-1 ring-black/5">
             <button
               onClick={() => { setShowImportModal(false); setParsedData(null); setNotificationText(''); }}
-              className="absolute top-4 right-4 text-slate-500 hover:text-white"
+              className="absolute top-6 right-6 p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-50 rounded-full transition-all"
             >
-              <XCircle size={20} />
+              <XCircle size={24} />
             </button>
 
-            <div className="mb-6 text-center">
-              <div className="w-12 h-12 bg-cyan-900/20 rounded-full flex items-center justify-center mx-auto mb-3 text-cyan-400 border border-cyan-500/20">
-                <ClipboardPaste size={24} />
+            <div className="mb-8 text-center">
+              <div className="w-16 h-16 bg-sky-50 rounded-[2rem] flex items-center justify-center mx-auto mb-4 text-sky-600 border border-sky-100 shadow-sm">
+                <ClipboardPaste size={32} />
               </div>
-              <h3 className="text-lg font-bold text-white">Importar Notificação</h3>
-              <p className="text-xs text-slate-400 mt-1">Cole o texto do SMS ou notificação do banco</p>
+              <h3 className="text-2xl font-black text-slate-900 tracking-tight">Importar Notificação</h3>
+              <p className="text-sm font-medium text-slate-500 mt-2">Cole o texto do SMS ou notificação do banco</p>
             </div>
 
             {!parsedData ? (
-              <div className="space-y-4">
+              <div className="space-y-6">
                 <textarea
                   value={notificationText}
                   onChange={(e) => setNotificationText(e.target.value)}
                   placeholder='Ex: "Compra Aprovada R$ 50,00 Padaria Central..."'
-                  className="w-full h-32 bg-slate-950 rounded-xl border border-slate-800 p-3 text-sm text-slate-200 placeholder-slate-600 focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 outline-none resize-none"
+                  className="w-full h-40 bg-slate-50 rounded-[2rem] border border-slate-200 p-6 text-sm text-slate-700 font-medium placeholder:text-slate-300 focus:bg-white focus:border-sky-500/50 focus:ring-4 focus:ring-sky-500/5 outline-none resize-none transition-all shadow-inner"
                 />
                 <button
                   onClick={handleParseNotification}
                   disabled={!notificationText.trim() || isParsing}
-                  className="w-full py-3 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2"
+                  className="w-full py-4 bg-sky-600 hover:bg-sky-700 disabled:opacity-50 text-white font-black text-xs uppercase tracking-widest rounded-2xl transition-all shadow-xl shadow-sky-100 flex items-center justify-center gap-3"
                 >
-                  {isParsing ? <Loader2 size={18} className="animate-spin" /> : 'Analisar e Importar'}
+                  {isParsing ? <Loader2 size={20} className="animate-spin" /> : <><Sparkles size={20} /> Analisar e Importar</>}
                 </button>
               </div>
             ) : (
-              <div className="space-y-4 animate-in slide-in-from-bottom-4">
-                <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-slate-400">Valor</span>
-                    <span className={`font-bold ${parsedData.type === 'income' ? 'text-emerald-400' : 'text-rose-400'}`}>
-                      R$ {parsedData.amount?.toFixed(2)}
+              <div className="space-y-6 animate-in slide-in-from-bottom-4">
+                <div className="bg-slate-50 p-6 rounded-[2rem] border border-slate-100 space-y-4 shadow-inner">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Valor</span>
+                    <span className={`text-2xl font-black ${parsedData.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                      R$ {parsedData.amount?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-slate-400">Descrição</span>
-                    <span className="text-white font-medium truncate max-w-[150px]">{parsedData.description}</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Descrição</span>
+                    <span className="text-slate-900 font-black truncate max-w-[200px]">{parsedData.description}</span>
                   </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-slate-400">Categoria</span>
-                    <span className="text-cyan-300 bg-cyan-950/30 px-2 py-0.5 rounded text-xs border border-cyan-500/20">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Categoria</span>
+                    <span className="text-sky-600 bg-white px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border border-sky-100 shadow-sm">
                       {parsedData.category}
                     </span>
                   </div>
@@ -361,9 +361,9 @@ const FinancialAssistant: React.FC<FinancialAssistantProps> = ({
 
                 <button
                   onClick={confirmImport}
-                  className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2"
+                  className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs uppercase tracking-widest rounded-2xl transition-all shadow-xl shadow-emerald-100 flex items-center justify-center gap-3"
                 >
-                  <CheckCircle size={18} />
+                  <CheckCircle size={20} />
                   Confirmar Importação
                 </button>
               </div>

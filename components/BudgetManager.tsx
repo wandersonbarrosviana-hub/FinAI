@@ -153,7 +153,7 @@ const BudgetManager: React.FC<BudgetManagerProps> = ({ transactions, budgets: pe
         <div className="space-y-8 animate-in fade-in duration-500">
             {/* Header Title */}
             <div>
-                <h2 className="text-3xl font-black text-slate-800 tracking-tight">Painel de Orçamento</h2>
+                <h2 className="text-3xl font-black text-slate-900 tracking-tight">Painel de Orçamento</h2>
                 <p className="text-slate-500 text-sm font-medium">Planejamento estratégico baseado na sua receita real.</p>
             </div>
 
@@ -218,7 +218,7 @@ const BudgetManager: React.FC<BudgetManagerProps> = ({ transactions, budgets: pe
             {/* Comparative Chart */}
             <div className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm">
                 <div className="mb-6 px-2">
-                    <h3 className="text-lg font-black text-slate-800">Comparativo: Planejado vs. Real</h3>
+                    <h3 className="text-lg font-black text-slate-900">Comparativo: Planejado vs. Real</h3>
                 </div>
                 <div className="h-64 w-full">
                     <ResponsiveContainer width="100%" height="100%">
@@ -231,8 +231,8 @@ const BudgetManager: React.FC<BudgetManagerProps> = ({ transactions, budgets: pe
                                 contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
                             />
                             <Legend wrapperStyle={{ paddingTop: '20px' }} />
-                            <Bar dataKey="Orçado" fill="#3b82f6" radius={[4, 4, 0, 0]} name="Meta Orçamentária" />
-                            <Bar dataKey="Realizado" fill="#f59e0b" radius={[4, 4, 0, 0]} name="Gasto Realizado">
+                            <Bar dataKey="Orçado" fill="#0ea5e9" radius={[4, 4, 0, 0]} name="Meta Orçamentária" />
+                            <Bar dataKey="Realizado" fill="#e2e8f0" radius={[4, 4, 0, 0]} name="Gasto Realizado">
                                 <LabelList dataKey="Realizado" content={renderCustomBarLabel} />
                             </Bar>
                         </BarChart>

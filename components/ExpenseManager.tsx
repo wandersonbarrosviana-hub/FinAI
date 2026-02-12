@@ -212,18 +212,18 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h2 className="text-2xl font-bold text-white">
+        <h2 className="text-2xl font-black text-slate-900 tracking-tight">
           Gerenciar {type === 'expense' ? 'Despesas' : 'Receitas'}
         </h2>
         <div className="flex gap-2 w-full sm:w-auto">
           {type === 'income' && (
             <button
               onClick={() => setShowHistory(true)}
-              className="p-2 sm:px-4 sm:py-2 bg-slate-800 text-slate-400 hover:text-cyan-400 hover:bg-slate-700 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2"
+              className="p-2 sm:px-4 sm:py-2 bg-white text-slate-500 hover:text-sky-600 hover:bg-sky-50 rounded-xl transition-all shadow-sm border border-slate-200 flex items-center justify-center gap-2"
               title="Ver Extrato Diário"
             >
               <FileText size={20} />
-              <span className="hidden sm:inline font-bold text-xs">Extrato</span>
+              <span className="hidden sm:inline font-bold text-xs uppercase tracking-wider">Extrato</span>
             </button>
           )}
 
@@ -232,10 +232,10 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
               if (isFormOpen && editingId) { setIsFormOpen(false); setEditingId(null); resetForm(); }
               else setIsFormOpen(!isFormOpen);
             }}
-            className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-xl transition-all shadow-lg ${isFormOpen ? 'bg-slate-800 text-slate-400 hover:bg-slate-700' : 'bg-cyan-600 text-slate-950 font-bold hover:bg-cyan-500 shadow-cyan-900/20'}`}
+            className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2 rounded-xl transition-all shadow-sm font-bold ${isFormOpen ? 'bg-white text-slate-500 border border-slate-200' : 'bg-sky-600 text-white hover:bg-sky-500 shadow-sky-100'}`}
           >
             {isFormOpen ? <X size={20} /> : <Plus size={20} />}
-            <span>{isFormOpen ? 'Cancelar' : 'Novo Lançamento'}</span>
+            <span className="uppercase tracking-wider text-xs">{isFormOpen ? 'Cancelar' : 'Novo Lançamento'}</span>
           </button>
         </div>
       </div>
@@ -249,7 +249,7 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
       )}
 
       {isFormOpen && (
-        <form onSubmit={handleSubmit} className="bg-slate-900/50 backdrop-blur-md p-4 md:p-6 rounded-2xl border border-slate-800 shadow-xl animate-in fade-in slide-in-from-top-4 duration-300">
+        <form onSubmit={handleSubmit} className="bg-white p-6 md:p-8 rounded-3xl border border-slate-100 shadow-xl animate-in fade-in slide-in-from-top-4 duration-500">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-bold text-slate-400 uppercase flex items-center gap-2">
               {editingId ? <Edit2 size={16} /> : <Plus size={16} />}
@@ -264,7 +264,7 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
               <input
                 type="text"
                 required
-                className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all font-medium text-slate-200 placeholder:text-slate-600"
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all font-medium text-slate-900 placeholder:text-slate-400"
                 placeholder={type === 'income' ? "Ex: Salário" : "Ex: Compra"}
                 value={formData.description}
                 onChange={e => setFormData({ ...formData, description: e.target.value })}
@@ -274,25 +274,25 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
             {/* Recurrence Selector */}
             <div className="space-y-1">
               <label className="text-xs font-bold text-slate-500 uppercase ml-1">Periodicidade</label>
-              <div className="flex flex-col sm:flex-row bg-slate-950 p-1 rounded-xl border border-slate-800 gap-1 sm:gap-0">
+              <div className="flex flex-col sm:flex-row bg-slate-100 p-1 rounded-xl border border-slate-200 gap-1 sm:gap-0">
                 <button
                   type="button"
                   onClick={() => setFormData({ ...formData, recurrence: 'one_time' })}
-                  className={`flex-1 py-2 px-2 text-xs font-bold rounded-lg transition-all whitespace-nowrap ${formData.recurrence === 'one_time' ? 'bg-slate-800 shadow-sm text-cyan-400' : 'text-slate-500 hover:text-slate-300'}`}
+                  className={`flex-1 py-2 px-2 text-[10px] font-bold rounded-lg transition-all whitespace-nowrap uppercase tracking-widest ${formData.recurrence === 'one_time' ? 'bg-white shadow-sm text-sky-600' : 'text-slate-400 hover:text-slate-600'}`}
                 >
                   Única
                 </button>
                 <button
                   type="button"
                   onClick={() => setFormData({ ...formData, recurrence: 'installment' })}
-                  className={`flex-1 py-2 px-2 text-xs font-bold rounded-lg transition-all whitespace-nowrap ${formData.recurrence === 'installment' ? 'bg-slate-800 shadow-sm text-cyan-400' : 'text-slate-500 hover:text-slate-300'}`}
+                  className={`flex-1 py-2 px-2 text-[10px] font-bold rounded-lg transition-all whitespace-nowrap uppercase tracking-widest ${formData.recurrence === 'installment' ? 'bg-white shadow-sm text-sky-600' : 'text-slate-400 hover:text-slate-600'}`}
                 >
                   Parcelada
                 </button>
                 <button
                   type="button"
                   onClick={() => setFormData({ ...formData, recurrence: 'fixed' })}
-                  className={`flex-1 py-2 px-2 text-xs font-bold rounded-lg transition-all whitespace-nowrap ${formData.recurrence === 'fixed' ? 'bg-slate-800 shadow-sm text-cyan-400' : 'text-slate-500 hover:text-slate-300'}`}
+                  className={`flex-1 py-2 px-2 text-[10px] font-bold rounded-lg transition-all whitespace-nowrap uppercase tracking-widest ${formData.recurrence === 'fixed' ? 'bg-white shadow-sm text-sky-600' : 'text-slate-400 hover:text-slate-600'}`}
                 >
                   Fixa Mensal
                 </button>
@@ -301,9 +301,9 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
 
             {/* Installments Logic - Only if Parcelada */}
             {formData.recurrence === 'installment' && (
-              <div className="space-y-4 md:col-span-2 lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-4 bg-cyan-900/10 p-4 rounded-xl border border-cyan-500/20 animate-in fade-in zoom-in duration-300">
+              <div className="space-y-4 md:col-span-2 lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-4 bg-sky-50/50 p-4 rounded-xl border border-sky-100 animate-in fade-in zoom-in duration-300">
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-cyan-400 uppercase ml-1">
+                  <label className="text-xs font-bold text-sky-600 uppercase ml-1">
                     {type === 'income' ? 'Nº de Meses/Vezes' : 'Nº Parcelas'}
                   </label>
                   <input
@@ -311,37 +311,37 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
                     min="2"
                     max="999"
                     required
-                    className="w-full px-4 py-2.5 bg-slate-950 border border-cyan-500/30 rounded-xl outline-none focus:ring-2 focus:ring-cyan-500 transition-all font-bold text-cyan-400 text-center"
+                    className="w-full px-4 py-2.5 bg-white border border-sky-200 rounded-xl outline-none focus:ring-2 focus:ring-sky-500 transition-all font-bold text-sky-600 text-center"
                     value={formData.installmentCount}
                     onChange={e => setFormData({ ...formData, installmentCount: parseInt(e.target.value) })}
                   />
                 </div>
                 <div className="space-y-1 md:col-span-2">
-                  <label className="text-xs font-bold text-cyan-400 uppercase ml-1">O valor informado é:</label>
+                  <label className="text-xs font-bold text-sky-600 uppercase ml-1">O valor informado é:</label>
                   <div className="flex flex-col gap-2 mt-2">
-                    <label className="flex items-center gap-2 cursor-pointer bg-slate-950/50 p-2 rounded-lg border border-cyan-500/20 hover:bg-slate-900/80 transition-colors">
+                    <label className="flex items-center gap-2 cursor-pointer bg-white p-2 rounded-lg border border-sky-100 hover:bg-sky-50 transition-colors shadow-sm">
                       <input
                         type="radio"
                         name="valueType"
                         checked={installmentValueType === 'installment'}
                         onChange={() => setInstallmentValueType('installment')}
-                        className="text-cyan-500 focus:ring-cyan-500 bg-slate-800 border-slate-700"
+                        className="text-sky-600 focus:ring-sky-500 bg-white border-slate-300"
                         style={{ minWidth: '16px' }}
                       />
-                      <span className="text-sm font-medium text-slate-300 break-words">
+                      <span className="text-sm font-medium text-slate-700 break-words">
                         {type === 'income' ? 'Valor Mensal' : 'Valor da Parcela'}
                       </span>
                     </label>
-                    <label className="flex items-center gap-2 cursor-pointer bg-slate-950/50 p-2 rounded-lg border border-cyan-500/20 hover:bg-slate-900/80 transition-colors">
+                    <label className="flex items-center gap-2 cursor-pointer bg-white p-2 rounded-lg border border-sky-100 hover:bg-sky-50 transition-colors shadow-sm">
                       <input
                         type="radio"
                         name="valueType"
                         checked={installmentValueType === 'total'}
                         onChange={() => setInstallmentValueType('total')}
-                        className="text-cyan-500 focus:ring-cyan-500 bg-slate-800 border-slate-700"
+                        className="text-sky-600 focus:ring-sky-500 bg-white border-slate-300"
                         style={{ minWidth: '16px' }}
                       />
-                      <span className="text-sm font-medium text-slate-300 break-words">
+                      <span className="text-sm font-medium text-slate-700 break-words">
                         {type === 'income' ? 'Valor Total' : 'Valor Total'}
                       </span>
                     </label>
@@ -362,13 +362,13 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
                 type="number"
                 step="0.01"
                 required
-                className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all font-black text-slate-200 placeholder:text-slate-600"
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-sky-500/20 transition-all font-black text-slate-900 placeholder:text-slate-400"
                 placeholder="0.00"
                 value={inputValue}
                 onChange={e => setInputValue(e.target.value)}
               />
               {formData.recurrence === 'installment' && inputValue && (
-                <div className="text-[10px] font-bold text-cyan-400 text-right px-1">
+                <div className="text-[10px] font-bold text-sky-600 text-right px-1">
                   {installmentValueType === 'total'
                     ? `~ R$ ${(parseFloat(inputValue) / (formData.installmentCount || 1)).toFixed(2)} por mês`
                     : `Total: R$ ${(parseFloat(inputValue) * (formData.installmentCount || 1)).toFixed(2)}`
@@ -381,7 +381,7 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
             <div className="space-y-1">
               <label className="text-xs font-bold text-slate-500 uppercase ml-1">Categoria</label>
               <select
-                className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all text-slate-200"
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-sky-500/20 transition-all text-slate-900 font-medium"
                 value={formData.category}
                 onChange={e => {
                   const cat = e.target.value;
@@ -402,7 +402,7 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
                   <input
                     type="text"
                     required
-                    className="w-full px-4 py-2.5 bg-slate-950 border border-cyan-500/30 rounded-xl outline-none focus:ring-2 focus:ring-cyan-500 transition-all text-slate-200"
+                    className="w-full px-4 py-2.5 bg-white border border-sky-200 rounded-xl outline-none focus:ring-2 focus:ring-sky-500 transition-all font-medium text-slate-900"
                     placeholder="Digite a categoria..."
                     value={customCategory}
                     onChange={e => setCustomCategory(e.target.value)}
@@ -413,7 +413,7 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
                   <input
                     type="text"
                     required
-                    className="w-full px-4 py-2.5 bg-slate-950 border border-cyan-500/30 rounded-xl outline-none focus:ring-2 focus:ring-cyan-500 transition-all text-slate-200"
+                    className="w-full px-4 py-2.5 bg-white border border-sky-200 rounded-xl outline-none focus:ring-2 focus:ring-sky-500 transition-all font-medium text-slate-900"
                     placeholder="Digite a subcategoria..."
                     value={customSubCategory}
                     onChange={e => setCustomSubCategory(e.target.value)}
@@ -424,7 +424,7 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-500 uppercase ml-1">Subcategoria</label>
                 <select
-                  className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all text-slate-200"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-sky-500/20 transition-all text-slate-900 font-medium"
                   value={formData.subCategory}
                   onChange={e => setFormData({ ...formData, subCategory: e.target.value })}
                 >
@@ -440,7 +440,7 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
               <label className="text-xs font-bold text-slate-500 uppercase ml-1">Conta / Carteira</label>
               <div className="relative">
                 <select
-                  className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all text-slate-200 appearance-none"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-sky-500/20 transition-all text-slate-900 font-medium appearance-none"
                   value={accountId}
                   onChange={e => setAccountId(e.target.value)}
                 >
@@ -461,7 +461,7 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
               <label className="text-xs font-bold text-slate-500 uppercase ml-1">Data Lançamento</label>
               <input
                 type="date"
-                className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all text-slate-200 schema-dark"
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-sky-500/20 transition-all text-slate-900 font-medium"
                 value={formData.date}
                 onChange={e => setFormData({ ...formData, date: e.target.value })}
               />
@@ -477,7 +477,7 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
                 </label>
                 <input
                   type="date"
-                  className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all text-slate-200 schema-dark"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-sky-500/20 transition-all text-slate-900 font-medium"
                   value={formData.dueDate}
                   onChange={e => setFormData({ ...formData, dueDate: e.target.value })}
                 />
@@ -489,7 +489,7 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
               <label className="text-xs font-bold text-slate-500 uppercase ml-1">Data Efetivação</label>
               <input
                 type="date"
-                className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all text-slate-200 schema-dark"
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-sky-500/20 transition-all text-slate-900 font-medium"
                 value={paymentDate}
                 onChange={e => setPaymentDate(e.target.value)}
               />
@@ -499,7 +499,7 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
             <div className="space-y-1">
               <label className="text-xs font-bold text-slate-500 uppercase ml-1">Método</label>
               <select
-                className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all text-slate-200"
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-sky-500/20 transition-all text-slate-900 font-medium"
                 value={formData.paymentMethod}
                 onChange={e => setFormData({ ...formData, paymentMethod: e.target.value })}
               >
@@ -526,17 +526,17 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
 
             {/* Paid Toggle */}
             <div className="flex items-end pb-1 md:col-span-2 lg:col-span-1">
-              <label className={`flex items-center space-x-3 cursor-pointer p-2.5 rounded-xl border transition-all w-full ${formData.isPaid ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-slate-950 border-slate-800'}`}>
+              <label className={`flex items-center space-x-3 cursor-pointer p-3 rounded-xl border transition-all w-full ${formData.isPaid ? 'bg-emerald-50 border-emerald-100' : 'bg-slate-50 border-slate-200'}`}>
                 <input
                   type="checkbox"
-                  className="w-5 h-5 rounded-lg border-slate-600 bg-slate-800 text-cyan-600 focus:ring-cyan-500 scale-100 accent-emerald-500"
+                  className="w-5 h-5 rounded-lg border-slate-300 bg-white text-sky-600 focus:ring-sky-500 scale-100 accent-emerald-600"
                   checked={formData.isPaid}
                   onChange={e => setFormData({ ...formData, isPaid: e.target.checked })}
                 />
-                <span className={`text-sm font-bold ${formData.isPaid ? 'text-emerald-400' : 'text-slate-500'}`}>
+                <span className={`text-[10px] font-black uppercase tracking-widest ${formData.isPaid ? 'text-emerald-700' : 'text-slate-400'}`}>
                   {formData.isPaid
                     ? (type === 'income' ? 'Recebido' : 'Pago')
-                    : (type === 'income' ? 'Pendente de Recebimento' : 'Pendente de Pagamento')
+                    : (type === 'income' ? 'Pendente' : 'Pendente')
                   }
                 </span>
               </label>
@@ -545,7 +545,7 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
             {/* Tags Selector */}
             <div className="md:col-span-2 lg:col-span-3 space-y-1">
               <label className="text-xs font-bold text-slate-500 uppercase ml-1">Tags</label>
-              <div className="flex flex-wrap gap-2 p-3 bg-slate-950 border border-slate-800 rounded-xl min-h-[50px]">
+              <div className="flex flex-wrap gap-2 p-3 bg-slate-50 border border-slate-200 rounded-xl min-h-[50px]">
                 {tags.map(tag => {
                   const isSelected = formData.tags?.includes(tag.id);
                   return (
@@ -559,14 +559,13 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
                           : [...currentTags, tag.id];
                         setFormData({ ...formData, tags: newTags });
                       }}
-                      className={`px-3 py-1 text-xs font-bold rounded-full transition-all border-2 ${isSelected
-                        ? 'bg-slate-800 shadow-sm text-white'
-                        : 'bg-transparent border-transparent text-slate-600 opacity-60 hover:opacity-100 hover:bg-slate-900'
+                      className={`px-3 py-1 text-[10px] font-bold rounded-full transition-all border ${isSelected
+                        ? 'shadow-sm text-white'
+                        : 'bg-white border-slate-200 text-slate-400 opacity-60 hover:opacity-100 hover:bg-slate-50'
                         }`}
                       style={{
-                        borderColor: isSelected ? tag.color : 'transparent',
-                        color: isSelected ? tag.color : undefined,
-                        backgroundColor: isSelected ? 'rgba(30, 41, 59, 1)' : 'transparent' // Force dark bg
+                        borderColor: isSelected ? tag.color : undefined,
+                        backgroundColor: isSelected ? tag.color : undefined
                       }}
                     >
                       {tag.name}
@@ -574,7 +573,7 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
                   );
                 })}
                 {tags.length === 0 && (
-                  <span className="text-xs text-slate-600 italic">Nenhuma tag criada. Vá em "Tags" para adicionar.</span>
+                  <span className="text-xs text-slate-400 italic">Nenhuma tag criada.</span>
                 )}
               </div>
             </div>
@@ -585,7 +584,7 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
               <button
                 type="button"
                 onClick={() => setShowMoreInfo(!showMoreInfo)}
-                className="flex items-center gap-2 text-xs font-bold text-cyan-400 hover:text-cyan-300 transition-colors uppercase tracking-wider"
+                className="flex items-center gap-2 text-[10px] font-bold text-sky-600 hover:text-sky-700 transition-colors uppercase tracking-widest"
               >
                 {showMoreInfo ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                 Mais Informações
@@ -595,7 +594,7 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
             {/* Expandable Section */}
             {
               showMoreInfo && (
-                <div className="md:col-span-2 lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-300 bg-slate-950/30 p-4 rounded-xl border border-slate-800/50">
+                <div className="md:col-span-2 lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-500 bg-slate-50 p-4 rounded-xl border border-slate-100">
 
                   {/* Attachment (Anexo) */}
                   <div className="space-y-1 md:col-span-2">
@@ -605,7 +604,7 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
                     <input
                       type="text"
                       placeholder="Cole o link do documento ou foto aqui..."
-                      className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all text-slate-200 text-sm"
+                      className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-sky-500/20 transition-all text-slate-900 text-sm font-medium"
                       value={attachment}
                       onChange={e => setAttachment(e.target.value)}
                     />
@@ -620,7 +619,7 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
                       <FileText size={12} /> Observações
                     </label>
                     <textarea
-                      className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all text-slate-200 text-sm min-h-[80px]"
+                      className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-sky-500/20 transition-all text-slate-900 text-sm font-medium min-h-[80px]"
                       placeholder="Detalhes adicionais sobre este lançamento..."
                       value={notes}
                       onChange={e => setNotes(e.target.value)}
@@ -629,34 +628,34 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
 
                   {/* Toggles */}
                   <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-4 paddingTop-2">
-                    <label className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-slate-900 transition-colors">
+                    <label className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-white border border-transparent hover:border-slate-100 transition-colors">
                       <input
                         type="checkbox"
-                        className="w-4 h-4 rounded border-slate-600 bg-slate-800 text-rose-500 focus:ring-rose-500"
+                        className="w-4 h-4 rounded border-slate-300 bg-white text-rose-500 focus:ring-rose-500"
                         checked={ignoreInStatistics}
                         onChange={e => setIgnoreInStatistics(e.target.checked)}
                       />
-                      <span className="text-xs font-bold text-slate-400">Ignorar em Gráficos</span>
+                      <span className="text-xs font-bold text-slate-500">Ignorar em Gráficos</span>
                     </label>
 
-                    <label className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-slate-900 transition-colors">
+                    <label className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-white border border-transparent hover:border-slate-100 transition-colors">
                       <input
                         type="checkbox"
-                        className="w-4 h-4 rounded border-slate-600 bg-slate-800 text-rose-500 focus:ring-rose-500"
+                        className="w-4 h-4 rounded border-slate-300 bg-white text-rose-500 focus:ring-rose-500"
                         checked={ignoreInBudgets}
                         onChange={e => setIgnoreInBudgets(e.target.checked)}
                       />
-                      <span className="text-xs font-bold text-slate-400">Ignorar Orçamentos</span>
+                      <span className="text-xs font-bold text-slate-500">Ignorar Orçamentos</span>
                     </label>
 
-                    <label className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-slate-900 transition-colors">
+                    <label className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-white border border-transparent hover:border-slate-100 transition-colors">
                       <input
                         type="checkbox"
-                        className="w-4 h-4 rounded border-slate-600 bg-slate-800 text-rose-500 focus:ring-rose-500"
+                        className="w-4 h-4 rounded border-slate-300 bg-white text-rose-500 focus:ring-rose-500"
                         checked={ignoreInTotals}
                         onChange={e => setIgnoreInTotals(e.target.checked)}
                       />
-                      <span className="text-xs font-bold text-slate-400">Ignorar Totais</span>
+                      <span className="text-xs font-bold text-slate-500">Ignorar Totais</span>
                     </label>
                   </div>
                 </div>
@@ -666,7 +665,7 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
           <div className="mt-6 flex justify-end">
             <button
               type="submit"
-              className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-2.5 rounded-xl font-bold shadow-lg shadow-emerald-900/20 transition-all"
+              className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-10 py-3 rounded-xl font-bold shadow-lg shadow-emerald-100 transition-all uppercase tracking-widest text-xs"
             >
               <Save size={18} />
               <span>{editingId ? 'Atualizar' : 'Salvar Registro'}</span>
@@ -676,20 +675,20 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
       )
       }
 
-      <div className="bg-slate-900/50 backdrop-blur-md rounded-2xl shadow-lg border border-slate-800 overflow-hidden">
+      <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left">
-            <thead className="bg-slate-950/50">
+            <thead className="bg-slate-50/50">
               <tr>
-                <th className="hidden md:table-cell px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
-                <th className="px-4 md:px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Info</th>
-                <th className="hidden md:table-cell px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Categoria</th>
-                <th className="hidden md:table-cell px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Recorrência</th>
-                <th className="px-4 md:px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Valor</th>
-                <th className="px-4 md:px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Ações</th>
+                <th className="hidden md:table-cell px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Status</th>
+                <th className="px-4 md:px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Info</th>
+                <th className="hidden md:table-cell px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Categoria</th>
+                <th className="hidden md:table-cell px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Recorrência</th>
+                <th className="px-4 md:px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Valor</th>
+                <th className="px-4 md:px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Ações</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800">
+            <tbody className="divide-y divide-slate-50">
               {filteredTransactions.map((t) => (
                 <tr key={t.id} className="hover:bg-cyan-500/5 transition-colors group">
                   <td className="hidden md:table-cell px-6 py-4">
@@ -699,20 +698,20 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
                       title="Clique para alterar status"
                     >
                       {t.isPaid ? (
-                        <div className="flex items-center text-emerald-400 text-xs font-bold bg-emerald-500/10 px-2 py-1 rounded-lg border border-emerald-500/20">
+                        <div className="flex items-center text-emerald-600 text-[10px] font-bold bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-100 uppercase tracking-wider">
                           <CheckCircle size={14} className="mr-1" /> {type === 'income' ? 'RECEBIDO' : 'PAGO'}
                         </div>
                       ) : (
-                        <div className="flex items-center text-amber-500 text-xs font-bold bg-amber-500/10 px-2 py-1 rounded-lg border border-amber-500/20">
+                        <div className="flex items-center text-amber-600 text-[10px] font-bold bg-amber-50 px-2 py-1 rounded-lg border border-amber-100 uppercase tracking-wider">
                           <Clock size={14} className="mr-1" /> PENDENTE
                         </div>
                       )}
                     </button>
                   </td>
                   <td className="px-4 md:px-6 py-4">
-                    <div className="font-bold text-slate-200 text-sm">{t.description}</div>
-                    <div className="flex flex-wrap items-center gap-1 text-[10px] text-slate-500 mt-0.5">
-                      <span className="md:hidden flex items-center bg-slate-800 px-1.5 py-0.5 rounded text-slate-400">
+                    <div className="font-bold text-slate-900 text-sm">{t.description}</div>
+                    <div className="flex flex-wrap items-center gap-1 text-[10px] text-slate-400 mt-1 uppercase font-bold tracking-tighter">
+                      <span className="md:hidden flex items-center bg-slate-100 px-1.5 py-0.5 rounded text-slate-600 border border-slate-200">
                         {t.category}
                       </span>
                       <span className="flex items-center">
@@ -722,10 +721,10 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
                   </td>
                   <td className="hidden md:table-cell px-6 py-4">
                     <div className="flex flex-col">
-                      <span className="text-xs font-bold text-cyan-500 flex items-center">
+                      <span className="text-[10px] font-black text-sky-600 flex items-center uppercase tracking-widest px-2 py-1 bg-sky-50 border border-sky-100 rounded-lg w-fit">
                         <Tag size={10} className="mr-1" /> {t.category}
                       </span>
-                      <span className="text-[10px] text-slate-500 ml-3.5">{t.subCategory}</span>
+                      <span className="text-[10px] text-slate-400 mt-1 font-bold ml-1 uppercase">{t.subCategory}</span>
                       {t.tags && t.tags.length > 0 && (
                         <div className="flex flex-wrap gap-1 mt-1 ml-3.5">
                           {t.tags.map(tagId => {
@@ -743,20 +742,20 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
                   </td>
                   <td className="hidden md:table-cell px-6 py-4">
                     {t.recurrence === 'fixed' && (
-                      <div className="flex items-center text-xs font-bold text-indigo-400 bg-indigo-500/10 px-2 py-1 rounded-lg w-fit border border-indigo-500/20">
+                      <div className="flex items-center text-[10px] font-black text-indigo-600 bg-indigo-50 px-2 py-1 rounded-lg w-fit border border-indigo-100 uppercase tracking-widest">
                         <Repeat size={12} className="mr-1" /> Mensal
                       </div>
                     )}
                     {t.recurrence === 'installment' && (
-                      <div className="flex items-center text-xs font-bold text-orange-400 bg-orange-500/10 px-2 py-1 rounded-lg w-fit border border-orange-500/20">
+                      <div className="flex items-center text-[10px] font-black text-orange-600 bg-orange-50 px-2 py-1 rounded-lg w-fit border border-orange-100 uppercase tracking-widest">
                         <Divide size={12} className="mr-1" /> {t.installmentCount}x
                       </div>
                     )}
                     {(!t.recurrence || t.recurrence === 'one_time') && (
-                      <span className="text-xs text-slate-600 font-medium">Única</span>
+                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Única</span>
                     )}
                   </td>
-                  <td className={`px-4 md:px-6 py-4 text-sm font-black text-right ${t.type === 'income' ? 'text-emerald-400 drop-shadow-[0_0_5px_rgba(52,211,153,0.3)]' : 'text-rose-400 drop-shadow-[0_0_5px_rgba(251,113,133,0.3)]'}`}>
+                  <td className={`px-4 md:px-6 py-4 text-sm font-black text-right ${t.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}`}>
                     <div>R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
                     <button
                       onClick={() => toggleStatus(t.id, t.isPaid)}
@@ -772,17 +771,17 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
                     <div className="flex items-center justify-end gap-2">
                       <button
                         onClick={() => handleEdit(t)}
-                        className="p-2 text-slate-500 hover:text-cyan-400 transition-colors rounded-lg hover:bg-slate-800"
+                        className="p-2 text-slate-400 hover:text-sky-600 transition-colors rounded-xl hover:bg-slate-50 border border-transparent hover:border-slate-100"
                         title="Editar"
                       >
-                        <Edit2 size={18} />
+                        <Edit2 size={16} />
                       </button>
                       <button
                         onClick={() => onDeleteTransaction(t.id)}
-                        className="p-2 text-slate-500 hover:text-rose-400 transition-colors rounded-lg hover:bg-slate-800"
+                        className="p-2 text-slate-400 hover:text-rose-600 transition-colors rounded-xl hover:bg-slate-50 border border-transparent hover:border-slate-100"
                         title="Excluir"
                       >
-                        <Trash2 size={18} />
+                        <Trash2 size={16} />
                       </button>
                     </div>
                   </td>

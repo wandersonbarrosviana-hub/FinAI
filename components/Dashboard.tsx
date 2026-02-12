@@ -102,20 +102,20 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
 
   const pieData = processPieData();
 
-  // Neon Palette
-  const BASE_COLORS = ['#22d3ee', '#34d399', '#f472b6', '#a78bfa', '#fbbf24', '#f87171'];
+  // Clean Palette
+  const BASE_COLORS = ['#0284c7', '#059669', '#db2777', '#7c3aed', '#d97706', '#dc2626'];
   const COLORS = pieData.length > 0 ? BASE_COLORS.slice(0, pieData.length) : BASE_COLORS;
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center sm:flex-row flex-col gap-4 sm:gap-0">
         <div>
-          <h2 className="text-3xl font-black text-white tracking-tight">Visão Geral</h2>
-          <p className="text-slate-400">Resumo financeiro em tempo real</p>
+          <h2 className="text-3xl font-black text-slate-900 tracking-tight">Visão Geral</h2>
+          <p className="text-slate-500 font-medium">Resumo financeiro em tempo real</p>
         </div>
         <button
           onClick={onAddClick}
-          className="flex items-center gap-2 bg-cyan-500 hover:bg-cyan-400 text-slate-950 px-5 py-2.5 rounded-xl font-bold transition-all shadow-[0_0_20px_rgba(6,182,212,0.4)] hover:shadow-[0_0_30px_rgba(6,182,212,0.6)] active:scale-95 w-full sm:w-auto justify-center"
+          className="flex items-center gap-2 bg-sky-600 hover:bg-sky-700 text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-lg shadow-sky-100 active:scale-95 w-full sm:w-auto justify-center uppercase text-[10px] tracking-widest"
         >
           <PlusCircle size={20} />
           <span>Lançar Manual</span>
@@ -123,36 +123,35 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Stats Card (Glassmorphism) */}
-        <div className="lg:col-span-3 bg-slate-900/50 backdrop-blur-md p-6 rounded-3xl border border-slate-800 shadow-xl flex flex-col md:flex-row gap-8 relative overflow-hidden group">
-          {/* Background Glow */}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-cyan-500/15 transition-all duration-700"></div>
+        {/* Main Stats Card (Clean White) */}
+        <div className="lg:col-span-3 bg-white p-8 rounded-3xl border border-slate-100 shadow-sm flex flex-col md:flex-row gap-8 relative overflow-hidden group">
+          {/* Background Glow - Subtle */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-sky-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-sky-500/10 transition-all duration-700"></div>
 
           {/* Vertical Flow */}
           <div className="flex-1 max-w-xs flex flex-col justify-between py-2 relative z-10">
-            <div className="absolute left-[19px] top-4 bottom-4 w-[2px] bg-gradient-to-b from-emerald-500/30 via-slate-700 to-rose-500/30 z-0"></div>
+            <div className="absolute left-[19px] top-4 bottom-4 w-[2px] bg-gradient-to-b from-emerald-100 via-slate-100 to-rose-100 z-0"></div>
 
             {/* Income */}
             <div className="relative z-10 flex items-center gap-4 group/item">
-              <div className="w-10 h-10 rounded-full bg-slate-950 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.2)] group-hover/item:shadow-[0_0_20px_rgba(16,185,129,0.4)] transition-all">
+              <div className="w-10 h-10 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 shadow-sm transition-all">
                 <ArrowUpRight size={20} />
               </div>
               <div>
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Entrada</p>
-                <p className="text-xl font-black text-emerald-400 drop-shadow-sm">R$ {monthIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Entrada</p>
+                <p className="text-xl font-black text-emerald-600">R$ {monthIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
               </div>
             </div>
 
             {/* Balance (Net) */}
             <div className="relative z-10 flex items-center gap-4 my-6 group/item">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center border border-slate-700 shadow-2xl relative ${monthIncome - monthExpense >= 0 ? 'bg-emerald-500 text-slate-950' : 'bg-rose-500 text-white'
+              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border shadow-sm relative ${monthIncome - monthExpense >= 0 ? 'bg-emerald-600 text-white border-emerald-500' : 'bg-rose-600 text-white border-rose-500'
                 }`}>
-                <div className={`absolute inset-0 rounded-full blur-md opacity-40 ${monthIncome - monthExpense >= 0 ? 'bg-emerald-400' : 'bg-rose-400'}`}></div>
-                <Wallet size={20} className="relative z-10" />
+                <Wallet size={24} className="relative z-10" />
               </div>
               <div>
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Saldo Mensal</p>
-                <p className={`text-2xl font-black drop-shadow-md ${monthIncome - monthExpense >= 0 ? 'text-emerald-400' : 'text-rose-400'
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Saldo Mensal</p>
+                <p className={`text-2xl font-black ${monthIncome - monthExpense >= 0 ? 'text-emerald-600' : 'text-rose-600'
                   }`}>
                   {monthIncome - monthExpense >= 0 ? '+' : ''} R$ {(monthIncome - monthExpense).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </p>
@@ -161,25 +160,25 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
 
             {/* Expense */}
             <div className="relative z-10 flex items-center gap-4 group/item">
-              <div className="w-10 h-10 rounded-full bg-slate-950 border border-rose-500/30 flex items-center justify-center text-rose-400 shadow-[0_0_15px_rgba(244,63,94,0.2)] group-hover/item:shadow-[0_0_20px_rgba(244,63,94,0.4)] transition-all">
+              <div className="w-10 h-10 rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-600 shadow-sm transition-all">
                 <ArrowDownRight size={20} />
               </div>
               <div>
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Saída</p>
-                <p className="text-xl font-black text-rose-400 drop-shadow-sm">R$ {monthExpense.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Saída</p>
+                <p className="text-xl font-black text-rose-600">R$ {monthExpense.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
               </div>
             </div>
           </div>
 
           {/* Right: Trend Chart (Last 7 Days) */}
-          <div className="flex-1 border-t md:border-t-0 md:border-l border-slate-800 pt-6 md:pt-0 md:pl-8 relative z-10">
+          <div className="flex-1 border-t md:border-t-0 md:border-l border-slate-100 pt-6 md:pt-0 md:pl-8 relative z-10">
             <div className="flex justify-between items-center mb-4">
               <div>
-                <h3 className="text-lg font-bold text-white">Evolução Recente</h3>
-                <p className="text-xs text-slate-400">Últimos 7 dias</p>
+                <h3 className="text-lg font-bold text-slate-900">Evolução Recente</h3>
+                <p className="text-xs text-slate-500 font-medium">Últimos 7 dias de gastos</p>
               </div>
-              <div className="p-2 bg-slate-800/50 rounded-lg">
-                <TrendingDown size={18} className="text-rose-400" />
+              <div className="p-2 bg-slate-50 rounded-lg">
+                <TrendingDown size={18} className="text-rose-500" />
               </div>
             </div>
             <div className="h-40 w-full">
@@ -192,12 +191,12 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
                     </linearGradient>
                   </defs>
                   <Tooltip
-                    contentStyle={{ backgroundColor: '#0f172a', borderRadius: '12px', border: '1px solid #1e293b', boxShadow: '0 4px 20px rgba(0,0,0,0.5)', color: '#fff' }}
-                    itemStyle={{ color: '#fda4af' }}
-                    labelStyle={{ color: '#94a3b8' }}
+                    contentStyle={{ backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #f1f5f9', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', color: '#0f172a' }}
+                    itemStyle={{ color: '#e11d48' }}
+                    labelStyle={{ color: '#64748b', fontWeight: 'bold' }}
                     formatter={(value: number) => [`R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, 'Despesas']}
                   />
-                  <Area type="monotone" dataKey="value" stroke="#f43f5e" strokeWidth={3} fillOpacity={1} fill="url(#colorExpense)" />
+                  <Area type="monotone" dataKey="value" stroke="#e11d48" strokeWidth={4} fillOpacity={1} fill="url(#colorExpense)" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -206,14 +205,14 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-slate-900/50 backdrop-blur-md p-6 rounded-2xl shadow-lg border border-slate-800 flex items-center space-x-4 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 to-transparent pointer-events-none"></div>
-          <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 text-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.15)]">
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center space-x-4 relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-sky-500/5 to-transparent pointer-events-none"></div>
+          <div className="p-3 bg-sky-50 rounded-xl border border-sky-100 text-sky-600">
             <Wallet size={24} />
           </div>
           <div>
-            <p className="text-sm text-slate-400 font-medium">Patrimônio Total</p>
-            <p className="text-2xl font-black text-white tracking-tight">R$ {totalBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+            <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Patrimônio Total</p>
+            <p className="text-2xl font-black text-slate-900 tracking-tight">R$ {totalBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
           </div>
         </div>
       </div>
@@ -230,14 +229,14 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
           <div className="h-full min-h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1e293b" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 'bold' }} dy={10} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 'bold' }} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#0f172a', borderRadius: '12px', border: '1px solid #1e293b', color: '#fff' }}
+                  contentStyle={{ backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #f1f5f9', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', color: '#0f172a' }}
                 />
-                <Line type="monotone" dataKey="Receitas" stroke="#34d399" strokeWidth={3} dot={{ r: 4, fill: '#020617', strokeWidth: 2 }} activeDot={{ r: 6, fill: '#34d399' }} />
-                <Line type="monotone" dataKey="Despesas" stroke="#f43f5e" strokeWidth={3} dot={{ r: 4, fill: '#020617', strokeWidth: 2 }} activeDot={{ r: 6, fill: '#f43f5e' }} />
+                <Line type="monotone" dataKey="Receitas" stroke="#10b981" strokeWidth={4} dot={{ r: 4, fill: '#fff', strokeWidth: 3 }} activeDot={{ r: 6, fill: '#10b981' }} />
+                <Line type="monotone" dataKey="Despesas" stroke="#f43f5e" strokeWidth={4} dot={{ r: 4, fill: '#fff', strokeWidth: 3 }} activeDot={{ r: 6, fill: '#f43f5e' }} />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -270,7 +269,7 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
                     ))}
                   </Pie>
                   <Tooltip
-                    contentStyle={{ backgroundColor: '#0f172a', borderRadius: '12px', border: '1px solid #1e293b', color: '#fff' }}
+                    contentStyle={{ backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #f1f5f9', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', color: '#0f172a' }}
                   />
                 </PieChart>
               </ResponsiveContainer>
@@ -278,8 +277,8 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
             <div className="space-y-3 pr-4 w-full md:w-auto mt-4 md:mt-0">
               {pieData.map((entry, index) => (
                 <div key={entry.name} className="flex items-center text-sm group">
-                  <div className="w-3 h-3 rounded-full mr-3 shadow-[0_0_8px_currentColor]" style={{ backgroundColor: COLORS[index % COLORS.length], color: COLORS[index % COLORS.length] }}></div>
-                  <span className="text-slate-300 font-medium group-hover:text-white transition-colors">{entry.name}</span>
+                  <div className="w-2.5 h-2.5 rounded-full mr-3" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
+                  <span className="text-slate-500 font-bold group-hover:text-slate-900 transition-colors uppercase text-[10px] tracking-tight">{entry.name}</span>
                 </div>
               ))}
             </div>
@@ -287,32 +286,32 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
         </ChartContainer>
       </div>
 
-      <div className="bg-slate-900/50 backdrop-blur-md rounded-2xl shadow-lg border border-slate-800 overflow-hidden">
-        <div className="p-6 border-b border-slate-800 flex justify-between items-center">
-          <h3 className="text-lg font-bold text-white">Últimos Lançamentos</h3>
-          <button className="text-cyan-400 text-sm font-bold hover:text-cyan-300 transition-colors">Ver todos</button>
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div className="p-6 border-b border-slate-50 flex justify-between items-center">
+          <h3 className="text-lg font-bold text-slate-900">Últimos Lançamentos</h3>
+          <button className="text-sky-600 text-sm font-bold hover:text-sky-700 transition-colors">Ver todos</button>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left">
-            <thead className="bg-slate-950/50">
+            <thead className="bg-slate-50/50">
               <tr>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Data</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Descrição</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Categoria</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Valor</th>
+                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Data</th>
+                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Descrição</th>
+                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Categoria</th>
+                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Valor</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800">
+            <tbody className="divide-y divide-slate-50">
               {transactions.slice(0, 5).map((t) => (
-                <tr key={t.id} className="hover:bg-cyan-500/5 transition-colors group">
-                  <td className="px-6 py-4 text-sm text-slate-400 group-hover:text-slate-200">{new Date(t.date).toLocaleDateString('pt-BR')}</td>
-                  <td className="px-6 py-4 text-sm font-medium text-slate-200 group-hover:text-white">{t.description}</td>
+                <tr key={t.id} className="hover:bg-slate-50 transition-colors group">
+                  <td className="px-6 py-4 text-sm text-slate-500">{new Date(t.date).toLocaleDateString('pt-BR')}</td>
+                  <td className="px-6 py-4 text-sm font-bold text-slate-900">{t.description}</td>
                   <td className="px-6 py-4">
-                    <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-slate-800 text-slate-300 border border-slate-700 group-hover:border-cyan-500/30 group-hover:text-cyan-400 transition-all">
+                    <span className="px-3 py-1 rounded-lg text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200 uppercase tracking-wider transition-all">
                       {t.category}
                     </span>
                   </td>
-                  <td className={`px-6 py-4 text-sm font-bold text-right ${t.type === 'income' ? 'text-emerald-400' : 'text-rose-400'}`}>
+                  <td className={`px-6 py-4 text-sm font-black text-right ${t.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}`}>
                     {t.type === 'income' ? '+' : '-'} R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </td>
                 </tr>
