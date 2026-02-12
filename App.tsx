@@ -744,7 +744,7 @@ const App: React.FC = () => {
                 return <Reports transactions={transactions} accounts={accounts} tags={tags} />;
               case 'ai-assistant':
 
-                return <FinancialAssistant transactions={transactions} accounts={accounts} goals={goals} budgets={budgets} />; // AI might need full context? Or just current month? Keeping full for now.
+                return <FinancialAssistant transactions={transactions} accounts={accounts} goals={goals} budgets={budgets} onAddTransaction={handleAddTransaction} />; // AI might need full context? Or just current month? Keeping full for now.
               default:
                 return (
                   <div className="flex flex-col items-center justify-center h-full text-slate-400 space-y-4">
