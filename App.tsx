@@ -26,7 +26,6 @@ import { supabase } from './supabaseClient';
 import { Transaction, Account, Goal, User, ViewState, Tag } from './types';
 
 const App: React.FC = () => {
-  console.log("App Component Rendering...");
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
