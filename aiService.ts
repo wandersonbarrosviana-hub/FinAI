@@ -6,8 +6,8 @@ import { Transaction, Account } from './types';
 const API_KEY = import.meta.env.VITE_GOOGLE_API_KEY || "";
 
 const genAI = new GoogleGenerativeAI(API_KEY);
-// Using gemini-2.0-flash as it is the latest stable version available for this key
-const MODEL_NAME = 'gemini-1.5-flash';
+// Using gemini-2.0-flash as it is the latest stable version available
+const MODEL_NAME = 'gemini-2.0-flash';
 
 console.log("FinAI AI Service Initializing (Gemini)...");
 console.log("API Key Status:", API_KEY ? "Present" : "MISSING");
@@ -33,8 +33,11 @@ const retryOperation = async <T>(operation: () => Promise<T>, maxRetries: number
         } catch (error: any) {
             lastError = error;
             // Check for 429 (Rate Limit) or 503 (Service Unavailable)
-            const isRateLimit = error.message?.includes('429') || error.message?.includes('429');
-            const isServiceOverloaded = error.message?.includes('503');
+            const isRateLimit = error.message?.includes('429') ||
+                error.message?.includes('503') ||
+                error.message?.includes('Resource has been exhausted') ||
+                error.message?.toLowerCase().includes('retry');
+            const isServiceOverloaded = error.message?.includes('503') || error.message?.includes('Overloaded');
 
             if (isRateLimit || isServiceOverloaded) {
                 console.warn(`Attempt ${i + 1} failed (Rate Limit). Retrying in ${delayMs / 1000}s...`);
@@ -212,7 +215,7 @@ export const chatWithFinancialAssistant = async (
 
     } catch (error: any) {
         console.error("Chat Error Details:", error);
-        if (error.message?.includes('429')) return "Erro: Muito tráfego na IA. Aguarde um momento.";
+        if (error.message?.includes('429') || error.message?.toLowerCase().includes('retry')) return "Erro: Muito tráfego na IA. Aguarde um momento.";
         return `Erro na IA: ${error.message?.substring(0, 50)}... (Verifique a Chave)`;
     }
 };

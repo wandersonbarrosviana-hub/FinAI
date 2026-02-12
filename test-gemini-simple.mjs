@@ -1,13 +1,13 @@
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const API_KEY = "AIzaSyBvGvoTk0cwElE7m8hhAwCEaRtEPeCcd6k";
+const API_KEY = "YOUR_API_KEY_HERE";
 const genAI = new GoogleGenerativeAI(API_KEY);
 
 async function run() {
     console.log("Testing gemini-1.5-flash...");
     try {
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
         const result = await model.generateContent("Hello");
         const response = await result.response;
         console.log("SUCCESS:", response.text());
