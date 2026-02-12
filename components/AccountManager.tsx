@@ -10,6 +10,31 @@ interface AccountManagerProps {
   onDeleteAccount: (id: string) => void;
 }
 
+const LogoImage: React.FC<{ logo?: string; bankName: string; bankColor: string }> = ({ logo, bankName, bankColor }) => {
+  const [error, setError] = useState(false);
+
+  if (!logo || error) {
+    return (
+      <div
+        className="w-full h-full rounded-xl flex items-center justify-center text-white font-black text-2xl"
+        style={{ backgroundColor: bankColor }}
+      >
+        {bankName.charAt(0)}
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={logo}
+      alt={bankName}
+      className="w-full h-full object-contain"
+      loading="lazy"
+      onError={() => setError(true)}
+    />
+  );
+};
+
 const AccountManager: React.FC<AccountManagerProps> = ({ accounts, onAddAccount, onDeleteAccount }) => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isBankSelectOpen, setIsBankSelectOpen] = useState(false);
@@ -84,10 +109,10 @@ const AccountManager: React.FC<AccountManagerProps> = ({ accounts, onAddAccount,
               >
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 bg-white rounded-lg p-1 shadow-sm border border-slate-100 flex items-center justify-center overflow-hidden">
-                    <img
-                      src={getBankLogo(formData.bankId || 'itau')}
-                      alt={getBankName(formData.bankId || 'itau')}
-                      className="max-w-full max-h-full object-contain"
+                    <LogoImage
+                      logo={getBankLogo(formData.bankId || 'itau')}
+                      bankName={getBankName(formData.bankId || 'itau')}
+                      bankColor={getBankColor(formData.bankId || 'itau')}
                     />
                   </div>
                   <span className="font-bold text-slate-700">{getBankName(formData.bankId || 'itau')}</span>
@@ -124,11 +149,10 @@ const AccountManager: React.FC<AccountManagerProps> = ({ accounts, onAddAccount,
                           }`}
                       >
                         <div className="w-8 h-8 bg-white rounded-lg p-1 shadow-sm border border-slate-100 flex items-center justify-center overflow-hidden shrink-0">
-                          <img
-                            src={bank.logoUrl}
-                            alt={bank.name}
-                            className="max-w-full max-h-full object-contain"
-                            loading="lazy"
+                          <LogoImage
+                            logo={bank.logoUrl}
+                            bankName={bank.name}
+                            bankColor={bank.color}
                           />
                         </div>
                         <span className="font-bold text-sm">{bank.name}</span>
@@ -203,28 +227,7 @@ const AccountManager: React.FC<AccountManagerProps> = ({ accounts, onAddAccount,
                 <div
                   className="ml-3 w-16 h-16 rounded-2xl bg-white flex items-center justify-center shadow-lg border border-slate-100 overflow-hidden p-2.5 transition-transform group-hover:scale-110 duration-500"
                 >
-                  {logo ? (
-                    <img
-                      src={logo}
-                      alt={bankName}
-                      className="w-full h-full object-contain"
-                      loading="lazy"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = 'none';
-                        const parent = (e.target as HTMLImageElement).parentElement;
-                        if (parent) {
-                          parent.innerHTML = `<div class="w-full h-full rounded-xl flex items-center justify-center text-white font-black text-2xl" style="background-color: ${bankColor}">${bankName.charAt(0)}</div>`;
-                        }
-                      }}
-                    />
-                  ) : (
-                    <div
-                      className="w-full h-full rounded-xl flex items-center justify-center text-white font-black text-2xl"
-                      style={{ backgroundColor: bankColor }}
-                    >
-                      {bankName.charAt(0)}
-                    </div>
-                  )}
+                  <LogoImage logo={logo} bankName={bankName} bankColor={bankColor} />
                 </div>
                 <div className="flex flex-col items-end gap-2">
                   <button
