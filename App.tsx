@@ -725,7 +725,7 @@ const App: React.FC = () => {
                   onTransfer={handleTransfer}
                 />;
               case 'credit-cards':
-                return <CreditCardManager />;
+                return <CreditCardManager accounts={accounts.filter(a => a.isCredit)} onAddAccount={handleAddAccount} />;
               case 'charts':
                 return <ChartsHub transactions={filteredTransactions} />;
               case 'categories':
