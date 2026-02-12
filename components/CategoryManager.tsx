@@ -1015,8 +1015,8 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ transactions }) => {
                                                 key={iconKey}
                                                 onClick={() => setSelectedIcon(iconKey)}
                                                 className={`aspect-square flex items-center justify-center rounded-xl border transition-all ${isSelected
-                                                        ? 'bg-cyan-600 border-cyan-400 text-white shadow-lg shadow-cyan-500/20'
-                                                        : 'bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700 hover:text-white'
+                                                    ? 'bg-cyan-600 border-cyan-400 text-white shadow-lg shadow-cyan-500/20'
+                                                    : 'bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700 hover:text-white'
                                                     }`}
                                                 title={iconKey}
                                             >

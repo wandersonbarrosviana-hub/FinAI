@@ -180,6 +180,7 @@ const App: React.FC = () => {
   });
 
   const monthlyBalance = filteredTransactions.reduce((acc, t) => {
+    if (!t.isPaid) return acc; // Only count paid transactions
     if (t.type === 'income') return acc + t.amount;
     if (t.type === 'expense') return acc - t.amount;
     return acc;

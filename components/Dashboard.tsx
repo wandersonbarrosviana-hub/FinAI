@@ -22,11 +22,11 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
 
   const totalBalance = accounts.reduce((acc, curr) => acc + curr.balance, 0);
   const monthIncome = transactions
-    .filter(t => t.type === 'income')
+    .filter(t => t.type === 'income' && t.isPaid)
     .reduce((acc, curr) => acc + curr.amount, 0);
 
   const monthExpense = transactions
-    .filter(t => t.type === 'expense')
+    .filter(t => t.type === 'expense' && t.isPaid)
     .reduce((acc, curr) => acc + curr.amount, 0);
 
   // Process Last 7 Days Data
@@ -38,7 +38,7 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
       d.setDate(today.getDate() - i);
       const dateStr = d.toISOString().split('T')[0];
       const dayVal = transactions
-        .filter(t => t.date === dateStr && t.type === 'expense')
+        .filter(t => t.date === dateStr && t.type === 'expense' && t.isPaid)
         .reduce((sum, t) => sum + t.amount, 0);
 
       data.push({
@@ -58,6 +58,7 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
     }
 
     transactions.forEach(t => {
+      if (!t.isPaid) return;
       const date = new Date(t.date);
       const day = date.getDate();
       let weekKey = 'Semana 1';
@@ -82,7 +83,7 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
   const chartData = processChartData();
 
   const processPieData = () => {
-    const expenses = transactions.filter(t => t.type === 'expense');
+    const expenses = transactions.filter(t => t.type === 'expense' && t.isPaid);
     const categoryMap: { [key: string]: number } = {};
 
     expenses.forEach(t => {
