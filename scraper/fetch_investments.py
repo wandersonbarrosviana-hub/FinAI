@@ -9,7 +9,9 @@ from datetime import datetime
 # List of assets to track
 ASSETS = [
     'PETR4.SA', 'VALE3.SA', 'ITUB4.SA', 'BBAS3.SA', 'WEGE3.SA', 
-    'MXRF11.SA', 'HGLG11.SA', 'KNCR11.SA', 'XPML11.SA', 'VISC11.SA'
+    'ABEV3.SA', 'B3SA3.SA', 'EGIE3.SA', 'SANB11.SA', 'FLRY3.SA',
+    'MXRF11.SA', 'HGLG11.SA', 'KNCR11.SA', 'XPML11.SA', 'VISC11.SA',
+    'KNIP11.SA', 'GGRC11.SA', 'HGBS11.SA', 'KNCA11.SA', 'KNSC11.SA'
 ]
 
 def get_asset_details(ticker):
@@ -29,7 +31,12 @@ def get_asset_details(ticker):
         def safe_get(key, mult=1):
             val = info.get(key)
             if val is None: return 0.0
-            return float(val) * mult
+            # If mult is 100 (percentage), check if it's already a high value
+            # yfinance is inconsistent: sometimes 0.12, sometimes 12.0
+            res = float(val)
+            if mult == 100 and res > 1.0: # Likely already in %
+                return res
+            return res * mult
 
         dy = safe_get('dividendYield', 100)
         p_l = safe_get('trailingPE')
