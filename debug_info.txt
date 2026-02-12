@@ -1,0 +1,24 @@
+DEBUG: WEGE3.SA info keys: ['address1', 'city', 'state', 'zip', 'country', 'phone', 'website', 'industry', 'industryKey', 'industryDisp', 'sector', 'sectorKey', 'sectorDisp', 'longBusinessSummary', 'fullTimeEmployees', 'companyOfficers', 'auditRisk', 'boardRisk', 'compensationRisk', 'shareHolderRightsRisk', 'overallRisk', 'governanceEpochDate', 'executiveTeam', 'maxAge', 'priceHint', 'previousClose', 'open', 'dayLow', 'dayHigh', 'regularMarketPreviousClose', 'regularMarketOpen', 'regularMarketDayLow', 'regularMarketDayHigh', 'dividendRate', 'dividendYield', 'exDividendDate', 'payoutRatio', 'fiveYearAvgDividendYield', 'beta', 'trailingPE', 'forwardPE', 'volume', 'regularMarketVolume', 'averageVolume', 'averageVolume10days', 'averageDailyVolume10Day', 'bid', 'ask', 'bidSize', 'askSize', 'marketCap', 'fiftyTwoWeekLow', 'fiftyTwoWeekHigh', 'allTimeHigh', 'allTimeLow', 'priceToSalesTrailing12Months', 'fiftyDayAverage', 'twoHundredDayAverage', 'trailingAnnualDividendRate', 'trailingAnnualDividendYield', 'currency', 'tradeable', 'enterpriseValue', 'profitMargins', 'floatShares', 'sharesOutstanding', 'heldPercentInsiders', 'heldPercentInstitutions', 'impliedSharesOutstanding', 'bookValue', 'priceToBook', 'lastFiscalYearEnd', 'nextFiscalYearEnd', 'mostRecentQuarter', 'earningsQuarterlyGrowth', 'netIncomeToCommon', 'trailingEps', 'forwardEps', 'lastSplitFactor', 'lastSplitDate', 'enterpriseToRevenue', 'enterpriseToEbitda', '52WeekChange', 'SandP52WeekChange', 'lastDividendValue', 'lastDividendDate', 'quoteType', 'currentPrice', 'targetHighPrice', 'targetLowPrice', 'targetMeanPrice', 'targetMedianPrice', 'recommendationMean', 'recommendationKey', 'numberOfAnalystOpinions', 'totalCash', 'totalCashPerShare', 'ebitda', 'totalDebt', 'quickRatio', 'currentRatio', 'totalRevenue', 'debtToEquity', 'revenuePerShare', 'returnOnAssets', 'returnOnEquity', 'grossProfits', 'freeCashflow', 'operatingCashflow', 'earningsGrowth', 'revenueGrowth', 'grossMargins', 'ebitdaMargins', 'operatingMargins', 'financialCurrency', 'symbol', 'language', 'region', 'typeDisp', 'quoteSourceName', 'triggerable', 'customPriceAlertConfidence', 'shortName', 'longName', 'regularMarketChange', 'regularMarketDayRange', 'fullExchangeName', 'corporateActions', 'regularMarketTime', 'exchange', 'messageBoardId', 'exchangeTimezoneName', 'exchangeTimezoneShortName', 'gmtOffSetMilliseconds', 'market', 'esgPopulated', 'regularMarketChangePercent', 'regularMarketPrice', 'averageDailyVolume3Month', 'fiftyTwoWeekLowChange', 'fiftyTwoWeekRange', 'fiftyTwoWeekHighChange', 'fiftyTwoWeekHighChangePercent', 'fiftyTwoWeekChangePercent', 'earningsTimestamp', 'earningsTimestampStart', 'earningsTimestampEnd', 'earningsCallTimestampStart', 'earningsCallTimestampEnd', 'isEarningsDateEstimate', 'epsTrailingTwelveMonths', 'epsForward', 'epsCurrentYear', 'priceEpsCurrentYear', 'fiftyDayAverageChange', 'fiftyDayAverageChangePercent', 'twoHundredDayAverageChange', 'twoHundredDayAverageChangePercent', 'sourceInterval', 'exchangeDataDelayedBy', 'averageAnalystRating', 'cryptoTradeable', 'marketState', 'hasPrePostMarketData', 'firstTradeDateMilliseconds', 'trailingPegRatio']
+DEBUG: ROE: 0.31188
+DEBUG: Margins: 0.33394, 0.19865, 0.21177, 0.15667
+DEBUG: Debt: 4617108992, 7335310848
+DEBUG: Growth: 0.042, 0.045
+DEBUG: Payout: 0.3471
+DEBUG: Float: 1485947686, 4195695973
+DEBUG: Dividends History Head:
+Date
+2008-02-20 00:00:00-03:00    0.019083
+2008-07-22 00:00:00-03:00    0.024112
+2008-09-19 00:00:00-03:00    0.011538
+2008-12-17 00:00:00-02:00    0.011834
+2009-02-17 00:00:00-03:00    0.041716
+Name: Dividends, dtype: float64
+DEBUG: Financials Head:
+                                          2024-12-31  ...    2021-12-31
+Tax Effect Of Unusual Items             4.842633e+07  ...  8.535133e+06
+Tax Rate For Calcs                      2.010000e-01  ...  1.553000e-01
+Normalized EBITDA                       8.646793e+09  ...  4.847224e+09
+Total Unusual Items                     2.409270e+08  ...  5.495900e+07
+Total Unusual Items Excluding Goodwill  2.409270e+08  ...  5.495900e+07
+
+[5 rows x 4 columns]

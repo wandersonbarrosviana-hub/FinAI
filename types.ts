@@ -94,3 +94,50 @@ export type ViewState =
   | 'transactions'
   | 'ai-assistant'
   | 'investments';
+
+export interface InvestmentIndicator {
+  dy: number;
+  pl: number;
+  pvp: number;
+  roe: number;
+  roic: number;
+  cagr_lucros_5y: number;
+  payout: number;
+  margem_liquida: number;
+  margem_bruta: number;
+  margem_ebitda: number;
+  p_ebitda: number;
+  divida_liquida_ebitda: number;
+  vpa: number;
+  lpa: number;
+  divida_liquida: number;
+  divida_bruta: number;
+  liquidez_media_diaria: number;
+  free_float: number;
+  patrimonio_liquido: number;
+  numero_papeis: number;
+}
+
+export interface DividendChartItem {
+  year: number;
+  value: number;
+  yield: number;
+}
+
+export interface DividendEvent {
+  type: string;
+  dateCom: string;
+  paymentDate: string;
+  value: number;
+}
+
+export interface InvestmentData {
+  ticker: string;
+  type: string;
+  price: number;
+  name: string;
+  segment: string;
+  indicators: InvestmentIndicator;
+  chartData: DividendChartItem[];
+  dividends: DividendEvent[];
+}
