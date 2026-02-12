@@ -17,6 +17,7 @@ import ChartsHub from './components/ChartsHub';
 import CategoryManager from './components/CategoryManager';
 import Reports from './components/Reports';
 import Investments from './components/Investments';
+import ProfileModal from './components/ProfileModal';
 import { Budget } from './types';
 
 import { Bell, Search, User as UserIcon, Plus, Sparkles, AlertCircle, ChevronLeft, ChevronRight, Loader2, LogOut } from 'lucide-react';
@@ -42,6 +43,7 @@ const App: React.FC = () => {
 
   const [showNotificationPopup, setShowNotificationPopup] = useState(false);
   const [notificationData, setNotificationData] = useState<any>(null);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   // aiAdvice moved to Dashboard component
 
   // Date State for Global Filter
@@ -636,12 +638,28 @@ const App: React.FC = () => {
     }
   };
 
-  const handleUpdateTag = async (id: string, data: Partial<Tag>) => {
-    setTags(prev => prev.map(t => t.id === id ? { ...t, ...data } : t));
-    await supabase.from('tags').update({
-      name: data.name,
-      color: data.color
-    }).eq('id', id);
+  const handleUpdateTag = async (id: string, updates: Partial<Tag>) => {
+    try {
+      const { error } = await supabase.from('tags').update(updates).eq('id', id);
+      if (error) throw error;
+      setTags(tags.map(t => (t.id === id ? { ...t, ...updates } : t)));
+    } catch (error) {
+      console.error('Error updating tag:', error);
+    }
+  };
+
+  const handleUpdateProfile = async (newName: string) => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase.auth.updateUser({
+        data: { name: newName }
+      });
+      if (error) throw error;
+      setUser(prev => prev ? { ...prev, name: newName } : null);
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      throw error;
+    }
   };
 
   const handleDeleteTag = async (id: string) => {
@@ -709,31 +727,34 @@ const App: React.FC = () => {
             {/* User Profile & Logout - Clean Context */}
             <div className="flex items-center gap-4 pl-2">
               <div className="text-right hidden sm:block">
-                <p className="text-sm font-bold text-slate-900 leading-none">{user.name}</p>
-                <button
-                  onClick={() => setCurrentView('reports')} // Mapping settings to reports/profile for now
-                  className="text-[10px] font-bold text-sky-600 uppercase tracking-wider hover:underline transition-all mt-1"
-                >
-                  Configurações
-                </button>
+                <p className="text-sm font-black text-slate-900 leading-none">{user.name}</p>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1.5">{user.email}</p>
               </div>
 
               <div className="relative group/user">
-                <button className="flex items-center gap-2 group">
-                  <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-sky-600 font-bold shadow-sm border border-slate-200 group-hover:border-sky-300 transition-all">
+                <button
+                  onClick={() => setIsProfileModalOpen(true)}
+                  className="flex items-center gap-2 group relative"
+                  title="Meu Perfil"
+                >
+                  <div className="w-10 h-10 rounded-full bg-sky-50 flex items-center justify-center text-sky-600 font-black shadow-sm border border-sky-100 group-hover:border-sky-300 group-hover:bg-sky-100 transition-all">
                     {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
                   </div>
+                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-white rounded-full border border-slate-200 flex items-center justify-center text-slate-400 group-hover:text-sky-600 shadow-xs transition-colors">
+                    <UserIcon size={10} />
+                  </div>
                 </button>
-
-                {/* Simple Dropdown simulation or direct logout button next to it */}
               </div>
+
+              <div className="h-8 w-[1px] bg-slate-100 mx-1"></div>
 
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-rose-500 hover:bg-rose-50 font-bold text-xs transition-all border border-transparent hover:border-rose-100"
+                className="flex items-center gap-2 px-3 py-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 font-black text-[10px] uppercase tracking-widest transition-all border border-transparent hover:border-rose-100"
+                title="Sair da conta"
               >
-                <LogOut size={14} />
-                <span>Sair</span>
+                <LogOut size={16} />
+                <span className="hidden lg:inline">Sair</span>
               </button>
             </div>
           </div>
@@ -816,6 +837,7 @@ const App: React.FC = () => {
       </main>
       {
         showNotificationPopup && notificationData && (
+          // ... notification popup ...
           <div className="fixed bottom-6 right-6 z-50 animate-in fade-in slide-in-from-bottom-10 duration-500">
             <div className="bg-white/95 backdrop-blur-xl p-5 rounded-3xl shadow-2xl border border-slate-100 flex flex-col space-y-3 max-w-sm ring-1 ring-black/5">
               <div className="flex items-center space-x-3">
@@ -847,6 +869,13 @@ const App: React.FC = () => {
           </div>
         )
       }
+
+      <ProfileModal
+        user={user}
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+        onUpdate={handleUpdateProfile}
+      />
     </div >
   );
 };
