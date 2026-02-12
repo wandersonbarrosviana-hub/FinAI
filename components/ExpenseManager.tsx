@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import DailyHistory from './DailyHistory';
 import { Transaction, TransactionType, Tag as TagType, Account } from '../types';
 import { CATEGORIES_MAP, INCOME_CATEGORIES_MAP } from '../constants';
 import { Calendar, CreditCard, Tag, Plus, Trash2, CheckCircle, Clock, Edit2, Save, X, Repeat, Divide, ChevronDown, ChevronUp, Paperclip, FileText, PieChart, Wallet, Calculator } from 'lucide-react';
@@ -11,11 +12,13 @@ interface ExpenseManagerProps {
   type: TransactionType;
   tags: TagType[];
   accounts: Account[];
+  allTransactions?: Transaction[];
 }
 
-const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTransaction, onUpdateTransaction, onDeleteTransaction, type, tags, accounts }) => {
+const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTransaction, onUpdateTransaction, onDeleteTransaction, type, tags, accounts, allTransactions }) => {
   const filteredTransactions = transactions.filter(t => t.type === type);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const targetMap = type === 'income' ? INCOME_CATEGORIES_MAP : CATEGORIES_MAP;
@@ -212,17 +215,38 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
         <h2 className="text-2xl font-bold text-white">
           Gerenciar {type === 'expense' ? 'Despesas' : 'Receitas'}
         </h2>
-        <button
-          onClick={() => {
-            if (isFormOpen && editingId) { setIsFormOpen(false); setEditingId(null); resetForm(); }
-            else setIsFormOpen(!isFormOpen);
-          }}
-          className={`w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 rounded-xl transition-all shadow-lg ${isFormOpen ? 'bg-slate-800 text-slate-400 hover:bg-slate-700' : 'bg-cyan-600 text-slate-950 font-bold hover:bg-cyan-500 shadow-cyan-900/20'}`}
-        >
-          {isFormOpen ? <X size={20} /> : <Plus size={20} />}
-          <span>{isFormOpen ? 'Cancelar' : 'Novo Lançamento'}</span>
-        </button>
+        <div className="flex gap-2 w-full sm:w-auto">
+          {type === 'income' && (
+            <button
+              onClick={() => setShowHistory(true)}
+              className="p-2 sm:px-4 sm:py-2 bg-slate-800 text-slate-400 hover:text-cyan-400 hover:bg-slate-700 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2"
+              title="Ver Extrato Diário"
+            >
+              <FileText size={20} />
+              <span className="hidden sm:inline font-bold text-xs">Extrato</span>
+            </button>
+          )}
+
+          <button
+            onClick={() => {
+              if (isFormOpen && editingId) { setIsFormOpen(false); setEditingId(null); resetForm(); }
+              else setIsFormOpen(!isFormOpen);
+            }}
+            className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-xl transition-all shadow-lg ${isFormOpen ? 'bg-slate-800 text-slate-400 hover:bg-slate-700' : 'bg-cyan-600 text-slate-950 font-bold hover:bg-cyan-500 shadow-cyan-900/20'}`}
+          >
+            {isFormOpen ? <X size={20} /> : <Plus size={20} />}
+            <span>{isFormOpen ? 'Cancelar' : 'Novo Lançamento'}</span>
+          </button>
+        </div>
       </div>
+
+      {showHistory && (
+        <DailyHistory
+          transactions={allTransactions || transactions}
+          accounts={accounts}
+          onClose={() => setShowHistory(false)}
+        />
+      )}
 
       {isFormOpen && (
         <form onSubmit={handleSubmit} className="bg-slate-900/50 backdrop-blur-md p-4 md:p-6 rounded-2xl border border-slate-800 shadow-xl animate-in fade-in slide-in-from-top-4 duration-300">

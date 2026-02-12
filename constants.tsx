@@ -23,8 +23,7 @@ import { ViewState } from './types';
 
 export const NAV_ITEMS = [
   { id: 'dashboard' as ViewState, label: 'Dashboard', icon: <LayoutDashboard size={20} /> },
-  { id: 'income' as ViewState, label: 'Receitas', icon: <TrendingUp size={20} /> },
-  { id: 'expenses' as ViewState, label: 'Despesas', icon: <TrendingDown size={20} /> },
+
   { id: 'transactions' as ViewState, label: 'Transações', icon: <ArrowRightLeft size={20} /> },
   // { id: 'transfers' as ViewState, label: 'Transferências', icon: <ArrowRightLeft size={20} /> }, // Removed
   { id: 'credit-cards' as ViewState, label: 'Cartões', icon: <CreditCard size={20} /> },

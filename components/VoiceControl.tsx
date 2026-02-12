@@ -108,7 +108,7 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
 
     setStatus('processing');
     try {
-      const result = await parseVoiceCommand(text);
+      const result = await processVoiceAction(text);
       console.log("Voice command parsed:", result);
 
       if (result.intent === 'UNKNOWN') {
