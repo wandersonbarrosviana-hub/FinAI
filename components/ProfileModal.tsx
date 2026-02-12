@@ -1,28 +1,67 @@
-import React, { useState } from 'react';
-import { X, User, Mail, Save, Loader2 } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { X, User, Mail, Save, Loader2, Camera } from 'lucide-react';
 import { User as UserType } from '../types';
+import { supabase } from '../supabaseClient';
 
 interface ProfileModalProps {
     user: UserType;
     isOpen: boolean;
     onClose: () => void;
-    onUpdate: (newName: string) => Promise<void>;
+    onUpdate: (newName: string, newAvatarUrl?: string) => Promise<void>;
 }
 
 const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUpdate }) => {
     const [name, setName] = useState(user.name);
     const [loading, setLoading] = useState(false);
+    const [avatarPreview, setAvatarPreview] = useState<string | null>(user.avatarUrl || null);
+    const [avatarFile, setAvatarFile] = useState<File | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     if (!isOpen) return null;
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            if (file.size > 2 * 1024 * 1024) {
+                alert('A imagem deve ter no máximo 2MB');
+                return;
+            }
+            setAvatarFile(file);
+            const reader = new FileReader();
+            reader.onloadend = () => setAvatarPreview(reader.result as string);
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const uploadAvatar = async () => {
+        if (!avatarFile) return user.avatarUrl;
+
+        const fileExt = avatarFile.name.split('.').pop();
+        const filePath = `${user.id}/${Math.random()}.${fileExt}`;
+
+        const { error: uploadError } = await supabase.storage
+            .from('avatars')
+            .upload(filePath, avatarFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+            .from('avatars')
+            .getPublicUrl(filePath);
+
+        return publicUrl;
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
         try {
-            await onUpdate(name);
+            const avatarUrl = await uploadAvatar();
+            await onUpdate(name, avatarUrl || undefined);
             onClose();
         } catch (error) {
             console.error('Error updating profile:', error);
+            alert('Erro ao atualizar perfil');
         } finally {
             setLoading(false);
         }
@@ -55,6 +94,33 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
 
                 {/* Form */}
                 <form onSubmit={handleSubmit} className="p-8 space-y-6">
+                    {/* Avatar Upload Selection */}
+                    <div className="flex flex-col items-center mb-2">
+                        <div
+                            className="w-24 h-24 rounded-[2.5rem] bg-slate-50 border-2 border-dashed border-slate-100 flex items-center justify-center relative group cursor-pointer hover:border-sky-200 transition-all overflow-hidden"
+                            onClick={() => fileInputRef.current?.click()}
+                        >
+                            {avatarPreview ? (
+                                <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
+                            ) : (
+                                <div className="text-slate-300 flex flex-col items-center gap-1">
+                                    <Camera size={28} />
+                                    <span className="text-[8px] font-black uppercase tracking-widest">Alterar Foto</span>
+                                </div>
+                            )}
+                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Camera size={24} className="text-white" />
+                            </div>
+                        </div>
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            className="hidden"
+                            accept="image/*"
+                            onChange={handleFileChange}
+                        />
+                    </div>
+
                     <div className="space-y-2">
                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nome Completo</label>
                         <div className="relative group">
@@ -81,7 +147,6 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
                                 value={user.email}
                             />
                         </div>
-                        <p className="text-[10px] text-slate-400 font-medium ml-1">* E-mail não pode ser alterado por aqui.</p>
                     </div>
 
                     <div className="pt-4 flex gap-3">
@@ -94,10 +159,11 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
                         </button>
                         <button
                             type="submit"
-                            disabled={loading || name === user.name}
+                            disabled={loading || (name === user.name && !avatarFile)}
                             className="flex-1 py-4 bg-sky-600 hover:bg-sky-700 disabled:opacity-50 text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-xl shadow-sky-100 transition-all flex items-center justify-center gap-2 active:scale-95"
                         >
-                            {loading ? <Loader2 size={18} className="animate-spin" /> : <><Save size={18} /> Salvar Alterações</>}
+                            {loading ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+                            <span className="hidden sm:inline">Salvar Alterações</span>
                         </button>
                     </div>
                 </form>

@@ -74,7 +74,12 @@ const App: React.FC = () => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (session?.user) {
-        setUser({ id: session.user.id, email: session.user.email!, name: session.user.user_metadata.name || session.user.email!.split('@')[0] });
+        setUser({
+          id: session.user.id,
+          email: session.user.email!,
+          name: session.user.user_metadata.name || session.user.email!.split('@')[0],
+          avatarUrl: session.user.user_metadata.avatar_url
+        });
         fetchData(session.user.id);
       } else {
         setLoading(false);
@@ -84,7 +89,12 @@ const App: React.FC = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       if (session?.user) {
-        setUser({ id: session.user.id, email: session.user.email!, name: session.user.user_metadata.name || session.user.email!.split('@')[0] });
+        setUser({
+          id: session.user.id,
+          email: session.user.email!,
+          name: session.user.user_metadata.name || session.user.email!.split('@')[0],
+          avatarUrl: session.user.user_metadata.avatar_url
+        });
         fetchData(session.user.id);
       } else {
         setUser(null);
@@ -648,17 +658,24 @@ const App: React.FC = () => {
     }
   };
 
-  const handleUpdateProfile = async (newName: string) => {
+  const handleUpdateProfile = async (newName: string, newAvatarUrl?: string) => {
     if (!user) return;
     try {
+      const updates: any = { name: newName };
+      if (newAvatarUrl) updates.avatar_url = newAvatarUrl;
+
       const { data, error } = await supabase.auth.updateUser({
-        data: { name: newName }
+        data: updates
       });
       if (error) throw error;
-      setUser(prev => prev ? { ...prev, name: newName } : null);
+
+      setUser(prev => prev ? {
+        ...prev,
+        name: newName,
+        avatarUrl: newAvatarUrl || prev.avatarUrl
+      } : null);
     } catch (error) {
       console.error('Error updating profile:', error);
-      throw error;
     }
   };
 
@@ -737,11 +754,17 @@ const App: React.FC = () => {
                   className="flex items-center gap-2 group relative"
                   title="Meu Perfil"
                 >
-                  <div className="w-10 h-10 rounded-full bg-sky-50 flex items-center justify-center text-sky-600 font-black shadow-sm border border-sky-100 group-hover:border-sky-300 group-hover:bg-sky-100 transition-all">
-                    {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
-                  </div>
-                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-white rounded-full border border-slate-200 flex items-center justify-center text-slate-400 group-hover:text-sky-600 shadow-xs transition-colors">
-                    <UserIcon size={10} />
+                  <div
+                    className="w-10 h-10 bg-sky-50 rounded-2xl flex items-center justify-center text-sky-600 font-black text-sm shadow-sm border border-sky-100 hover:bg-sky-100 transition-all cursor-pointer group relative overflow-hidden"
+                  >
+                    {user.avatarUrl ? (
+                      <img src={user.avatarUrl} alt={user.name} className="w-full h-full object-cover" />
+                    ) : (
+                      user.name ? user.name.charAt(0).toUpperCase() : 'U'
+                    )}
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <UserIcon size={16} className="text-white" />
+                    </div>
                   </div>
                 </button>
               </div>
