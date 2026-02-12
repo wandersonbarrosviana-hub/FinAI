@@ -122,15 +122,11 @@ const App: React.FC = () => {
       if (txRes.error) throw txRes.error;
       if (accRes.error) throw accRes.error;
       if (goalRes.error) throw goalRes.error;
-      // Tag error check ?
 
-
-      // Map DB fields to Frontend Interface if needed (e.g. snake_case to camelCase if inconsistent)
-      // Currently interface matches mostly, check specific fields
-
+      // Map DB fields to Frontend Interface
       const mappedTxs = txRes.data.map((t: any) => ({
         ...t,
-        date: t.date.split('T')[0], // Ensure YYYY-MM-DD
+        date: t.date.split('T')[0],
         dueDate: t.due_date ? t.due_date.split('T')[0] : undefined,
         installmentCount: t.installment_count,
         installmentTotal: t.installment_total,
@@ -148,13 +144,6 @@ const App: React.FC = () => {
       setAccounts(mappedAccs);
       setGoals(goalRes.data);
       setTags(tagRes.data || []);
-      // Access 5th element from promise result (budgets)
-      // Since destructuring didn't include it in original code, need to adjust destructuring above.
-      // Wait, replacement chunk 3 updated destructuring? No, it updated the array passed to Promise.all but not the const [...] destructuring.
-      // I need to fix the destructuring line as well.
-      // Let's do it in a separate chunk or check if I can combine.
-      // The destructuring was: `const [txRes, accRes, goalRes, tagRes] = await Promise.all([...])`
-      // I need `const [txRes, accRes, goalRes, tagRes, budRes] = ...`
       setBudgets(budRes.data || []);
 
       // After fetching data, run initial AI logic
