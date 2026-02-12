@@ -17,7 +17,10 @@ import {
   Bot,
   CreditCard,
   BarChart2,
-  Tags
+  Tags,
+  LogOut,
+  Bell,
+  Grid
 } from 'lucide-react';
 import { ViewState } from './types';
 

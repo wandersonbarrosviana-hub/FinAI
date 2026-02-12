@@ -16,6 +16,7 @@ import CreditCardManager from './components/CreditCardManager';
 import ChartsHub from './components/ChartsHub';
 import CategoryManager from './components/CategoryManager';
 import Reports from './components/Reports';
+import Investments from './components/Investments';
 import { Budget } from './types';
 
 import { Bell, Search, User as UserIcon, Plus, Sparkles, AlertCircle, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
@@ -734,6 +735,8 @@ const App: React.FC = () => {
                 return <AccountManager accounts={accounts} onAddAccount={handleAddAccount} onDeleteAccount={handleDeleteAccount} />;
               case 'goals':
                 return <GoalManager goals={goals} transactions={filteredTransactions} accounts={accounts} onAddGoal={handleAddGoal} onDeleteGoal={handleDeleteGoal} />;
+              case 'investments':
+                return <Investments />;
               case 'budgets':
                 return <BudgetManager transactions={filteredTransactions} budgets={budgets} onUpdateBudget={handleUpdateBudget} onAddBudget={handleAddBudget} />;
               case 'retirement':

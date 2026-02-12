@@ -1,0 +1,102 @@
+[
+  {
+    "ticker": "PETR4",
+    "type": "acao",
+    "price": 38.08,
+    "p_vp": 1.16,
+    "p_l": 6.79,
+    "dy": 12.39,
+    "segment": "Energy",
+    "name": "Petróleo Brasileiro S.A. - Petrobras"
+  },
+  {
+    "ticker": "VALE3",
+    "type": "acao",
+    "price": 90.09,
+    "p_vp": 1.76,
+    "p_l": 13.45,
+    "dy": 7.92,
+    "segment": "Basic Materials",
+    "name": "Vale S.A."
+  },
+  {
+    "ticker": "ITUB4",
+    "type": "acao",
+    "price": 49.37,
+    "p_vp": 2.54,
+    "p_l": 12.31,
+    "dy": 45.0,
+    "segment": "Financial Services",
+    "name": "Itaú Unibanco Holding S.A."
+  },
+  {
+    "ticker": "BBAS3",
+    "type": "acao",
+    "price": 24.91,
+    "p_vp": 0.79,
+    "p_l": 11.07,
+    "dy": 74.0,
+    "segment": "Financial Services",
+    "name": "Banco do Brasil S.A."
+  },
+  {
+    "ticker": "WEGE3",
+    "type": "acao",
+    "price": 53.59,
+    "p_vp": 10.03,
+    "p_l": 34.57,
+    "dy": 3.11,
+    "segment": "Industrials",
+    "name": "WEG S.A."
+  },
+  {
+    "ticker": "MXRF11",
+    "type": "fii",
+    "price": 9.67,
+    "p_vp": 0.97,
+    "p_l": 13.81,
+    "dy": 12.5,
+    "segment": "Real Estate",
+    "name": "Maxi Renda Fundo De Investimento Imobiliaro - FII"
+  },
+  {
+    "ticker": "HGLG11",
+    "type": "fii",
+    "price": 156.78,
+    "p_vp": 0.99,
+    "p_l": 9.66,
+    "dy": 8.43,
+    "segment": "Real Estate",
+    "name": "Cshg Logistica - Fundo De Investimento Imobiliario"
+  },
+  {
+    "ticker": "KNCR11",
+    "type": "fii",
+    "price": 105.3,
+    "p_vp": 1.04,
+    "p_l": 8.7,
+    "dy": 13.71,
+    "segment": "Real Estate",
+    "name": "Kinea Rendimentos Imobiliários Fundo de Investimento Imobiliário - FII"
+  },
+  {
+    "ticker": "XPML11",
+    "type": "fii",
+    "price": 110.32,
+    "p_vp": 0.0,
+    "p_l": 0.0,
+    "dy": 10.01,
+    "segment": "Real Estate",
+    "name": "Xp Malls Fundo Investimentos Imobiliarios"
+  },
+  {
+    "ticker": "VISC11",
+    "type": "fii",
+    "price": 107.9,
+    "p_vp": 0.0,
+    "p_l": 16.32,
+    "dy": 9.33,
+    "segment": "Real Estate",
+    "name": "Vinci Shopping Centers Fundo Investimento Imobiliario - Fii"
+  }
+]
