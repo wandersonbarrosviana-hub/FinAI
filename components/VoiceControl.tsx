@@ -108,8 +108,10 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
 
     setStatus('processing');
     try {
-      const result = await processVoiceAction(text);
-      console.log("Voice command parsed:", result);
+      // Use refined Gemini parsing instead of local regex
+      const { parseVoiceCommand } = await import('../aiService');
+      const result = await parseVoiceCommand(text);
+      console.log("Voice command parsed by Gemini:", result);
 
       if (result.intent === 'UNKNOWN') {
         setStatus('error');
@@ -191,7 +193,7 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
           {status === 'idle' ? (
             <div className="text-slate-400 font-medium flex items-center gap-2">
               <MessageSquare size={14} className="text-slate-300" />
-              <span>Toque para ativar o assistente.</span>
+              <span>Toque para lançar por voz (ex: "gastei 50 reais").</span>
             </div>
           ) : (
             <p className={`italic font-medium transition-all max-w-md truncate ${status === 'active_command' ? 'text-sky-600' : 'text-slate-400'

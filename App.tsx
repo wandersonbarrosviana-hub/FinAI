@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
 import Auth from './components/Auth';
-import FinancialAssistant from './components/FinancialAssistant';
+// import FinancialAssistant from './components/FinancialAssistant';
 import VoiceControl from './components/VoiceControl';
 import ExpenseManager from './components/ExpenseManager';
 import AccountManager from './components/AccountManager';
@@ -833,8 +833,8 @@ const App: React.FC = () => {
               case 'reports':
                 return <Reports transactions={transactions} accounts={accounts} tags={tags} />;
               case 'ai-assistant':
-
-                return <FinancialAssistant transactions={transactions} accounts={accounts} goals={goals} budgets={budgets} onAddTransaction={handleAddTransaction} />; // AI might need full context? Or just current month? Keeping full for now.
+                return null; // Removido: Funcionalidade de IA agora focada apenas em voz
+              // return <FinancialAssistant transactions={transactions} accounts={accounts} goals={goals} budgets={budgets} onAddTransaction={handleAddTransaction} />;
               default:
                 return (
                   <div className="flex flex-col items-center justify-center h-full text-slate-400 space-y-4">
