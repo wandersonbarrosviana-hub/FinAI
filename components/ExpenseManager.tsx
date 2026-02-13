@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import DailyHistory from './DailyHistory';
 import { Transaction, TransactionType, Tag as TagType, Account } from '../types';
 import { CATEGORIES_MAP, INCOME_CATEGORIES_MAP } from '../constants';
-import { Calendar, CreditCard, Tag, Plus, Trash2, CheckCircle, Clock, Edit2, Save, X, Repeat, Divide, ChevronDown, ChevronUp, Paperclip, FileText, PieChart, Wallet, Calculator } from 'lucide-react';
+import { Calendar, CreditCard, Tag, Plus, Trash2, CheckCircle, Clock, Edit2, Save, X, Repeat, Divide, ChevronDown, ChevronUp, Paperclip, FileText, PieChart, Wallet, Calculator, Camera, Image, XCircle } from 'lucide-react';
 
 interface ExpenseManagerProps {
   transactions: Transaction[];
@@ -203,6 +203,22 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
     setIgnoreInBudgets(false);
     setIgnoreInTotals(false);
     setShowMoreInfo(false);
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        alert("A imagem é muito grande. O limite é 2MB para garantir a performance.");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAttachment(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const toggleStatus = (id: string, currentStatus: boolean) => {
@@ -596,20 +612,81 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
               showMoreInfo && (
                 <div className="md:col-span-2 lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-500 bg-slate-50 p-4 rounded-xl border border-slate-100">
 
-                  {/* Attachment (Anexo) */}
                   <div className="space-y-1 md:col-span-2">
                     <label className="text-xs font-bold text-slate-500 uppercase ml-1 flex items-center gap-1">
                       <Paperclip size={12} /> Anexo / Comprovante
                     </label>
-                    <input
-                      type="text"
-                      placeholder="Cole o link do documento ou foto aqui..."
-                      className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-sky-500/20 transition-all text-slate-900 text-sm font-medium"
-                      value={attachment}
-                      onChange={e => setAttachment(e.target.value)}
-                    />
-                    <p className="text-[10px] text-slate-600 italic px-1">
-                      * Cole uma URL (Google Drive, Dropbox, etc). Upload direto em breve.
+                    <div className="flex flex-col gap-3">
+                      <input
+                        type="text"
+                        placeholder="Cole o link do documento ou foto aqui..."
+                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-sky-500/20 transition-all text-slate-900 text-sm font-medium"
+                        value={attachment.startsWith('data:image') ? 'Imagem anexada' : attachment}
+                        onChange={e => setAttachment(e.target.value)}
+                        readOnly={attachment.startsWith('data:image')}
+                      />
+
+                      <div className="flex flex-wrap gap-2">
+                        <input
+                          type="file"
+                          id="cameraInput"
+                          accept="image/*"
+                          capture="environment"
+                          className="hidden"
+                          onChange={handleFileUpload}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => document.getElementById('cameraInput')?.click()}
+                          className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-[10px] font-bold text-slate-600 hover:bg-slate-50 transition-all uppercase tracking-widest"
+                        >
+                          <Camera size={14} className="text-sky-600" />
+                          Bater Foto
+                        </button>
+
+                        <input
+                          type="file"
+                          id="fileInput"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={handleFileUpload}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => document.getElementById('fileInput')?.click()}
+                          className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-[10px] font-bold text-slate-600 hover:bg-slate-50 transition-all uppercase tracking-widest"
+                        >
+                          <Image size={14} className="text-emerald-600" />
+                          Importar
+                        </button>
+
+                        {attachment && (
+                          <button
+                            type="button"
+                            onClick={() => setAttachment('')}
+                            className="flex items-center gap-2 px-4 py-2 bg-rose-50 border border-rose-100 rounded-xl text-[10px] font-bold text-rose-600 hover:bg-rose-100 transition-all uppercase tracking-widest"
+                          >
+                            <Trash2 size={14} />
+                            Remover Anexo
+                          </button>
+                        )}
+                      </div>
+
+                      {attachment && attachment.startsWith('data:image') && (
+                        <div className="relative w-full max-w-[200px] h-[200px] rounded-2xl overflow-hidden border-4 border-white shadow-lg animate-in fade-in zoom-in duration-300">
+                          <img src={attachment} alt="Preview" className="w-full h-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => setAttachment('')}
+                            className="absolute top-2 right-2 p-1 bg-rose-500 text-white rounded-full shadow-lg hover:bg-rose-600 transition-colors"
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-[10px] text-slate-600 italic px-1 mt-1">
+                      * As fotos são salvas em formato otimizado para não pesar no sistema.
                     </p>
                   </div>
 
