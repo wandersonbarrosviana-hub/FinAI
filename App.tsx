@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
 import Auth from './components/Auth';
-import FinancialAssistant from './components/FinancialAssistant';
+// import FinancialAssistant from './components/FinancialAssistant';
 import VoiceControl from './components/VoiceControl';
 import ExpenseManager from './components/ExpenseManager';
 import AccountManager from './components/AccountManager';
@@ -130,12 +130,19 @@ const App: React.FC = () => {
 
       const mappedTxs = txRes.data.map((t: any) => ({
         ...t,
-        date: t.date.split('T')[0], // Ensure YYYY-MM-DD
+        date: t.date ? t.date.split('T')[0] : new Date().toISOString().split('T')[0],
         dueDate: t.due_date ? t.due_date.split('T')[0] : undefined,
+        paymentDate: t.payment_date ? t.payment_date.split('T')[0] : undefined,
         installmentCount: t.installment_count,
         installmentTotal: t.installment_total,
         isPaid: t.is_paid,
-        tags: t.tag_ids || []
+        tags: t.tag_ids || [],
+        account: t.account_id,
+        subCategory: t.sub_category,
+        paymentMethod: t.payment_method,
+        ignoreInStatistics: t.ignore_in_statistics,
+        ignoreInBudgets: t.ignore_in_budgets,
+        ignoreInTotals: t.ignore_in_totals
       }));
 
       const mappedAccs = accRes.data.map((a: any) => ({
@@ -276,14 +283,21 @@ const App: React.FC = () => {
 
     // Map updates to DB columns
     const dbUpdates: any = {};
-    if (updates.description) dbUpdates.description = updates.description;
-    if (updates.amount) dbUpdates.amount = updates.amount;
-    if (updates.date) dbUpdates.date = updates.date;
+    if (updates.description !== undefined) dbUpdates.description = updates.description;
+    if (updates.amount !== undefined) dbUpdates.amount = updates.amount;
+    if (updates.date !== undefined) dbUpdates.date = updates.date;
     if (updates.isPaid !== undefined) dbUpdates.is_paid = updates.isPaid;
-    if (updates.category) dbUpdates.category = updates.category;
-    if (updates.subCategory) dbUpdates.sub_category = updates.subCategory;
-    if (updates.tags) dbUpdates.tag_ids = updates.tags;
-    // ... add others as needed
+    if (updates.category !== undefined) dbUpdates.category = updates.category;
+    if (updates.subCategory !== undefined) dbUpdates.sub_category = updates.subCategory;
+    if (updates.tags !== undefined) dbUpdates.tag_ids = updates.tags;
+    if (updates.paymentDate !== undefined) dbUpdates.payment_date = updates.paymentDate;
+    if (updates.account !== undefined) dbUpdates.account_id = updates.account;
+    if (updates.attachment !== undefined) dbUpdates.attachment = updates.attachment;
+    if (updates.notes !== undefined) dbUpdates.notes = updates.notes;
+    if (updates.ignoreInStatistics !== undefined) dbUpdates.ignore_in_statistics = updates.ignoreInStatistics;
+    if (updates.ignoreInBudgets !== undefined) dbUpdates.ignore_in_budgets = updates.ignoreInBudgets;
+    if (updates.ignoreInTotals !== undefined) dbUpdates.ignore_in_totals = updates.ignoreInTotals;
+    if (updates.dueDate !== undefined) dbUpdates.due_date = updates.dueDate;
 
     await supabase.from('transactions').update(dbUpdates).eq('id', id);
   };
@@ -322,7 +336,14 @@ const App: React.FC = () => {
       recurrence: data.recurrence || 'one_time',
       installmentCount: data.installmentCount,
       installmentTotal: data.installmentTotal,
-      tags: data.tags || []
+      tags: data.tags || [],
+      paymentDate: data.paymentDate,
+      attachment: data.attachment,
+      notes: data.notes,
+      ignoreInStatistics: data.ignoreInStatistics,
+      ignoreInBudgets: data.ignoreInBudgets,
+      ignoreInTotals: data.ignoreInTotals,
+      dueDate: data.dueDate
     };
 
     if (!baseTx.account) {
@@ -357,7 +378,14 @@ const App: React.FC = () => {
           is_paid: i === 0 ? baseTx.isPaid : false,
           recurrence: 'fixed',
           installment_total: baseTx.installmentTotal,
-          installment_count: baseTx.installmentCount
+          installment_count: baseTx.installmentCount,
+          attachment: baseTx.attachment,
+          notes: baseTx.notes,
+          payment_date: baseTx.paymentDate,
+          ignore_in_statistics: baseTx.ignoreInStatistics,
+          ignore_in_budgets: baseTx.ignoreInBudgets,
+          ignore_in_totals: baseTx.ignoreInTotals,
+          due_date: baseTx.dueDate || baseDate
         });
       }
     } else if (baseTx.recurrence === 'installment' && baseTx.installmentCount && baseTx.installmentCount > 1) {
@@ -375,7 +403,14 @@ const App: React.FC = () => {
           is_paid: i === 0 ? baseTx.isPaid : false,
           recurrence: 'installment',
           installment_total: baseTx.installmentTotal,
-          installment_count: baseTx.installmentCount
+          installment_count: baseTx.installmentCount,
+          attachment: baseTx.attachment,
+          notes: baseTx.notes,
+          payment_date: baseTx.paymentDate,
+          ignore_in_statistics: baseTx.ignoreInStatistics,
+          ignore_in_budgets: baseTx.ignoreInBudgets,
+          ignore_in_totals: baseTx.ignoreInTotals,
+          due_date: baseTx.dueDate || baseDate
         });
       }
     } else {
@@ -391,7 +426,14 @@ const App: React.FC = () => {
         payment_method: baseTx.paymentMethod,
         is_paid: baseTx.isPaid,
         recurrence: 'one_time',
-        tag_ids: baseTx.tags
+        tag_ids: baseTx.tags,
+        attachment: baseTx.attachment,
+        notes: baseTx.notes,
+        payment_date: baseTx.paymentDate,
+        ignore_in_statistics: baseTx.ignoreInStatistics,
+        ignore_in_budgets: baseTx.ignoreInBudgets,
+        ignore_in_totals: baseTx.ignoreInTotals,
+        due_date: baseTx.dueDate || baseDate
       });
     }
 
@@ -412,7 +454,14 @@ const App: React.FC = () => {
           isPaid: t.is_paid,
           installmentCount: t.installment_count,
           installmentTotal: t.installment_total,
-          tags: t.tag_ids || []
+          tags: t.tag_ids || [],
+          attachment: t.attachment,
+          notes: t.notes,
+          paymentDate: t.payment_date,
+          ignoreInStatistics: t.ignore_in_statistics,
+          ignoreInBudgets: t.ignore_in_budgets,
+          ignoreInTotals: t.ignore_in_totals,
+          dueDate: t.due_date
         }));
 
         setTransactions(prev => [...mappedNew, ...prev]);
@@ -833,8 +882,8 @@ const App: React.FC = () => {
               case 'reports':
                 return <Reports transactions={transactions} accounts={accounts} tags={tags} />;
               case 'ai-assistant':
-
-                return <FinancialAssistant transactions={transactions} accounts={accounts} goals={goals} budgets={budgets} onAddTransaction={handleAddTransaction} />; // AI might need full context? Or just current month? Keeping full for now.
+                return null; // Removido: Funcionalidade de IA agora focada apenas em voz
+              // return <FinancialAssistant transactions={transactions} accounts={accounts} goals={goals} budgets={budgets} onAddTransaction={handleAddTransaction} />;
               default:
                 return (
                   <div className="flex flex-col items-center justify-center h-full text-slate-400 space-y-4">

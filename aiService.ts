@@ -79,51 +79,39 @@ export const parseVoiceCommand = async (text: string): Promise<VoiceCommandResul
             const model = genAI.getGenerativeModel({ model: MODEL_NAME });
 
             const systemPrompt = `
-          Act as a Financial Parsing API. Analyze the user's spoken command regarding finances.
-          Current Date: ${new Date().toISOString().split('T')[0]}
+          Aja como uma API de Parsing Financeiro especializado em Português do Brasil.
+          Analise o comando de voz do usuário sobre finanças.
+          Data Atual: ${new Date().toISOString().split('T')[0]}
     
-          Possible Intents:
-          1. CREATE: New transaction (expense/income).
-          2. UPDATE_STATUS: Mark a transaction as paid/received.
-          3. ADVICE_REQUEST: User is asking for financial advice.
-          4. CREATE_ACCOUNT: User wants to create a new bank account.
-          5. CREATE_GOAL: User wants to create a financial goal.
-          6. CREATE_BUDGET: User wants to set a budget limit.
+          Seu objetivo principal é extrair transações (despesas/receitas) com PERFEIÇÃO.
+          Trate números falados como "cinquenta reais", "mil e duzentos", "dois com cinquenta" corretamente.
     
-          Output JSON ONLY. Format:
+          Intenções Possíveis:
+          1. CREATE: Nova transação (despesa ou receita).
+          2. UPDATE_STATUS: Marcar transação como paga/recebida.
+          3. UNKNOWN: Não foi possível identificar uma ação financeira clara.
+    
+          Categorias Válidas: Alimentação, Moradia, Transporte, Lazer, Saúde, Educação, Investimentos, Salário, Renda Extra, Outros.
+    
+          Saída JSON ÚNICA. Formato:
           {
-            "intent": "CREATE" | "UPDATE_STATUS" | "ADVICE_REQUEST" | "CREATE_ACCOUNT" | "CREATE_GOAL" | "CREATE_BUDGET" | "UNKNOWN",
+            "intent": "CREATE" | "UPDATE_STATUS" | "UNKNOWN",
             "data": {
-              // For CREATE (Transaction):
-              "description": "Short description",
-              "amount": 123.45 (number),
+              // Para CREATE (Transação):
+              "description": "Descrição curta e clara (ex: 'Almoço', 'Combustível', 'Salário')",
+              "amount": 123.45 (número decimal),
               "type": "expense" | "income",
-              "category": "One of: Alimentação, Moradia, Transporte, Lazer, Saúde, Educação, Investimentos, Salário, Renda Extra, Outros",
-              "subCategory": "Best guess or 'Diversos'",
+              "category": "Uma das categorias válidas listadas acima",
+              "subCategory": "Melhor estimativa de subcategoria ou 'Diversos'",
               "paymentMethod": "PIX" | "Cartão de Crédito" | "Dinheiro" | "Boleto" | "Débito",
-              "isPaid": true/false (default true for expense if past/now, false if future; true for income usually),
-              "date": "YYYY-MM-DD" (infer from context like "yesterday", "tomorrow", "next friday", default to today)
+              "isPaid": true/false (true se for hoje ou passado, false se for agendamento futuro),
+              "date": "YYYY-MM-DD" (infira do contexto: "ontem", "amanhã", "próxima sexta", padrão: hoje)
               
-              // For CREATE_ACCOUNT:
-              "name": "Bank Name",
-              "balance": 1000.00,
-              "type": "checking" | "savings" | "investment"
-    
-              // For CREATE_GOAL:
-              "title": "Goal Title",
-              "target": 5000.00,
-              "category": "Best guess",
-              "deadline": "YYYY-MM-DD" (optional)
-    
-              // For CREATE_BUDGET:
-              "category": "Category to limit",
-              "amount": 500.00
-    
-              // For UPDATE_STATUS:
-              "searchDescription": "Keywords to find transaction",
-              "newStatus": true (paid) | false (pending)
+              // Para UPDATE_STATUS:
+              "searchDescription": "Palavras-chave para achar a transação",
+              "newStatus": true (pago) | false (pendente)
             },
-            "message": "Short conversational confirmation message (Portuguese)"
+            "message": "Mensagem curta de confirmação (ex: 'Lançado: R$ 50,00 em Alimentação.')"
           }
         `;
 
@@ -142,7 +130,7 @@ export const parseVoiceCommand = async (text: string): Promise<VoiceCommandResul
 
     } catch (error) {
         console.error('Gemini API Error:', error);
-        return { intent: 'UNKNOWN', data: { originalText: text }, message: 'Desculpe, não consegui entender (tente novamente).' };
+        return { intent: 'UNKNOWN', data: { originalText: text }, message: 'Desculpe, não consegui entender o comando de voz.' };
     }
 };
 

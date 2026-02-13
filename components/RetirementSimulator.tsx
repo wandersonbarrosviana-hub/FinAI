@@ -4,6 +4,7 @@ import { ComposedChart, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, R
 import { Calculator, Table, Calendar, TrendingUp, DollarSign, Info, Umbrella } from 'lucide-react';
 import ChartContainer from './ChartContainer';
 import { Budget } from '../types';
+import { CATEGORIES } from '../constants';
 
 interface RetirementSimulatorProps {
     transactions: Transaction[];
@@ -17,51 +18,61 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
     const [monthlyContribution, setMonthlyContribution] = useState(1000);
     const [annualRate, setAnnualRate] = useState(10); // 10% a.a
     const [annualInflation, setAnnualInflation] = useState(4); // 4% a.a
-    // const [yearsToSimulate, setYearsToSimulate] = useState(30); // Removed per user request, fixed to 70
 
     // View State
     const [viewMode, setViewMode] = useState<'monthly' | 'annual'>('annual');
     const [showRealValues, setShowRealValues] = useState(false);
     const [applyBudgetSurplus, setApplyBudgetSurplus] = useState(false);
+    const [yearsToSimulate, setYearsToSimulate] = useState(60); // Default to 60 years
 
-    // Budget Surplus Calculation
+    // Budget Surplus Calculation - Refined with failover and CATEGORIES defaults
     const budgetSurplus = useMemo(() => {
-        if (!budgets || budgets.length === 0) return 0;
         const currentMonth = new Date().toISOString().slice(0, 7);
-        const income = transactions
+        let income = transactions
             .filter(t => t.type === 'income' && t.date.startsWith(currentMonth))
             .reduce((sum, t) => sum + t.amount, 0);
-        const totalBudgeted = budgets.reduce((sum, b) => sum + b.amount, 0);
+
+        // If no income this month, look for the most recent month with income
+        if (income === 0 && transactions.length > 0) {
+            const incomeTransactions = transactions.filter(t => t.type === 'income');
+            if (incomeTransactions.length > 0) {
+                // Sort by date descending
+                const sortedIncomes = [...incomeTransactions].sort((a, b) => b.date.localeCompare(a.date));
+                const lastMonth = sortedIncomes[0].date.slice(0, 7);
+                income = transactions
+                    .filter(t => t.type === 'income' && t.date.startsWith(lastMonth))
+                    .reduce((sum, t) => sum + t.amount, 0);
+            }
+        }
+
+        // Use CATEGORIES to calculate total budget
+        const totalBudgeted = CATEGORIES.reduce((sum, category) => {
+            const persisted = budgets?.find(b => b.category === category && (!b.month || b.month === currentMonth));
+            const amount = persisted ? persisted.amount : (income > 0 ? income * 0.1 : 500);
+            return sum + amount;
+        }, 0);
+
         return Math.max(0, income - totalBudgeted);
     }, [transactions, budgets]);
 
-    // Calculations
-    const simulationData = useMemo(() => {
+    // Helper to calculate simulation data
+    const calculateSimulation = (extraMonthly: number) => {
+        const data = [];
+        let currentBalance = currentPatrimony;
+        let totalInvested = currentPatrimony;
+
         const monthlyRate = Math.pow(1 + annualRate / 100, 1 / 12) - 1;
         const monthlyInflation = Math.pow(1 + annualInflation / 100, 1 / 12) - 1;
 
-        // Target Patrimony (Fire Number)
-        // Usually: Desired Income * 12 / Safe Withdrawal Rate (e.g. 4% Real)
-        // Or specific target inputs. Let's use 4% Rule (300x monthly income) as a baseline target line.
-        // But since we are modelling Nominal values (with inflation), the Target Nominal Amount grows.
-        const baseTarget = desiredIncome * 300;
+        const baseMonthlyContribution = monthlyContribution + extraMonthly;
+        const baseTarget = (desiredIncome / monthlyRate);
 
-        let currentBalance = currentPatrimony;
-        let totalInvested = currentPatrimony;
         let cumulativeInflationFactor = 1;
-        let currentTarget = baseTarget;
 
-        const data = [];
-        const yearsFixed = 60; // Fixed 60 years per user request
-        const months = yearsFixed * 12;
+        for (let i = 0; i <= 70 * 12; i++) {
+            const interestEarned = currentBalance * monthlyRate;
 
-        for (let i = 0; i <= months; i++) {
-            // Logic:
-            // 1. Add Contribution
-            // 2. Apply Interest
-            // 3. Apply Inflation to Target
-
-            // For Month 0 (Start)
+            // On month 0, we just show the initial state
             if (i === 0) {
                 data.push({
                     month: 0,
@@ -70,69 +81,62 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                     invested: currentPatrimony,
                     interest: 0,
                     total: currentPatrimony,
-                    inflationLoss: 0,
-                    target: baseTarget,
-                    contributionNeeded: monthlyContribution,
-                    // Init new fields
                     passiveIncome: 0,
                     requiredIncomeNominal: desiredIncome,
                     realTotal: currentPatrimony,
                     realPassiveIncome: 0,
-                    requiredIncomeReal: desiredIncome
+                    requiredIncomeReal: desiredIncome,
+                    inflationLoss: 0,
+                    target: baseTarget,
+                    contributionNeeded: baseMonthlyContribution
                 });
                 continue;
             }
 
-            const effectiveContribution = monthlyContribution + (applyBudgetSurplus ? budgetSurplus : 0);
-
-            const interestEarned = currentBalance * monthlyRate;
-
-            currentBalance += interestEarned + effectiveContribution;
-            totalInvested += effectiveContribution;
+            currentBalance += interestEarned + baseMonthlyContribution;
+            totalInvested += baseMonthlyContribution;
 
             cumulativeInflationFactor *= (1 + monthlyInflation);
-            currentTarget = baseTarget * cumulativeInflationFactor; // Target grows to maintain purchasing power
+            const currentTarget = baseTarget * cumulativeInflationFactor;
 
-            // "Preço corroído pela inflação" usually means "What is this nominal amount worth in today's money?"
             const realValue = currentBalance / cumulativeInflationFactor;
             const inflationLoss = currentBalance - realValue;
-
-            // Real Interest (Passive Income in today's money)
             const realInterest = interestEarned / cumulativeInflationFactor;
 
-            const adjustedContribution = monthlyContribution * cumulativeInflationFactor;
+            const adjustedContribution = baseMonthlyContribution * cumulativeInflationFactor;
 
             data.push({
                 month: i,
                 year: Math.floor(i / 12),
                 yearLabel: new Date().getFullYear() + Math.floor(i / 12),
                 invested: totalInvested,
-
-                // Nominal
                 interest: interestEarned,
                 total: currentBalance,
                 passiveIncome: interestEarned,
                 requiredIncomeNominal: desiredIncome * cumulativeInflationFactor,
-
-                // Real
                 realTotal: realValue,
                 realPassiveIncome: realInterest,
-                requiredIncomeReal: desiredIncome, // Constant in real terms
-
+                requiredIncomeReal: desiredIncome,
                 inflationLoss: inflationLoss,
                 target: currentTarget,
                 contributionNeeded: adjustedContribution
             });
         }
         return data;
+    };
+
+    const simulationData = useMemo(() => {
+        const extra = applyBudgetSurplus ? budgetSurplus : 0;
+        return calculateSimulation(extra);
+    }, [desiredIncome, currentPatrimony, monthlyContribution, annualRate, annualInflation, applyBudgetSurplus, budgetSurplus]);
+
+    const baselineSimulationData = useMemo(() => {
+        return calculateSimulation(0);
     }, [desiredIncome, currentPatrimony, monthlyContribution, annualRate, annualInflation]);
 
-    // Aggregate for Table/Chart if Annual
-    // Aggregate for Table/Chart if Annual
     const displayData = useMemo(() => {
         let processedData = simulationData;
 
-        // 1. Filter/Group by ViewMode (Monthly vs Annual)
         if (viewMode === 'annual') {
             const annualData: any[] = [];
             const years = Array.from(new Set(simulationData.map(d => d.year)));
@@ -140,8 +144,6 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
             years.forEach(y => {
                 const monthsOfYear = simulationData.filter(d => d.year === y);
                 const lastMonthOfYear = monthsOfYear[monthsOfYear.length - 1];
-
-                // Sums for the year
                 const yearInterest = monthsOfYear.reduce((sum, m) => sum + m.interest, 0);
                 const yearRealInterest = monthsOfYear.reduce((sum, m) => sum + m.realPassiveIncome, 0);
                 const yearRequiredNominal = monthsOfYear.reduce((sum, m) => sum + m.requiredIncomeNominal, 0);
@@ -150,10 +152,9 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                 if (lastMonthOfYear) {
                     annualData.push({
                         ...lastMonthOfYear,
-                        // Override monthly values with annual sums for the "flow" metrics
                         interest: yearInterest,
                         realPassiveIncome: yearRealInterest,
-                        passiveIncome: yearInterest, // Nominal Annual Sum
+                        passiveIncome: yearInterest,
                         requiredIncomeNominal: yearRequiredNominal,
                         requiredIncomeReal: yearRequiredReal,
                     });
@@ -162,38 +163,51 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
             processedData = annualData;
         }
 
-        // 2. Map based on ShowRealValues
         return processedData.map(d => ({
             ...d,
-            // Displayed Values (Dynamic)
-            // Fallback to 0 if undefined to avoid chart errors during hot-reload transitional states
             displayTotal: showRealValues ? (d.realTotal || 0) : (d.total || 0),
             displayPassiveIncome: showRealValues ? (d.realPassiveIncome || 0) : (d.passiveIncome || 0),
             displayRequiredIncome: showRealValues ? (d.requiredIncomeReal || 0) : (d.requiredIncomeNominal || 0),
-            // New Calculation: Interest Earned (Total - Invested)
-            // If showing Real Values: Real Total - Invested (Real Invested is roughly the same if we assume contribution matches inflation, but simpler: Real Total - Sum(Real Contributions))
-            // Actually, "Invested" is usually Nominal sum.
-            // But let's stick to the user request: "History 60 years and interest obtained is entire final patrimony value minus invested value".
-            // So: displayTotal - invested.
             displayAccumulatedInterest: (showRealValues ? (d.realTotal || 0) : (d.total || 0)) - d.invested
-        }));
-
-    }, [simulationData, viewMode, showRealValues]);
+        })).filter(d => d.year <= yearsToSimulate);
+    }, [simulationData, viewMode, showRealValues, yearsToSimulate]);
 
     // Find Freedom Point (First time Passive Income > Required)
-    // We search displayData directly so it respects the current view mode's aggregation
-    // (Annual View: Sum vs Sum, Monthly View: Value vs Value)
+    // We calculate this from the full simulation data so the header remains constant regardless of zoom
     const freedomPoint = useMemo(() => {
-        return displayData.find(d => d.displayPassiveIncome >= d.displayRequiredIncome);
-    }, [displayData]);
+        // We need a non-filtered version of display mapping for this
+        const fullDisplayData = simulationData.map(d => ({
+            ...d,
+            displayPassiveIncome: showRealValues ? (d.realPassiveIncome || 0) : (d.passiveIncome || 0),
+            displayRequiredIncome: showRealValues ? (d.requiredIncomeReal || 0) : (d.requiredIncomeNominal || 0),
+        }));
+        return fullDisplayData.find(d => d.displayPassiveIncome >= d.displayRequiredIncome);
+    }, [simulationData, showRealValues]);
 
-    // -------------------------------------------------------------------------
-    // RENDER HELPERS
-    // -------------------------------------------------------------------------
+    const baselineFreedomPoint = useMemo(() => {
+        // Calculate based on the full baseline simulation
+        const fullBaselineDisplayData = baselineSimulationData.map(d => ({
+            ...d,
+            displayPassiveIncome: showRealValues ? (d.realPassiveIncome || 0) : (d.passiveIncome || 0),
+            displayRequiredIncome: showRealValues ? (d.requiredIncomeReal || 0) : (d.requiredIncomeNominal || 0),
+        }));
+        return fullBaselineDisplayData.find(d => d.displayPassiveIncome >= d.displayRequiredIncome);
+    }, [baselineSimulationData, showRealValues]);
+
+    const timeReduction = useMemo(() => {
+        if (!freedomPoint || !baselineFreedomPoint || !applyBudgetSurplus) return null;
+        const m1 = baselineFreedomPoint.month;
+        const m2 = freedomPoint.month;
+        const diff = m1 - m2;
+        if (diff <= 0) return null;
+        return {
+            years: Math.floor(diff / 12),
+            months: diff % 12
+        };
+    }, [freedomPoint, baselineFreedomPoint, applyBudgetSurplus]);
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500 pb-24">
-            {/* Header */}
             <div>
                 <h2 className="text-4xl font-black text-slate-900 tracking-tight flex items-center gap-3">
                     <TrendingUp className="text-sky-600" size={40} />
@@ -202,7 +216,6 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                 <p className="text-slate-500 text-sm font-medium mt-1">Planeje sua liberdade financeira com base em juros compostos.</p>
             </div>
 
-            {/* Inputs Grid */}
             <div className="bg-white p-8 rounded-[3rem] shadow-sm border border-slate-100 ring-1 ring-black/5">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-8">
                     <div className="space-y-2">
@@ -265,7 +278,6 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                     </div>
                 </div>
 
-                {/* Budget Integration Toggle - Always visible now */}
                 <div className="mt-6 bg-indigo-50 p-4 rounded-2xl flex items-center justify-between border border-indigo-100 cursor-pointer hover:bg-indigo-100 transition-colors" onClick={() => setApplyBudgetSurplus(!applyBudgetSurplus)}>
                     <div className="flex items-center gap-3">
                         <div className={`p-2 rounded-xl transition-colors ${applyBudgetSurplus ? 'bg-indigo-500 text-white' : 'bg-white text-indigo-300'}`}>
@@ -282,18 +294,27 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                         <div className={`h-5 w-5 bg-white rounded-full shadow-sm transition-transform ${applyBudgetSurplus ? 'translate-x-5' : 'translate-x-0'}`}></div>
                     </div>
                 </div>
-
             </div>
 
-            {/* Chart Area */}
             <div className="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-sm ring-1 ring-black/5">
                 <div className="mb-8 flex flex-col md:flex-row justify-between items-center gap-6">
                     <div>
                         <h3 className="text-xl font-black text-slate-900 tracking-tight">Projeção de Longo Prazo</h3>
-                        <p className="text-xs font-medium text-slate-400 mt-1">Simulação nominal vs real pelos próximos 60 anos.</p>
+                        <p className="text-xs font-medium text-slate-400 mt-1">Simulação nominal vs real pelos próximos {yearsToSimulate} anos.</p>
                     </div>
 
-                    <div className="flex gap-4">
+                    <div className="flex flex-wrap gap-4 items-center">
+                        <div className="flex bg-slate-100 p-1.5 rounded-2xl border border-slate-200">
+                            {[5, 10, 20, 30, 40, 50, 60].map((y) => (
+                                <button
+                                    key={y}
+                                    onClick={() => setYearsToSimulate(y)}
+                                    className={`px-3 py-2 rounded-xl text-[10px] font-black tracking-widest transition-all ${yearsToSimulate === y ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                                >
+                                    {y}A
+                                </button>
+                            ))}
+                        </div>
                         <div className="flex bg-slate-50 p-1.5 rounded-2xl border border-slate-200">
                             <button
                                 onClick={() => setShowRealValues(false)}
@@ -327,11 +348,18 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                 </div>
 
                 {freedomPoint && (
-                    <div className="mb-8 p-6 bg-emerald-50 rounded-3xl border border-emerald-100 flex items-center justify-center gap-4">
-                        <span className="text-3xl">🏖️</span>
-                        <p className="text-emerald-700 font-black text-lg tracking-tight">
-                            Independência Financeira em <span className="text-emerald-900 underline decoration-emerald-200 underline-offset-4">{Math.floor(freedomPoint.month / 12)} anos e {freedomPoint.month % 12} meses</span>!
-                        </p>
+                    <div className="mb-8 p-6 bg-emerald-50 rounded-3xl border border-emerald-100 flex flex-col items-center justify-center gap-2 text-center">
+                        <div className="flex items-center gap-4">
+                            <span className="text-3xl">🏖️</span>
+                            <p className="text-emerald-700 font-black text-lg tracking-tight">
+                                Independência Financeira em <span className="text-emerald-900 underline decoration-emerald-200 underline-offset-4">{Math.floor(freedomPoint.month / 12)} anos e {freedomPoint.month % 12} meses</span>!
+                            </p>
+                        </div>
+                        {timeReduction && (
+                            <div className="text-emerald-600 font-bold text-sm bg-emerald-100/50 px-6 py-3 rounded-2xl animate-in fade-in slide-in-from-top-2 duration-700 max-w-2xl">
+                                👏 Parabéns! Ao seguir seu orçamento, você antecipou sua independência em <span className="text-emerald-800 font-black">{timeReduction.years > 0 ? `${timeReduction.years} anos` : ''}{timeReduction.years > 0 && timeReduction.months > 0 ? ' e ' : ''}{timeReduction.months > 0 ? `${timeReduction.months} meses` : ''}</span>. Continue firme no planejamento!
+                            </div>
+                        )}
                     </div>
                 )}
 
@@ -366,7 +394,7 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                                 axisLine={false}
                                 tickLine={false}
                                 tick={{ fontSize: 10, fontWeight: 700, fill: '#d97706' }}
-                                tickFormatter={(value) => `R$${(value / 1000).toLocaleString()}k`}
+                                tickFormatter={(value) => `R$${(value / 1000).toLocaleString()} k`}
                                 dx={-10}
                             />
                             <YAxis
@@ -374,9 +402,7 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                                 orientation="right"
                                 axisLine={false}
                                 tickLine={false}
-                                // Scale to keep the line visually below the main area (approx bottom 1/3)
                                 domain={[0, (dataMax: number) => dataMax * 3]}
-                                tick={{ fontSize: 10, fontWeight: 700, fill: '#10b981' }}
                                 tick={{ fontSize: 10, fontWeight: 700, fill: '#10b981' }}
                                 tickFormatter={(value) => `R$${value.toLocaleString()}`}
                                 dx={10}
@@ -423,7 +449,6 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                 </div>
             </div>
 
-            {/* Table Area */}
             <div className="bg-white rounded-[3rem] border border-slate-100 shadow-sm overflow-hidden ring-1 ring-black/5">
                 <div className="p-8 border-b border-slate-50 flex items-center gap-4">
                     <div className="p-3 bg-sky-50 text-sky-600 rounded-2xl">
@@ -478,7 +503,8 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                     </table>
                 </div>
             </div>
-        </div>);
+        </div>
+    );
 };
 
 export default RetirementSimulator;
