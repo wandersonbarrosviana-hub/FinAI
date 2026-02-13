@@ -36,13 +36,44 @@ const Reports: React.FC<ReportsProps> = ({ transactions, accounts, tags }) => {
     return (
         <div className="space-y-6 pb-20">
             <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-                {/* Header Tabs */}
-                <div className="flex border-b border-slate-100">
-                    <button className="px-6 py-4 text-xs font-black text-sky-600 border-b-2 border-sky-600 uppercase tracking-widest">
-                        Filtro
-                    </button>
-                    <button className="px-6 py-4 text-xs font-black text-slate-400 hover:text-slate-600 transition-colors uppercase tracking-widest">
-                        Filtros salvos
+                {/* Header Tabs AND Actions */}
+                <div className="flex items-center justify-between border-b border-slate-100 pr-6">
+                    <div className="flex">
+                        <button className="px-6 py-4 text-xs font-black text-sky-600 border-b-2 border-sky-600 uppercase tracking-widest">
+                            Filtro
+                        </button>
+                        <button className="px-6 py-4 text-xs font-black text-slate-400 hover:text-slate-600 transition-colors uppercase tracking-widest">
+                            Filtros salvos
+                        </button>
+                    </div>
+                    <button
+                        onClick={() => {
+                            // Basic CSV Export Logic
+                            const headers = ["Data", "Descrição", "Categoria", "Valor", "Tipo", "Status"];
+                            const rows = transactions.map(t => [
+                                new Date(t.date).toLocaleDateString('pt-BR'),
+                                `"${t.description}"`, // Quote to handle commas
+                                t.category,
+                                t.amount.toFixed(2).replace('.', ','),
+                                t.type === 'income' ? 'Receita' : 'Despesa',
+                                t.paid ? 'Pago' : 'Pendente'
+                            ]);
+
+                            const csvContent = "data:text/csv;charset=utf-8,"
+                                + headers.join(";") + "\n"
+                                + rows.map(e => e.join(";")).join("\n");
+
+                            const encodedUri = encodeURI(csvContent);
+                            const link = document.createElement("a");
+                            link.setAttribute("href", encodedUri);
+                            link.setAttribute("download", `relatorio_finai_${new Date().toISOString().split('T')[0]}.csv`);
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                        }}
+                        className="flex items-center gap-2 text-xs font-black text-slate-400 hover:text-emerald-600 transition-colors uppercase tracking-widest"
+                    >
+                        <span className="text-lg">📥</span> Exportar CSV
                     </button>
                 </div>
 

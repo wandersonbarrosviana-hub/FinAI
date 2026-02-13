@@ -1,11 +1,13 @@
 import React, { useState, useMemo } from 'react';
 import { Transaction } from '../types';
 import { ComposedChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Line, Bar, ReferenceDot, Label, ReferenceLine } from 'recharts';
-import { Calculator, Table, Calendar, TrendingUp, DollarSign, Info, Umbrella } from 'lucide-react';
+import { Calculator, Table, Calendar, TrendingUp, DollarSign, Info, Umbrella, Wallet } from 'lucide-react';
 import ChartContainer from './ChartContainer';
+import { Budget } from '../types';
 
 interface RetirementSimulatorProps {
-    transactions: Transaction[]; // passed to calculate "suggested" essential expenses if needed
+    transactions: Transaction[];
+    budgets?: Budget[];
 }
 
 const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions }) => {
@@ -20,6 +22,18 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions 
     // View State
     const [viewMode, setViewMode] = useState<'monthly' | 'annual'>('annual');
     const [showRealValues, setShowRealValues] = useState(false);
+    const [applyBudgetSurplus, setApplyBudgetSurplus] = useState(false);
+
+    // Budget Surplus Calculation
+    const budgetSurplus = useMemo(() => {
+        if (!budgets || budgets.length === 0) return 0;
+        const currentMonth = new Date().toISOString().slice(0, 7);
+        const income = transactions
+            .filter(t => t.type === 'income' && t.date.startsWith(currentMonth))
+            .reduce((sum, t) => sum + t.amount, 0);
+        const totalBudgeted = budgets.reduce((sum, b) => sum + b.amount, 0);
+        return Math.max(0, income - totalBudgeted);
+    }, [transactions, budgets]);
 
     // Calculations
     const simulationData = useMemo(() => {
@@ -69,10 +83,12 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions 
                 continue;
             }
 
+            const effectiveContribution = monthlyContribution + (applyBudgetSurplus ? budgetSurplus : 0);
+
             const interestEarned = currentBalance * monthlyRate;
 
-            currentBalance += interestEarned + monthlyContribution;
-            totalInvested += monthlyContribution;
+            currentBalance += interestEarned + effectiveContribution;
+            totalInvested += effectiveContribution;
 
             cumulativeInflationFactor *= (1 + monthlyInflation);
             currentTarget = baseTarget * cumulativeInflationFactor; // Target grows to maintain purchasing power
@@ -248,6 +264,26 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions 
                         />
                     </div>
                 </div>
+
+                {/* Budget Integration Toggle */}
+                {budgetSurplus > 0 && (
+                    <div className="mt-6 bg-indigo-50 p-4 rounded-2xl flex items-center justify-between border border-indigo-100 cursor-pointer hover:bg-indigo-100 transition-colors" onClick={() => setApplyBudgetSurplus(!applyBudgetSurplus)}>
+                        <div className="flex items-center gap-3">
+                            <div className={`p-2 rounded-xl transition-colors ${applyBudgetSurplus ? 'bg-indigo-500 text-white' : 'bg-white text-indigo-300'}`}>
+                                <Wallet size={20} />
+                            </div>
+                            <div>
+                                <p className="text-sm font-black text-indigo-900">Acelerar com Saldo do Orçamento</p>
+                                <p className="text-xs text-indigo-600 font-medium">
+                                    Adicionar <span className="font-bold">R$ {budgetSurplus.toLocaleString('pt-BR')}</span> extras todo mês (sobra do orçamento atual).
+                                </p>
+                            </div>
+                        </div>
+                        <div className={`w-12 h-7 rounded-full p-1 transition-colors ${applyBudgetSurplus ? 'bg-indigo-500' : 'bg-slate-200'}`}>
+                            <div className={`h-5 w-5 bg-white rounded-full shadow-sm transition-transform ${applyBudgetSurplus ? 'translate-x-5' : 'translate-x-0'}`}></div>
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Chart Area */}
@@ -302,11 +338,19 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions 
 
                 <div className="h-[450px] w-full mt-4">
                     <ResponsiveContainer width="100%" height="100%">
-                        <ComposedChart data={displayData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                        <AreaChart data={displayData} margin={{ top: 20, right: 0, left: 0, bottom: 20 }}>
                             <defs>
                                 <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.1} />
-                                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                                    <stop offset="5%" stopColor="#d97706" stopOpacity={0.3} />
+                                    <stop offset="95%" stopColor="#d97706" stopOpacity={0} />
+                                </linearGradient>
+                                <linearGradient id="colorInvested" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.3} />
+                                    <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0} />
+                                </linearGradient>
+                                <linearGradient id="colorPassive" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                                 </linearGradient>
                             </defs>
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -322,7 +366,7 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions 
                                 yAxisId="left"
                                 axisLine={false}
                                 tickLine={false}
-                                tick={{ fontSize: 10, fontWeight: 700, fill: '#94a3b8' }}
+                                tick={{ fontSize: 10, fontWeight: 700, fill: '#d97706' }}
                                 tickFormatter={(value) => `R$${(value / 1000).toLocaleString()}k`}
                                 dx={-10}
                             />
@@ -346,42 +390,33 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions 
                                 yAxisId="left"
                                 type="monotone"
                                 dataKey="displayTotal"
-                                stroke="#6366f1"
-                                strokeWidth={4}
+                                stroke="#d97706"
+                                strokeWidth={3}
                                 fillOpacity={1}
                                 fill="url(#colorTotal)"
-                                name="Patrimônio Total"
+                                name="Patrimônio Final"
                             />
-                            <Line
+                            <Area
                                 yAxisId="left"
                                 type="monotone"
                                 dataKey="invested"
-                                stroke="#94a3b8"
-                                strokeWidth={2}
-                                strokeDasharray="6 6"
-                                dot={false}
-                                name="Total Investido"
+                                stroke="#0ea5e9"
+                                strokeWidth={3}
+                                fillOpacity={1}
+                                fill="url(#colorInvested)"
+                                name="Valor Investido"
                             />
-                            <Bar
+                            <Area
                                 yAxisId="right"
+                                type="monotone"
                                 dataKey="displayPassiveIncome"
-                                fill="#10b981"
-                                name="Renda Mensal"
-                                barSize={viewMode === 'annual' ? 30 : 5}
-                                radius={[8, 8, 0, 0]}
-                                opacity={0.6}
+                                stroke="#10b981"
+                                strokeWidth={3}
+                                fillOpacity={1}
+                                fill="url(#colorPassive)"
+                                name="Renda Passiva Mensal"
                             />
-                            <Line
-                                yAxisId="right"
-                                type="stepAfter"
-                                dataKey="displayRequiredIncome"
-                                stroke="#f43f5e"
-                                strokeWidth={2}
-                                strokeDasharray="4 4"
-                                dot={false}
-                                name="Meta de Renda"
-                            />
-                        </ComposedChart>
+                        </AreaChart>
                     </ResponsiveContainer>
                 </div>
             </div>
@@ -403,9 +438,9 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions 
                             <tr>
                                 <th className="px-8 py-5">Período</th>
                                 <th className="px-8 py-5">Investido</th>
-                                <th className="px-8 py-5">Juros</th>
-                                <th className="px-8 py-5">Patrimônio</th>
-                                <th className="px-8 py-5">Poder de Compra (Real)</th>
+                                <th className="px-8 py-5">Juros Acum.</th>
+                                <th className="px-8 py-5">Perda Inflação</th>
+                                <th className="px-8 py-5">Patrimônio Final</th>
                                 <th className="px-8 py-5">Renda Passiva</th>
                             </tr>
                         </thead>
@@ -423,13 +458,13 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions 
                                             R$ {row.invested.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
                                         </td>
                                         <td className="px-8 py-5 text-emerald-500 font-bold">
-                                            + R$ {row.interest.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
+                                            + R$ {row.displayAccumulatedInterest.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
+                                        </td>
+                                        <td className="px-8 py-5 text-rose-500 font-bold">
+                                            R$ {row.inflationLoss.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
                                         </td>
                                         <td className="px-8 py-5 text-slate-900 font-black">
                                             R$ {row.displayTotal.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
-                                        </td>
-                                        <td className="px-8 py-5 text-slate-400 font-medium italic">
-                                            R$ {row.realTotal.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
                                         </td>
                                         <td className="px-8 py-5">
                                             <span className="text-emerald-700 font-black">R$ {row.displayPassiveIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>

@@ -827,7 +827,7 @@ const App: React.FC = () => {
               case 'budgets':
                 return <BudgetManager transactions={filteredTransactions} budgets={budgets} onUpdateBudget={handleUpdateBudget} onAddBudget={handleAddBudget} />;
               case 'retirement':
-                return <RetirementSimulator transactions={transactions} />;
+                return <RetirementSimulator transactions={transactions} budgets={budgets} />;;
               case 'tags': // Keeping tags if needed, otherwise maybe merged into Categories?
                 return <TagManager tags={tags} onAddTag={handleAddTag} onDeleteTag={handleDeleteTag} onUpdateTag={handleUpdateTag} />;
               case 'reports':
