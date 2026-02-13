@@ -23,6 +23,7 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
     const [viewMode, setViewMode] = useState<'monthly' | 'annual'>('annual');
     const [showRealValues, setShowRealValues] = useState(false);
     const [applyBudgetSurplus, setApplyBudgetSurplus] = useState(false);
+    const [yearsToSimulate, setYearsToSimulate] = useState(60); // Default to 60 years
 
     // Budget Surplus Calculation - Refined with failover and CATEGORIES defaults
     const budgetSurplus = useMemo(() => {
@@ -168,47 +169,30 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
             displayPassiveIncome: showRealValues ? (d.realPassiveIncome || 0) : (d.passiveIncome || 0),
             displayRequiredIncome: showRealValues ? (d.requiredIncomeReal || 0) : (d.requiredIncomeNominal || 0),
             displayAccumulatedInterest: (showRealValues ? (d.realTotal || 0) : (d.total || 0)) - d.invested
-        }));
-    }, [simulationData, viewMode, showRealValues]);
+        })).filter(d => d.year <= yearsToSimulate);
+    }, [simulationData, viewMode, showRealValues, yearsToSimulate]);
 
+    // Find Freedom Point (First time Passive Income > Required)
+    // We calculate this from the full simulation data so the header remains constant regardless of zoom
     const freedomPoint = useMemo(() => {
-        return displayData.find(d => d.displayPassiveIncome >= d.displayRequiredIncome);
-    }, [displayData]);
-
-    const baselineFreedomPoint = useMemo(() => {
-        let processedData = baselineSimulationData;
-        if (viewMode === 'annual') {
-            const annualData: any[] = [];
-            const years = Array.from(new Set(baselineSimulationData.map(d => d.year)));
-            years.forEach(y => {
-                const monthsOfYear = baselineSimulationData.filter(d => d.year === y);
-                const lastMonthOfYear = monthsOfYear[monthsOfYear.length - 1];
-                const yearInterest = monthsOfYear.reduce((sum, m) => sum + m.interest, 0);
-                const yearRealInterest = monthsOfYear.reduce((sum, m) => sum + m.realPassiveIncome, 0);
-                const yearRequiredNominal = monthsOfYear.reduce((sum, m) => sum + m.requiredIncomeNominal, 0);
-                const yearRequiredReal = monthsOfYear.reduce((sum, m) => sum + m.requiredIncomeReal, 0);
-                if (lastMonthOfYear) {
-                    annualData.push({
-                        ...lastMonthOfYear,
-                        interest: yearInterest,
-                        realPassiveIncome: yearRealInterest,
-                        passiveIncome: yearInterest,
-                        requiredIncomeNominal: yearRequiredNominal,
-                        requiredIncomeReal: yearRequiredReal,
-                    });
-                }
-            });
-            processedData = annualData;
-        }
-
-        const baselineDisplayData = processedData.map(d => ({
+        // We need a non-filtered version of display mapping for this
+        const fullDisplayData = simulationData.map(d => ({
             ...d,
             displayPassiveIncome: showRealValues ? (d.realPassiveIncome || 0) : (d.passiveIncome || 0),
             displayRequiredIncome: showRealValues ? (d.requiredIncomeReal || 0) : (d.requiredIncomeNominal || 0),
         }));
+        return fullDisplayData.find(d => d.displayPassiveIncome >= d.displayRequiredIncome);
+    }, [simulationData, showRealValues]);
 
-        return baselineDisplayData.find(d => d.displayPassiveIncome >= d.displayRequiredIncome);
-    }, [baselineSimulationData, viewMode, showRealValues]);
+    const baselineFreedomPoint = useMemo(() => {
+        // Calculate based on the full baseline simulation
+        const fullBaselineDisplayData = baselineSimulationData.map(d => ({
+            ...d,
+            displayPassiveIncome: showRealValues ? (d.realPassiveIncome || 0) : (d.passiveIncome || 0),
+            displayRequiredIncome: showRealValues ? (d.requiredIncomeReal || 0) : (d.requiredIncomeNominal || 0),
+        }));
+        return fullBaselineDisplayData.find(d => d.displayPassiveIncome >= d.displayRequiredIncome);
+    }, [baselineSimulationData, showRealValues]);
 
     const timeReduction = useMemo(() => {
         if (!freedomPoint || !baselineFreedomPoint || !applyBudgetSurplus) return null;
@@ -316,10 +300,21 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                 <div className="mb-8 flex flex-col md:flex-row justify-between items-center gap-6">
                     <div>
                         <h3 className="text-xl font-black text-slate-900 tracking-tight">Projeção de Longo Prazo</h3>
-                        <p className="text-xs font-medium text-slate-400 mt-1">Simulação nominal vs real pelos próximos 60 anos.</p>
+                        <p className="text-xs font-medium text-slate-400 mt-1">Simulação nominal vs real pelos próximos {yearsToSimulate} anos.</p>
                     </div>
 
-                    <div className="flex gap-4">
+                    <div className="flex flex-wrap gap-4 items-center">
+                        <div className="flex bg-slate-100 p-1.5 rounded-2xl border border-slate-200">
+                            {[5, 10, 20, 30, 40, 50, 60].map((y) => (
+                                <button
+                                    key={y}
+                                    onClick={() => setYearsToSimulate(y)}
+                                    className={`px-3 py-2 rounded-xl text-[10px] font-black tracking-widest transition-all ${yearsToSimulate === y ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                                >
+                                    {y}A
+                                </button>
+                            ))}
+                        </div>
                         <div className="flex bg-slate-50 p-1.5 rounded-2xl border border-slate-200">
                             <button
                                 onClick={() => setShowRealValues(false)}
