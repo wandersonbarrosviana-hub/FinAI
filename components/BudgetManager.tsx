@@ -38,7 +38,7 @@ const BudgetManager: React.FC<BudgetManagerProps> = ({ transactions, budgets: pe
         // Using persisted budgets from props or defaulting
         setBudgets(prev => {
             return CATEGORIES.map(category => {
-                const persisted = persistedBudgets.find(b => b.category === category);
+                const persisted = persistedBudgets.find(b => b.category === category && (!b.month || b.month === currentMonth));
                 const spent = spendingByCategory[category] || 0;
 
                 // If persisted exists, use its amount. Else default relative to income or base.

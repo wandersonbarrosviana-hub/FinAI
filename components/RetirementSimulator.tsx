@@ -4,6 +4,7 @@ import { ComposedChart, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, R
 import { Calculator, Table, Calendar, TrendingUp, DollarSign, Info, Umbrella } from 'lucide-react';
 import ChartContainer from './ChartContainer';
 import { Budget } from '../types';
+import { CATEGORIES } from '../constants';
 
 interface RetirementSimulatorProps {
     transactions: Transaction[];
@@ -24,9 +25,9 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
     const [showRealValues, setShowRealValues] = useState(false);
     const [applyBudgetSurplus, setApplyBudgetSurplus] = useState(false);
 
-    // Budget Surplus Calculation - Refined with failover
+    // Budget Surplus Calculation - Refined with failover and CATEGORIES defaults
     const budgetSurplus = useMemo(() => {
-        if (!budgets || budgets.length === 0) return 0;
+        // We no longer early return if budgets is empty, we use defaults like BudgetManager
 
         const currentMonth = new Date().toISOString().slice(0, 7);
         let income = transactions
@@ -46,7 +47,13 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
             }
         }
 
-        const totalBudgeted = budgets.reduce((sum, b) => sum + b.amount, 0);
+        // Use CATEGORIES to calculate total budget (matching BudgetManager defaults)
+        const totalBudgeted = CATEGORIES.reduce((sum, category) => {
+            const persisted = budgets?.find(b => b.category === category && (!b.month || b.month === currentMonth));
+            const amount = persisted ? persisted.amount : (income > 0 ? income * 0.1 : 500);
+            return sum + amount;
+        }, 0);
+
         return Math.max(0, income - totalBudgeted);
     }, [transactions, budgets]);
 
@@ -362,7 +369,7 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                                 axisLine={false}
                                 tickLine={false}
                                 tick={{ fontSize: 10, fontWeight: 700, fill: '#d97706' }}
-                                tickFormatter={(value) => `R$${(value / 1000).toLocaleString()}k`}
+                                tickFormatter={(value) => `R$${(value / 1000).toLocaleString()} k`}
                                 dx={-10}
                             />
                             <YAxis
@@ -373,15 +380,15 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                                 // Scale to keep the line visually below the main area (approx bottom 1/3)
                                 domain={[0, (dataMax: number) => dataMax * 3]}
                                 tick={{ fontSize: 10, fontWeight: 700, fill: '#10b981' }}
-                                tickFormatter={(value) => `R$${value.toLocaleString()}`}
+                                tickFormatter={(value) => `R$${value.toLocaleString()} `}
                                 dx={10}
                             />
                             <Tooltip
                                 contentStyle={{ backgroundColor: '#fff', borderRadius: '24px', border: '1px solid #f1f5f9', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', color: '#0f172a', padding: '16px' }}
                                 itemStyle={{ fontSize: '12px', fontWeight: 900, textTransform: 'uppercase' }}
-                                formatter={(value: number) => `R$ ${value.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}`}
+                                formatter={(value: number) => `R$ ${value.toLocaleString('pt-BR', { maximumFractionDigits: 0 })} `}
                                 labelStyle={{ color: '#64748b', fontWeight: 700, marginBottom: '8px' }}
-                                labelFormatter={(label) => viewMode === 'annual' ? `Ano ${label}` : `Mês ${label}`}
+                                labelFormatter={(label) => viewMode === 'annual' ? `Ano ${label} ` : `Mês ${label} `}
                             />
                             <Area
                                 yAxisId="left"
@@ -448,7 +455,7 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                                     <tr key={row.month} className={`group transition-all ${isFreedom ? 'bg-emerald-50/50' : 'hover:bg-slate-50/50'}`}>
                                         <td className="px-8 py-5">
                                             <span className={`px-4 py-1 rounded-full text-[10px] font-black tracking-widest ${isFreedom ? 'bg-emerald-500 text-white shadow-xl shadow-emerald-100' : 'bg-slate-100 text-slate-400 group-hover:bg-white group-hover:text-slate-600'}`}>
-                                                {viewMode === 'annual' ? `ANO ${row.yearLabel}` : `MÊS ${row.month}`}
+                                                {viewMode === 'annual' ? `ANO ${row.yearLabel} ` : `MÊS ${row.month} `}
                                             </span>
                                         </td>
                                         <td className="px-8 py-5 text-slate-600 font-bold">
