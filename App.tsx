@@ -71,7 +71,16 @@ const App: React.FC = () => {
   }, [currentDate]);
 
   useEffect(() => {
+    // Safety Timeout: Force stop loading after 8 seconds if Supabase hangs
+    const safetyTimeout = setTimeout(() => {
+      if (loading) {
+        console.warn("Safety Timeout: Auth session taking too long, forcing entry.");
+        setLoading(false);
+      }
+    }, 8000);
+
     supabase.auth.getSession().then(({ data: { session } }) => {
+      clearTimeout(safetyTimeout);
       setSession(session);
       if (session?.user) {
         setUser({
@@ -84,6 +93,10 @@ const App: React.FC = () => {
       } else {
         setLoading(false);
       }
+    }).catch(err => {
+      console.error("Auth session error:", err);
+      clearTimeout(safetyTimeout);
+      setLoading(false);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -105,7 +118,10 @@ const App: React.FC = () => {
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(safetyTimeout);
+    };
   }, []);
 
   const fetchData = async (userId: string) => {
@@ -674,7 +690,21 @@ const App: React.FC = () => {
   };
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center bg-slate-50 text-sky-600"><Loader2 size={40} className="animate-spin" /></div>;
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 text-sky-600">
+        <Loader2 size={40} className="animate-spin mb-4" />
+        <p className="text-slate-500 animate-pulse">Carregando FinAI...</p>
+        <div className="mt-8 flex flex-col items-center gap-2">
+          <p className="text-xs text-slate-400">Problemas na conexão?</p>
+          <button
+            onClick={() => setLoading(false)}
+            className="text-xs text-sky-600 hover:text-sky-700 underline font-medium"
+          >
+            Clique aqui para forçar a entrada
+          </button>
+        </div>
+      </div>
+    );
   }
 
   if (!user) {
