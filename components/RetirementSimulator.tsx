@@ -24,13 +24,28 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
     const [showRealValues, setShowRealValues] = useState(false);
     const [applyBudgetSurplus, setApplyBudgetSurplus] = useState(false);
 
-    // Budget Surplus Calculation
+    // Budget Surplus Calculation - Refined with failover
     const budgetSurplus = useMemo(() => {
         if (!budgets || budgets.length === 0) return 0;
+
         const currentMonth = new Date().toISOString().slice(0, 7);
-        const income = transactions
+        let income = transactions
             .filter(t => t.type === 'income' && t.date.startsWith(currentMonth))
             .reduce((sum, t) => sum + t.amount, 0);
+
+        // If no income this month, look for the most recent month with income
+        if (income === 0 && transactions.length > 0) {
+            const incomeTransactions = transactions.filter(t => t.type === 'income');
+            if (incomeTransactions.length > 0) {
+                // Sort by date descending
+                const sortedIncomes = [...incomeTransactions].sort((a, b) => b.date.localeCompare(a.date));
+                const lastMonth = sortedIncomes[0].date.slice(0, 7);
+                income = transactions
+                    .filter(t => t.type === 'income' && t.date.startsWith(lastMonth))
+                    .reduce((sum, t) => sum + t.amount, 0);
+            }
+        }
+
         const totalBudgeted = budgets.reduce((sum, b) => sum + b.amount, 0);
         return Math.max(0, income - totalBudgeted);
     }, [transactions, budgets]);
@@ -40,10 +55,6 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
         const monthlyRate = Math.pow(1 + annualRate / 100, 1 / 12) - 1;
         const monthlyInflation = Math.pow(1 + annualInflation / 100, 1 / 12) - 1;
 
-        // Target Patrimony (Fire Number)
-        // Usually: Desired Income * 12 / Safe Withdrawal Rate (e.g. 4% Real)
-        // Or specific target inputs. Let's use 4% Rule (300x monthly income) as a baseline target line.
-        // But since we are modelling Nominal values (with inflation), the Target Nominal Amount grows.
         const baseTarget = desiredIncome * 300;
 
         let currentBalance = currentPatrimony;
@@ -52,16 +63,12 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
         let currentTarget = baseTarget;
 
         const data = [];
-        const yearsFixed = 60; // Fixed 60 years per user request
+        const yearsFixed = 60;
         const months = yearsFixed * 12;
 
-        for (let i = 0; i <= months; i++) {
-            // Logic:
-            // 1. Add Contribution
-            // 2. Apply Interest
-            // 3. Apply Inflation to Target
+        const baseMonthlyContribution = monthlyContribution + (applyBudgetSurplus ? budgetSurplus : 0);
 
-            // For Month 0 (Start)
+        for (let i = 0; i <= months; i++) {
             if (i === 0) {
                 data.push({
                     month: 0,
@@ -72,8 +79,7 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                     total: currentPatrimony,
                     inflationLoss: 0,
                     target: baseTarget,
-                    contributionNeeded: monthlyContribution,
-                    // Init new fields
+                    contributionNeeded: baseMonthlyContribution,
                     passiveIncome: 0,
                     requiredIncomeNominal: desiredIncome,
                     realTotal: currentPatrimony,
@@ -83,49 +89,39 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                 continue;
             }
 
-            const effectiveContribution = monthlyContribution + (applyBudgetSurplus ? budgetSurplus : 0);
-
             const interestEarned = currentBalance * monthlyRate;
 
-            currentBalance += interestEarned + effectiveContribution;
-            totalInvested += effectiveContribution;
+            currentBalance += interestEarned + baseMonthlyContribution;
+            totalInvested += baseMonthlyContribution;
 
             cumulativeInflationFactor *= (1 + monthlyInflation);
-            currentTarget = baseTarget * cumulativeInflationFactor; // Target grows to maintain purchasing power
+            currentTarget = baseTarget * cumulativeInflationFactor;
 
-            // "Preço corroído pela inflação" usually means "What is this nominal amount worth in today's money?"
             const realValue = currentBalance / cumulativeInflationFactor;
             const inflationLoss = currentBalance - realValue;
-
-            // Real Interest (Passive Income in today's money)
             const realInterest = interestEarned / cumulativeInflationFactor;
 
-            const adjustedContribution = monthlyContribution * cumulativeInflationFactor;
+            const adjustedContribution = baseMonthlyContribution * cumulativeInflationFactor;
 
             data.push({
                 month: i,
                 year: Math.floor(i / 12),
                 yearLabel: new Date().getFullYear() + Math.floor(i / 12),
                 invested: totalInvested,
-
-                // Nominal
                 interest: interestEarned,
                 total: currentBalance,
                 passiveIncome: interestEarned,
                 requiredIncomeNominal: desiredIncome * cumulativeInflationFactor,
-
-                // Real
                 realTotal: realValue,
                 realPassiveIncome: realInterest,
-                requiredIncomeReal: desiredIncome, // Constant in real terms
-
+                requiredIncomeReal: desiredIncome,
                 inflationLoss: inflationLoss,
                 target: currentTarget,
                 contributionNeeded: adjustedContribution
             });
         }
         return data;
-    }, [desiredIncome, currentPatrimony, monthlyContribution, annualRate, annualInflation]);
+    }, [desiredIncome, currentPatrimony, monthlyContribution, annualRate, annualInflation, applyBudgetSurplus, budgetSurplus]);
 
     // Aggregate for Table/Chart if Annual
     // Aggregate for Table/Chart if Annual
@@ -376,7 +372,6 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                                 tickLine={false}
                                 // Scale to keep the line visually below the main area (approx bottom 1/3)
                                 domain={[0, (dataMax: number) => dataMax * 3]}
-                                tick={{ fontSize: 10, fontWeight: 700, fill: '#10b981' }}
                                 tick={{ fontSize: 10, fontWeight: 700, fill: '#10b981' }}
                                 tickFormatter={(value) => `R$${value.toLocaleString()}`}
                                 dx={10}
