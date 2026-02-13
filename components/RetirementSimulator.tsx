@@ -265,25 +265,24 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                     </div>
                 </div>
 
-                {/* Budget Integration Toggle */}
-                {budgetSurplus > 0 && (
-                    <div className="mt-6 bg-indigo-50 p-4 rounded-2xl flex items-center justify-between border border-indigo-100 cursor-pointer hover:bg-indigo-100 transition-colors" onClick={() => setApplyBudgetSurplus(!applyBudgetSurplus)}>
-                        <div className="flex items-center gap-3">
-                            <div className={`p-2 rounded-xl transition-colors ${applyBudgetSurplus ? 'bg-indigo-500 text-white' : 'bg-white text-indigo-300'}`}>
-                                <DollarSign size={20} />
-                            </div>
-                            <div>
-                                <p className="text-sm font-black text-indigo-900">Acelerar com Saldo do Orçamento</p>
-                                <p className="text-xs text-indigo-600 font-medium">
-                                    Adicionar <span className="font-bold">R$ {budgetSurplus.toLocaleString('pt-BR')}</span> extras todo mês (sobra do orçamento atual).
-                                </p>
-                            </div>
+                {/* Budget Integration Toggle - Always visible now */}
+                <div className="mt-6 bg-indigo-50 p-4 rounded-2xl flex items-center justify-between border border-indigo-100 cursor-pointer hover:bg-indigo-100 transition-colors" onClick={() => setApplyBudgetSurplus(!applyBudgetSurplus)}>
+                    <div className="flex items-center gap-3">
+                        <div className={`p-2 rounded-xl transition-colors ${applyBudgetSurplus ? 'bg-indigo-500 text-white' : 'bg-white text-indigo-300'}`}>
+                            <DollarSign size={20} />
                         </div>
-                        <div className={`w-12 h-7 rounded-full p-1 transition-colors ${applyBudgetSurplus ? 'bg-indigo-500' : 'bg-slate-200'}`}>
-                            <div className={`h-5 w-5 bg-white rounded-full shadow-sm transition-transform ${applyBudgetSurplus ? 'translate-x-5' : 'translate-x-0'}`}></div>
+                        <div>
+                            <p className="text-sm font-black text-indigo-900">Acelerar com Saldo do Orçamento</p>
+                            <p className="text-xs text-indigo-600 font-medium">
+                                Adicionar <span className="font-bold">R$ {budgetSurplus.toLocaleString('pt-BR')}</span> extras todo mês (sobra do orçamento atual).
+                            </p>
                         </div>
                     </div>
-                )}
+                    <div className={`w-12 h-7 rounded-full p-1 transition-colors ${applyBudgetSurplus ? 'bg-indigo-500' : 'bg-slate-200'}`}>
+                        <div className={`h-5 w-5 bg-white rounded-full shadow-sm transition-transform ${applyBudgetSurplus ? 'translate-x-5' : 'translate-x-0'}`}></div>
+                    </div>
+                </div>
+
             </div>
 
             {/* Chart Area */}
@@ -375,6 +374,9 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                                 orientation="right"
                                 axisLine={false}
                                 tickLine={false}
+                                // Scale to keep the line visually below the main area (approx bottom 1/3)
+                                domain={[0, (dataMax: number) => dataMax * 3]}
+                                tick={{ fontSize: 10, fontWeight: 700, fill: '#10b981' }}
                                 tick={{ fontSize: 10, fontWeight: 700, fill: '#10b981' }}
                                 tickFormatter={(value) => `R$${value.toLocaleString()}`}
                                 dx={10}
