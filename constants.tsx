@@ -75,10 +75,10 @@ export interface BankInfo {
 
 export const BANKS: BankInfo[] = [
   // Coluna Esquerda - Bancos Tradicionais
-  { id: 'itau', name: 'Itaú', color: '#EC7000', logoUrl: 'https://cdn.jsdelivr.net/gh/yurijserrano/financicons@main/svg/itau.svg' },
-  { id: 'nubank', name: 'Nubank', color: '#8A05BE', logoUrl: 'https://cdn.jsdelivr.net/gh/yurijserrano/financicons@main/svg/nubank.svg' },
-  { id: 'bradesco', name: 'Bradesco', color: '#CC092F', logoUrl: 'https://cdn.jsdelivr.net/gh/yurijserrano/financicons@main/svg/bradesco.svg' },
-  { id: 'bb', name: 'Banco do Brasil', color: '#FCF200', logoUrl: 'https://cdn.jsdelivr.net/gh/yurijserrano/financicons@main/svg/bancodobrasil.svg' },
+  { id: 'itau', name: 'Itaú', color: '#EC7000', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/2/2e/Ita%C3%BA_logo.svg' },
+  { id: 'nubank', name: 'Nubank', color: '#8A05BE', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/e/ec/Nubank_logo_2021.svg' },
+  { id: 'bradesco', name: 'Bradesco', color: '#CC092F', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/1/1a/Banco_Bradesco_logo_%28horizontal%29.svg' },
+  { id: 'bb', name: 'Banco do Brasil', color: '#FCF200', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/f/fa/Banco_do_Brasil_logo.svg' },
   { id: 'santander', name: 'Santander', color: '#EC0000', logoUrl: 'https://cdn.jsdelivr.net/gh/yurijserrano/financicons@main/svg/santander.svg' },
   { id: 'caixa', name: 'Caixa', color: '#005CA9', logoUrl: 'https://cdn.jsdelivr.net/gh/yurijserrano/financicons@main/svg/caixa.svg' },
   { id: 'inter', name: 'Inter', color: '#FF7A00', logoUrl: 'https://cdn.jsdelivr.net/gh/yurijserrano/financicons@main/svg/inter.svg' },
