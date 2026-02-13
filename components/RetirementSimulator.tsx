@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Transaction } from '../types';
-import { ComposedChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Line, Bar, ReferenceDot, Label, ReferenceLine } from 'recharts';
-import { Calculator, Table, Calendar, TrendingUp, DollarSign, Info, Umbrella, Wallet } from 'lucide-react';
+import { ComposedChart, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Line, Bar, ReferenceDot, Label, ReferenceLine } from 'recharts';
+import { Calculator, Table, Calendar, TrendingUp, DollarSign, Info, Umbrella } from 'lucide-react';
 import ChartContainer from './ChartContainer';
 import { Budget } from '../types';
 
@@ -10,7 +10,7 @@ interface RetirementSimulatorProps {
     budgets?: Budget[];
 }
 
-const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions }) => {
+const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions, budgets }) => {
     // Inputs
     const [desiredIncome, setDesiredIncome] = useState(5000);
     const [currentPatrimony, setCurrentPatrimony] = useState(0);
@@ -270,7 +270,7 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions 
                     <div className="mt-6 bg-indigo-50 p-4 rounded-2xl flex items-center justify-between border border-indigo-100 cursor-pointer hover:bg-indigo-100 transition-colors" onClick={() => setApplyBudgetSurplus(!applyBudgetSurplus)}>
                         <div className="flex items-center gap-3">
                             <div className={`p-2 rounded-xl transition-colors ${applyBudgetSurplus ? 'bg-indigo-500 text-white' : 'bg-white text-indigo-300'}`}>
-                                <Wallet size={20} />
+                                <DollarSign size={20} />
                             </div>
                             <div>
                                 <p className="text-sm font-black text-indigo-900">Acelerar com Saldo do Orçamento</p>
