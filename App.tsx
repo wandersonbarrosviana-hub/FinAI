@@ -128,11 +128,11 @@ const App: React.FC = () => {
     setLoading(true);
     try {
       const [txRes, accRes, goalRes, tagRes, budRes] = await Promise.all([
-        supabase.from('transactions').select('*').eq('user_id', userId).order('date', { ascending: false }),
-        supabase.from('accounts').select('*').eq('user_id', userId),
-        supabase.from('goals').select('*').eq('user_id', userId),
-        supabase.from('tags').select('*').eq('user_id', userId),
-        supabase.from('budgets').select('*').eq('user_id', userId)
+        supabase.from('transactions').select('id, description, amount, date, type, category, account_id, user_id, is_paid, due_date, installment_count, installment_total, tag_ids').eq('user_id', userId).order('date', { ascending: false }).limit(100),
+        supabase.from('accounts').select('id, name, balance, color, type, bank_id, is_credit, user_id').eq('user_id', userId),
+        supabase.from('goals').select('id, title, target_amount, current_amount, deadline, icon, color, user_id').eq('user_id', userId),
+        supabase.from('tags').select('id, name, color, user_id').eq('user_id', userId),
+        supabase.from('budgets').select('id, category, amount, period, user_id').eq('user_id', userId)
       ]);
 
       if (txRes.error) throw txRes.error;
