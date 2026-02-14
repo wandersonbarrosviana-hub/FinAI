@@ -251,3 +251,64 @@ export const parseNotification = async (notificationText: string): Promise<any> 
         return null;
     }
 };
+
+// --- INVOICE PARSING ---
+export const parseInvoice = async (invoiceText: string): Promise<any> => {
+    // Basic check, might rely on config.ts or env directly
+    const apiKey = import.meta.env.VITE_GROQ_API_KEY || '';
+
+    if (!apiKey) {
+        console.warn("Groq API Key missing for invoice parsing.");
+        return { error: "API Key missing" };
+    }
+
+    // Truncate text if too long to avoid token limits (optimistic approach)
+    const truncatedText = invoiceText.slice(0, 15000);
+
+    const parserPrompt = `
+    Analyze the following credit card invoice text and extract the transactions.
+    Return ONLY a valid JSON object with this structure:
+    {
+      "items": [
+        {
+          "date": "YYYY-MM-DD", // Date of purchase. Use current year if missing.
+          "description": "Store Name", // Clean up the name
+          "amount": 100.00, // Positive number
+          "installmentCurrent": 1, // If installment (e.g., 01/10), else null
+          "installmentTotal": 10 // If installment, else null
+        }
+      ],
+      "total": 0.00,
+      "confidence": 0.9
+    }
+
+    Rules:
+    - Ignore payments, credits, or subtotal lines. Only new purchases/installments.
+    - Convert all dates to YYYY-MM-DD.
+    - If a transaction is an installment (e.g. "Parc 01/10"), extract current and total.
+    - Return JSON only. No markdown.
+
+    INVOICE TEXT:
+    ${truncatedText}
+    `;
+
+    try {
+        const completion = await groq.chat.completions.create({
+            messages: [
+                { role: "system", content: "You are a specialized financial data extractor. You output strictly valid JSON." },
+                { role: "user", content: parserPrompt }
+            ],
+            model: "llama3-70b-8192", // High intelligence needed for unstructured text
+            temperature: 0.1, // Low temp for precision
+            response_format: { type: "json_object" }
+        });
+
+        const content = completion.choices[0]?.message?.content;
+        if (!content) throw new Error("No content from Groq");
+
+        return JSON.parse(content);
+    } catch (error) {
+        console.error("Error parsing invoice with Groq:", error);
+        return { items: [], error: "Failed to parse invoice" };
+    }
+};

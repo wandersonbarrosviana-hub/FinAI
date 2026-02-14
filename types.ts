@@ -41,6 +41,9 @@ export interface Account {
   bankId: string;
   color?: string;
   isCredit?: boolean;
+  creditLimit?: number;
+  closingDay?: number;
+  dueDay?: number;
 }
 
 export interface Goal {
@@ -94,6 +97,7 @@ export type ViewState =
   | 'reports'
   | 'transactions'
   | 'ai-assistant'
+  | 'tags'
   | 'investments';
 
 export interface InvestmentIndicator {

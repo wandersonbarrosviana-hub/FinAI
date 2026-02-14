@@ -7,9 +7,10 @@ interface ReportsProps {
     transactions: Transaction[];
     accounts: Account[];
     tags: Tag[];
+    currentDate: Date;
 }
 
-const Reports: React.FC<ReportsProps> = ({ transactions, accounts, tags }) => {
+const Reports: React.FC<ReportsProps> = ({ transactions, accounts, tags, currentDate }) => {
     // Filter States
     const [dateRange, setDateRange] = useState({
         start: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
@@ -56,7 +57,7 @@ const Reports: React.FC<ReportsProps> = ({ transactions, accounts, tags }) => {
                                 t.category,
                                 t.amount.toFixed(2).replace('.', ','),
                                 t.type === 'income' ? 'Receita' : 'Despesa',
-                                t.paid ? 'Pago' : 'Pendente'
+                                t.isPaid ? 'Pago' : 'Pendente'
                             ]);
 
                             const csvContent = "data:text/csv;charset=utf-8,"

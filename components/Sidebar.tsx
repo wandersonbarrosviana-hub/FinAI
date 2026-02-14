@@ -49,7 +49,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, isOpen, se
                   }`}
               >
                 <div className={`flex items-center relative z-10 ${isOpen ? 'ml-2' : 'mx-auto'}`}>
-                  {React.cloneElement(item.icon as React.ReactElement, {
+                  {React.cloneElement(item.icon as any, {
                     size: 20,
                     className: isActive ? 'text-sky-600' : 'transition-colors'
                   })}
@@ -88,7 +88,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, isOpen, se
                   }`}
               >
                 <div className={`p-1.5 rounded-xl mb-1 ${isActive ? 'bg-sky-50' : ''}`}>
-                  {React.cloneElement(item.icon as React.ReactElement, { size: 22 })}
+                  {React.cloneElement(item.icon as any, { size: 22 })}
                 </div>
                 <span className="text-[10px] font-bold tracking-tight">
                   {item.label}

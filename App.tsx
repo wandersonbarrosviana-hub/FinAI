@@ -16,7 +16,7 @@ import ChartsHub from './components/ChartsHub';
 import CategoryManager from './components/CategoryManager';
 import Reports from './components/Reports';
 import Investments from './components/Investments';
-import Investments from './components/Investments';
+
 import ProfileModal from './components/ProfileModal';
 import FinancialAssistant from './components/FinancialAssistant';
 import { Budget } from './types';
@@ -829,56 +829,32 @@ const App: React.FC = () => {
           </div>
         </header>
 
-        <div className="p-4 md:p-8 overflow-y-auto scrollbar-hide text-slate-800">
-          <div className="mb-8">
-            <VoiceControl onAddTransaction={handleAICommand} />
-          </div>
-
-          {/* We pass the FILTERED transactions to views, so they only see the selected month's data */}
-          {(() => {
-            switch (currentView) {
-              case 'dashboard':
-                return (
-                  <div className="space-y-6">
-                    {/* Replaced legacy card with Dashboard's internal card */}
-                    <Dashboard transactions={filteredTransactions} accounts={accounts} onAddClick={() => setCurrentView('expenses')} tags={tags} goals={goals} budgets={budgets} />
-                  </div>
-                );
-              case 'expenses':
-                return <ExpenseManager type="expense" transactions={filteredTransactions} onAddTransaction={handleAddTransaction} onDeleteTransaction={handleDeleteTransaction} onUpdateTransaction={handleUpdateTransaction} tags={tags} accounts={accounts} />;
-              case 'income':
-                return <ExpenseManager type="income" transactions={filteredTransactions} allTransactions={transactions} onAddTransaction={handleAddTransaction} onDeleteTransaction={handleDeleteTransaction} onUpdateTransaction={handleUpdateTransaction} tags={tags} accounts={accounts} />;
-              case 'transactions':
-                return <TransactionManager
-                  transactions={filteredTransactions}
-                  accounts={accounts}
-                  tags={tags}
-                  onAddTransaction={handleAddTransaction}
-                  onUpdateTransaction={handleUpdateTransaction}
         {/* Main Content Area */}
         <div className="flex-1 overflow-y-auto overflow-x-hidden p-6 relative scrollbar-hide">
-          {currentView === 'dashboard' && <Dashboard 
-             userName={user.name}
-             transactions={transactions}
-             accounts={accounts}
-             onAddTransaction={handleAddTransaction}
-             onAddAccount={handleAddAccount}
-            />}
-          {currentView === 'transactions' && <TransactionManager 
-             transactions={filteredTransactions}
-             accounts={accounts}
-             tags={tags}
-             onAddTransaction={handleAddTransaction}
-             onDeleteTransaction={handleDeleteTransaction}
-             onUpdateTransaction={handleUpdateTransaction}
-             onTransfer={handleTransfer}
-            />}
-          {currentView === 'reports' && <Reports 
-              transactions={transactions}
-              accounts={accounts}
-              tags={tags}
-             />}
-          {currentView === 'credit-cards' && <CreditCardManager accounts={accounts.filter(a => a.isCredit)} onAddAccount={handleAddAccount} />}
+          {currentView === 'dashboard' && <Dashboard
+            transactions={filteredTransactions}
+            accounts={accounts}
+            onAddClick={() => setCurrentView('expenses')} // Updated logic
+            tags={tags}
+            goals={goals}
+            budgets={budgets}
+          />}
+          {currentView === 'transactions' && <TransactionManager
+            transactions={filteredTransactions}
+            accounts={accounts}
+            tags={tags}
+            onAddTransaction={handleAddTransaction}
+            onDeleteTransaction={handleDeleteTransaction}
+            onUpdateTransaction={handleUpdateTransaction}
+            onTransfer={handleTransfer}
+          />}
+          {currentView === 'reports' && <Reports
+            transactions={transactions}
+            accounts={accounts}
+            currentDate={currentDate}
+            tags={tags}
+          />}
+          {currentView === 'credit-cards' && <CreditCardManager accounts={accounts.filter(a => a.isCredit)} transactions={transactions} onAddTransaction={handleAddTransaction} onAddAccount={handleAddAccount} />}
           {currentView === 'budgets' && <BudgetManager transactions={filteredTransactions} budgets={budgets} onUpdateBudget={handleUpdateBudget} onAddBudget={handleAddBudget} />}
           {currentView === 'goals' && <GoalManager goals={goals} transactions={filteredTransactions} accounts={accounts} onAddGoal={handleAddGoal} onDeleteGoal={handleDeleteGoal} />}
           {currentView === 'categories' && <CategoryManager transactions={filteredTransactions} />}
@@ -887,86 +863,73 @@ const App: React.FC = () => {
           {currentView === 'retirement' && <RetirementSimulator transactions={transactions} budgets={budgets} />}
           {currentView === 'tags' && <TagManager tags={tags} onAddTag={handleAddTag} onDeleteTag={handleDeleteTag} onUpdateTag={handleUpdateTag} />}
           {currentView === 'ai-assistant' && (
-              <div className="p-4 md:p-8 overflow-y-auto scrollbar-hide text-slate-800 h-full flex flex-col">
-                <div className="max-w-4xl mx-auto w-full h-full">
-                  <div className="mb-6">
-                    <h2 className="text-2xl font-black text-slate-900 tracking-tight">Assistente Virtual</h2>
-                    <p className="text-slate-500 font-medium">Seu consultor financeiro pessoal 24/7</p>
-                  </div>
-                  <FinancialAssistant
-                    userName={user?.name || 'Investidor'}
-                    transactions={transactions}
-                    accounts={accounts}
-                    goals={goals}
-                    budgets={budgets} // Se não tiver budgets no state, passar [] e ajustar depois
-                    onAddTransaction={handleAddTransaction}
-                  />
+            <div className="p-4 md:p-8 overflow-y-auto scrollbar-hide text-slate-800 h-full flex flex-col">
+              <div className="max-w-4xl mx-auto w-full h-full">
+                <div className="mb-6">
+                  <h2 className="text-2xl font-black text-slate-900 tracking-tight">Assistente Virtual</h2>
+                  <p className="text-slate-500 font-medium">Seu consultor financeiro pessoal 24/7</p>
                 </div>
+                <FinancialAssistant
+                  userName={user?.name || 'Investidor'}
+                  transactions={transactions}
+                  accounts={accounts}
+                  goals={goals}
+                  budgets={budgets}
+                  onAddTransaction={handleAddTransaction}
+                />
               </div>
-            )}
+            </div>
+          )}
           {currentView === 'expenses' && <ExpenseManager type="expense" transactions={filteredTransactions} onAddTransaction={handleAddTransaction} onDeleteTransaction={handleDeleteTransaction} onUpdateTransaction={handleUpdateTransaction} tags={tags} accounts={accounts} />}
           {currentView === 'income' && <ExpenseManager type="income" transactions={filteredTransactions} allTransactions={transactions} onAddTransaction={handleAddTransaction} onDeleteTransaction={handleDeleteTransaction} onUpdateTransaction={handleUpdateTransaction} tags={tags} accounts={accounts} />}
           {currentView === 'charts' && <ChartsHub transactions={filteredTransactions} />}
-          {currentView === 'default' && (
-                  <div className="flex flex-col items-center justify-center h-full text-slate-400 space-y-4">
-                    <div className="p-12 bg-white rounded-3xl border border-slate-100 text-center max-w-md shadow-xl ring-1 ring-black/5">
-                      <div className="w-16 h-16 bg-sky-50 rounded-full flex items-center justify-center mx-auto mb-6 text-sky-600 shadow-sm border border-sky-100">
-                        <Sparkles size={32} />
-                      </div>
-                      <h3 className="text-xl font-black text-slate-900 mb-2">Visão não encontrada</h3>
-                      <p className="text-sm text-slate-500 font-medium">Ops! Parece que esta seção ainda está em desenvolvimento ou foi movida.</p>
-                      <button
-                        onClick={() => setCurrentView('dashboard')}
-                        className="mt-6 px-6 py-2 bg-sky-600 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-sky-700 transition-all shadow-lg shadow-sky-100"
-                      >
-                        Voltar ao Dashboard
-                      </button>
-                    </div>
-                  </div>
-                )}
         </div>
       </main>
-      showNotificationPopup && notificationData && (
-      // ... notification popup ...
-      <div className="fixed bottom-6 right-6 z-50 animate-in fade-in slide-in-from-bottom-10 duration-500">
-        <div className="bg-white/95 backdrop-blur-xl p-5 rounded-3xl shadow-2xl border border-slate-100 flex flex-col space-y-3 max-w-sm ring-1 ring-black/5">
-          <div className="flex items-center space-x-3">
-            <div className="p-2.5 bg-sky-50 text-sky-600 rounded-2xl border border-sky-100"><AlertCircle size={20} /></div>
-            <div className="flex-1">
-              <p className="text-[10px] font-black text-sky-600 uppercase tracking-widest">IA - Notificação Detectada</p>
-              <p className="text-sm font-bold text-slate-900">Novo Evento Financeiro</p>
+
+      {/* Global Voice Control - Floating Action Button */}
+      <VoiceControl onAddTransaction={(result) => { handleAICommand(result); return true; }} />
+
+      {/* Global Components Layer */}
+      {showNotificationPopup && notificationData && (
+        <div className="fixed bottom-6 right-6 z-50 animate-in fade-in slide-in-from-bottom-10 duration-500">
+          <div className="bg-white/95 backdrop-blur-xl p-5 rounded-3xl shadow-2xl border border-slate-100 flex flex-col space-y-3 max-w-sm ring-1 ring-black/5">
+            <div className="flex items-center space-x-3">
+              <div className="p-2.5 bg-sky-50 text-sky-600 rounded-2xl border border-sky-100"><AlertCircle size={20} /></div>
+              <div className="flex-1">
+                <p className="text-[10px] font-black text-sky-600 uppercase tracking-widest">IA - Notificação Detectada</p>
+                <p className="text-sm font-bold text-slate-900">Novo Evento Financeiro</p>
+              </div>
+            </div>
+            <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 italic text-xs text-slate-500">"{notificationData.raw}"</div>
+
+            <div className="text-xs text-slate-500 font-medium">
+              A IA identificou:
+              <span className="font-bold text-slate-900 block mt-1 uppercase tracking-tight">
+                {notificationData.parsed.category} &gt; {notificationData.parsed.subCategory}
+              </span>
+              Deseja confirmar o lançamento?
+            </div>
+
+            <div className="flex space-x-2">
+              <button onClick={() => { handleAddTransaction(notificationData.parsed); setShowNotificationPopup(false); }} className="flex-1 py-2.5 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded-xl transition-all shadow-lg shadow-sky-100 uppercase tracking-widest">
+                Confirmar
+              </button>
+              <button onClick={() => setShowNotificationPopup(false)} className="px-4 py-2.5 border border-slate-200 text-slate-400 hover:text-slate-900 hover:bg-slate-50 text-xs font-bold rounded-xl transition-all uppercase tracking-widest">
+                Ignorar
+              </button>
             </div>
           </div>
-          <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 italic text-xs text-slate-500">"{notificationData.raw}"</div>
-
-          <div className="text-xs text-slate-500 font-medium">
-            A IA identificou:
-            <span className="font-bold text-slate-900 block mt-1 uppercase tracking-tight">
-              {notificationData.parsed.category} &gt; {notificationData.parsed.subCategory}
-            </span>
-            Deseja confirmar o lançamento?
-          </div>
-
-          <div className="flex space-x-2">
-            <button onClick={() => { handleAddTransaction(notificationData.parsed); setShowNotificationPopup(false); }} className="flex-1 py-2.5 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded-xl transition-all shadow-lg shadow-sky-100 uppercase tracking-widest">
-              Confirmar
-            </button>
-            <button onClick={() => setShowNotificationPopup(false)} className="px-4 py-2.5 border border-slate-200 text-slate-400 hover:text-slate-900 hover:bg-slate-50 text-xs font-bold rounded-xl transition-all uppercase tracking-widest">
-              Ignorar
-            </button>
-          </div>
         </div>
-      </div>
-      )
-      }
+      )}
 
+      {/* Modals */}
       <ProfileModal
-        user={user}
         isOpen={isProfileModalOpen}
         onClose={() => setIsProfileModalOpen(false)}
+        user={user}
         onUpdate={handleUpdateProfile}
       />
-    </div >
+    </div>
   );
 };
 

@@ -387,7 +387,6 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                                     stroke="#334155"
                                     strokeDasharray="5 5"
                                     strokeWidth={3}
-                                    isFront={true}
                                     label={{
                                         value: "🏖️ APOSENTADORIA",
                                         position: 'insideTopRight',

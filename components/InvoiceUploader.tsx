@@ -1,0 +1,270 @@
+
+import React, { useState, useCallback } from 'react';
+import { useDropzone } from 'react-dropzone';
+import * as pdfjsLib from 'pdfjs-dist';
+import { Upload, FileText, Loader2, CheckCircle, AlertCircle, Trash2, Edit2, Save, X } from 'lucide-react';
+import { parseInvoice } from '../aiService';
+
+// Configure PDF.js worker
+pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+
+interface InvoiceItem {
+    id: string; // Temporary ID for UI
+    date: string;
+    description: string;
+    amount: number;
+    installmentCurrent?: number;
+    installmentTotal?: number;
+}
+
+interface InvoiceUploaderProps {
+    onConfirm: (items: InvoiceItem[]) => void;
+    onCancel: () => void;
+}
+
+const InvoiceUploader: React.FC<InvoiceUploaderProps> = ({ onConfirm, onCancel }) => {
+    const [status, setStatus] = useState<'idle' | 'reading' | 'analyzing' | 'review'>('idle');
+    const [progress, setProgress] = useState(0);
+    const [items, setItems] = useState<InvoiceItem[]>([]);
+    const [error, setError] = useState<string | null>(null);
+
+    // --- PDF EXTRACTION ---
+    const extractTextFromPDF = async (file: File): Promise<string> => {
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+        let fullText = '';
+
+        const numPages = pdf.numPages;
+        for (let i = 1; i <= numPages; i++) {
+            setProgress(Math.round((i / numPages) * 50)); // First 50% is reading
+            const page = await pdf.getPage(i);
+            const textContent = await page.getTextContent();
+            const pageText = textContent.items.map((item: any) => item.str).join(' ');
+            fullText += pageText + '\n';
+        }
+        return fullText;
+    };
+
+    const processFile = async (file: File) => {
+        try {
+            setStatus('reading');
+            setError(null);
+
+            let text = '';
+            if (file.type === 'application/pdf') {
+                text = await extractTextFromPDF(file);
+            } else {
+                // Image OCR would go here (not implemented yet without Tesseract or Vision model)
+                // For now, assume PDF only or text file
+                text = await file.text();
+            }
+
+            setStatus('analyzing');
+            setProgress(50);
+
+            const result = await parseInvoice(text);
+
+            if (result.error || !result.items) {
+                throw new Error("Não foi possível identificar transações. Tente um PDF mais claro.");
+            }
+
+            // Map to internal items with IDs
+            const mappedItems = result.items.map((item: any, index: number) => ({
+                id: `inv-${Date.now()}-${index}`,
+                date: item.date || new Date().toISOString().split('T')[0],
+                description: item.description || "Despesa desconhecida",
+                amount: typeof item.amount === 'number' ? item.amount : parseFloat(item.amount),
+                installmentCurrent: item.installmentCurrent,
+                installmentTotal: item.installmentTotal
+            }));
+
+            setItems(mappedItems);
+            setStatus('review');
+            setProgress(100);
+
+        } catch (err: any) {
+            console.error(err);
+            setError(err.message || "Erro ao processar arquivo");
+            setStatus('idle');
+        }
+    };
+
+    const onDrop = useCallback((acceptedFiles: File[]) => {
+        if (acceptedFiles.length > 0) {
+            processFile(acceptedFiles[0]);
+        }
+    }, []);
+
+    const { getRootProps, getInputProps, isDragActive } = useDropzone({
+        onDrop,
+        accept: { 'application/pdf': ['.pdf'], 'text/plain': ['.txt'] },
+        maxFiles: 1
+    });
+
+    // --- ITEM MANAGEMENT ---
+    const [editingId, setEditingId] = useState<string | null>(null);
+    const [editForm, setEditForm] = useState<Partial<InvoiceItem>>({});
+
+    const handleEdit = (item: InvoiceItem) => {
+        setEditingId(item.id);
+        setEditForm({ ...item });
+    };
+
+    const handleSaveEdit = () => {
+        setItems(prev => prev.map(i => i.id === editingId ? { ...i, ...editForm } as InvoiceItem : i));
+        setEditingId(null);
+    };
+
+    const handleDelete = (id: string) => {
+        setItems(prev => prev.filter(i => i.id !== id));
+    };
+
+    // --- RENDER ---
+    if (status === 'review') {
+        const total = items.reduce((acc, item) => acc + item.amount, 0);
+
+        return (
+            <div className="bg-white rounded-[2.5rem] p-6 border border-slate-100 shadow-xl max-w-4xl mx-auto animate-in zoom-in-95 duration-300">
+                <div className="flex justify-between items-center mb-6">
+                    <div>
+                        <h3 className="text-2xl font-black text-slate-900 tracking-tight">Revisar Fatura</h3>
+                        <p className="text-slate-500 text-sm font-medium">Confirme os lançamentos identificados pela IA</p>
+                    </div>
+                    <div className="text-right">
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Total Identificado</p>
+                        <p className="text-2xl font-black text-emerald-600">R$ {total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                    </div>
+                </div>
+
+                <div className="overflow-x-auto mb-6 max-h-[60vh] overflow-y-auto scrollbar-thin scrollbar-thumb-sky-200 scrollbar-track-transparent pr-2">
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr className="text-xs font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
+                                <th className="py-3 px-2">Data</th>
+                                <th className="py-3 px-2">Descrição</th>
+                                <th className="py-3 px-2 text-right">Valor</th>
+                                <th className="py-3 px-2 text-center">Parc.</th>
+                                <th className="py-3 px-2 text-right">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-50">
+                            {items.map(item => (
+                                <tr key={item.id} className="group hover:bg-slate-50 transition-colors">
+                                    {editingId === item.id ? (
+                                        <>
+                                            <td className="p-2"><input type="date" value={editForm.date} onChange={e => setEditForm({ ...editForm, date: e.target.value })} className="w-full bg-white border border-slate-200 rounded-lg text-xs p-2 font-bold text-slate-700" /></td>
+                                            <td className="p-2"><input type="text" value={editForm.description} onChange={e => setEditForm({ ...editForm, description: e.target.value })} className="w-full bg-white border border-slate-200 rounded-lg text-xs p-2 font-medium text-slate-700" /></td>
+                                            <td className="p-2"><input type="number" step="0.01" value={editForm.amount} onChange={e => setEditForm({ ...editForm, amount: parseFloat(e.target.value) })} className="w-full bg-white border border-slate-200 rounded-lg text-xs p-2 font-bold text-slate-700" /></td>
+                                            <td className="p-2 text-center">
+                                                <div className="flex items-center gap-1 justify-center">
+                                                    <input type="number" value={editForm.installmentCurrent || ''} onChange={e => setEditForm({ ...editForm, installmentCurrent: parseInt(e.target.value) })} className="w-10 bg-white border border-slate-200 rounded p-1 text-center text-xs" />
+                                                    /
+                                                    <input type="number" value={editForm.installmentTotal || ''} onChange={e => setEditForm({ ...editForm, installmentTotal: parseInt(e.target.value) })} className="w-10 bg-white border border-slate-200 rounded p-1 text-center text-xs" />
+                                                </div>
+                                            </td>
+                                            <td className="p-2 text-right">
+                                                <div className="flex justify-end gap-2">
+                                                    <button onClick={handleSaveEdit} className="p-2 bg-emerald-100 text-emerald-600 rounded-lg hover:bg-emerald-200"><Save size={14} /></button>
+                                                    <button onClick={() => setEditingId(null)} className="p-2 bg-slate-100 text-slate-500 rounded-lg hover:bg-slate-200"><X size={14} /></button>
+                                                </div>
+                                            </td>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <td className="p-2 py-4">
+                                                <span className="text-xs font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded-md">
+                                                    {new Date(item.date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
+                                                </span>
+                                            </td>
+                                            <td className="p-2 font-bold text-slate-700">{item.description}</td>
+                                            <td className="p-2 text-right font-black text-slate-900">R$ {item.amount.toFixed(2)}</td>
+                                            <td className="p-2 text-center">
+                                                {item.installmentTotal ? (
+                                                    <span className="text-[10px] font-bold text-purple-600 bg-purple-50 px-2 py-1 rounded-full border border-purple-100">
+                                                        {item.installmentCurrent}/{item.installmentTotal}
+                                                    </span>
+                                                ) : <span className="text-slate-300">-</span>}
+                                            </td>
+                                            <td className="p-2 text-right opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <div className="flex justify-end gap-2">
+                                                    <button onClick={() => handleEdit(item)} className="p-2 hover:bg-sky-50 text-slate-400 hover:text-sky-600 rounded-lg transition-colors"><Edit2 size={14} /></button>
+                                                    <button onClick={() => handleDelete(item.id)} className="p-2 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded-lg transition-colors"><Trash2 size={14} /></button>
+                                                </div>
+                                            </td>
+                                        </>
+                                    )}
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div className="flex justify-end gap-4 border-t border-slate-100 pt-6">
+                    <button
+                        onClick={onCancel}
+                        className="px-6 py-3 border border-slate-200 text-slate-500 font-bold rounded-xl hover:bg-slate-50 hover:text-slate-900 transition-all uppercase text-xs tracking-widest"
+                    >
+                        Cancelar
+                    </button>
+                    <button
+                        onClick={() => onConfirm(items)}
+                        className="px-8 py-3 bg-sky-600 hover:bg-sky-500 text-white font-black rounded-xl shadow-lg shadow-sky-200 hover:shadow-sky-300 transition-all uppercase text-xs tracking-widest flex items-center gap-2"
+                    >
+                        <CheckCircle size={18} />
+                        Confirmar Importação
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="bg-white rounded-[2.5rem] p-8 border-2 border-dashed border-slate-200 hover:border-sky-400 hover:bg-sky-50/30 transition-all group cursor-pointer max-w-2xl mx-auto animate-in fade-in zoom-in-95 duration-500 relative overflow-hidden" {...getRootProps()}>
+            <input {...getInputProps()} />
+
+            {status === 'reading' || status === 'analyzing' ? (
+                <div className="flex flex-col items-center justify-center py-12 space-y-6">
+                    <div className="relative">
+                        <div className="absolute inset-0 bg-sky-400 blur-xl opacity-20 animate-pulse rounded-full"></div>
+                        <Loader2 size={48} className="text-sky-600 animate-spin relative z-10" />
+                    </div>
+                    <div className="text-center space-y-2">
+                        <h3 className="text-xl font-black text-slate-900">
+                            {status === 'reading' ? 'Lendo Arquivo...' : 'Analisando com IA...'}
+                        </h3>
+                        <div className="w-64 h-2 bg-slate-100 rounded-full overflow-hidden">
+                            <div className="h-full bg-sky-500 transition-all duration-500 ease-out" style={{ width: `${progress}%` }}></div>
+                        </div>
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                            {status === 'reading' ? 'Extraindo texto do PDF' : 'Identificando transações e parcelas'}
+                        </p>
+                    </div>
+                </div>
+            ) : (
+                <div className="flex flex-col items-center justify-center py-12 space-y-4">
+                    <div className="w-20 h-20 bg-slate-50 group-hover:bg-white rounded-3xl flex items-center justify-center shadow-sm border border-slate-100 group-hover:scale-110 transition-transform duration-300">
+                        {error ? <AlertCircle size={32} className="text-rose-500" /> : <Upload size={32} className="text-slate-400 group-hover:text-sky-600 transition-colors" />}
+                    </div>
+                    <div className="text-center">
+                        <h3 className="text-lg font-black text-slate-900 group-hover:text-sky-700 transition-colors">
+                            {error ? "Erro no Upload" : isDragActive ? "Solte o arquivo aqui" : "Clique ou arraste sua fatura"}
+                        </h3>
+                        <p className="text-sm font-medium text-slate-400 mt-1 max-w-xs mx-auto">
+                            {error ? error : "Suportamos PDF e TXT. A IA irá ler e categorizar tudo automaticamente."}
+                        </p>
+                    </div>
+                    {error && (
+                        <button
+                            onClick={(e) => { e.stopPropagation(); setStatus('idle'); setError(null); }}
+                            className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-lg text-xs uppercase tracking-widest mt-4"
+                        >
+                            Tentar Novamente
+                        </button>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default InvoiceUploader;
