@@ -386,7 +386,15 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                                     x={viewMode === 'annual' ? freedomPoint.yearLabel : freedomPoint.month}
                                     stroke="#10b981"
                                     strokeDasharray="3 3"
-                                    label={{ value: "🏖️", position: 'insideTop', fontSize: 24, fill: '#10b981', dy: -10 }}
+                                    strokeWidth={2}
+                                    isFront={true}
+                                    label={{
+                                        value: "🏖️",
+                                        position: 'insideTop',
+                                        fontSize: 24,
+                                        fill: '#10b981',
+                                        dy: -10
+                                    }}
                                 />
                             )}
                             <XAxis
