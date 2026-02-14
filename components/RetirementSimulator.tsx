@@ -384,16 +384,17 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                             {freedomPoint && (
                                 <ReferenceLine
                                     x={viewMode === 'annual' ? freedomPoint.yearLabel : freedomPoint.month}
-                                    stroke="#10b981"
-                                    strokeDasharray="3 3"
-                                    strokeWidth={2}
+                                    stroke="#334155"
+                                    strokeDasharray="5 5"
+                                    strokeWidth={3}
                                     isFront={true}
                                     label={{
-                                        value: "🏖️",
-                                        position: 'insideTop',
-                                        fontSize: 24,
-                                        fill: '#10b981',
-                                        dy: -10
+                                        value: "🏖️ APOSENTADORIA",
+                                        position: 'insideTopRight',
+                                        fontSize: 14,
+                                        fill: '#334155',
+                                        fontWeight: 'bold',
+                                        dy: 10
                                     }}
                                 />
                             )}
@@ -439,6 +440,8 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                                 fillOpacity={1}
                                 fill="url(#colorTotal)"
                                 name="Patrimônio Final"
+                                animationDuration={1500}
+                                animationEasing="ease-in-out"
                             />
                             <Area
                                 yAxisId="left"
@@ -449,6 +452,8 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                                 fillOpacity={1}
                                 fill="url(#colorInvested)"
                                 name="Valor Investido"
+                                animationDuration={1500}
+                                animationEasing="ease-in-out"
                             />
                             <Area
                                 yAxisId="right"
@@ -459,6 +464,8 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                                 fillOpacity={1}
                                 fill="url(#colorPassive)"
                                 name="Renda Passiva Mensal"
+                                animationDuration={1500}
+                                animationEasing="ease-in-out"
                             />
                         </AreaChart>
                     </ResponsiveContainer>
