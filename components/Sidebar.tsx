@@ -73,22 +73,26 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, isOpen, se
       </aside>
 
       {/* Mobile Bottom Navigation (Clean White) */}
-      <nav className="md:hidden fixed bottom-6 left-4 right-4 z-50">
-        <div className="bg-white/90 backdrop-blur-xl border border-slate-200 rounded-2xl shadow-xl flex items-center justify-around p-2 max-w-sm mx-auto ring-1 ring-black/5">
-          {NAV_ITEMS.slice(0, 5).map((item) => {
+      {/* Mobile Bottom Navigation (Scrollable & Full Width) */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-slate-200">
+        <div className="flex items-center overflow-x-auto pb-safe no-scrollbar">
+          {NAV_ITEMS.map((item) => {
             const isActive = currentView === item.id;
             return (
               <button
                 key={item.id}
                 onClick={() => onViewChange(item.id)}
-                className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all ${isActive
-                  ? 'text-sky-600 bg-sky-50'
+                className={`flex flex-col items-center justify-center p-3 min-w-[4.5rem] transition-all whitespace-nowrap ${isActive
+                  ? 'text-sky-600'
                   : 'text-slate-400 hover:text-slate-600'
                   }`}
               >
-                <div className="p-1">
-                  {React.cloneElement(item.icon as React.ReactElement, { size: 20 })}
+                <div className={`p-1.5 rounded-xl mb-1 ${isActive ? 'bg-sky-50' : ''}`}>
+                  {React.cloneElement(item.icon as React.ReactElement, { size: 22 })}
                 </div>
+                <span className="text-[10px] font-bold tracking-tight">
+                  {item.label}
+                </span>
               </button>
             )
           })}

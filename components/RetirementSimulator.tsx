@@ -216,7 +216,7 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                 <p className="text-slate-500 text-sm font-medium mt-1">Planeje sua liberdade financeira com base em juros compostos.</p>
             </div>
 
-            <div className="bg-white p-8 rounded-[3rem] shadow-sm border border-slate-100 ring-1 ring-black/5">
+            <div className="bg-white p-4 md:p-8 rounded-[2rem] md:rounded-[3rem] shadow-sm border border-slate-100 ring-1 ring-black/5">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-8">
                     <div className="space-y-2">
                         <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Renda Desejada</label>
@@ -296,7 +296,7 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                 </div>
             </div>
 
-            <div className="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-sm ring-1 ring-black/5">
+            <div className="bg-white p-4 md:p-8 rounded-[2rem] md:rounded-[3rem] border border-slate-100 shadow-sm ring-1 ring-black/5">
                 <div className="mb-8 flex flex-col md:flex-row justify-between items-center gap-6">
                     <div>
                         <h3 className="text-xl font-black text-slate-900 tracking-tight">Projeção de Longo Prazo</h3>
@@ -363,7 +363,7 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                     </div>
                 )}
 
-                <div className="h-[450px] w-full mt-4">
+                <div className="h-[300px] md:h-[450px] w-full mt-4">
                     <ResponsiveContainer width="100%" height="100%">
                         <AreaChart data={displayData} margin={{ top: 20, right: 0, left: 0, bottom: 20 }}>
                             <defs>
@@ -381,6 +381,14 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                                 </linearGradient>
                             </defs>
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                            {freedomPoint && (
+                                <ReferenceLine
+                                    x={viewMode === 'annual' ? freedomPoint.yearLabel : freedomPoint.month}
+                                    stroke="#10b981"
+                                    strokeDasharray="3 3"
+                                    label={{ value: "🏖️", position: 'insideTop', fontSize: 24, fill: '#10b981', dy: -10 }}
+                                />
+                            )}
                             <XAxis
                                 dataKey={viewMode === 'annual' ? "yearLabel" : "month"}
                                 axisLine={false}
