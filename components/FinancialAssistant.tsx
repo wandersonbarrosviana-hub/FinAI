@@ -41,10 +41,24 @@ const FinancialAssistant: React.FC<FinancialAssistantProps> = ({
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: `Olá, ${userName}! Sou sua IA Financeira. Posso analisar seus gastos, dar dicas de economia ou **importar notificações** de app de banco.`,
+      content: `Olá! Sou o FinAI, seu assistente financeiro. Como posso ajudar hoje?`,
       timestamp: new Date()
     }
   ]);
+
+  useEffect(() => {
+    if (userName && userName !== 'undefined') {
+      setMessages(prev => {
+        if (prev.length === 1 && prev[0].content.includes('Olá!')) {
+          return [{
+            ...prev[0],
+            content: `Olá, ${userName}! Sou sua IA Financeira (Powered by Groq). Posso analisar seus gastos, dar dicas de economia ou **importar notificações**.`
+          }];
+        }
+        return prev;
+      });
+    }
+  }, [userName]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
 
@@ -78,7 +92,7 @@ const FinancialAssistant: React.FC<FinancialAssistantProps> = ({
     setIsTyping(true);
 
     try {
-      // Use Real Gemini AI
+      // Use Groq AI
       const responseText = await chatWithFinancialAssistant(
         userMsg.content,
         transactions,
@@ -201,7 +215,7 @@ const FinancialAssistant: React.FC<FinancialAssistantProps> = ({
             <h3 className="font-black text-slate-900 text-base tracking-tight">FinAI Intelligence</h3>
             <div className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-              <span className="text-[10px] text-emerald-600 font-black uppercase tracking-widest">Gemini 1.5 Pro</span>
+              <span className="text-[10px] text-emerald-600 font-black uppercase tracking-widest">Groq Llama 3.3</span>
             </div>
           </div>
         </div>

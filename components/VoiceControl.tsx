@@ -108,10 +108,10 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
 
     setStatus('processing');
     try {
-      // Use refined Gemini parsing instead of local regex
+      // Use refined Groq parsing instead of local regex
       const { parseVoiceCommand } = await import('../aiService');
       const result = await parseVoiceCommand(text);
-      console.log("Voice command parsed by Gemini:", result);
+      console.log("Voice command parsed by Groq:", result);
 
       if (result.intent === 'UNKNOWN') {
         setStatus('error');
