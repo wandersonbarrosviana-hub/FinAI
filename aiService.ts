@@ -125,8 +125,6 @@ export const parseVoiceCommand = async (text: string): Promise<VoiceCommandResul
     try {
         return await retryOperation(async () => {
             if (groq) {
-                console.log("🎤 Enviando para Groq:", text); // DEBUG
-
                 const response = await groq.chat.completions.create({
                     model: GROQ_MODEL,
                     messages: [
@@ -138,8 +136,6 @@ export const parseVoiceCommand = async (text: string): Promise<VoiceCommandResul
                 });
 
                 const textResponse = response.choices[0].message.content || "";
-                console.log("🤖 Resposta Bruta Groq:", textResponse); // DEBUG IMPORTANTE
-
                 const cleaned = cleanJSON(textResponse);
                 const parsed = JSON.parse(cleaned);
 

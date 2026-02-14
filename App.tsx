@@ -830,11 +830,6 @@ const App: React.FC = () => {
         <div className="p-4 md:p-8 overflow-y-auto scrollbar-hide text-slate-800">
           <div className="mb-8">
             <VoiceControl onAddTransaction={handleAICommand} />
-            {!import.meta.env.VITE_GROQ_API_KEY && (
-              <div className="mt-2 text-center text-[10px] text-rose-500 font-bold bg-rose-50 p-1 rounded">
-                ⚠️ Chave de Voz não detectada. Verifique .env.local
-              </div>
-            )}
           </div>
 
           {/* We pass the FILTERED transactions to views, so they only see the selected month's data */}
