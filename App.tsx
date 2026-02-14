@@ -16,7 +16,9 @@ import ChartsHub from './components/ChartsHub';
 import CategoryManager from './components/CategoryManager';
 import Reports from './components/Reports';
 import Investments from './components/Investments';
+import Investments from './components/Investments';
 import ProfileModal from './components/ProfileModal';
+import FinancialAssistant from './components/FinancialAssistant';
 import { Budget } from './types';
 
 import { Bell, Search, User as UserIcon, Plus, Sparkles, AlertCircle, ChevronLeft, ChevronRight, Loader2, LogOut } from 'lucide-react';
@@ -874,6 +876,25 @@ const App: React.FC = () => {
                 return <RetirementSimulator transactions={transactions} budgets={budgets} />;;
               case 'tags': // Keeping tags if needed, otherwise maybe merged into Categories?
                 return <TagManager tags={tags} onAddTag={handleAddTag} onDeleteTag={handleDeleteTag} onUpdateTag={handleUpdateTag} />;
+              case 'ai-assistant':
+                return (
+                  <div className="p-4 md:p-8 overflow-y-auto scrollbar-hide text-slate-800 h-full flex flex-col">
+                    <div className="max-w-4xl mx-auto w-full h-full">
+                      <div className="mb-6">
+                        <h2 className="text-2xl font-black text-slate-900 tracking-tight">Assistente Virtual</h2>
+                        <p className="text-slate-500 font-medium">Seu consultor financeiro pessoal 24/7</p>
+                      </div>
+                      <FinancialAssistant
+                        userName={user?.name || 'Investidor'}
+                        transactions={transactions}
+                        accounts={accounts}
+                        goals={goals}
+                        budgets={budgets} // Se não tiver budgets no state, passar [] e ajustar depois
+                        onAddTransaction={handleAddTransaction}
+                      />
+                    </div>
+                  </div>
+                );
               case 'reports':
                 return <Reports transactions={transactions} accounts={accounts} tags={tags} />;
               default:

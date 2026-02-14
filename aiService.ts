@@ -153,9 +153,65 @@ export const parseVoiceCommand = async (text: string): Promise<VoiceCommandResul
     }
 };
 
+// Função de Chat Financeiro (Restaurada com Groq)
+export const chatWithFinancialAssistant = async (
+    userMessage: string,
+    transactions: Transaction[],
+    accounts: Account[],
+    goals: any[],
+    budgets: any[]
+): Promise<string> => {
+    if (!GROQ_API_KEY) return "Erro: Chave API Groq não configurada.";
 
-// Funções de Chat e Análise removidas a pedido do usuário.
-// O foco agora é execução direta de comandos e parsing de notificações.
+    // Preparar Contexto Financeiro Resumido (evitar estouro de tokens)
+    const financialContext = JSON.stringify({
+        totalBalance: accounts.reduce((acc, a) => acc + a.balance, 0),
+        recentTransactions: transactions.slice(0, 10).map(t => ({
+            desc: t.description,
+            value: t.amount,
+            type: t.type,
+            date: t.date
+        })),
+        goals: goals.map(g => ({ title: g.title, progress: (g.current / g.target) * 100 })),
+        budgets: budgets
+    });
+
+    const systemPrompt = `
+      Você é o FinAI, um assistente financeiro pessoal inteligente, experiente e sarcástico (nível leve).
+      Use o contexto financeiro abaixo para responder ao usuário.
+      Se não souber, diga que não sabe. Seja direto, prático e use emojis.
+      Dê conselhos curtos e acionáveis.
+      
+      CONTEXTO FINANCEIRO DO USUÁRIO:
+      ${financialContext}
+    `;
+
+    try {
+        return await retryOperation(async () => {
+            if (groq) {
+                const response = await groq.chat.completions.create({
+                    model: GROQ_MODEL,
+                    messages: [
+                        { role: "system", content: systemPrompt },
+                        { role: "user", content: userMessage }
+                    ],
+                    temperature: 0.7, // Um pouco mais criativo que o parser
+                    max_tokens: 500
+                });
+                return response.choices[0].message.content || "Fiquei sem palavras.";
+            }
+            throw new Error("Groq não inicializado.");
+        });
+    } catch (error: any) {
+        console.error("Chat Error:", error);
+        return "Desculpe, meu cérebro de silício deu um nó. Tente de novo.";
+    }
+};
+
+// Deep Analysis também pode ser um chat wrapper simples agora
+export const performDeepAnalysis = async (transactions: Transaction[], accounts: Account[]): Promise<string> => {
+    return chatWithFinancialAssistant("Faça uma análise profunda dos meus gastos recentes e me dê 3 dicas.", transactions, accounts, [], []);
+};
 
 export const parseNotification = async (notificationText: string): Promise<any> => {
     if (!GROQ_API_KEY) return null;
