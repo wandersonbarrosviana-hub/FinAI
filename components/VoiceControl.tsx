@@ -1,7 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Mic, MicOff, Loader2, CheckCircle, AlertCircle, Sparkles, MessageSquare, Volume2 } from 'lucide-react';
-import { processVoiceAction } from '../localIntelligence';
+import { Mic, MicOff, Loader2, CheckCircle, AlertCircle, Sparkles, Volume2, Power } from 'lucide-react';
 
 interface VoiceControlProps {
   onAddTransaction: (result: any) => boolean | void;
@@ -12,27 +11,35 @@ type VoiceStatus = 'idle' | 'standby' | 'active_command' | 'processing' | 'succe
 const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
   const [status, setStatus] = useState<VoiceStatus>('idle');
   const [transcript, setTranscript] = useState('');
+  // isListeningMode: Controls if we WANT to be listening (Semper Fi mode)
+  const [isListeningMode, setIsListeningMode] = useState(false);
 
-  // Refs to avoid obsolete closures in SpeechRecognition callbacks
+  // Refs to avoid obsolete closures
   const statusRef = useRef<VoiceStatus>('idle');
   const recognitionRef = useRef<any>(null);
+  const isListeningModeRef = useRef(false);
 
   // Sync ref with state
   useEffect(() => {
     statusRef.current = status;
   }, [status]);
 
-  const toggleListening = () => {
-    if (statusRef.current !== 'idle') {
-      stopListening();
+  useEffect(() => {
+    isListeningModeRef.current = isListeningMode;
+    if (isListeningMode) {
+      if (status === 'idle') startListening();
     } else {
-      startListening();
+      stopListening();
     }
+  }, [isListeningMode]);
+
+  const toggleListeningMode = () => {
+    setIsListeningMode(!isListeningMode);
   };
 
   const stopListening = () => {
     if (recognitionRef.current) {
-      recognitionRef.current.onend = null;
+      recognitionRef.current.onend = null; // Prevent restart loop
       recognitionRef.current.stop();
       recognitionRef.current = null;
     }
@@ -40,24 +47,25 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
     setTranscript('');
   };
 
-  const startListening = () => {
+  const startListening = (forceCommand = false) => {
     if (!('webkitSpeechRecognition' in window)) {
-      alert('Seu navegador não suporta reconhecimento de voz. Tente usar o Google Chrome.');
+      alert('Navegador incompatível. Use Chrome.');
       return;
     }
+    if (recognitionRef.current) return;
 
     const SpeechRecognition = (window as any).webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
 
     recognition.lang = 'pt-BR';
-    recognition.continuous = true; // Keep true to allow longer phrases
+    recognition.continuous = false; // We use manual restart loop for better stability
     recognition.interimResults = true;
 
     recognition.onstart = () => {
-      setStatus('active_command');
+      setStatus(forceCommand ? 'active_command' : 'standby');
     };
 
-    recognition.onresult = async (event: any) => {
+    recognition.onresult = (event: any) => {
       let interimTranscript = '';
       let finalTranscript = '';
 
@@ -70,26 +78,62 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
         }
       }
 
-      setTranscript(interimTranscript || finalTranscript);
+      const currentText = (interimTranscript || finalTranscript).toLowerCase();
 
-      // Directly process final text
-      if (finalTranscript && statusRef.current === 'active_command') {
-        stopListening(); // Stop immediately on final result to process
-        processFinalText(finalTranscript);
+      // Update transcript only if it's significant to avoid jitter
+      if (currentText.length > 2) setTranscript(currentText);
+
+      // WAKE WORD & COMMAND DETECTION
+      // 1. If in standby, look for "Oi Fini"
+      if (statusRef.current === 'standby') {
+        const wakeWordRegex = /(oi|olá|ei)?\s*fini/i;
+        if (wakeWordRegex.test(currentText)) {
+          setStatus('active_command');
+          // Optional: Audio feedback could go here
+        }
+      }
+
+      // 2. If already in active command (or just switched), process final text
+      if (statusRef.current === 'active_command' && finalTranscript) {
+        // Clean wake word from start
+        const cleanCommand = finalTranscript.replace(/^(oi|olá|ei)?\s*fini\s*/i, '').trim();
+
+        // If we have a command after the wake word
+        if (cleanCommand.length > 2) {
+          stopListening(); // Stop recognition to process
+          processFinalText(cleanCommand);
+        }
       }
     };
 
     recognition.onend = () => {
-      if (statusRef.current === 'active_command') {
+      recognitionRef.current = null;
+      // RESTART LOOP: If mode is ON and we didn't just finish a command successfully/error
+      // (Actually, even after success/error we might want to restart, but maybe with a delay)
+      if (isListeningModeRef.current) {
+        if (statusRef.current === 'processing') return; // Don't restart while processing API
+
+        // Simple restart
+        if (statusRef.current === 'active_command') {
+          // If ended without final command, go back to standby
+          setStatus('standby');
+          startListening();
+        } else {
+          startListening();
+        }
+      } else {
         setStatus('idle');
       }
     };
 
     recognition.onerror = (event: any) => {
-      console.error('Erro no reconhecimento:', event.error);
-      if (event.error !== 'no-speech' && event.error !== 'aborted') {
-        setStatus('error');
-        setTimeout(() => setStatus('idle'), 3000);
+      if (event.error === 'no-speech') {
+        // Ignore no-speech, let onend restart
+      } else if (event.error !== 'aborted') {
+        // Wait a bit before retry on real errors
+        setTimeout(() => {
+          if (isListeningModeRef.current) startListening();
+        }, 1000);
       }
     };
 
@@ -97,125 +141,88 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
       recognition.start();
       recognitionRef.current = recognition;
     } catch (e) {
-      console.error("Erro ao iniciar:", e);
+      console.error("Start error:", e);
     }
   };
 
-
   const processFinalText = async (text: string) => {
-    const cleanText = text.trim();
-    if (!cleanText) return;
-
     setStatus('processing');
     try {
-      // Use refined Groq parsing instead of local regex
       const { parseVoiceCommand } = await import('../aiService');
       const result = await parseVoiceCommand(text);
-      console.log("Voice command parsed by Groq:", result);
 
       if (result.intent === 'UNKNOWN') {
         setStatus('error');
-        setTimeout(() => setStatus('idle'), 3000);
       } else {
         const success = onAddTransaction(result);
-        if (success !== false) {
-          setStatus('success');
-          setTimeout(() => {
-            setStatus('idle');
-            setTranscript('');
-          }, 3000);
-        } else {
-          setStatus('error');
-          setTimeout(() => setStatus('idle'), 3000);
-        }
+        setStatus(success !== false ? 'success' : 'error');
       }
     } catch (err) {
-      console.error("Erro ao processar comando:", err);
+      console.error(err);
       setStatus('error');
-      setTimeout(() => setStatus('idle'), 3000);
     }
+
+    // After processing, reset to standby loop
+    setTimeout(() => {
+      if (isListeningModeRef.current) {
+        setTranscript('');
+        startListening(); // Restart loop
+      } else {
+        setStatus('idle');
+      }
+    }, 2500);
   };
 
   return (
-    <div className={`bg-white p-5 rounded-[2.5rem] border transition-all duration-500 flex items-center space-x-5 shadow-2xl relative overflow-hidden group ${status === 'standby' ? 'border-amber-200 shadow-amber-100/20' :
-      status === 'active_command' ? 'border-sky-300 shadow-sky-200/40 ring-2 ring-sky-100' :
-        status === 'processing' ? 'border-indigo-200 shadow-indigo-100' :
-          'border-slate-800 shadow-slate-900/10' // Darker default border for contrast
-      }`}>
+    <div className={`fixed bottom-24 right-4 z-50 flex flex-col items-end pointer-events-none`}>
 
-      {/* Layers of background glow */}
-      {status === 'standby' && (
-        <div className="absolute inset-0 bg-amber-500/5 animate-pulse pointer-events-none"></div>
-      )}
-      {status === 'active_command' && (
-        <div className="absolute inset-0 bg-sky-500/10 animate-pulse pointer-events-none"></div>
+      {/* Transcript Bubble Feedback */}
+      {(status === 'active_command' || status === 'processing' || (status === 'standby' && transcript)) && (
+        <div className="bg-white/90 backdrop-blur-md px-4 py-2 rounded-2xl shadow-lg border border-slate-200 mb-2 max-w-[200px] pointer-events-auto animate-in slide-in-from-right-10 fade-in duration-300">
+          <p className="text-sm font-medium text-slate-600 truncate">
+            {status === 'active_command' && !transcript ? "Ouvindo..." : `"${transcript}"`}
+          </p>
+        </div>
       )}
 
-      <div className="relative">
-        <button
-          onClick={toggleListening}
-          title={status === 'idle' ? 'Gravar Despesa/Receita' : 'Parar'}
-          className={`p-6 rounded-[2rem] transition-all duration-500 shadow-2xl transform active:scale-95 z-10 relative ${status === 'idle' ? 'bg-slate-900 text-white hover:bg-slate-800 shadow-slate-900/20' : // Dark theme button
-            status === 'standby' ? 'bg-amber-500 text-white shadow-amber-200 ring-4 ring-amber-50' :
-              status === 'active_command' ? 'bg-sky-600 text-white animate-bounce shadow-sky-300 ring-4 ring-sky-100' :
-                status === 'processing' ? 'bg-indigo-600 text-white' :
-                  status === 'success' ? 'bg-emerald-500 text-white' :
-                    'bg-rose-500 text-white'
-            }`}
-        >
-          {status === 'idle' && <Mic size={28} />}
-          {status === 'standby' && <Volume2 size={28} className="animate-pulse" />}
-          {status === 'active_command' && <Sparkles size={28} />}
-          {status === 'processing' && <Loader2 size={28} className="animate-spin" />}
-          {status === 'success' && <CheckCircle size={28} />}
-          {status === 'error' && <AlertCircle size={28} />}
-        </button>
+      {/* Main FAB */}
+      <button
+        onClick={toggleListeningMode}
+        className={`p-4 rounded-full shadow-2xl transition-all duration-500 relative overflow-hidden group active:scale-95 flex items-center justify-center pointer-events-auto ${!isListeningMode ? 'bg-slate-900 text-white w-14 h-14' : // OFF
+            status === 'standby' ? 'bg-sky-600 text-white w-16 h-16 ring-4 ring-sky-200 shadow-sky-400/50' : // ON - Waiting
+              status === 'active_command' ? 'bg-sky-500 text-white w-16 h-16 animate-pulse ring-4 ring-sky-300' : // ON - Hearing
+                status === 'processing' ? 'bg-indigo-600 text-white w-16 h-16' :
+                  status === 'success' ? 'bg-emerald-500 text-white w-14 h-14' :
+                    'bg-rose-500 text-white w-14 h-14'
+          }`}
+      >
+        {/* Visual Icons */}
+        {!isListeningMode && <MicOff size={24} />}
 
-        {status === 'standby' && (
-          <div className="absolute -top-1 -right-1 w-4 h-4 bg-amber-400 rounded-full animate-ping"></div>
+        {isListeningMode && status === 'standby' && (
+          <div className="relative">
+            <Mic size={28} />
+            <span className="absolute -top-1 -right-1 flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-sky-300"></span>
+            </span>
+          </div>
         )}
-      </div>
 
-      <div className="flex-1">
-        <div className="flex items-center space-x-3">
-          <span className={`text-base font-black tracking-tight transition-colors duration-300 ${status === 'active_command' ? 'text-sky-800' :
-            'text-slate-800'
-            }`}>
-            {status === 'idle' && 'Novo Lançamento por Voz'}
-            {status === 'active_command' && 'Ouvindo...'}
-            {status === 'processing' && 'Processando...'}
-            {status === 'success' && 'Lançamento Criado!'}
-            {status === 'error' && 'Não entendi.'}
+        {status === 'active_command' && <Sparkles size={28} className="animate-spin-slow" />}
+        {status === 'processing' && <Loader2 size={28} className="animate-spin" />}
+        {status === 'success' && <CheckCircle size={28} />}
+        {status === 'error' && <AlertCircle size={28} />}
+      </button>
+
+      {/* Helper Label */}
+      {!isListeningMode && (
+        <div className="mt-2 pointer-events-auto">
+          <span className="text-[10px] font-bold text-slate-400 bg-white/90 px-2 py-1 rounded-md shadow-sm border border-slate-100">
+            Toque para ativar o "Oi Fini"
           </span>
         </div>
-
-        <div className="mt-1 flex items-center text-sm">
-          {status === 'idle' ? (
-            <div className="text-slate-400 font-medium flex items-center gap-2">
-              <MessageSquare size={14} className="text-slate-300" />
-              <span>Toque e fale: "Gastei 50 reais no almoço"</span>
-            </div>
-          ) : (
-            <p className={`italic font-medium transition-all max-w-md truncate ${status === 'active_command' ? 'text-sky-600' : 'text-slate-400'
-              }`}>
-              "{transcript || (status === 'standby' ? 'Aguardando...' : 'Diga algo...')}"
-            </p>
-          )}
-        </div>
-      </div>
-
-      <div className="hidden lg:flex flex-col items-end pr-4">
-        <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full border transition-all ${status === 'active_command' ? 'bg-sky-50 border-sky-100 text-sky-600' :
-          'bg-slate-50 border-slate-100 text-slate-400'
-          }`}>
-          <div className={`w-1.5 h-1.5 rounded-full ${status === 'active_command' ? 'bg-sky-500 animate-pulse' :
-            'bg-slate-300'
-            }`}></div>
-          <span className="text-[10px] font-bold uppercase tracking-widest">
-            {status === 'idle' ? 'Microfone Pronto' : 'Gravando'}
-          </span>
-        </div>
-      </div>
+      )}
     </div>
   );
 };
