@@ -16,13 +16,10 @@ const groq = GROQ_API_KEY ? new OpenAI({
 // Models
 const GROQ_MODEL = 'llama-3.3-70b-versatile'; // High speed & stable
 
-console.log("FinAI AI Service Initializing...");
-const keyPrefix = GROQ_API_KEY ? GROQ_API_KEY.substring(0, 4) + "..." : "NONE";
-console.log("Groq Key Loaded (Prefix):", keyPrefix); // Debug: Check if it loads 'gsk_' or 'SUA_'
-console.log("Groq Status:", GROQ_API_KEY ? "READY" : "MISSING (FATAL)");
+console.log("FinAI AI Service Initialized");
 
 if (!GROQ_API_KEY) {
-    console.warn("ALERTA: VITE_GROQ_API_KEY não configurada. As funcionalidades de IA não funcionarão.");
+    console.warn("FinAI: Chave API Groq não configurada.");
 }
 
 interface VoiceCommandResult {
