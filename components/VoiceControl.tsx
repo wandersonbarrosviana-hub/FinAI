@@ -11,13 +11,13 @@ type VoiceStatus = 'idle' | 'standby' | 'active_command' | 'processing' | 'succe
 const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
   const [status, setStatus] = useState<VoiceStatus>('idle');
   const [transcript, setTranscript] = useState('');
-  // isListeningMode: Controls if we WANT to be listening (Semper Fi mode)
-  const [isListeningMode, setIsListeningMode] = useState(false);
+  // Tentar iniciar ATIVADO por padrão
+  const [isListeningMode, setIsListeningMode] = useState(true);
 
   // Refs to avoid obsolete closures
   const statusRef = useRef<VoiceStatus>('idle');
   const recognitionRef = useRef<any>(null);
-  const isListeningModeRef = useRef(false);
+  const isListeningModeRef = useRef(true); // Sync with default state
 
   // Sync ref with state
   useEffect(() => {
@@ -27,6 +27,7 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
   useEffect(() => {
     isListeningModeRef.current = isListeningMode;
     if (isListeningMode) {
+      // Tentar iniciar imediatamente (pode falhar sem interação prévia dependendo do browser)
       if (status === 'idle') startListening();
     } else {
       stopListening();
@@ -129,6 +130,11 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
     recognition.onerror = (event: any) => {
       if (event.error === 'no-speech') {
         // Ignore no-speech, let onend restart
+      } else if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+        // Se for bloqueado, desligar modo automático e pedir interação
+        setIsListeningMode(false);
+        setStatus('idle');
+        alert("Para usar o 'Oi Fini', você precisa permitir o microfone.");
       } else if (event.error !== 'aborted') {
         // Wait a bit before retry on real errors
         setTimeout(() => {
@@ -142,6 +148,8 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
       recognitionRef.current = recognition;
     } catch (e) {
       console.error("Start error:", e);
+      // Se falhar no start síncrono (ex: browser bloqueando autoplay strict), desligar
+      setIsListeningMode(false);
     }
   };
 
@@ -189,11 +197,11 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
       <button
         onClick={toggleListeningMode}
         className={`p-4 rounded-full shadow-2xl transition-all duration-500 relative overflow-hidden group active:scale-95 flex items-center justify-center pointer-events-auto ${!isListeningMode ? 'bg-slate-900 text-white w-14 h-14' : // OFF
-            status === 'standby' ? 'bg-sky-600 text-white w-16 h-16 ring-4 ring-sky-200 shadow-sky-400/50' : // ON - Waiting
-              status === 'active_command' ? 'bg-sky-500 text-white w-16 h-16 animate-pulse ring-4 ring-sky-300' : // ON - Hearing
-                status === 'processing' ? 'bg-indigo-600 text-white w-16 h-16' :
-                  status === 'success' ? 'bg-emerald-500 text-white w-14 h-14' :
-                    'bg-rose-500 text-white w-14 h-14'
+          status === 'standby' ? 'bg-sky-600 text-white w-16 h-16 ring-4 ring-sky-200 shadow-sky-400/50' : // ON - Waiting
+            status === 'active_command' ? 'bg-sky-500 text-white w-16 h-16 animate-pulse ring-4 ring-sky-300' : // ON - Hearing
+              status === 'processing' ? 'bg-indigo-600 text-white w-16 h-16' :
+                status === 'success' ? 'bg-emerald-500 text-white w-14 h-14' :
+                  'bg-rose-500 text-white w-14 h-14'
           }`}
       >
         {/* Visual Icons */}
