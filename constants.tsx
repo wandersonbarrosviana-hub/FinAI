@@ -39,7 +39,6 @@ export const NAV_ITEMS = [
   { id: 'objectives' as ViewState, label: 'Objetivos', icon: <Flag size={20} /> },
   { id: 'simulator' as ViewState, label: 'Simulador', icon: <Calculator size={20} /> },
   { id: 'retirement' as ViewState, label: 'Aposentadoria', icon: <Sunrise size={20} /> },
-  { id: 'ai-assistant' as ViewState, label: 'Assistente Virtual', icon: <Bot size={20} /> },
   { id: 'reports' as ViewState, label: 'Relatórios', icon: <FileText size={20} /> },
   { id: 'plans' as ViewState, label: 'Planos', icon: <ShieldCheck size={20} /> },
   { id: 'settings' as ViewState, label: 'Configurações', icon: <Settings size={20} /> },

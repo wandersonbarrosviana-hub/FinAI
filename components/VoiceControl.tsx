@@ -154,8 +154,8 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
       <div className="relative">
         <button
           onClick={toggleListening}
-          title={status === 'idle' ? 'Ativar escuta' : 'Desativar'}
-          className={`p-6 rounded-[2rem] transition-all duration-500 shadow-2xl transform active:scale-95 z-10 relative ${status === 'idle' ? 'bg-slate-800 text-sky-400 hover:bg-slate-700 shadow-cyan-900/20' : // Dark theme button
+          title={status === 'idle' ? 'Gravar Despesa/Receita' : 'Parar'}
+          className={`p-6 rounded-[2rem] transition-all duration-500 shadow-2xl transform active:scale-95 z-10 relative ${status === 'idle' ? 'bg-slate-900 text-white hover:bg-slate-800 shadow-slate-900/20' : // Dark theme button
             status === 'standby' ? 'bg-amber-500 text-white shadow-amber-200 ring-4 ring-amber-50' :
               status === 'active_command' ? 'bg-sky-600 text-white animate-bounce shadow-sky-300 ring-4 ring-sky-100' :
                 status === 'processing' ? 'bg-indigo-600 text-white' :
@@ -181,10 +181,10 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
           <span className={`text-base font-black tracking-tight transition-colors duration-300 ${status === 'active_command' ? 'text-sky-800' :
             'text-slate-800'
             }`}>
-            {status === 'idle' && 'Comando de Voz'}
+            {status === 'idle' && 'Novo Lançamento por Voz'}
             {status === 'active_command' && 'Ouvindo...'}
             {status === 'processing' && 'Processando...'}
-            {status === 'success' && 'Feito!'}
+            {status === 'success' && 'Lançamento Criado!'}
             {status === 'error' && 'Não entendi.'}
           </span>
         </div>
@@ -193,7 +193,7 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
           {status === 'idle' ? (
             <div className="text-slate-400 font-medium flex items-center gap-2">
               <MessageSquare size={14} className="text-slate-300" />
-              <span>Toque para lançar por voz (ex: "gastei 50 reais").</span>
+              <span>Toque e fale: "Gastei 50 reais no almoço"</span>
             </div>
           ) : (
             <p className={`italic font-medium transition-all max-w-md truncate ${status === 'active_command' ? 'text-sky-600' : 'text-slate-400'
@@ -205,19 +205,16 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
       </div>
 
       <div className="hidden lg:flex flex-col items-end pr-4">
-        <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full border transition-all ${status === 'standby' ? 'bg-amber-50 border-amber-100 text-amber-600' :
-          status === 'active_command' ? 'bg-sky-50 border-sky-100 text-sky-600' :
-            'bg-slate-100 border-slate-200 text-slate-400'
+        <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full border transition-all ${status === 'active_command' ? 'bg-sky-50 border-sky-100 text-sky-600' :
+          'bg-slate-50 border-slate-100 text-slate-400'
           }`}>
-          <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${status === 'standby' ? 'bg-amber-500' :
-            status === 'active_command' ? 'bg-sky-500' :
-              'bg-slate-400'
+          <div className={`w-1.5 h-1.5 rounded-full ${status === 'active_command' ? 'bg-sky-500 animate-pulse' :
+            'bg-slate-300'
             }`}></div>
           <span className="text-[10px] font-bold uppercase tracking-widest">
-            {status === 'idle' ? 'Aguardando' : 'Escuta Ativa'}
+            {status === 'idle' ? 'Microfone Pronto' : 'Gravando'}
           </span>
         </div>
-        <span className="text-[9px] text-slate-400 mt-1 font-mono uppercase">IA Pronta</span>
       </div>
     </div>
   );

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
 import Auth from './components/Auth';
-import FinancialAssistant from './components/FinancialAssistant';
 import VoiceControl from './components/VoiceControl';
 import ExpenseManager from './components/ExpenseManager';
 import AccountManager from './components/AccountManager';
@@ -21,7 +20,7 @@ import ProfileModal from './components/ProfileModal';
 import { Budget } from './types';
 
 import { Bell, Search, User as UserIcon, Plus, Sparkles, AlertCircle, ChevronLeft, ChevronRight, Loader2, LogOut } from 'lucide-react';
-import { parseNotification, chatWithFinancialAssistant, getFinancialAdvice } from './aiService';
+import { parseNotification } from './aiService';
 import { supabase } from './supabaseClient';
 import { Transaction, Account, Goal, User, ViewState, Tag } from './types';
 
@@ -533,14 +532,9 @@ const App: React.FC = () => {
       // The prompt in geminiService says "message: Short conversational confirmation".
       // We want a REAL answer using data.
 
-      // Let's call chatWithFinancialAssistant
-      const answer = await chatWithFinancialAssistant(
-        "O usuário perguntou por voz: " + (result.data.description || "Resumo geral"), // Hack: prompt puts text in description sometimes? No.
-        transactions, accounts, goals, budgets
-      );
-
-      // Show alert for now or speaking?
-      alert("FinAI Responde: " + answer);
+      // Let's assume result.message has the answer OR we generate it now.
+      const answer = "Funcionalidade de chat desativada. Use comandos diretos.";
+      alert("FinAI: " + answer);
       return true;
     }
   };
@@ -882,8 +876,6 @@ const App: React.FC = () => {
                 return <TagManager tags={tags} onAddTag={handleAddTag} onDeleteTag={handleDeleteTag} onUpdateTag={handleUpdateTag} />;
               case 'reports':
                 return <Reports transactions={transactions} accounts={accounts} tags={tags} />;
-              case 'ai-assistant':
-                return <FinancialAssistant transactions={transactions} accounts={accounts} goals={goals} budgets={budgets} onAddTransaction={handleAddTransaction} />;
               default:
                 return (
                   <div className="flex flex-col items-center justify-center h-full text-slate-400 space-y-4">

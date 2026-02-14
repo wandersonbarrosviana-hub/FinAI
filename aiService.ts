@@ -2,9 +2,10 @@
 
 import OpenAI from "openai";
 import { Transaction, Account } from './types';
+import { FINAI_CONFIG } from './config';
 
-// API Keys from Environment
-const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY || "";
+// API Keys from Config
+const GROQ_API_KEY = FINAI_CONFIG.GROQ_API_KEY;
 
 // Initialize Client
 const groq = GROQ_API_KEY ? new OpenAI({
@@ -14,12 +15,12 @@ const groq = GROQ_API_KEY ? new OpenAI({
 }) : null;
 
 // Models
-const GROQ_MODEL = 'llama-3.3-70b-versatile'; // High speed & stable
+const GROQ_MODEL = FINAI_CONFIG.GROQ_MODEL; // High speed & stable
 
-console.log("FinAI AI Service Initialized");
-
-if (!GROQ_API_KEY) {
-    console.warn("FinAI: Chave API Groq não configurada.");
+if (GROQ_API_KEY) {
+    console.log("%c FinAI Voice Ready ", "background: #22c55e; color: #fff; border-radius: 4px; font-weight: bold;");
+} else {
+    console.warn("%c FinAI Voice Offline ", "background: #ef4444; color: #fff; border-radius: 4px; font-weight: bold;", "Chave não encontrada no .env");
 }
 
 interface VoiceCommandResult {
@@ -93,39 +94,17 @@ export const generateContent = async (prompt: string): Promise<string> => {
 
 export const parseVoiceCommand = async (text: string): Promise<VoiceCommandResult> => {
     if (!GROQ_API_KEY) {
-        return { intent: 'UNKNOWN', data: {}, message: 'Erro: Chave API Groq não configurada.' };
+        console.error("FinAI: Tentativa de uso de voz sem chave configurada.");
+        return { intent: 'UNKNOWN', data: {}, message: 'Erro: Chave API não detectada.' };
     }
 
+    // Prompt Otimizado para Velocidade (Menos tokens = Mais rápido)
     const systemPrompt = `
-      Aja como uma API de Parsing Financeiro especializado em Português do Brasil.
-      Analise o comando de voz do usuário sobre finanças.
-      Data Atual: ${new Date().toISOString().split('T')[0]}
-
-      Seu objetivo principal é extrair transações (despesas/receitas) com PERFEIÇÃO.
-      Trate números falados como "cinquenta reais", "mil e duzentos", "dois com cinquenta" corretamente.
-
-      Intenções Possíveis:
-      1. CREATE: Nova transação (despesa ou receita).
-      2. UPDATE_STATUS: Marcar transação como paga/recebida.
-      3. UNKNOWN: Não foi possível identificar uma ação financeira clara.
-
-      Categorias Válidas: Alimentação, Moradia, Transporte, Lazer, Saúde, Educação, Investimentos, Salário, Renda Extra, Outros.
-
-      Saída JSON ÚNICA. Formato:
-      {
-        "intent": "CREATE" | "UPDATE_STATUS" | "UNKNOWN",
-        "data": {
-          "description": "Descrição curta e clara",
-          "amount": 123.45,
-          "type": "expense" | "income",
-          "category": "Uma das categorias válidas",
-          "subCategory": "Subcategoria ou 'Diversos'",
-          "paymentMethod": "PIX" | "Cartão de Crédito" | "Dinheiro" | "Boleto" | "Débito",
-          "isPaid": true/false,
-          "date": "YYYY-MM-DD"
-        },
-        "message": "Mensagem curta de confirmação"
-      }
+      Analise comando financeiro PT-BR. Data: ${new Date().toISOString().split('T')[0]}.
+      Retorne JSON puro.
+      Intenções: CREATE (novo), UPDATE_STATUS (pagar), UNKNOWN.
+      Categorias: Alimentação, Transporte, Lazer, Saúde, Educação, Moradia, Investimentos, Salário, Outros.
+      Exemplo: {"intent":"CREATE","data":{"description":"Padaria","amount":15.50,"type":"expense","category":"Alimentação","isPaid":true}}
     `;
 
     try {
@@ -159,128 +138,8 @@ export const parseVoiceCommand = async (text: string): Promise<VoiceCommandResul
 };
 
 
-export const getFinancialAdvice = async (transactions: Transaction[], accounts: Account[]): Promise<string> => {
-    return chatWithFinancialAssistant("Dê uma dica rápida baseada no meu saldo atual.", transactions, accounts, [], []);
-};
-
-export const chatWithFinancialAssistant = async (
-    userMessage: string,
-    transactions: Transaction[],
-    accounts: Account[],
-    goals: any[],
-    budgets: any[]
-): Promise<string> => {
-    if (!GROQ_API_KEY) return "Erro Config: Chave de API Groq não detectada.";
-
-    // Safe helpers
-    const safeNum = (n: any) => typeof n === 'number' ? n : Number(n) || 0;
-
-    // Prepare Context
-    const balance = accounts.reduce((sum, acc) => sum + safeNum(acc.balance), 0);
-    const expenses = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + safeNum(t.amount), 0);
-    const income = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + safeNum(t.amount), 0);
-
-    const recentTrans = transactions.slice(0, 10).map(t =>
-        `- ${t.date}: ${t.description} (R$ ${safeNum(t.amount).toFixed(2)}) [${t.category}]`
-    ).join('\n');
-
-    const safeGoals = Array.isArray(goals) ? goals.map(g => ({ title: g.title, target: safeNum(g.target), current: safeNum(g.current) })) : [];
-    const safeBudgets = Array.isArray(budgets) ? budgets.map(b => ({ category: b.category, amount: safeNum(b.amount) })) : [];
-
-    const context = `
-      CONTEXTO FINANCEIRO DO USUÁRIO:
-      - Saldo Total Atual: R$ ${balance.toFixed(2)}
-      - Total Receitas (Histórico): R$ ${income.toFixed(2)}
-      - Total Despesas (Histórico): R$ ${expenses.toFixed(2)}
-      - Metas Ativas: ${JSON.stringify(safeGoals)}
-      - Orçamentos: ${JSON.stringify(safeBudgets)}
-      
-      ÚLTIMAS 10 TRANSAÇÕES:
-      ${recentTrans}
-    `;
-
-    const systemPrompt = `
-      Você é o FinAI, um assistente financeiro pessoal inteligente, amigável e extremamente capaz. Powered by Groq.
-      
-      ${context}
-      
-      INSTRUÇÕES:
-      1. Analise os dados acima para responder com precisão.
-      2. Se o usuário perguntar "posso gastar?", verifique o saldo e padrões de gasto.
-      3. Seja conciso e direto.
-      4. Responda sempre em Português do Brasil.
-      5. Use Markdown.
-    `;
-
-    try {
-        return await retryOperation(async () => {
-            if (groq) {
-                console.log("Using Groq for Chat...");
-                const response = await groq.chat.completions.create({
-                    model: GROQ_MODEL,
-                    messages: [
-                        { role: "system", content: systemPrompt },
-                        { role: "user", content: userMessage }
-                    ]
-                });
-                return response.choices[0].message.content || "";
-            }
-            throw new Error("Serviço Groq não inicializado.");
-        });
-
-    } catch (error: any) {
-        console.error("Chat Error:", error);
-        return `Erro no Chat (Groq): ${error.message?.substring(0, 50)}...`;
-    }
-};
-
-export const performDeepAnalysis = async (transactions: Transaction[], accounts: Account[], goals: any[]): Promise<string> => {
-    if (!GROQ_API_KEY) return "Erro: Chave API Groq ausente.";
-
-    const balance = accounts.reduce((sum, acc) => sum + acc.balance, 0);
-    const categoryMap: Record<string, number> = {};
-    transactions.filter(t => t.type === 'expense').forEach(t => {
-        categoryMap[t.category] = (categoryMap[t.category] || 0) + t.amount;
-    });
-    const topCategories = Object.entries(categoryMap)
-        .sort(([, a], [, b]) => b - a)
-        .slice(0, 5)
-        .map(([cat, val]) => `${cat}: R$ ${val.toFixed(2)}`)
-        .join(', ');
-
-    const systemPrompt = `
-      Realize uma ANÁLISE PROFUNDA da saúde financeira deste usuário. Powered by Groq.
-      
-      DADOS:
-      - Saldo Geral: R$ ${balance.toFixed(2)}
-      - Top 5 Gastos por Categoria: ${topCategories}
-      - Metas Definidas: ${JSON.stringify(goals)}
-      
-      Gere um relatório em Markdown com:
-      1. **Diagnóstico Geral**
-      2. **Análise de Gastos**
-      3. **Insights de Economia**
-      4. **Recomendação de Metas**
-    `;
-
-    try {
-        return await retryOperation(async () => {
-            if (groq) {
-                console.log("Using Groq for Deep Analysis...");
-                const response = await groq.chat.completions.create({
-                    model: GROQ_MODEL,
-                    messages: [{ role: "user", content: systemPrompt }]
-                });
-                return response.choices[0].message.content || "";
-            }
-            throw new Error("Serviço Groq não inicializado.");
-        });
-
-    } catch (error) {
-        console.error("Deep Analysis Error:", error);
-        return "Não foi possível realizar a análise profunda via Groq no momento.";
-    }
-};
+// Funções de Chat e Análise removidas a pedido do usuário.
+// O foco agora é execução direta de comandos e parsing de notificações.
 
 export const parseNotification = async (notificationText: string): Promise<any> => {
     if (!GROQ_API_KEY) return null;
