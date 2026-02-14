@@ -1,4 +1,3 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <rect width="100" height="100" rx="12" fill="#FCF200"/>
-  <text x="50" y="70" font-family="Arial, sans-serif" font-weight="900" font-size="60" text-anchor="middle" fill="#0038A8">BB</text>
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M0 16.0001L9.99061 22.6667L21.9906 14.6667L16.9953 11.324L23.493 7.0048L37.4836 16.3381L14.4977 31.662L19.493 35.0047L48 16.0001L24 0L0 16.0001ZM48 32L37.9907 25.3334L25.9906 33.3334L30.9859 36.6572L24.4883 40.9953L10.4977 31.662L33.4836 16.3381L28.4883 12.9954L0 32L24 48L48 32ZM48 6.66665L42.9859 10.0095L37.9907 6.66665L48 0V6.66665ZM0 41.3334L4.99531 37.9906L9.99061 41.3334L0 48V41.3334Z" fill="#003882"/>
 </svg>
