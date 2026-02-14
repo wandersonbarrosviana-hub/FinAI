@@ -1,14 +1,12 @@
 
-import { GoogleGenerativeAI } from "@google/generative-ai";
+
 import OpenAI from "openai";
 import { Transaction, Account } from './types';
 
 // API Keys from Environment
-const GOOGLE_API_KEY = import.meta.env.VITE_GOOGLE_API_KEY || "";
 const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY || "";
 
-// Initialize Clients
-const genAI = GOOGLE_API_KEY ? new GoogleGenerativeAI(GOOGLE_API_KEY) : null;
+// Initialize Client
 const groq = GROQ_API_KEY ? new OpenAI({
     apiKey: GROQ_API_KEY,
     baseURL: "https://api.groq.com/openai/v1",
@@ -16,12 +14,14 @@ const groq = GROQ_API_KEY ? new OpenAI({
 }) : null;
 
 // Models
-const GEMINI_MODEL = 'gemini-2.0-flash';
 const GROQ_MODEL = 'llama-3.3-70b-versatile'; // High speed & stable
 
 console.log("FinAI AI Service Initializing...");
-console.log("Gemini Status:", GOOGLE_API_KEY ? "READY" : "MISSING");
-console.log("Groq Status:", GROQ_API_KEY ? "READY" : "OPTIONAL");
+console.log("Groq Status:", GROQ_API_KEY ? "READY" : "MISSING (FATAL)");
+
+if (!GROQ_API_KEY) {
+    console.warn("ALERTA: VITE_GROQ_API_KEY não configurada. As funcionalidades de IA não funcionarão.");
+}
 
 interface VoiceCommandResult {
     intent: 'CREATE' | 'UPDATE_STATUS' | 'UNKNOWN' | 'ADVICE_REQUEST' | 'CREATE_ACCOUNT' | 'CREATE_GOAL' | 'CREATE_BUDGET';
@@ -70,24 +70,10 @@ const retryOperation = async <T>(operation: () => Promise<T>, maxRetries: number
 };
 
 export const generateContent = async (prompt: string): Promise<string> => {
-    if (!GOOGLE_API_KEY && !GROQ_API_KEY) return "Erro: Chave API (Google ou Groq) não configurada.";
+    if (!GROQ_API_KEY) return "Erro: Chave API Groq não configurada.";
 
-    // Logic: Try Gemini first if available, then Groq.
     try {
         return await retryOperation(async () => {
-            if (genAI) {
-                try {
-                    const model = genAI.getGenerativeModel({ model: GEMINI_MODEL });
-                    const result = await model.generateContent(prompt);
-                    const response = await result.response;
-                    return response.text();
-                } catch (geminiError) {
-                    console.warn("Gemini Failed, checking for backup...");
-                    if (!groq) throw geminiError;
-                    // Proceed to Groq below
-                }
-            }
-
             if (groq) {
                 console.log("Using Groq for Generation...");
                 const response = await groq.chat.completions.create({
@@ -96,20 +82,19 @@ export const generateContent = async (prompt: string): Promise<string> => {
                 });
                 return response.choices[0].message.content || "";
             }
-
-            throw new Error("Nenhum serviço de IA disponível.");
+            throw new Error("Serviço Groq não inicializado.");
         });
     } catch (error: any) {
         console.error("AI Generate Error:", error);
-        if (error.message?.includes('429')) return "Erro: Limite de uso excedido (tente novamente mais tarde).";
-        if (error.message?.includes('API key')) return "Erro: Chave API inválida ou expirada.";
-        return `Erro de conexão com IA: ${error.message || 'Desconhecido'}`;
+        if (error.message?.includes('429')) return "Erro: Limite de uso excedido no Groq (tente novamente mais tarde).";
+        if (error.message?.includes('API key')) return "Erro: Chave API Groq inválida ou expirada.";
+        return `Erro de conexão com Groq: ${error.message || 'Desconhecido'}`;
     }
 };
 
 export const parseVoiceCommand = async (text: string): Promise<VoiceCommandResult> => {
-    if (!GOOGLE_API_KEY && !GROQ_API_KEY) {
-        return { intent: 'UNKNOWN', data: {}, message: 'Erro: Chave API da IA não configurada.' };
+    if (!GROQ_API_KEY) {
+        return { intent: 'UNKNOWN', data: {}, message: 'Erro: Chave API Groq não configurada.' };
     }
 
     const systemPrompt = `
@@ -146,20 +131,7 @@ export const parseVoiceCommand = async (text: string): Promise<VoiceCommandResul
 
     try {
         return await retryOperation(async () => {
-            let textResponse = "";
-
-            if (genAI) {
-                try {
-                    const model = genAI.getGenerativeModel({ model: GEMINI_MODEL });
-                    const result = await model.generateContent([systemPrompt, text]);
-                    const response = await result.response;
-                    textResponse = response.text();
-                } catch (err) {
-                    if (!groq) throw err;
-                }
-            }
-
-            if (!textResponse && groq) {
+            if (groq) {
                 console.log("Using Groq for Voice Parsing...");
                 const response = await groq.chat.completions.create({
                     model: GROQ_MODEL,
@@ -169,27 +141,26 @@ export const parseVoiceCommand = async (text: string): Promise<VoiceCommandResul
                     ],
                     response_format: { type: "json_object" }
                 });
-                textResponse = response.choices[0].message.content || "";
-            }
+                const textResponse = response.choices[0].message.content || "";
+                const cleaned = cleanJSON(textResponse);
+                const parsed = JSON.parse(cleaned);
 
-            const cleaned = cleanJSON(textResponse);
-            const parsed = JSON.parse(cleaned);
-
-            if (parsed.data) {
-                parsed.data.originalText = text;
+                if (parsed.data) {
+                    parsed.data.originalText = text;
+                }
+                return parsed;
             }
-            return parsed;
+            throw new Error("Serviço Groq não inicializado.");
         });
 
     } catch (error) {
         console.error('AI Parsing Error:', error);
-        return { intent: 'UNKNOWN', data: { originalText: text }, message: 'Desculpe, não consegui entender o comando de voz.' };
+        return { intent: 'UNKNOWN', data: { originalText: text }, message: 'Desculpe, não consegui entender o comando de voz via Groq.' };
     }
 };
 
 
 export const getFinancialAdvice = async (transactions: Transaction[], accounts: Account[]): Promise<string> => {
-    // Legacy function redirect
     return chatWithFinancialAssistant("Dê uma dica rápida baseada no meu saldo atual.", transactions, accounts, [], []);
 };
 
@@ -200,7 +171,7 @@ export const chatWithFinancialAssistant = async (
     goals: any[],
     budgets: any[]
 ): Promise<string> => {
-    if (!GOOGLE_API_KEY && !GROQ_API_KEY) return "Erro Config: Chave de API não detectada.";
+    if (!GROQ_API_KEY) return "Erro Config: Chave de API Groq não detectada.";
 
     // Safe helpers
     const safeNum = (n: any) => typeof n === 'number' ? n : Number(n) || 0;
@@ -230,7 +201,7 @@ export const chatWithFinancialAssistant = async (
     `;
 
     const systemPrompt = `
-      Você é o FinAI, um assistente financeiro pessoal inteligente, amigável e extremamente capaz.
+      Você é o FinAI, um assistente financeiro pessoal inteligente, amigável e extremamente capaz. Powered by Groq.
       
       ${context}
       
@@ -244,17 +215,6 @@ export const chatWithFinancialAssistant = async (
 
     try {
         return await retryOperation(async () => {
-            if (genAI) {
-                try {
-                    const model = genAI.getGenerativeModel({ model: GEMINI_MODEL });
-                    const result = await model.generateContent([systemPrompt, userMessage]);
-                    const response = await result.response;
-                    return response.text();
-                } catch (err) {
-                    if (!groq) throw err;
-                }
-            }
-
             if (groq) {
                 console.log("Using Groq for Chat...");
                 const response = await groq.chat.completions.create({
@@ -266,17 +226,17 @@ export const chatWithFinancialAssistant = async (
                 });
                 return response.choices[0].message.content || "";
             }
-            throw new Error("Nenhum serviço de IA disponível.");
+            throw new Error("Serviço Groq não inicializado.");
         });
 
     } catch (error: any) {
         console.error("Chat Error:", error);
-        return `Erro na IA: ${error.message?.substring(0, 50)}...`;
+        return `Erro no Chat (Groq): ${error.message?.substring(0, 50)}...`;
     }
 };
 
 export const performDeepAnalysis = async (transactions: Transaction[], accounts: Account[], goals: any[]): Promise<string> => {
-    if (!GOOGLE_API_KEY && !GROQ_API_KEY) return "Erro: Chave API ausente.";
+    if (!GROQ_API_KEY) return "Erro: Chave API Groq ausente.";
 
     const balance = accounts.reduce((sum, acc) => sum + acc.balance, 0);
     const categoryMap: Record<string, number> = {};
@@ -290,7 +250,7 @@ export const performDeepAnalysis = async (transactions: Transaction[], accounts:
         .join(', ');
 
     const systemPrompt = `
-      Realize uma ANÁLISE PROFUNDA da saúde financeira deste usuário.
+      Realize uma ANÁLISE PROFUNDA da saúde financeira deste usuário. Powered by Groq.
       
       DADOS:
       - Saldo Geral: R$ ${balance.toFixed(2)}
@@ -306,17 +266,6 @@ export const performDeepAnalysis = async (transactions: Transaction[], accounts:
 
     try {
         return await retryOperation(async () => {
-            if (genAI) {
-                try {
-                    const model = genAI.getGenerativeModel({ model: GEMINI_MODEL });
-                    const result = await model.generateContent(systemPrompt);
-                    const response = await result.response;
-                    return response.text();
-                } catch (err) {
-                    if (!groq) throw err;
-                }
-            }
-
             if (groq) {
                 console.log("Using Groq for Deep Analysis...");
                 const response = await groq.chat.completions.create({
@@ -325,22 +274,20 @@ export const performDeepAnalysis = async (transactions: Transaction[], accounts:
                 });
                 return response.choices[0].message.content || "";
             }
-            throw new Error("Nenhum serviço de IA disponível.");
+            throw new Error("Serviço Groq não inicializado.");
         });
 
     } catch (error) {
         console.error("Deep Analysis Error:", error);
-        return "Não foi possível realizar a análise no momento.";
+        return "Não foi possível realizar a análise profunda via Groq no momento.";
     }
 };
 
 export const parseNotification = async (notificationText: string): Promise<any> => {
-    if (!API_KEY) return null;
+    if (!GROQ_API_KEY) return null;
 
     try {
         return await retryOperation(async () => {
-            const model = genAI.getGenerativeModel({ model: MODEL_NAME });
-
             const systemPrompt = `
           Parse this notification text for a financial app.
           
@@ -355,13 +302,22 @@ export const parseNotification = async (notificationText: string): Promise<any> 
           }
         `;
 
-            const result = await model.generateContent([systemPrompt, notificationText]);
-            const response = await result.response;
-            const cleaned = cleanJSON(response.text());
-
-            return JSON.parse(cleaned);
+            if (groq) {
+                const response = await groq.chat.completions.create({
+                    model: GROQ_MODEL,
+                    messages: [
+                        { role: "system", content: systemPrompt },
+                        { role: "user", content: notificationText }
+                    ],
+                    response_format: { type: "json_object" }
+                });
+                const cleaned = cleanJSON(response.choices[0].message.content || "");
+                return JSON.parse(cleaned);
+            }
+            return null;
         });
     } catch (error) {
+        console.error("Notification Parse Error:", error);
         return null;
     }
 };
