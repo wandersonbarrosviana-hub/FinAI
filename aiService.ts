@@ -255,11 +255,11 @@ export const parseNotification = async (notificationText: string): Promise<any> 
 // --- INVOICE PARSING ---
 export const parseInvoice = async (invoiceText: string): Promise<any> => {
     // Basic check, might rely on config.ts or env directly
-    const apiKey = import.meta.env.VITE_GROQ_API_KEY || '';
+    const apiKey = FINAI_CONFIG.GROQ_API_KEY;
 
     if (!apiKey) {
         console.warn("Groq API Key missing for invoice parsing.");
-        return { error: "API Key missing" };
+        return { error: "Chave de API da IA não configurada. Verifique o .env" };
     }
 
     // Truncate text if too long to avoid token limits (optimistic approach)

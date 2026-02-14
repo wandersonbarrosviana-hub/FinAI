@@ -64,7 +64,10 @@ const InvoiceUploader: React.FC<InvoiceUploaderProps> = ({ onConfirm, onCancel }
 
             const result = await parseInvoice(text);
 
-            if (result.error || !result.items) {
+            if (result.error) {
+                throw new Error(result.error);
+            }
+            if (!result.items) {
                 throw new Error("Não foi possível identificar transações. Tente um PDF mais claro.");
             }
 

@@ -149,7 +149,10 @@ const App: React.FC = () => {
       const mappedAccs = accRes.data.map((a: any) => ({
         ...a,
         bankId: a.bank_id,
-        isCredit: a.is_credit
+        isCredit: a.is_credit,
+        creditLimit: a.credit_limit,
+        closingDay: a.closing_day,
+        dueDay: a.due_day
       }));
 
       setTransactions(mappedTxs);
@@ -638,7 +641,10 @@ const App: React.FC = () => {
       type: data.type || 'checking',
       bank_id: data.bankId || 'outro',
       color: data.color || '#64748b',
-      is_credit: false // default
+      is_credit: data.isCredit || false, // default to false if undefined, but respect true
+      credit_limit: data.creditLimit || 0,
+      closing_day: data.closingDay || 1,
+      due_day: data.dueDay || 10
     };
 
     const { data: inserted, error } = await supabase.from('accounts').insert(newAccPayload).select().single();
@@ -646,7 +652,10 @@ const App: React.FC = () => {
       const newAcc = {
         ...inserted,
         bankId: inserted.bank_id,
-        isCredit: inserted.is_credit
+        isCredit: inserted.is_credit,
+        creditLimit: inserted.credit_limit,
+        closingDay: inserted.closing_day,
+        dueDay: inserted.due_day
       };
       setAccounts(prev => [...prev, newAcc]);
     }
