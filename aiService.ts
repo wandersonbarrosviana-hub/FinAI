@@ -298,7 +298,7 @@ export const parseInvoice = async (invoiceText: string): Promise<any> => {
                 { role: "system", content: "You are a specialized financial data extractor. You output strictly valid JSON." },
                 { role: "user", content: parserPrompt }
             ],
-            model: "llama3-70b-8192", // High intelligence needed for unstructured text
+            model: "llama-3.3-70b-versatile", // Updated to a known valid Groq model
             temperature: 0.1, // Low temp for precision
             response_format: { type: "json_object" }
         });
@@ -306,9 +306,17 @@ export const parseInvoice = async (invoiceText: string): Promise<any> => {
         const content = completion.choices[0]?.message?.content;
         if (!content) throw new Error("No content from Groq");
 
+        console.log("AI Raw Response:", content);
+
         return JSON.parse(content);
-    } catch (error) {
+    } catch (error: any) {
         console.error("Error parsing invoice with Groq:", error);
-        return { items: [], error: "Failed to parse invoice" };
+
+        // If it's a JSON parse error, it means the model returned something else
+        if (error instanceof SyntaxError) {
+            return { items: [], error: `Erro na IA: Resposta inválida (Não é JSON). Tente novamente.` };
+        }
+
+        return { items: [], error: `Erro na IA: ${error.message}` };
     }
 };

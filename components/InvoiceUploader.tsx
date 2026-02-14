@@ -5,8 +5,9 @@ import * as pdfjsLib from 'pdfjs-dist';
 import { Upload, FileText, Loader2, CheckCircle, AlertCircle, Trash2, Edit2, Save, X } from 'lucide-react';
 import { parseInvoice } from '../aiService';
 
-// Configure PDF.js worker
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+// Configure PDF.js worker locally using Vite's URL import
+import pdfWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
 interface InvoiceItem {
     id: string; // Temporary ID for UI

@@ -648,7 +648,14 @@ const App: React.FC = () => {
     };
 
     const { data: inserted, error } = await supabase.from('accounts').insert(newAccPayload).select().single();
-    if (inserted && !error) {
+
+    if (error) {
+      console.error("Erro ao criar conta:", error);
+      alert(`Erro ao criar cartão: ${error.message} (${error.details || ''})`);
+      return;
+    }
+
+    if (inserted) {
       const newAcc = {
         ...inserted,
         bankId: inserted.bank_id,
