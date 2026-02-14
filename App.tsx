@@ -788,6 +788,11 @@ const App: React.FC = () => {
 
           <div className="flex items-center space-x-4">
             <NotificationCenter onAddTransaction={(t) => handleAddTransaction({ ...t, type: t.type as any })} />
+
+            {/* DEBUG BANNER - REMOVER DEPOIS */}
+            <div className="hidden md:flex flex-col items-end mr-4 text-[10px] text-slate-400 font-mono">
+              <span>API Check: {import.meta.env.VITE_GROQ_API_KEY ? import.meta.env.VITE_GROQ_API_KEY.substring(0, 5) + '...' : 'MISSING'}</span>
+            </div>
             <div className="h-8 w-[1px] bg-slate-200"></div>
 
             {/* User Profile & Logout - Clean Context */}
