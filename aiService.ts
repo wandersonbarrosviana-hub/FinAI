@@ -98,28 +98,48 @@ export const parseVoiceCommand = async (text: string): Promise<VoiceCommandResul
         return { intent: 'UNKNOWN', data: {}, message: 'Erro: Chave API não detectada.' };
     }
 
-    // Prompt Otimizado para Velocidade (Menos tokens = Mais rápido)
+    // Prompt Otimizado e RESTRIÇÃO JSON FORTE
     const systemPrompt = `
-      Analise comando financeiro PT-BR. Data: ${new Date().toISOString().split('T')[0]}.
-      Retorne JSON puro.
-      Intenções: CREATE (novo), UPDATE_STATUS (pagar), UNKNOWN.
-      Categorias: Alimentação, Transporte, Lazer, Saúde, Educação, Moradia, Investimentos, Salário, Outros.
-      Exemplo: {"intent":"CREATE","data":{"description":"Padaria","amount":15.50,"type":"expense","category":"Alimentação","isPaid":true}}
+      CONTEXTO: API Financeira (PT-BR). Data: ${new Date().toISOString().split('T')[0]}.
+      TAREFA: Converter comando de voz em JSON estruturado.
+      FORMATO DE RESPOSTA: Apenas JSON válido. Sem markdown, sem explicação.
+      
+      SCHEMA:
+      {
+        "intent": "CREATE" | "UPDATE_STATUS" | "UNKNOWN",
+        "data": {
+          "description": "string",
+          "amount": number,
+          "type": "expense" | "income",
+          "category": "string",
+          "isPaid": boolean,
+          "date": "YYYY-MM-DD"
+        }
+      }
+
+      EXEMPLOS:
+      "Gastei 50 na padaria" -> {"intent":"CREATE","data":{"description":"Padaria","amount":50,"type":"expense","category":"Alimentação"}}
+      "Recebi 1000 reais" -> {"intent":"CREATE","data":{"description":"Recebimento","amount":1000,"type":"income","category":"Salário"}}
     `;
 
     try {
         return await retryOperation(async () => {
             if (groq) {
-                console.log("Using Groq for Voice Parsing...");
+                console.log("🎤 Enviando para Groq:", text); // DEBUG
+
                 const response = await groq.chat.completions.create({
                     model: GROQ_MODEL,
                     messages: [
                         { role: "system", content: systemPrompt },
                         { role: "user", content: text }
                     ],
+                    temperature: 0.1, // Mais determinístico
                     response_format: { type: "json_object" }
                 });
+
                 const textResponse = response.choices[0].message.content || "";
+                console.log("🤖 Resposta Bruta Groq:", textResponse); // DEBUG IMPORTANTE
+
                 const cleaned = cleanJSON(textResponse);
                 const parsed = JSON.parse(cleaned);
 
