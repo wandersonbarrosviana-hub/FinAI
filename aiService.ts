@@ -20,7 +20,14 @@ interface VoiceCommandResult {
 
 // Helper to clean Markdown JSON code blocks often returned by LLMs
 const cleanJSON = (text: string): string => {
-    return text.replace(/```json\n?|\n?```/g, '').trim();
+    let clean = text.replace(/```json\n?|\n?```/g, '').trim();
+    // Try to find the first '{' and last '}' to handle potential preamble/postscript text
+    const firstBrace = clean.indexOf('{');
+    const lastBrace = clean.lastIndexOf('}');
+    if (firstBrace !== -1 && lastBrace !== -1) {
+        clean = clean.substring(firstBrace, lastBrace + 1);
+    }
+    return clean;
 };
 
 // Helper for Exponential Backoff Retry
