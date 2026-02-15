@@ -41,6 +41,7 @@ const App: React.FC = () => {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
   const [budgets, setBudgets] = useState<Budget[]>([]);
+  const [retirementParams, setRetirementParams] = useState<any>(null);
 
   const [showNotificationPopup, setShowNotificationPopup] = useState(false);
   const [notificationData, setNotificationData] = useState<any>(null);
@@ -498,50 +499,124 @@ const App: React.FC = () => {
     }
   };
 
+  const handleUpdateAccount = async (id: string, updates: Partial<Account>) => {
+    setAccounts(prev => prev.map(a => a.id === id ? { ...a, ...updates } : a));
+    await supabase.from('accounts').update(updates).eq('id', id);
+  };
+
+  const handleUpdateGoal = async (id: string, updates: Partial<Goal>) => {
+    setGoals(prev => prev.map(g => g.id === id ? { ...g, ...updates } : g));
+    await supabase.from('goals').update(updates).eq('id', id);
+  };
+
   const handleAICommand = async (result: any) => {
-    // Reuse handleAddTransaction logic? Or create specific logic?
-    // Reuse is better to get DB persistence.
+    console.log("AI Command:", result);
+
+    // 1. Transactions
     if (result.intent === 'CREATE') {
-      handleAddTransaction(result.data);
+      await handleAddTransaction(result.data);
       return true;
-    } else if (result.intent === 'UPDATE_STATUS') {
-      // ... find tx ...
+    }
+
+    // 2. Status Update
+    else if (result.intent === 'UPDATE_STATUS') {
       const { searchDescription, newStatus } = result.data;
       const tx = transactions.find(t =>
         t.description.toLowerCase().includes(searchDescription.toLowerCase())
       );
       if (tx) {
-        handleUpdateTransaction(tx.id, { isPaid: newStatus });
+        await handleUpdateTransaction(tx.id, { isPaid: newStatus });
         return true;
       }
       return false;
-    } else if (result.intent === 'CREATE_ACCOUNT') {
-      handleAddAccount(result.data);
-      return true;
-    } else if (result.intent === 'CREATE_GOAL') {
-      handleAddGoal(result.data);
-      return true;
-    } else if (result.intent === 'CREATE_BUDGET') {
-      handleAddBudget(result.data);
-      return true;
-    } else if (result.intent === 'ADVICE_REQUEST') {
-      // Voice asked a question. We need to answer it using the Chat Service.
-      // VoiceControl usually expects a boolean success. 
-      // We can trigger a UI feedback here.
-      const question = result.data.originalText || "Analise minhas finanças"; // We need to ensure originalText is passed if possible, or infer from context
-      // Wait, parseVoiceCommand result.data might not have originalText unless we add it. 
-      // geminiService.parseVoiceCommand needs to return original text in data if possible? 
-      // Or we just use a generic prompt. 
+    }
 
-      // Better: Let's assume result.message has the answer OR we generate it now.
-      // The prompt in geminiService says "message: Short conversational confirmation".
-      // We want a REAL answer using data.
+    // 3. Accounts
+    else if (result.intent === 'CREATE_ACCOUNT') {
+      await handleAddAccount(result.data);
+      return true;
+    }
+    else if (result.intent === 'UPDATE_ACCOUNT') {
+      const acc = accounts.find(a => a.name.toLowerCase().includes(result.data.name.toLowerCase()));
+      if (acc) {
+        await handleUpdateAccount(acc.id, result.data.updates);
+        return true;
+      }
+      return false;
+    }
+    else if (result.intent === 'DELETE_ACCOUNT') {
+      const acc = accounts.find(a => a.name.toLowerCase().includes(result.data.name.toLowerCase()));
+      if (acc) {
+        await handleDeleteAccount(acc.id);
+        return true;
+      }
+      return false;
+    }
 
-      // Let's assume result.message has the answer OR we generate it now.
+    // 4. Goals
+    else if (result.intent === 'CREATE_GOAL') {
+      await handleAddGoal(result.data);
+      return true;
+    }
+    else if (result.intent === 'UPDATE_GOAL') {
+      const goal = goals.find(g => g.title.toLowerCase().includes(result.data.title.toLowerCase()));
+      if (goal) {
+        await handleUpdateGoal(goal.id, result.data.updates);
+        return true;
+      }
+      return false;
+    }
+    else if (result.intent === 'DELETE_GOAL') {
+      const goal = goals.find(g => g.title.toLowerCase().includes(result.data.title.toLowerCase()));
+      if (goal) {
+        await handleDeleteGoal(goal.id);
+        return true;
+      }
+      return false;
+    }
+
+    // 5. Budgets
+    else if (result.intent === 'CREATE_BUDGET') {
+      await handleAddBudget(result.data);
+      return true;
+    }
+    else if (result.intent === 'UPDATE_BUDGET') {
+      // Logic to find budget by category (and current month?)
+      const budget = budgets.find(b => b.category.toLowerCase() === result.data.category.toLowerCase());
+      if (budget) {
+        await handleUpdateBudget(budget.id, { amount: result.data.amount });
+        return true;
+      }
+      return false;
+    }
+    else if (result.intent === 'DELETE_BUDGET') {
+      const budget = budgets.find(b => b.category.toLowerCase() === result.data.category.toLowerCase());
+      if (budget) {
+        // We don't have a delete budget function yet, let's add one or just set amount to 0?
+        // Actually, Supabase delete is needed.
+        // implementation below
+        setBudgets(prev => prev.filter(b => b.id !== budget.id));
+        await supabase.from('budgets').delete().eq('id', budget.id);
+        return true;
+      }
+      return false;
+    }
+
+    // 6. Retirement Simulation
+    else if (result.intent === 'SIMULATE_RETIREMENT') {
+      setRetirementParams(result.data);
+      setCurrentView('retirement');
+      return true;
+    }
+
+    // 7. Advice / Chat
+    else if (result.intent === 'ADVICE_REQUEST') {
       const answer = "Funcionalidade de chat desativada. Use comandos diretos.";
       alert("FinAI: " + answer);
       return true;
     }
+
+    return false;
   };
 
   const handleAddBudget = async (data: Partial<Budget>) => {
@@ -876,7 +951,7 @@ const App: React.FC = () => {
           {currentView === 'categories' && <CategoryManager transactions={filteredTransactions} />}
           {currentView === 'accounts' && <AccountManager accounts={accounts} onAddAccount={handleAddAccount} onDeleteAccount={handleDeleteAccount} />}
           {currentView === 'investments' && <Investments />}
-          {currentView === 'retirement' && <RetirementSimulator transactions={transactions} budgets={budgets} />}
+          {currentView === 'retirement' && <RetirementSimulator transactions={transactions} budgets={budgets} simulationParams={retirementParams} />}
           {currentView === 'tags' && <TagManager tags={tags} onAddTag={handleAddTag} onDeleteTag={handleDeleteTag} onUpdateTag={handleUpdateTag} />}
           {currentView === 'ai-assistant' && (
             <div className="p-4 md:p-8 overflow-y-auto scrollbar-hide text-slate-800 h-full flex flex-col">

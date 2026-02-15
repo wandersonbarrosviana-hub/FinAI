@@ -23,8 +23,12 @@ if (GROQ_API_KEY) {
     console.warn("%c FinAI Voice Offline ", "background: #ef4444; color: #fff; border-radius: 4px; font-weight: bold;", "Chave não encontrada no .env");
 }
 
-interface VoiceCommandResult {
-    intent: 'CREATE' | 'UPDATE_STATUS' | 'UNKNOWN' | 'ADVICE_REQUEST' | 'CREATE_ACCOUNT' | 'CREATE_GOAL' | 'CREATE_BUDGET';
+export interface VoiceCommandResult {
+    intent: 'CREATE' | 'UPDATE_STATUS' | 'UNKNOWN' | 'ADVICE_REQUEST'
+    | 'CREATE_ACCOUNT' | 'UPDATE_ACCOUNT' | 'DELETE_ACCOUNT'
+    | 'CREATE_GOAL' | 'UPDATE_GOAL' | 'DELETE_GOAL'
+    | 'CREATE_BUDGET' | 'UPDATE_BUDGET' | 'DELETE_BUDGET'
+    | 'SIMULATE_RETIREMENT';
     data: any;
     message?: string;
 }
@@ -101,25 +105,37 @@ export const parseVoiceCommand = async (text: string): Promise<VoiceCommandResul
     // Prompt Otimizado e RESTRIÇÃO JSON FORTE
     const systemPrompt = `
       CONTEXTO: API Financeira (PT-BR). Data: ${new Date().toISOString().split('T')[0]}.
-      TAREFA: Converter comando de voz em JSON estruturado.
+      TAREFA: Converter comando de voz em JSON estruturado para uma aplicação financeira completa.
       FORMATO DE RESPOSTA: Apenas JSON válido. Sem markdown, sem explicação.
       
-      SCHEMA:
-      {
-        "intent": "CREATE" | "UPDATE_STATUS" | "UNKNOWN",
-        "data": {
-          "description": "string",
-          "amount": number,
-          "type": "expense" | "income",
-          "category": "string",
-          "isPaid": boolean,
-          "date": "YYYY-MM-DD"
-        }
-      }
+      INTENTS E ESTRUTURAS ESPERADAS:
+
+      1. TRANSAÇÕES (Despesa/Receita):
+         Intent: "CREATE"
+         Data: { "description": string, "amount": number, "type": "expense" | "income", "category": string, "isPaid": boolean, "date": "YYYY-MM-DD" }
+
+      2. CONTAS (Bancos/Carteiras):
+         Intent: "CREATE_ACCOUNT" | "UPDATE_ACCOUNT" | "DELETE_ACCOUNT"
+         Data: { "name": string (ex: "Nubank", "Carteira"), "balance": number, "type": "checking" | "wallet" | "investment" }
+
+      3. METAS (Objetivos):
+         Intent: "CREATE_GOAL" | "UPDATE_GOAL" | "DELETE_GOAL"
+         Data: { "title": string, "target": number, "deadline": "YYYY-MM-DD" (opcional), "current": number (opcional) }
+
+      4. ORÇAMENTOS (Budgets):
+         Intent: "CREATE_BUDGET" | "UPDATE_BUDGET" | "DELETE_BUDGET"
+         Data: { "category": string, "amount": number }
+
+      5. SIMULAÇÃO DE APOSENTADORIA:
+         Intent: "SIMULATE_RETIREMENT"
+         Data: { "monthlyContribution": number, "desiredIncome": number, "currentPatrimony": number, "years": number }
 
       EXEMPLOS:
       "Gastei 50 na padaria" -> {"intent":"CREATE","data":{"description":"Padaria","amount":50,"type":"expense","category":"Alimentação"}}
-      "Recebi 1000 reais" -> {"intent":"CREATE","data":{"description":"Recebimento","amount":1000,"type":"income","category":"Salário"}}
+      "Criar conta Nubank com saldo 1000" -> {"intent":"CREATE_ACCOUNT","data":{"name":"Nubank","balance":1000,"type":"checking"}}
+      "Mudar meta Viagem para 5000" -> {"intent":"UPDATE_GOAL","data":{"title":"Viagem","target":5000}}
+      "Deletar orçamento de Lazer" -> {"intent":"DELETE_BUDGET","data":{"category":"Lazer"}}
+      "Simular aposentadoria com 1000 por mês e renda de 5000" -> {"intent":"SIMULATE_RETIREMENT","data":{"monthlyContribution":1000,"desiredIncome":5000}}
     `;
 
     try {

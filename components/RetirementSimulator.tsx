@@ -9,9 +9,15 @@ import { CATEGORIES } from '../constants';
 interface RetirementSimulatorProps {
     transactions: Transaction[];
     budgets?: Budget[];
+    simulationParams?: {
+        desiredIncome?: number;
+        currentPatrimony?: number;
+        monthlyContribution?: number;
+        years?: number;
+    } | null;
 }
 
-const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions, budgets }) => {
+const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions, budgets, simulationParams }) => {
     // Inputs
     const [desiredIncome, setDesiredIncome] = useState(5000);
     const [currentPatrimony, setCurrentPatrimony] = useState(0);
@@ -24,6 +30,16 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
     const [showRealValues, setShowRealValues] = useState(false);
     const [applyBudgetSurplus, setApplyBudgetSurplus] = useState(false);
     const [yearsToSimulate, setYearsToSimulate] = useState(60); // Default to 60 years
+
+    // Effect to update state from AI params
+    React.useEffect(() => {
+        if (simulationParams) {
+            if (simulationParams.desiredIncome) setDesiredIncome(simulationParams.desiredIncome);
+            if (simulationParams.currentPatrimony) setCurrentPatrimony(simulationParams.currentPatrimony);
+            if (simulationParams.monthlyContribution) setMonthlyContribution(simulationParams.monthlyContribution);
+            if (simulationParams.years) setYearsToSimulate(simulationParams.years);
+        }
+    }, [simulationParams]);
 
     // Budget Surplus Calculation - Refined with failover and CATEGORIES defaults
     const budgetSurplus = useMemo(() => {

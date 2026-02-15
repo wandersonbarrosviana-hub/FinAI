@@ -12,7 +12,7 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
   const [status, setStatus] = useState<VoiceStatus>('idle');
   const [transcript, setTranscript] = useState('');
   // Tentar iniciar ATIVADO por padrão
-  const [isListeningMode, setIsListeningMode] = useState(true);
+  const [isListeningMode, setIsListeningMode] = useState(false);
 
   // Refs to avoid obsolete closures
   const statusRef = useRef<VoiceStatus>('idle');
