@@ -19,6 +19,8 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
     const [inviteEmail, setInviteEmail] = useState('');
     const [familyMembers, setFamilyMembers] = useState<any[]>([]);
     const [invites, setInvites] = useState<any[]>([]);
+    const [foundUser, setFoundUser] = useState<{ name: string, avatar_url: string } | null>(null);
+    const [isCheckingUser, setIsCheckingUser] = useState(false);
 
     // Fetch data when family tab is active
     React.useEffect(() => {
@@ -26,6 +28,31 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
             fetchFamilyData();
         }
     }, [activeTab]);
+
+    const checkUser = async () => {
+        if (!inviteEmail || !inviteEmail.includes('@')) return;
+        setIsCheckingUser(true);
+        setFoundUser(null);
+        try {
+            const { data, error } = await supabase.rpc('get_user_by_email', {
+                email_input: inviteEmail
+            });
+
+            if (error) throw error;
+
+            if (data && data.length > 0) {
+                setFoundUser(data[0]);
+            } else {
+                alert('Usuário não encontrado. Verifique o e-mail.');
+                setFoundUser(null);
+            }
+        } catch (error) {
+            console.error('Error checking user:', error);
+            alert('Erro ao buscar usuário.');
+        } finally {
+            setIsCheckingUser(false);
+        }
+    };
 
     const fetchFamilyData = async () => {
         setLoading(true);
@@ -57,6 +84,10 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
 
     const handleSendInvite = async () => {
         if (!inviteEmail) return;
+        if (!foundUser) {
+            alert('Por favor, valide o e-mail do usuário antes de convidar.');
+            return;
+        }
         setLoading(true);
         try {
             // Check limit
@@ -73,7 +104,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
 
             if (error) throw error;
 
-            alert(`Convite enviado para ${inviteEmail}`);
+            alert(`Convite registrado para ${inviteEmail}. Peça para ele(a) fazer login no aplicativo para aceitar.`);
             setInviteEmail('');
             fetchFamilyData(); // Refresh list
         } catch (error) {
@@ -283,110 +314,157 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
                                 </div>
 
                                 <div className="flex gap-2">
-                                    <input
-                                        type="email"
-                                        placeholder="Email do familiar"
-                                        value={inviteEmail}
-                                        onChange={e => setInviteEmail(e.target.value)}
-                                        className="flex-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 font-medium text-slate-700"
-                                    />
-                                    <button
-                                        onClick={handleSendInvite}
-                                        disabled={loading}
-                                        className="px-6 py-3 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-xl transition-colors shadow-lg shadow-sky-200 disabled:opacity-50"
-                                    >
-                                        {loading ? <Loader2 size={18} className="animate-spin" /> : 'Convidar'}
-                                    </button>
-                                </div>
-
-                                <div className="space-y-3">
-                                    {/* Invites List */}
-                                    {invites.map((invite) => (
-                                        <div key={invite.id} className="flex items-center justify-between p-4 bg-white border border-slate-100 rounded-xl shadow-sm">
-                                            <div className="flex items-center gap-3">
-                                                <div className="p-2 bg-amber-50 text-amber-600 rounded-lg">
-                                                    <Mail size={18} />
-                                                </div>
-                                                <div>
-                                                    <p className="font-bold text-slate-800">{invite.email}</p>
-                                                    <p className="text-xs text-amber-500 font-bold uppercase tracking-wider">Convite Pendente</p>
-                                                </div>
-                                            </div>
+                                    <div className="space-y-4">
+                                        <div className="flex gap-2">
+                                            <input
+                                                type="email"
+                                                placeholder="Email do familiar"
+                                                value={inviteEmail}
+                                                onChange={e => {
+                                                    setInviteEmail(e.target.value);
+                                                    setFoundUser(null);
+                                                }}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter') {
+                                                        e.preventDefault();
+                                                        checkUser();
+                                                    }
+                                                }}
+                                                className="flex-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 font-medium text-slate-700"
+                                            />
                                             <button
-                                                onClick={() => handleDeleteInvite(invite.id)}
-                                                className="text-slate-400 hover:text-rose-500 transition-colors"
-                                                title="Cancelar convite"
+                                                onClick={checkUser}
+                                                disabled={isCheckingUser || !inviteEmail}
+                                                className="px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-xl transition-colors disabled:opacity-50"
                                             >
-                                                <Trash2 size={18} />
+                                                {isCheckingUser ? <Loader2 size={18} className="animate-spin" /> : 'Buscar'}
                                             </button>
                                         </div>
-                                    ))}
 
-                                    {/* Family Members List */}
-                                    {familyMembers.map((member) => (
-                                        <div key={member.id} className="flex items-center justify-between p-4 bg-white border border-slate-100 rounded-xl shadow-sm">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-bold">
-                                                    <User size={18} />
+                                        {foundUser && (
+                                            <div className="flex items-center gap-3 p-3 bg-sky-50 border border-sky-100 rounded-xl animate-in fade-in slide-in-from-top-2">
+                                                <div className="w-10 h-10 rounded-full bg-sky-200 flex items-center justify-center overflow-hidden">
+                                                    {foundUser.avatar_url ? (
+                                                        <img src={foundUser.avatar_url} alt={foundUser.name} className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <span className="font-bold text-sky-700">{(foundUser.name || 'U').charAt(0).toUpperCase()}</span>
+                                                    )}
                                                 </div>
-                                                <div>
-                                                    <p className="font-bold text-slate-800">Membro da Família</p>
-                                                    <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">{member.role === 'editor' ? 'Editor' : 'Visualizador'}</p>
+                                                <div className="flex-1">
+                                                    <p className="font-bold text-slate-800 text-sm">{foundUser.name || 'Usuário sem nome'}</p>
+                                                    <p className="text-xs text-sky-600 font-medium">Usuário encontrado</p>
                                                 </div>
+                                                <button
+                                                    onClick={handleSendInvite}
+                                                    disabled={loading}
+                                                    className="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-lg text-sm transition-colors shadow-sm disabled:opacity-50 flex items-center gap-2"
+                                                >
+                                                    {loading ? <Loader2 size={14} className="animate-spin" /> : 'Confirmar Convite'}
+                                                </button>
                                             </div>
-                                            <button
-                                                onClick={() => handleRemoveMember(member.id)}
-                                                className="text-slate-400 hover:text-rose-500 transition-colors"
-                                                title="Remover membro"
-                                            >
-                                                <Trash2 size={18} />
-                                            </button>
-                                        </div>
-                                    ))}
+                                        )}
+                                    </div>
+                                    <div className="flex justify-end">
+                                        <button
+                                            onClick={() => {
+                                                const text = `Olá! Te convidei para gerenciar as finanças comigo no FinAI. Acesse ${window.location.origin} e faça login com seu email para aceitar o convite.`;
+                                                navigator.clipboard.writeText(text);
+                                                alert("Texto do convite copiado!");
+                                            }}
+                                            className="text-xs text-sky-600 font-bold hover:underline"
+                                        >
+                                            Copiar mensagem de convite
+                                        </button>
+                                    </div>
 
-                                    {invites.length === 0 && familyMembers.length === 0 && (
-                                        <div className="text-center py-8 text-slate-400 text-sm">
-                                            Nenhum membro ou convite ainda.
-                                        </div>
-                                    )}
+                                    <div className="space-y-3">
+                                        {/* Invites List */}
+                                        {invites.map((invite) => (
+                                            <div key={invite.id} className="flex items-center justify-between p-4 bg-white border border-slate-100 rounded-xl shadow-sm">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="p-2 bg-amber-50 text-amber-600 rounded-lg">
+                                                        <Mail size={18} />
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-bold text-slate-800">{invite.email}</p>
+                                                        <p className="text-xs text-amber-500 font-bold uppercase tracking-wider">Convite Pendente</p>
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    onClick={() => handleDeleteInvite(invite.id)}
+                                                    className="text-slate-400 hover:text-rose-500 transition-colors"
+                                                    title="Cancelar convite"
+                                                >
+                                                    <Trash2 size={18} />
+                                                </button>
+                                            </div>
+                                        ))}
+
+                                        {/* Family Members List */}
+                                        {familyMembers.map((member) => (
+                                            <div key={member.id} className="flex items-center justify-between p-4 bg-white border border-slate-100 rounded-xl shadow-sm">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-bold">
+                                                        <User size={18} />
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-bold text-slate-800">Membro da Família</p>
+                                                        <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">{member.role === 'editor' ? 'Editor' : 'Visualizador'}</p>
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    onClick={() => handleRemoveMember(member.id)}
+                                                    className="text-slate-400 hover:text-rose-500 transition-colors"
+                                                    title="Remover membro"
+                                                >
+                                                    <Trash2 size={18} />
+                                                </button>
+                                            </div>
+                                        ))}
+
+                                        {invites.length === 0 && familyMembers.length === 0 && (
+                                            <div className="text-center py-8 text-slate-400 text-sm">
+                                                Nenhum membro ou convite ainda.
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
                         )}
 
-                        {activeTab === 'security' && (
-                            <div className="flex flex-col items-center justify-center h-full text-center space-y-4 opacity-50">
-                                <Shield size={48} className="text-slate-300" />
-                                <div>
-                                    <p className="font-bold text-slate-800">Em Breve</p>
-                                    <p className="text-sm text-slate-500">Alteração de senha e 2FA.</p>
-                                </div>
+                                {activeTab === 'security' && (
+                                    <div className="flex flex-col items-center justify-center h-full text-center space-y-4 opacity-50">
+                                        <Shield size={48} className="text-slate-300" />
+                                        <div>
+                                            <p className="font-bold text-slate-800">Em Breve</p>
+                                            <p className="text-sm text-slate-500">Alteração de senha e 2FA.</p>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
-                        )}
-                    </div>
                 </div>
 
-                {/* Footer Logic (Save button mainly for profile) */}
-                {activeTab === 'profile' && (
-                    <div className="p-6 border-t border-slate-100 bg-slate-50/50 flex justify-end gap-3">
-                        <button
-                            onClick={onClose}
-                            className="px-6 py-3 font-bold text-slate-500 hover:text-slate-700 transition-colors"
-                        >
-                            Cancelar
-                        </button>
-                        <button
-                            onClick={handleSave}
-                            disabled={loading || (formData.name === user.name && !avatarFile)}
-                            className="px-8 py-3 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-sky-200 disabled:opacity-70 flex items-center gap-2"
-                        >
-                            {loading ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
-                            Salvar Alterações
-                        </button>
-                    </div>
-                )}
+                    {/* Footer Logic (Save button mainly for profile) */}
+                    {activeTab === 'profile' && (
+                        <div className="p-6 border-t border-slate-100 bg-slate-50/50 flex justify-end gap-3">
+                            <button
+                                onClick={onClose}
+                                className="px-6 py-3 font-bold text-slate-500 hover:text-slate-700 transition-colors"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={handleSave}
+                                disabled={loading || (formData.name === user.name && !avatarFile)}
+                                className="px-8 py-3 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-sky-200 disabled:opacity-70 flex items-center gap-2"
+                            >
+                                {loading ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+                                Salvar Alterações
+                            </button>
+                        </div>
+                    )}
+                </div>
             </div>
-        </div>
-    );
+            );
 };
 
-export default ProfileModal;
+            export default ProfileModal;

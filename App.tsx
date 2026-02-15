@@ -84,6 +84,7 @@ const App: React.FC = () => {
           avatarUrl: session.user.user_metadata.avatar_url
         });
         fetchData(session.user.id);
+        checkPendingInvites(session.user.email!, session.user.id);
       } else {
         setLoading(false);
       }
@@ -99,6 +100,7 @@ const App: React.FC = () => {
           avatarUrl: session.user.user_metadata.avatar_url
         });
         fetchData(session.user.id);
+        checkPendingInvites(session.user.email!, session.user.id);
       } else {
         setUser(null);
         setTransactions([]);
