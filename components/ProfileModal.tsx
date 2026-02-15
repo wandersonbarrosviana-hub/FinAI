@@ -309,7 +309,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
                         {activeTab === 'family' && (
                             <div className="space-y-8">
                                 <div>
-                                    <h3 className="text-lg font-black text-slate-900 mb-1">Membros da Família (TESTE)</h3>
+                                    <h3 className="text-lg font-black text-slate-900 mb-1">Membros da Família</h3>
                                     <p className="text-slate-500 text-sm">Adicione até 2 pessoas para gerenciar as finanças juntos.</p>
                                 </div>
 
