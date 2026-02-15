@@ -35,8 +35,31 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
     }
   }, [isListeningMode]);
 
-  const toggleListeningMode = () => {
-    setIsListeningMode(!isListeningMode);
+  const handleInteraction = () => {
+    if (!isListeningMode) {
+      // Turn ON - Start Active
+      shouldStartActiveRef.current = true;
+      setIsListeningMode(true);
+    } else {
+      // Already ON
+      if (status === 'standby') {
+        // Force Wake
+        setStatus('active_command');
+        // Audio feedback could be nice here
+      } else if (status === 'active_command' || status === 'idle') { // added idle just in case
+        // Manual Submit / Stop
+        if (transcript.length > 2) {
+          stopListening();
+          processFinalText(transcript);
+        } else {
+          // Cancel/Toggle Off if empty
+          setIsListeningMode(false);
+        }
+      } else {
+        // processing/success/error -> Toggle Off
+        setIsListeningMode(false);
+      }
+    }
   };
 
   const stopListening = () => {
@@ -64,7 +87,8 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
     recognition.interimResults = true;
 
     recognition.onstart = () => {
-      setStatus(forceCommand ? 'active_command' : 'standby');
+      setStatus(shouldStartActiveRef.current ? 'active_command' : 'standby');
+      shouldStartActiveRef.current = false; // Reset for next loop
     };
 
     recognition.onresult = (event: any) => {
@@ -83,7 +107,7 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
       const currentText = (interimTranscript || finalTranscript).toLowerCase();
 
       // Update transcript only if it's significant
-      if (currentText.length > 2) setTranscript(currentText);
+      if (currentText.length > 0) setTranscript(currentText);
 
       // WAKE WORD DETECTION
       if (statusRef.current === 'standby') {
@@ -99,9 +123,9 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
         // Clear existing timer
         if (silenceTimer.current) clearTimeout(silenceTimer.current);
 
-        // Set new timer (e.g. 2 seconds silence)
+        // Set new timer (1.5s silence)
         silenceTimer.current = setTimeout(() => {
-          console.log("Silence detected. Processing command...");
+          console.log("Silence detected (1.5s). Processing command...");
           const cleanCommand = currentText.replace(/^(oi|olá|ei)?\s*fini\s*/i, '').trim();
           console.log("Clean command detected:", cleanCommand);
 
@@ -111,7 +135,7 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
           } else {
             console.log("Command too short to process:", cleanCommand);
           }
-        }, 2000);
+        }, 1500);
       }
     };
 
@@ -208,7 +232,7 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
 
       {/* Main FAB */}
       <button
-        onClick={toggleListeningMode}
+        onClick={handleInteraction}
         className={`p-4 rounded-full shadow-2xl transition-all duration-500 relative overflow-hidden group active:scale-95 flex items-center justify-center pointer-events-auto ${!isListeningMode ? 'bg-slate-900 text-white w-14 h-14' : // OFF
           status === 'standby' ? 'bg-sky-600 text-white w-16 h-16 ring-4 ring-sky-200 shadow-sky-400/50' : // ON - Waiting
             status === 'active_command' ? 'bg-sky-500 text-white w-16 h-16 animate-pulse ring-4 ring-sky-300' : // ON - Hearing
