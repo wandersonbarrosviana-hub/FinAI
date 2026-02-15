@@ -192,7 +192,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-slate-900/20 backdrop-blur-sm animate-in fade-in duration-300">
             <div
-                className="bg-white w-full max-w-5xl rounded-[2.5rem] shadow-2xl overflow-hidden border border-slate-100 animate-in zoom-in-95 duration-300 flex flex-col max-h-[90vh]"
+                className="bg-white w-full max-w-6xl rounded-[2.5rem] shadow-2xl overflow-hidden border border-slate-100 animate-in zoom-in-95 duration-300 flex flex-col max-h-[90vh]"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
@@ -214,7 +214,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
                     </button>
                 </div>
 
-                <div className="flex flex-col md:flex-row h-[700px]">
+                <div className="flex flex-col md:flex-row h-[800px]">
                     {/* Sidebar Tabs */}
                     <div className="w-full md:w-64 bg-slate-50 p-6 flex flex-col gap-2 border-r border-slate-100">
                         <button
@@ -352,7 +352,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <p className="font-bold text-slate-800 text-sm truncate">{foundUser.name || 'Usuário sem nome'}</p>
-                                                    <p className="text-xs text-sky-600 font-medium truncate">Usuário encontrado</p>
+                                                    <p className="text-[10px] text-sky-600 font-medium truncate">Usuário encontrado</p>
                                                 </div>
                                                 <button
                                                     onClick={handleSendInvite}
@@ -415,7 +415,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
                                                         <p className="font-bold text-slate-800 truncate" title={member.name}>
                                                             {member.name} {member.is_master && '(Organizador)'}
                                                         </p>
-                                                        <p className="text-xs text-slate-400 font-bold uppercase tracking-wider truncate" title={member.email}>
+                                                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider truncate" title={member.email}>
                                                             {member.email}
                                                         </p>
                                                     </div>
