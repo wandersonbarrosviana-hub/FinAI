@@ -147,3 +147,12 @@ export interface InvestmentData {
   chartData: DividendChartItem[];
   dividends: DividendEvent[];
 }
+
+export interface AppNotification {
+  id: string;
+  type: 'invite' | 'system' | 'alert';
+  message: string;
+  data?: any;
+  read: boolean;
+  date: string;
+}

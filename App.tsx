@@ -25,7 +25,7 @@ import { Budget } from './types';
 import { Bell, Search, User as UserIcon, Plus, Sparkles, AlertCircle, ChevronLeft, ChevronRight, Loader2, LogOut, Settings as SettingsIcon, MessageSquare } from 'lucide-react';
 import { parseNotification } from './aiService';
 import { supabase } from './supabaseClient';
-import { Transaction, Account, Goal, User, ViewState, Tag } from './types';
+import { Transaction, Account, Goal, User, ViewState, Tag, AppNotification } from './types';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -47,6 +47,7 @@ const App: React.FC = () => {
   const [showNotificationPopup, setShowNotificationPopup] = useState(false);
   const [notificationData, setNotificationData] = useState<any>(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
   // aiAdvice moved to Dashboard component
 
   // Date State for Global Filter
@@ -200,6 +201,79 @@ const App: React.FC = () => {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
+  };
+
+  const checkPendingInvites = async (email: string, userId: string) => {
+    try {
+      const { data: invites, error } = await supabase
+        .from('invites')
+        .select('*')
+        .eq('email', email)
+        .eq('status', 'pending');
+
+      if (error) throw error;
+
+      if (invites && invites.length > 0) {
+        const notificationsData: AppNotification[] = invites.map(invite => ({
+          id: invite.id,
+          type: 'invite',
+          message: `Você recebeu um convite para entrar na família.`,
+          read: false,
+          date: new Date(invite.created_at).toLocaleDateString(),
+          data: { inviteId: invite.id, inviterId: invite.inviter_id, role: invite.role }
+        }));
+
+        setNotifications(prev => {
+          const existingIds = new Set(prev.map(n => n.id));
+          const newNotifs = notificationsData.filter(n => !existingIds.has(n.id));
+          return [...prev, ...newNotifs];
+        });
+      }
+    } catch (error) {
+      console.error('Error checking invites:', error);
+    }
+  };
+
+  const handleRespondToInvite = async (inviteId: string, accept: boolean) => {
+    try {
+      if (accept) {
+        const inviteNotif = notifications.find(n => n.id === inviteId);
+        if (!inviteNotif) return;
+        const invite = inviteNotif.data;
+
+        // 1. Update invite status
+        const { error: updateError } = await supabase
+          .from('invites')
+          .update({ status: 'accepted' })
+          .eq('id', inviteId);
+        if (updateError) throw updateError;
+
+        // 2. Add to family_members
+        const { error: insertError } = await supabase
+          .from('family_members')
+          .insert({
+            master_user_id: invite.inviterId,
+            member_user_id: user?.id,
+            role: invite.role
+          });
+        if (insertError) throw insertError;
+
+        alert("Convite aceito! Agora você faz parte da família.");
+        if (user) fetchData(user.id);
+      } else {
+        await supabase
+          .from('invites')
+          .update({ status: 'rejected' })
+          .eq('id', inviteId);
+      }
+
+      // Remove notification
+      setNotifications(prev => prev.filter(n => n.id !== inviteId));
+
+    } catch (error) {
+      console.error("Error responding to invite:", error);
+      alert("Erro ao processar convite.");
+    }
   };
 
   // Navigation Logic
@@ -926,7 +1000,11 @@ const App: React.FC = () => {
           </div>
 
           <div className="flex items-center space-x-4">
-            <NotificationCenter onAddTransaction={(t) => handleAddTransaction({ ...t, type: t.type as any })} />
+            <NotificationCenter
+              onAddTransaction={(t) => handleAddTransaction({ ...t, type: t.type as any })}
+              notifications={notifications}
+              onRespondToInvite={handleRespondToInvite}
+            />
 
             <div className="h-8 w-[1px] bg-slate-200"></div>
 
