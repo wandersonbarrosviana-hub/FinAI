@@ -143,7 +143,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
         return publicUrl;
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSave = async (e: React.MouseEvent) => {
         e.preventDefault();
         setLoading(true);
         try {
