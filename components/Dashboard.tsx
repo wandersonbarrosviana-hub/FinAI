@@ -263,9 +263,11 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
                     paddingAngle={5}
                     dataKey="value"
                     stroke="none"
+                    label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
+                    labelLine={false}
                   >
                     {pieData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} style={{ outline: 'none' }} />
                     ))}
                   </Pie>
                   <Tooltip

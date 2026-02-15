@@ -129,7 +129,7 @@ const TransactionStatement: React.FC<TransactionStatementProps> = ({ transaction
                                         </span>
                                     </td>
                                     <td className="sticky left-[100px] z-10 bg-white px-6 py-4 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] min-w-[200px]">
-                                        <div className="text-sm font-bold text-slate-700 truncate max-w-[180px]" title={t.description}>{t.description}</div>
+                                        <div className="text-sm font-bold text-slate-700 whitespace-normal" title={t.description}>{t.description}</div>
                                     </td>
                                     <td className="px-6 py-4 text-xs text-slate-400 whitespace-nowrap font-medium">
                                         {new Date(t.date).toLocaleDateString('pt-BR')}
