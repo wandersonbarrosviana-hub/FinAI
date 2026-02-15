@@ -429,43 +429,44 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
                                         )}
                                     </div>
                                 </div>
+                            </div>
                         )}
 
-                                {activeTab === 'security' && (
-                                    <div className="flex flex-col items-center justify-center h-full text-center space-y-4 opacity-50">
-                                        <Shield size={48} className="text-slate-300" />
-                                        <div>
-                                            <p className="font-bold text-slate-800">Em Breve</p>
-                                            <p className="text-sm text-slate-500">Alteração de senha e 2FA.</p>
-                                        </div>
-                                    </div>
-                                )}
+                        {activeTab === 'security' && (
+                            <div className="flex flex-col items-center justify-center h-full text-center space-y-4 opacity-50">
+                                <Shield size={48} className="text-slate-300" />
+                                <div>
+                                    <p className="font-bold text-slate-800">Em Breve</p>
+                                    <p className="text-sm text-slate-500">Alteração de senha e 2FA.</p>
+                                </div>
                             </div>
+                        )}
+                    </div>
                 </div>
 
-                    {/* Footer Logic (Save button mainly for profile) */}
-                    {activeTab === 'profile' && (
-                        <div className="p-6 border-t border-slate-100 bg-slate-50/50 flex justify-end gap-3">
-                            <button
-                                onClick={onClose}
-                                className="px-6 py-3 font-bold text-slate-500 hover:text-slate-700 transition-colors"
-                            >
-                                Cancelar
-                            </button>
-                            <button
-                                onClick={handleSave}
-                                disabled={loading || (formData.name === user.name && !avatarFile)}
-                                className="px-8 py-3 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-sky-200 disabled:opacity-70 flex items-center gap-2"
-                            >
-                                {loading ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
-                                Salvar Alterações
-                            </button>
-                        </div>
-                    )}
-                </div>
+                {/* Footer Logic (Save button mainly for profile) */}
+                {activeTab === 'profile' && (
+                    <div className="p-6 border-t border-slate-100 bg-slate-50/50 flex justify-end gap-3">
+                        <button
+                            onClick={onClose}
+                            className="px-6 py-3 font-bold text-slate-500 hover:text-slate-700 transition-colors"
+                        >
+                            Cancelar
+                        </button>
+                        <button
+                            onClick={handleSave}
+                            disabled={loading || (formData.name === user.name && !avatarFile)}
+                            className="px-8 py-3 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-sky-200 disabled:opacity-70 flex items-center gap-2"
+                        >
+                            {loading ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+                            Salvar Alterações
+                        </button>
+                    </div>
+                )}
             </div>
-            );
+        </div>
+    );
 };
 
 
-            export default ProfileModal;
+export default ProfileModal;

@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { CreditCard, Plus, Wallet, CheckCircle, X, Upload, Calendar, DollarSign, AlertCircle } from 'lucide-react';
 import { Account, Transaction } from '../types';
 import { BANKS, CARD_NETWORKS } from '../constants';
-import { BANKS, CARD_NETWORKS } from '../constants';
+
 
 // Lazy load InvoiceUploader
 const InvoiceUploader = React.lazy(() => import('./InvoiceUploader'));
