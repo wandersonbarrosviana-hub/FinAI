@@ -24,6 +24,7 @@ export interface Transaction {
   ignoreInStatistics?: boolean;
   ignoreInBudgets?: boolean;
   ignoreInTotals?: boolean;
+  created_by?: string;
 }
 
 export interface Tag {

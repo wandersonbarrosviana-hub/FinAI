@@ -115,11 +115,11 @@ const App: React.FC = () => {
     setLoading(true);
     try {
       const [txRes, accRes, goalRes, tagRes, budRes] = await Promise.all([
-        supabase.from('transactions').select('*').eq('user_id', userId).order('date', { ascending: false }),
-        supabase.from('accounts').select('*').eq('user_id', userId),
-        supabase.from('goals').select('*').eq('user_id', userId),
-        supabase.from('tags').select('*').eq('user_id', userId),
-        supabase.from('budgets').select('*').eq('user_id', userId)
+        supabase.from('transactions').select('*').order('date', { ascending: false }),
+        supabase.from('accounts').select('*'),
+        supabase.from('goals').select('*'),
+        supabase.from('tags').select('*'),
+        supabase.from('budgets').select('*')
       ]);
 
       if (txRes.error) throw txRes.error;
@@ -391,7 +391,8 @@ const App: React.FC = () => {
           ignore_in_statistics: baseTx.ignoreInStatistics,
           ignore_in_budgets: baseTx.ignoreInBudgets,
           ignore_in_totals: baseTx.ignoreInTotals,
-          due_date: baseTx.dueDate || baseDate
+          due_date: baseTx.dueDate || baseDate,
+          created_by: user.id
         });
       }
     } else if (baseTx.recurrence === 'installment' && baseTx.installmentCount && baseTx.installmentCount > 1) {
@@ -416,7 +417,8 @@ const App: React.FC = () => {
           ignore_in_statistics: baseTx.ignoreInStatistics,
           ignore_in_budgets: baseTx.ignoreInBudgets,
           ignore_in_totals: baseTx.ignoreInTotals,
-          due_date: baseTx.dueDate || baseDate
+          due_date: baseTx.dueDate || baseDate,
+          created_by: user.id
         });
       }
     } else {
@@ -439,7 +441,8 @@ const App: React.FC = () => {
         ignore_in_statistics: baseTx.ignoreInStatistics,
         ignore_in_budgets: baseTx.ignoreInBudgets,
         ignore_in_totals: baseTx.ignoreInTotals,
-        due_date: baseTx.dueDate || baseDate
+        due_date: baseTx.dueDate || baseDate,
+        created_by: user.id // Track who created
       });
     }
 
@@ -834,14 +837,36 @@ const App: React.FC = () => {
     document.body.removeChild(link);
   };
 
-  const handleClearData = () => {
-    if (confirm("TEM CERTEZA? Isso apagará todos os seus dados locais e não poderá ser desfeito.")) {
-      setTransactions([]);
-      setAccounts([]);
-      setGoals([]);
-      setBudgets([]);
-      localStorage.clear();
-      window.location.reload();
+  const handleResetData = async () => {
+    if (confirm("TEM CERTEZA? Isso apagará TODAS as suas finanças (contas, transações, metas) mas manterá seu login. Essa ação não pode ser desfeita.")) {
+      try {
+        setLoading(true);
+        // Call Supabase RPC function to wipe data
+        const { error } = await supabase.rpc('reset_user_data');
+
+        if (error) {
+          console.error("Error resetting data:", error);
+          // Fallback if RPC fails or not exists: manual delete (less safe but immediate workaround)
+          // But ideally we rely on the RPC.
+          alert("Erro ao resetar dados. Tente novamente ou contate o suporte.");
+        } else {
+          // Success: Clear local state
+          setTransactions([]);
+          setAccounts([]);
+          setGoals([]);
+          setBudgets([]);
+          setTags([]);
+          localStorage.removeItem('finai_current_view');
+          localStorage.removeItem('finai_current_date');
+
+          alert("Dados resetados com sucesso! Você pode começar do zero.");
+          window.location.reload();
+        }
+      } catch (err) {
+        console.error("Unexpected error:", err);
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -999,7 +1024,7 @@ const App: React.FC = () => {
           {currentView === 'expenses' && <ExpenseManager type="expense" transactions={filteredTransactions} onAddTransaction={handleAddTransaction} onDeleteTransaction={handleDeleteTransaction} onUpdateTransaction={handleUpdateTransaction} tags={tags} accounts={accounts} />}
           {currentView === 'income' && <ExpenseManager type="income" transactions={filteredTransactions} allTransactions={transactions} onAddTransaction={handleAddTransaction} onDeleteTransaction={handleDeleteTransaction} onUpdateTransaction={handleUpdateTransaction} tags={tags} accounts={accounts} />}
           {currentView === 'charts' && <ChartsHub transactions={filteredTransactions} />}
-          {currentView === 'settings' && <Settings user={user} onLogout={handleLogout} onExportData={handleExportData} onClearData={handleClearData} />}
+          {currentView === 'settings' && <Settings user={user} onLogout={handleLogout} onExportData={handleExportData} onResetData={handleResetData} />}
         </div>
       </main>
 
@@ -1040,12 +1065,14 @@ const App: React.FC = () => {
       )}
 
       {/* Modals */}
-      <ProfileModal
-        isOpen={isProfileModalOpen}
-        onClose={() => setIsProfileModalOpen(false)}
-        user={user}
-        onUpdate={handleUpdateProfile}
-      />
+      {user && (
+        <ProfileModal
+          user={user}
+          isOpen={isProfileModalOpen}
+          onClose={() => setIsProfileModalOpen(false)}
+          onUpdate={handleUpdateProfile}
+        />
+      )}
     </div>
   );
 };

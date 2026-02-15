@@ -23,10 +23,10 @@ interface SettingsProps {
     user: { name: string; email: string; avatarUrl?: string };
     onLogout: () => void;
     onExportData: () => void;
-    onClearData: () => void;
+    onResetData: () => void;
 }
 
-const Settings: React.FC<SettingsProps> = ({ user, onLogout, onExportData, onClearData }) => {
+const Settings: React.FC<SettingsProps> = ({ user, onLogout, onExportData, onResetData }) => {
     const [theme, setTheme] = useState<'light' | 'dark'>('light');
     const [notifications, setNotifications] = useState(true);
     const [blurBalances, setBlurBalances] = useState(false);
@@ -152,15 +152,15 @@ const Settings: React.FC<SettingsProps> = ({ user, onLogout, onExportData, onCle
                             <ChevronRight size={18} className="text-slate-300 group-hover:text-purple-500 transition-colors" />
                         </button>
 
-                        {/* Clear Data (Danger) */}
-                        <button onClick={onClearData} className="w-full p-5 flex items-center justify-between hover:bg-rose-50 transition-colors group">
+                        {/* Reset Data (Danger) */}
+                        <button onClick={onResetData} className="w-full p-5 flex items-center justify-between hover:bg-rose-50 transition-colors group">
                             <div className="flex items-center gap-4">
                                 <div className="p-2 bg-rose-50 text-rose-600 rounded-xl group-hover:bg-rose-100 transition-colors">
                                     <Trash2 size={20} />
                                 </div>
                                 <div className="text-left">
-                                    <p className="font-bold text-rose-600">Limpar Dados</p>
-                                    <p className="text-xs text-rose-400 font-medium">Apagar tudo e resetar</p>
+                                    <p className="font-bold text-rose-600">Resetar Informações</p>
+                                    <p className="text-xs text-rose-400 font-medium">Apagar finanças, manter perfil</p>
                                 </div>
                             </div>
                             <ChevronRight size={18} className="text-rose-300 group-hover:text-rose-500 transition-colors" />
