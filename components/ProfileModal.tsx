@@ -66,11 +66,9 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
             if (invitesError) throw invitesError;
             setInvites(invitesData || []);
 
-            // Fetch Members
+            // Fetch Members using RPC
             const { data: membersData, error: membersError } = await supabase
-                .from('family_members')
-                .select('*')
-                .eq('master_user_id', user.id);
+                .rpc('get_family_details', { current_user_id: user.id });
 
             if (membersError) throw membersError;
             setFamilyMembers(membersData || []);
@@ -81,6 +79,55 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
             setLoading(false);
         }
     };
+
+    // ... existing handleSendInvite ...
+
+    // ... existing handleDeleteInvite ...
+
+    const handleRemoveMember = async (id: string) => {
+        if (!confirm('Remover este membro da família?')) return;
+        try {
+            const { error } = await supabase.from('family_members').delete().eq('id', id);
+            if (error) throw error;
+            fetchFamilyData();
+        } catch (error) {
+            console.error('Error removing member:', error);
+        }
+    };
+
+    // ... existing fileInputRef ...
+
+    // ... inside return ...
+
+    {/* Family Members List */ }
+    {
+        familyMembers.map((member) => (
+            <div key={member.member_id} className="flex items-center justify-between p-4 bg-white border border-slate-100 rounded-xl shadow-sm">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-bold overflow-hidden">
+                        {member.avatar_url ? (
+                            <img src={member.avatar_url} alt={member.name} className="w-full h-full object-cover" />
+                        ) : (
+                            <User size={18} />
+                        )}
+                    </div>
+                    <div>
+                        <p className="font-bold text-slate-800">{member.name} {member.is_master && '(Organizador)'}</p>
+                        <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">{member.email}</p>
+                    </div>
+                </div>
+                {!member.is_master && (
+                    <button
+                        onClick={() => handleRemoveMember(member.member_id)}
+                        className="text-slate-400 hover:text-rose-500 transition-colors"
+                        title="Remover membro"
+                    >
+                        <Trash2 size={18} />
+                    </button>
+                )}
+            </div>
+        ))
+    }
 
     const handleSendInvite = async () => {
         if (!inviteEmail) return;
@@ -343,21 +390,21 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
 
                                         {foundUser && (
                                             <div className="flex items-center gap-3 p-3 bg-sky-50 border border-sky-100 rounded-xl animate-in fade-in slide-in-from-top-2">
-                                                <div className="w-10 h-10 rounded-full bg-sky-200 flex items-center justify-center overflow-hidden">
+                                                <div className="w-10 h-10 rounded-full bg-sky-200 flex items-center justify-center overflow-hidden flex-shrink-0">
                                                     {foundUser.avatar_url ? (
                                                         <img src={foundUser.avatar_url} alt={foundUser.name} className="w-full h-full object-cover" />
                                                     ) : (
                                                         <span className="font-bold text-sky-700">{(foundUser.name || 'U').charAt(0).toUpperCase()}</span>
                                                     )}
                                                 </div>
-                                                <div className="flex-1">
-                                                    <p className="font-bold text-slate-800 text-sm">{foundUser.name || 'Usuário sem nome'}</p>
-                                                    <p className="text-xs text-sky-600 font-medium">Usuário encontrado</p>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="font-bold text-slate-800 text-sm truncate">{foundUser.name || 'Usuário sem nome'}</p>
+                                                    <p className="text-xs text-sky-600 font-medium truncate">Usuário encontrado</p>
                                                 </div>
                                                 <button
                                                     onClick={handleSendInvite}
                                                     disabled={loading}
-                                                    className="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-lg text-sm transition-colors shadow-sm disabled:opacity-50 flex items-center gap-2"
+                                                    className="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-lg text-sm transition-colors shadow-sm disabled:opacity-50 flex items-center gap-2 whitespace-nowrap flex-shrink-0"
                                                 >
                                                     {loading ? <Loader2 size={14} className="animate-spin" /> : 'Confirmar Convite'}
                                                 </button>
@@ -380,19 +427,19 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
                                     <div className="space-y-3">
                                         {/* Invites List */}
                                         {invites.map((invite) => (
-                                            <div key={invite.id} className="flex items-center justify-between p-4 bg-white border border-slate-100 rounded-xl shadow-sm">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="p-2 bg-amber-50 text-amber-600 rounded-lg">
+                                            <div key={invite.id} className="flex items-center justify-between p-4 bg-white border border-slate-100 rounded-xl shadow-sm gap-3">
+                                                <div className="flex items-center gap-3 min-w-0 flex-1">
+                                                    <div className="p-2 bg-amber-50 text-amber-600 rounded-lg flex-shrink-0">
                                                         <Mail size={18} />
                                                     </div>
-                                                    <div>
-                                                        <p className="font-bold text-slate-800">{invite.email}</p>
-                                                        <p className="text-xs text-amber-500 font-bold uppercase tracking-wider">Convite Pendente</p>
+                                                    <div className="min-w-0">
+                                                        <p className="font-bold text-slate-800 truncate" title={invite.email}>{invite.email}</p>
+                                                        <p className="text-xs text-amber-500 font-bold uppercase tracking-wider truncate">Convite Pendente</p>
                                                     </div>
                                                 </div>
                                                 <button
                                                     onClick={() => handleDeleteInvite(invite.id)}
-                                                    className="text-slate-400 hover:text-rose-500 transition-colors"
+                                                    className="text-slate-400 hover:text-rose-500 transition-colors flex-shrink-0"
                                                     title="Cancelar convite"
                                                 >
                                                     <Trash2 size={18} />
