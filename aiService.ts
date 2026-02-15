@@ -130,12 +130,18 @@ export const parseVoiceCommand = async (text: string): Promise<VoiceCommandResul
          Intent: "SIMULATE_RETIREMENT"
          Data: { "monthlyContribution": number, "desiredIncome": number, "currentPatrimony": number, "years": number }
 
+      6. DELETAR/DESFAZER:
+         Intent: "DELETE_LAST" | "DELETE_SPECIFIC"
+         Data: { "type": "transaction" | "account" | "goal" | "budget", "description"?: string }
+
       EXEMPLOS:
       "Gastei 50 na padaria" -> {"intent":"CREATE","data":{"description":"Padaria","amount":50,"type":"expense","category":"Alimentação"}}
       "Criar conta Nubank com saldo 1000" -> {"intent":"CREATE_ACCOUNT","data":{"name":"Nubank","balance":1000,"type":"checking"}}
       "Mudar meta Viagem para 5000" -> {"intent":"UPDATE_GOAL","data":{"title":"Viagem","target":5000}}
       "Deletar orçamento de Lazer" -> {"intent":"DELETE_BUDGET","data":{"category":"Lazer"}}
       "Simular aposentadoria com 1000 por mês e renda de 5000" -> {"intent":"SIMULATE_RETIREMENT","data":{"monthlyContribution":1000,"desiredIncome":5000}}
+      "Desfazer última despesa" -> {"intent":"DELETE_LAST","data":{"type":"transaction"}}
+      "Apagar o gasto da padaria" -> {"intent":"DELETE_SPECIFIC","data":{"type":"transaction","description":"padaria"}}
     `;
 
     try {
