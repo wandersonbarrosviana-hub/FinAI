@@ -215,13 +215,12 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
     }
 
     // After processing, reset to standby loop
+    // After processing, reset to standby loop
     setTimeout(() => {
-      if (isListeningModeRef.current) {
-        setTranscript('');
-        startListening(); // Restart loop
-      } else {
-        setStatus('idle');
-      }
+      // Automatically turn off after processing (One-shot mode)
+      setIsListeningMode(false);
+      setStatus('idle');
+      setTranscript('');
     }, 2500);
   };
 
