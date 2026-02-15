@@ -278,6 +278,7 @@ import {
     PhoneMissed,
     PhoneOff,
     PhoneOutgoing,
+    Phone as PhoneIcon,
     PieChart,
     PiggyBank as Piggy,
     Pilcrow,
@@ -705,7 +706,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ transactions }) => {
     const getIcon = (key: string) => {
         const iconName = icons[key];
         const IconComponent = ICON_MAP[iconName] || FolderOpen;
-        return <IconComponent size={20} />;
+        return <IconComponent size={24} className="text-sky-600" />;
     };
 
     // --- CRUD Operations ---
@@ -822,68 +823,77 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ transactions }) => {
 
 
     return (
-        <div className="space-y-6 pb-24">
+        <div className="space-y-6 animate-in fade-in duration-500 pb-24">
 
-            {/* 1. Header (Simplificado - sem data) */}
-            <div className="flex flex-col items-center justify-center space-y-4 sticky top-0 bg-slate-950/80 backdrop-blur-md z-10 py-4 -mx-4 px-4 border-b border-slate-800">
-                <h2 className="text-xl font-bold text-slate-100 flex items-center gap-2">
-                    <FolderOpen className="text-cyan-400" />
-                    Gerenciar Categorias
-                </h2>
-                {/* Date Selector Removed - Using Global App Date */}
+            {/* Header */}
+            <div className="flex justify-between items-center">
+                <div>
+                    <h2 className="text-3xl font-black text-slate-900 tracking-tight">Categorias</h2>
+                    <p className="text-slate-500 text-sm font-medium">Organize seus gastos e receitas.</p>
+                </div>
+                <button
+                    onClick={openAddCategoryModal}
+                    className="flex items-center gap-2 bg-sky-600 text-white px-6 py-3 rounded-2xl hover:bg-sky-700 transition-all shadow-xl shadow-sky-100 font-bold"
+                >
+                    <Plus size={20} />
+                    <span>Nova Categoria</span>
+                </button>
             </div>
 
-            {/* 2. Main List */}
-            <div className="grid gap-4">
+            {/* Grid Layout */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {(Object.entries(categories) as [string, string[]][]).map(([category, subcategories]) => {
                     const catTotal = calculateTotal(category);
                     const isExpanded = expandedCategory === category;
 
                     return (
-                        <div key={category} className="bg-slate-900/50 border border-slate-800 rounded-2xl transition-all hover:border-slate-700">
+                        <div
+                            key={category}
+                            className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm relative group overflow-hidden transition-all hover:shadow-xl hover:shadow-sky-100/40 hover:-translate-y-1"
+                        >
+                            {/* Decorative Background Icon */}
+                            <div className="absolute -bottom-6 -right-6 text-slate-100/50 transform rotate-12 pointer-events-none">
+                                {(() => {
+                                    const iconName = icons[category];
+                                    const IconComponent = ICON_MAP[iconName] || FolderOpen;
+                                    return <IconComponent size={120} />;
+                                })()}
+                            </div>
 
-                            {/* Category Header Row */}
-                            <div
-                                className="flex items-center justify-between p-4 cursor-pointer hover:bg-slate-800/30 transition-colors rounded-2xl"
-                                onClick={() => setExpandedCategory(isExpanded ? null : category)}
-                            >
-                                <div className="flex items-center gap-4">
-                                    {/* Icon Display */}
-                                    <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-cyan-400 font-bold text-lg shadow-sm border border-slate-700/50">
-                                        {getIcon(category)}
-                                    </div>
-                                    <div>
-                                        <h3 className="font-bold text-slate-200">{category}</h3>
-                                        <p className="text-xs text-slate-500">{subcategories.length} subcategorias</p>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center gap-4">
-                                    <div className="text-right">
-                                        <span className="text-xs text-slate-500 block">Gastos</span>
-                                        <span className="font-bold text-emerald-400">R$ {catTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                            {/* Card Content */}
+                            <div className="relative z-10">
+                                {/* Header Row */}
+                                <div className="flex justify-between items-start mb-4">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-14 h-14 bg-sky-50 rounded-2xl flex items-center justify-center text-sky-600 shadow-sm border border-sky-100">
+                                            {getIcon(category)}
+                                        </div>
+                                        <div>
+                                            <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight">{category}</h3>
+                                            <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">{subcategories.length} subcategorias</p>
+                                        </div>
                                     </div>
 
-                                    <div className="relative" onClick={e => e.stopPropagation()}>
+                                    <div className="relative">
                                         <button
                                             onClick={() => setMenuOpenId(menuOpenId === `cat-${category}` ? null : `cat-${category}`)}
-                                            className="p-2 hover:bg-slate-700 rounded-lg text-slate-400"
+                                            className="p-2 text-slate-300 hover:text-sky-600 transition-colors rounded-xl hover:bg-sky-50"
                                         >
-                                            <MoreVertical size={18} />
+                                            <MoreVertical size={20} />
                                         </button>
 
-                                        {/* Kebab Menu */}
+                                        {/* Menu */}
                                         {menuOpenId === `cat-${category}` && (
-                                            <div className="absolute right-0 top-full mt-2 w-32 bg-slate-800 border border-slate-700 rounded-xl shadow-xl z-20 animate-in fade-in zoom-in-95">
+                                            <div className="absolute right-0 top-full mt-2 w-32 bg-white border border-slate-100 rounded-2xl shadow-xl z-20 animate-in fade-in zoom-in-95 overflow-hidden">
                                                 <button
                                                     onClick={() => openEditModal('category', category)}
-                                                    className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-slate-300 hover:bg-slate-700 first:rounded-t-xl"
+                                                    className="w-full flex items-center gap-2 px-4 py-3 text-xs font-bold text-slate-600 hover:bg-slate-50 hover:text-sky-600 transition-colors"
                                                 >
                                                     <Edit2 size={14} /> Editar
                                                 </button>
                                                 <button
                                                     onClick={() => handleDelete('category', category)}
-                                                    className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-rose-400 hover:bg-rose-500/10 last:rounded-b-xl"
+                                                    className="w-full flex items-center gap-2 px-4 py-3 text-xs font-bold text-rose-500 hover:bg-rose-50 transition-colors"
                                                 >
                                                     <Trash2 size={14} /> Excluir
                                                 </button>
@@ -891,116 +901,138 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ transactions }) => {
                                         )}
                                     </div>
                                 </div>
-                            </div>
 
-                            {/* Subcategories List (Collapsible) */}
-                            {isExpanded && (
-                                <div className="border-t border-slate-800 bg-slate-950/30 p-2 space-y-1 rounded-b-2xl">
-                                    {subcategories.map(sub => (
-                                        <div key={sub} className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-800/50 group">
-                                            <div className="flex items-center gap-3 pl-2">
-                                                <div className="text-slate-500 group-hover:text-cyan-400 transition-colors">
-                                                    {getIcon(`${category}-${sub}`)}
-                                                </div>
-                                                <span className="text-sm text-slate-300">{sub}</span>
-                                            </div>
-
-                                            <div className="flex items-center gap-4">
-                                                <span className="text-xs font-medium text-slate-400">
-                                                    R$ {calculateTotal(category, sub).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                                                </span>
-
-                                                <div className="relative">
-                                                    <button
-                                                        onClick={() => setMenuOpenId(menuOpenId === `sub-${category}-${sub}` ? null : `sub-${category}-${sub}`)}
-                                                        className="p-1.5 hover:bg-slate-700 rounded-lg text-slate-600 group-hover:text-slate-400 opacity-0 group-hover:opacity-100 transition-all"
-                                                    >
-                                                        <MoreVertical size={16} />
-                                                    </button>
-
-                                                    {/* Sub Kebab Menu */}
-                                                    {menuOpenId === `sub-${category}-${sub}` && (
-                                                        <div className="absolute right-0 top-full mt-1 w-32 bg-slate-800 border border-slate-700 rounded-xl shadow-xl z-30">
-                                                            <button
-                                                                onClick={() => openEditModal('subcategory', category, sub)}
-                                                                className="w-full flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-300 hover:bg-slate-700 first:rounded-t-xl"
-                                                            >
-                                                                <Edit2 size={12} /> Editar
-                                                            </button>
-                                                            <button
-                                                                onClick={() => handleDelete('subcategory', category, sub)}
-                                                                className="w-full flex items-center gap-2 px-4 py-2 text-xs font-bold text-rose-400 hover:bg-rose-500/10 last:rounded-b-xl"
-                                                            >
-                                                                <Trash2 size={12} /> Excluir
-                                                            </button>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-
-                                    {/* Add Subcategory Button */}
-                                    <button
-                                        onClick={() => openAddSubModal(category)}
-                                        className="w-full flex items-center justify-center gap-2 p-3 mt-2 rounded-xl border border-dashed border-slate-700 text-slate-500 hover:text-cyan-400 hover:border-cyan-500/50 hover:bg-cyan-500/5 transition-all text-sm font-bold"
-                                    >
-                                        <Plus size={16} /> Adicionar Subcategoria
-                                    </button>
+                                {/* Total Amount */}
+                                <div className="mb-6">
+                                    <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest block mb-1">Total Gasto</span>
+                                    <div className="flex items-baseline gap-1">
+                                        <span className="text-sm font-bold text-slate-400">R$</span>
+                                        <span className="text-2xl font-black text-slate-800 tracking-tighter">
+                                            {catTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                        </span>
+                                    </div>
                                 </div>
-                            )}
+
+                                {/* Divider */}
+                                <div className="h-px bg-slate-100 mb-4"></div>
+
+                                {/* Subcategories Toggle */}
+                                <button
+                                    onClick={() => setExpandedCategory(isExpanded ? null : category)}
+                                    className="w-full flex items-center justify-between text-xs font-bold text-slate-500 hover:text-sky-600 transition-colors uppercase tracking-wider mb-2"
+                                >
+                                    <span>Ver Subcategorias</span>
+                                    {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                                </button>
+
+                                {/* Expanded List */}
+                                {isExpanded && (
+                                    <div className="space-y-2 animate-in slide-in-from-top-2 duration-300">
+                                        {subcategories.map(sub => (
+                                            <div key={sub} className="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50 transition-colors group/sub">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="text-slate-300 group-hover/sub:text-sky-500 transition-colors">
+                                                        {(() => {
+                                                            const key = `${category}-${sub}`;
+                                                            const iconName = icons[key];
+                                                            const IconComponent = ICON_MAP[iconName] || FolderOpen;
+                                                            return <IconComponent size={16} />;
+                                                        })()}
+                                                    </div>
+                                                    <span className="text-sm font-bold text-slate-600">{sub}</span>
+                                                </div>
+
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-xs font-bold text-slate-400">
+                                                        R$ {calculateTotal(category, sub).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                                    </span>
+
+                                                    <div className="relative">
+                                                        <button
+                                                            onClick={() => setMenuOpenId(menuOpenId === `sub-${category}-${sub}` ? null : `sub-${category}-${sub}`)}
+                                                            className="p-1 opacity-0 group-hover/sub:opacity-100 text-slate-300 hover:text-sky-600 transition-all"
+                                                        >
+                                                            <MoreVertical size={14} />
+                                                        </button>
+
+                                                        {/* Sub Menu */}
+                                                        {menuOpenId === `sub-${category}-${sub}` && (
+                                                            <div className="absolute right-0 top-full mt-1 w-28 bg-white border border-slate-100 rounded-xl shadow-xl z-30 overflow-hidden">
+                                                                <button
+                                                                    onClick={() => openEditModal('subcategory', category, sub)}
+                                                                    className="w-full flex items-center gap-2 px-3 py-2 text-[10px] font-bold text-slate-600 hover:bg-slate-50 hover:text-sky-600 transition-colors"
+                                                                >
+                                                                    <Edit2 size={12} /> Editar
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleDelete('subcategory', category, sub)}
+                                                                    className="w-full flex items-center gap-2 px-3 py-2 text-[10px] font-bold text-rose-500 hover:bg-rose-50 transition-colors"
+                                                                >
+                                                                    <Trash2 size={12} /> Excluir
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+
+                                        <button
+                                            onClick={() => openAddSubModal(category)}
+                                            className="w-full py-2 my-1 rounded-xl border border-dashed border-slate-200 text-slate-400 hover:text-sky-600 hover:border-sky-200 hover:bg-sky-50 transition-all text-xs font-bold flex items-center justify-center gap-1"
+                                        >
+                                            <Plus size={14} /> Adicionar
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     );
                 })}
             </div>
 
-            {/* Floating Action Button (Add Category) */}
-            <button
-                onClick={openAddCategoryModal}
-                className="fixed bottom-24 right-6 md:bottom-8 md:right-8 bg-cyan-600 hover:bg-cyan-500 text-white p-4 rounded-full shadow-lg shadow-cyan-500/30 transition-all transform active:scale-95 z-40 outline-none ring-offset-2 ring-offset-slate-950 focus:ring-2 focus:ring-cyan-500"
-                title="Nova Categoria"
-            >
-                <Plus size={24} />
-            </button>
-
-            {/* Modal (Create/Edit) */}
+            {/* Modal (Redesigned) */}
             {isModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
-                    <div className="bg-slate-900 border border-slate-800 w-full max-w-md rounded-3xl p-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200 text-white overflow-hidden max-h-[90vh] overflow-y-auto">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 animate-in fade-in duration-300">
+                    <div className="bg-white border border-slate-100 w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl relative animate-in zoom-in-95 duration-300 overflow-hidden max-h-[90vh] overflow-y-auto">
                         <button
                             onClick={closeModal}
-                            className="absolute top-4 right-4 text-slate-500 hover:text-white transition-colors"
+                            className="absolute top-6 right-6 p-2 bg-slate-50 text-slate-400 hover:bg-slate-100 hover:text-slate-600 rounded-full transition-all"
                         >
-                            <X size={24} />
+                            <X size={20} />
                         </button>
 
-                        <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
-                            {editValue ? <Edit2 size={18} className="text-cyan-400" /> : <Plus size={18} className="text-cyan-400" />}
-                            {editValue ? 'Editar' : 'Adicionar'} {editingType === 'category' ? 'Categoria' : 'Subcategoria'}
-                        </h3>
+                        <div className="mb-6">
+                            <span className="text-xs font-black text-sky-600 uppercase tracking-widest bg-sky-50 px-3 py-1 rounded-full">
+                                {editValue ? 'Editar' : 'Nova'} {editingType === 'category' ? 'Categoria' : 'Subcategoria'}
+                            </span>
+                            <h3 className="text-2xl font-black text-slate-800 mt-3 leading-tight">
+                                {editValue ? 'Alterar Detalhes' : 'Criar Novo Item'}
+                            </h3>
+                        </div>
 
                         <div className="space-y-6">
-                            <div>
-                                <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Nome</label>
+                            <div className="space-y-1">
+                                <label className="text-xs font-bold text-slate-400 uppercase ml-1">Nome</label>
                                 <input
                                     autoFocus
                                     type="text"
                                     value={newValue}
                                     onChange={(e) => setNewValue(e.target.value)}
                                     onKeyDown={(e) => e.key === 'Enter' && (editValue ? handleEdit() : (editingType === 'category' ? handleAddCategory() : handleAddSubcategory()))}
-                                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 outline-none transition-all"
+                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-sky-500 transition-all font-bold text-slate-700"
                                     placeholder={editingType === 'category' ? "Ex: Investimentos" : "Ex: Ações"}
                                 />
                             </div>
 
-                            {/* Icon Picker with Filter */}
-                            <div>
-                                <div className="flex items-center justify-between mb-3">
-                                    <label className="block text-xs font-bold text-slate-400 uppercase">Ícone</label>
+                            {/* Icon Picker */}
+                            <div className="space-y-1">
+                                <div className="flex items-center justify-between">
+                                    <label className="text-xs font-bold text-slate-400 uppercase ml-1">Ícone</label>
                                     <input
                                         type="text"
-                                        placeholder="Buscar ícone..."
-                                        className="bg-slate-950 border border-slate-800 text-xs px-2 py-1 rounded-lg text-white w-32 focus:border-cyan-500 outline-none"
+                                        placeholder="Buscar..."
+                                        className="text-xs px-2 py-1 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-sky-500 w-24 text-right"
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                     />
@@ -1013,9 +1045,9 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ transactions }) => {
                                             <button
                                                 key={iconKey}
                                                 onClick={() => setSelectedIcon(iconKey)}
-                                                className={`aspect-square flex items-center justify-center rounded-xl border transition-all ${isSelected
-                                                    ? 'bg-cyan-600 border-cyan-400 text-white shadow-lg shadow-cyan-500/20'
-                                                    : 'bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700 hover:text-white'
+                                                className={`aspect-square flex items-center justify-center rounded-2xl border transition-all ${isSelected
+                                                    ? 'bg-sky-600 border-sky-600 text-white shadow-lg shadow-sky-200 transform scale-105'
+                                                    : 'bg-white border-slate-100 text-slate-400 hover:bg-slate-50 hover:border-slate-200'
                                                     }`}
                                                 title={iconKey}
                                             >
@@ -1027,18 +1059,18 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ transactions }) => {
                             </div>
 
                             {editingType === 'subcategory' && (
-                                <div className="p-3 rounded-xl bg-slate-800/50 border border-slate-700">
-                                    <span className="text-xs text-slate-400">Adicionando em:</span>
-                                    <p className="font-bold text-cyan-400">{targetCategory}</p>
+                                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-between">
+                                    <span className="text-xs font-bold text-slate-500 uppercase">Categoria Pai</span>
+                                    <span className="font-black text-slate-700">{targetCategory}</span>
                                 </div>
                             )}
 
                             <button
                                 onClick={() => editValue ? handleEdit() : (editingType === 'category' ? handleAddCategory() : handleAddSubcategory())}
-                                className="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-cyan-500/20 transition-all active:scale-95 flex items-center justify-center gap-2"
+                                className="w-full bg-sky-600 hover:bg-sky-700 text-white font-black py-4 rounded-2xl shadow-xl shadow-sky-100 transition-all transform active:scale-95 flex items-center justify-center gap-2 mt-4"
                             >
-                                <Save size={18} />
-                                Salvar Alterações
+                                <Save size={20} />
+                                {editValue ? 'Salvar Alterações' : 'Confirmar Criação'}
                             </button>
                         </div>
                     </div>
