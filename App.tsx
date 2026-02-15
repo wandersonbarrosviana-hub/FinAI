@@ -204,14 +204,20 @@ const App: React.FC = () => {
   };
 
   const checkPendingInvites = async (email: string, userId: string) => {
+    console.log(`🔍 Verificando convites para: ${email} (User ID: ${userId})`);
     try {
       const { data: invites, error } = await supabase
         .from('invites')
         .select('*')
-        .eq('email', email)
+        .ilike('email', email)
         .eq('status', 'pending');
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Erro ao buscar convites:', error);
+        throw error;
+      }
+
+      console.log('✅ Convites encontrados no banco:', invites);
 
       if (invites && invites.length > 0) {
         const notificationsData: AppNotification[] = invites.map(invite => ({
@@ -226,8 +232,11 @@ const App: React.FC = () => {
         setNotifications(prev => {
           const existingIds = new Set(prev.map(n => n.id));
           const newNotifs = notificationsData.filter(n => !existingIds.has(n.id));
+          console.log('🔔 Atualizando notificações. Novas:', newNotifs);
           return [...prev, ...newNotifs];
         });
+      } else {
+        console.log('📭 Nenhum convite pendente encontrado para este email.');
       }
     } catch (error) {
       console.error('Error checking invites:', error);

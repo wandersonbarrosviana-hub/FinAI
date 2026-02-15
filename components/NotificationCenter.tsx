@@ -11,7 +11,11 @@ interface NotificationCenterProps {
 
 const NotificationCenter: React.FC<NotificationCenterProps> = ({ onAddTransaction, notifications = [], onRespondToInvite }) => {
     const [isOpen, setIsOpen] = useState(false);
-    const [smsText, setSmsText] = useState('');
+
+    // Debug log
+    console.log('NotificationCenter renderizou. Notifications recebidas:', notifications);
+
+    const pendingInvites = notifications.filter(n => n.type === 'invite' && !n.read);
     const [isProcessing, setIsProcessing] = useState(false);
     const [detectedTransaction, setDetectedTransaction] = useState<Partial<Transaction> | null>(null);
 
