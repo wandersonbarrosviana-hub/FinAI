@@ -18,6 +18,7 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
   const statusRef = useRef<VoiceStatus>('idle');
   const recognitionRef = useRef<any>(null);
   const isListeningModeRef = useRef(true); // Sync with default state
+  const silenceTimer = useRef<any>(null);
 
   // Sync ref with state
   useEffect(() => {
@@ -59,7 +60,7 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
     const recognition = new SpeechRecognition();
 
     recognition.lang = 'pt-BR';
-    recognition.continuous = false; // We use manual restart loop for better stability
+    recognition.continuous = true; // Changed to true to keep listening until silence
     recognition.interimResults = true;
 
     recognition.onstart = () => {
@@ -81,42 +82,45 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
 
       const currentText = (interimTranscript || finalTranscript).toLowerCase();
 
-      // Update transcript only if it's significant to avoid jitter
+      // Update transcript only if it's significant
       if (currentText.length > 2) setTranscript(currentText);
 
-      // WAKE WORD & COMMAND DETECTION
-      // 1. If in standby, look for "Oi Fini"
+      // WAKE WORD DETECTION
       if (statusRef.current === 'standby') {
         const wakeWordRegex = /(oi|olá|ei)?\s*fini/i;
         if (wakeWordRegex.test(currentText)) {
           setStatus('active_command');
-          // Optional: Audio feedback could go here
+          setTranscript(''); // Clear buffer for clean command
         }
       }
 
-      // 2. If already in active command (or just switched), process final text
-      if (statusRef.current === 'active_command' && finalTranscript) {
-        // Clean wake word from start
-        const cleanCommand = finalTranscript.replace(/^(oi|olá|ei)?\s*fini\s*/i, '').trim();
+      // SILENCE DETECTION FOR ACTIVE COMMAND
+      if (statusRef.current === 'active_command') {
+        // Clear existing timer
+        if (silenceTimer.current) clearTimeout(silenceTimer.current);
 
-        // If we have a command after the wake word
-        if (cleanCommand.length > 2) {
-          stopListening(); // Stop recognition to process
-          processFinalText(cleanCommand);
-        }
+        // Set new timer (e.g. 2 seconds silence)
+        silenceTimer.current = setTimeout(() => {
+          const cleanCommand = currentText.replace(/^(oi|olá|ei)?\s*fini\s*/i, '').trim();
+
+          if (cleanCommand.length > 2) {
+            stopListening();
+            processFinalText(cleanCommand);
+          }
+        }, 2000);
       }
     };
 
     recognition.onend = () => {
       recognitionRef.current = null;
-      // RESTART LOOP: If mode is ON and we didn't just finish a command successfully/error
-      // (Actually, even after success/error we might want to restart, but maybe with a delay)
-      if (isListeningModeRef.current) {
-        if (statusRef.current === 'processing') return; // Don't restart while processing API
+      if (silenceTimer.current) clearTimeout(silenceTimer.current);
 
-        // Simple restart
+      // RESTART LOOP
+      if (isListeningModeRef.current) {
+        if (statusRef.current === 'processing') return;
+
+        // Return to standby loops
         if (statusRef.current === 'active_command') {
-          // If ended without final command, go back to standby
           setStatus('standby');
           startListening();
         } else {
@@ -128,15 +132,15 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
     };
 
     recognition.onerror = (event: any) => {
+      if (silenceTimer.current) clearTimeout(silenceTimer.current);
+
       if (event.error === 'no-speech') {
-        // Ignore no-speech, let onend restart
+        // Ignore
       } else if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
-        // Se for bloqueado, desligar modo automático e pedir interação
         setIsListeningMode(false);
         setStatus('idle');
         alert("Para usar o 'Oi Fini', você precisa permitir o microfone.");
       } else if (event.error !== 'aborted') {
-        // Wait a bit before retry on real errors
         setTimeout(() => {
           if (isListeningModeRef.current) startListening();
         }, 1000);
@@ -148,7 +152,6 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
       recognitionRef.current = recognition;
     } catch (e) {
       console.error("Start error:", e);
-      // Se falhar no start síncrono (ex: browser bloqueando autoplay strict), desligar
       setIsListeningMode(false);
     }
   };
