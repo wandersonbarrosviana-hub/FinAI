@@ -16,12 +16,13 @@ import ChartsHub from './components/ChartsHub';
 import CategoryManager from './components/CategoryManager';
 import Reports from './components/Reports';
 import Investments from './components/Investments';
+import Settings from './components/Settings';
 
 import ProfileModal from './components/ProfileModal';
 import FinancialAssistant from './components/FinancialAssistant';
 import { Budget } from './types';
 
-import { Bell, Search, User as UserIcon, Plus, Sparkles, AlertCircle, ChevronLeft, ChevronRight, Loader2, LogOut } from 'lucide-react';
+import { Bell, Search, User as UserIcon, Plus, Sparkles, AlertCircle, ChevronLeft, ChevronRight, Loader2, LogOut, Settings as SettingsIcon, MessageSquare } from 'lucide-react';
 import { parseNotification } from './aiService';
 import { supabase } from './supabaseClient';
 import { Transaction, Account, Goal, User, ViewState, Tag } from './types';
@@ -31,9 +32,9 @@ const App: React.FC = () => {
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [currentView, setCurrentView] = useState<ViewState>(() => {
-    return (localStorage.getItem('finai_current_view') as ViewState) || 'dashboard';
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [currentView, setCurrentView] = useState<ViewState | 'settings'>(() => {
+    return (localStorage.getItem('finai_current_view') as ViewState | 'settings') || 'dashboard';
   });
 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -810,6 +811,7 @@ const App: React.FC = () => {
         name: newName,
         avatarUrl: newAvatarUrl || prev.avatarUrl
       } : null);
+      setIsProfileModalOpen(false); // Close modal after update
     } catch (error) {
       console.error('Error updating profile:', error);
     }
@@ -818,6 +820,29 @@ const App: React.FC = () => {
   const handleDeleteTag = async (id: string) => {
     setTags(prev => prev.filter(t => t.id !== id));
     await supabase.from('tags').delete().eq('id', id);
+  };
+
+  const handleExportData = () => {
+    const dataStr = JSON.stringify({ transactions, accounts, goals, budgets }, null, 2);
+    const blob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `finai_backup_${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleClearData = () => {
+    if (confirm("TEM CERTEZA? Isso apagará todos os seus dados locais e não poderá ser desfeito.")) {
+      setTransactions([]);
+      setAccounts([]);
+      setGoals([]);
+      setBudgets([]);
+      localStorage.clear();
+      window.location.reload();
+    }
   };
 
   if (loading) {
@@ -843,8 +868,8 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 flex overflow-hidden selection:bg-sky-500/30">
-      <Sidebar currentView={currentView} onViewChange={setCurrentView} isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} onLogout={handleLogout} />
-      <main className={`flex-1 flex flex-col transition-all duration-300 mb-[88px] md:mb-0 ml-0 ${isSidebarOpen ? 'md:ml-64' : 'md:ml-20'}`}>
+      <Sidebar currentView={currentView} onViewChange={setCurrentView} isOpen={sidebarOpen} setIsOpen={setSidebarOpen} onLogout={handleLogout} />
+      <main className={`flex-1 flex flex-col transition-all duration-300 mb-[88px] md:mb-0 ml-0 ${sidebarOpen ? 'md:ml-64' : 'md:ml-20'}`}>
         {/* Header - White Glassmorphism */}
         <header className="h-20 bg-white/80 backdrop-blur-xl border-b border-slate-200 flex items-center justify-between px-4 md:px-8 sticky top-0 z-40">
           {/* Global Month Filter in Center */}
@@ -974,6 +999,7 @@ const App: React.FC = () => {
           {currentView === 'expenses' && <ExpenseManager type="expense" transactions={filteredTransactions} onAddTransaction={handleAddTransaction} onDeleteTransaction={handleDeleteTransaction} onUpdateTransaction={handleUpdateTransaction} tags={tags} accounts={accounts} />}
           {currentView === 'income' && <ExpenseManager type="income" transactions={filteredTransactions} allTransactions={transactions} onAddTransaction={handleAddTransaction} onDeleteTransaction={handleDeleteTransaction} onUpdateTransaction={handleUpdateTransaction} tags={tags} accounts={accounts} />}
           {currentView === 'charts' && <ChartsHub transactions={filteredTransactions} />}
+          {currentView === 'settings' && <Settings user={user} onLogout={handleLogout} onExportData={handleExportData} onClearData={handleClearData} />}
         </div>
       </main>
 

@@ -70,6 +70,44 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, isOpen, se
             );
           })}
         </nav>
+
+        {/* Settings & Logout */}
+        <div className="p-4 border-t border-slate-100 space-y-2">
+          <button
+            onClick={() => onViewChange('settings')}
+            className={`w-full flex items-center p-3 rounded-xl transition-all duration-300 relative group overflow-hidden ${currentView === 'settings'
+              ? 'bg-sky-50 text-sky-600 shadow-[inset_4px_0_0_0_#0284c7]'
+              : 'text-slate-400 hover:text-slate-900 hover:bg-slate-50'
+              }`}
+          >
+            <div className={`flex items-center relative z-10 ${isOpen ? 'ml-2' : 'mx-auto'}`}>
+              <div className="text-slate-400 group-hover:text-slate-600 transition-colors">
+                {/* We need to import Settings from lucide-react if not present, but for now assuming it is or using raw SVG/Icon */}
+                {/* Actually I should check imports first. imports are at top. */}
+                {/* Re-using a similar structure to NAV_ITEMS */}
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`lucide lucide-settings ${currentView === 'settings' ? 'text-sky-600' : ''}`}><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.51a2 2 0 0 1 1-1.74l-.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" /><circle cx="12" cy="12" r="3" /></svg>
+              </div>
+              {isOpen && (
+                <span className={`ml-3 text-sm font-bold tracking-tight ${currentView === 'settings' ? 'text-sky-900' : ''}`}>
+                  Configurações
+                </span>
+              )}
+            </div>
+          </button>
+          <button
+            onClick={onLogout}
+            className="w-full flex items-center p-3 rounded-xl transition-all duration-300 relative group overflow-hidden text-rose-400 hover:text-rose-600 hover:bg-rose-50"
+          >
+            <div className={`flex items-center relative z-10 ${isOpen ? 'ml-2' : 'mx-auto'}`}>
+              <LogOut size={20} />
+              {isOpen && (
+                <span className="ml-3 text-sm font-bold tracking-tight">
+                  Sair
+                </span>
+              )}
+            </div>
+          </button>
+        </div>
       </aside>
 
       {/* Mobile Bottom Navigation (Clean White) */}
