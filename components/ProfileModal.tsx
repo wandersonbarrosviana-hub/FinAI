@@ -22,6 +22,14 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
     const [foundUser, setFoundUser] = useState<{ name: string, avatar_url: string } | null>(null);
     const [isCheckingUser, setIsCheckingUser] = useState(false);
 
+    // Security State
+    const [securityData, setSecurityData] = useState({
+        newPassword: '',
+        confirmPassword: '',
+        newEmail: ''
+    });
+    const [securityLoading, setSecurityLoading] = useState(false);
+
     // Fetch data when family tab is active
     React.useEffect(() => {
         if (activeTab === 'family') {
@@ -134,6 +142,52 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
             fetchFamilyData();
         } catch (error) {
             console.error('Error removing member:', error);
+        }
+    };
+
+    const handleUpdatePassword = async () => {
+        if (!securityData.newPassword || !securityData.confirmPassword) {
+            alert('Preencha os campos de senha.');
+            return;
+        }
+        if (securityData.newPassword !== securityData.confirmPassword) {
+            alert('As senhas não coincidem.');
+            return;
+        }
+        if (securityData.newPassword.length < 6) {
+            alert('A senha deve ter pelo menos 6 caracteres.');
+            return;
+        }
+        setSecurityLoading(true);
+        try {
+            const { error } = await supabase.auth.updateUser({ password: securityData.newPassword });
+            if (error) throw error;
+            alert('Senha atualizada com sucesso!');
+            setSecurityData(prev => ({ ...prev, newPassword: '', confirmPassword: '' }));
+        } catch (error: any) {
+            console.error('Error updating password:', error);
+            alert('Erro ao atualizar senha: ' + (error.message || error));
+        } finally {
+            setSecurityLoading(false);
+        }
+    };
+
+    const handleUpdateEmail = async () => {
+        if (!securityData.newEmail || !securityData.newEmail.includes('@')) {
+            alert('Email inválido.');
+            return;
+        }
+        setSecurityLoading(true);
+        try {
+            const { error } = await supabase.auth.updateUser({ email: securityData.newEmail });
+            if (error) throw error;
+            alert('Verifique seu NOVO email (e o antigo) para confirmar a alteração.');
+            setSecurityData(prev => ({ ...prev, newEmail: '' }));
+        } catch (error: any) {
+            console.error('Error updating email:', error);
+            alert('Erro ao atualizar email: ' + (error.message || error));
+        } finally {
+            setSecurityLoading(false);
         }
     };
 
@@ -443,11 +497,74 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
                         )}
 
                         {activeTab === 'security' && (
-                            <div className="flex flex-col items-center justify-center h-full text-center space-y-4 opacity-50">
-                                <Shield size={48} className="text-slate-300" />
+                            <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
                                 <div>
-                                    <p className="font-bold text-slate-800">Em Breve</p>
-                                    <p className="text-sm text-slate-500">Alteração de senha e 2FA.</p>
+                                    <h3 className="text-lg font-black text-slate-900 mb-1">Segurança da Conta</h3>
+                                    <p className="text-slate-500 text-sm">Gerencie suas credenciais de acesso.</p>
+                                </div>
+
+                                {/* Change Password Section */}
+                                <div className="space-y-4 p-5 bg-slate-50 border border-slate-100 rounded-2xl">
+                                    <h4 className="font-bold text-slate-700 flex items-center gap-2">
+                                        <Lock size={18} className="text-sky-500" />
+                                        Alterar Senha
+                                    </h4>
+                                    <div className="grid gap-4">
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Nova Senha</label>
+                                            <input
+                                                type="password"
+                                                value={securityData.newPassword}
+                                                onChange={e => setSecurityData({ ...securityData, newPassword: e.target.value })}
+                                                className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all font-medium text-slate-700"
+                                                placeholder="Mínimo 6 caracteres"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Confirmar Senha</label>
+                                            <input
+                                                type="password"
+                                                value={securityData.confirmPassword}
+                                                onChange={e => setSecurityData({ ...securityData, confirmPassword: e.target.value })}
+                                                className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all font-medium text-slate-700"
+                                                placeholder="Repita a nova senha"
+                                            />
+                                        </div>
+                                        <button
+                                            onClick={handleUpdatePassword}
+                                            disabled={securityLoading || !securityData.newPassword}
+                                            className="w-full py-3 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-slate-200 disabled:opacity-70 flex items-center justify-center gap-2"
+                                        >
+                                            {securityLoading ? <Loader2 size={18} className="animate-spin" /> : 'Atualizar Senha'}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Change Email Section */}
+                                <div className="space-y-4 p-5 bg-slate-50 border border-slate-100 rounded-2xl">
+                                    <h4 className="font-bold text-slate-700 flex items-center gap-2">
+                                        <Mail size={18} className="text-sky-500" />
+                                        Alterar Email
+                                    </h4>
+                                    <div className="grid gap-4">
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Novo Email</label>
+                                            <input
+                                                type="email"
+                                                value={securityData.newEmail}
+                                                onChange={e => setSecurityData({ ...securityData, newEmail: e.target.value })}
+                                                className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all font-medium text-slate-700"
+                                                placeholder="seu.novo@email.com"
+                                            />
+                                        </div>
+                                        <button
+                                            onClick={handleUpdateEmail}
+                                            disabled={securityLoading || !securityData.newEmail}
+                                            className="w-full py-3 bg-white border-2 border-slate-200 text-slate-600 hover:border-sky-500 hover:text-sky-600 font-bold rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                                        >
+                                            {securityLoading ? <Loader2 size={18} className="animate-spin" /> : 'Enviar Confirmação'}
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         )}
