@@ -3,7 +3,10 @@ import React, { useState } from 'react';
 import { CreditCard, Plus, Wallet, CheckCircle, X, Upload, Calendar, DollarSign, AlertCircle } from 'lucide-react';
 import { Account, Transaction } from '../types';
 import { BANKS, CARD_NETWORKS } from '../constants';
-import InvoiceUploader from './InvoiceUploader';
+import { BANKS, CARD_NETWORKS } from '../constants';
+
+// Lazy load InvoiceUploader
+const InvoiceUploader = React.lazy(() => import('./InvoiceUploader'));
 
 interface CreditCardManagerProps {
     accounts: Account[];
@@ -156,13 +159,29 @@ const CreditCardManager: React.FC<CreditCardManagerProps> = ({ accounts, transac
             </div>
 
             {/* IMPORT MODAL OVERLAY */}
+            {/* IMPORT MODAL OVERLAY */}
             {importingCardId && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-                        <InvoiceUploader
-                            onConfirm={handleInvoiceConfirm}
-                            onCancel={() => setImportingCardId(null)}
-                        />
+                    <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto relative">
+                        {/* Close Button on Overlay */}
+                        <button
+                            onClick={() => setImportingCardId(null)}
+                            className="absolute top-4 right-4 p-2 bg-white rounded-full shadow-lg text-slate-500 hover:text-rose-500 z-50 transition-colors"
+                        >
+                            <X size={24} />
+                        </button>
+
+                        <React.Suspense fallback={
+                            <div className="bg-white rounded-[2.5rem] p-12 flex flex-col items-center justify-center shadow-2xl">
+                                <div className="w-12 h-12 border-4 border-sky-100 border-t-sky-600 rounded-full animate-spin mb-4"></div>
+                                <p className="text-slate-500 font-bold">Carregando módulo de IA...</p>
+                            </div>
+                        }>
+                            <InvoiceUploader
+                                onConfirm={handleInvoiceConfirm}
+                                onCancel={() => setImportingCardId(null)}
+                            />
+                        </React.Suspense>
                     </div>
                 </div>
             )}
@@ -354,23 +373,28 @@ const CreditCardManager: React.FC<CreditCardManagerProps> = ({ accounts, transac
                                     <button onClick={() => setSelectedBank(null)} className="p-2 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-900 transition-all">
                                         <X size={20} />
                                     </button>
-                                    <div className="flex items-center gap-4">
-                                        {selectedBank.logoUrl && <img src={selectedBank.logoUrl} alt="" className="w-12 h-12 rounded-xl bg-white p-2 border border-slate-100 shadow-sm object-contain" />}
-                                        <h3 className="text-xl font-black text-slate-900 tracking-tight">Adicionar {selectedBank.name}</h3>
+
+                                    {/* Header with bank logo and name input side-by-side */}
+                                    <div className="flex-1 flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                        {selectedBank.logoUrl && <img src={selectedBank.logoUrl} alt="" className="w-12 h-12 rounded-xl bg-white p-2 border border-slate-100 shadow-sm object-contain flex-shrink-0" />}
+                                        <div className="flex-1">
+                                            <div className="flex flex-col">
+                                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Nome do Cartão (Apelido)</span>
+                                                <input
+                                                    type="text"
+                                                    value={cardName}
+                                                    onChange={e => setCardName(e.target.value)}
+                                                    className="w-full bg-transparent border-b-2 border-slate-200 focus:border-sky-500 outline-none text-slate-900 font-black text-xl placeholder:text-slate-300 transition-colors"
+                                                    placeholder={`Ex: ${selectedBank.name} Black`}
+                                                    autoFocus
+                                                />
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
                                 <div className="space-y-4">
-                                    <div>
-                                        <label className="text-xs font-bold text-slate-500 uppercase mb-1 block pl-2">Nome do Cartão (Apelido)</label>
-                                        <input
-                                            type="text"
-                                            value={cardName}
-                                            onChange={e => setCardName(e.target.value)}
-                                            className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-slate-700 font-bold focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 outline-none transition-all placeholder:text-slate-300 placeholder:font-normal"
-                                            placeholder="Ex: Nubank Principal"
-                                        />
-                                    </div>
+                                    {/* Name input removed from here as it is now in the header */}
 
                                     <div>
                                         <label className="text-xs font-bold text-slate-500 uppercase mb-1 block pl-2">Limite Total</label>
