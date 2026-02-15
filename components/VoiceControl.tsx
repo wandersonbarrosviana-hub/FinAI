@@ -101,11 +101,15 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
 
         // Set new timer (e.g. 2 seconds silence)
         silenceTimer.current = setTimeout(() => {
+          console.log("Silence detected. Processing command...");
           const cleanCommand = currentText.replace(/^(oi|olá|ei)?\s*fini\s*/i, '').trim();
+          console.log("Clean command detected:", cleanCommand);
 
           if (cleanCommand.length > 2) {
             stopListening();
             processFinalText(cleanCommand);
+          } else {
+            console.log("Command too short to process:", cleanCommand);
           }
         }, 2000);
       }
@@ -157,19 +161,25 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
   };
 
   const processFinalText = async (text: string) => {
+    console.log("Starting processFinalText with:", text);
+    setTranscript(text); // Keep text visible
     setStatus('processing');
     try {
       const { parseVoiceCommand } = await import('../aiService');
       const result = await parseVoiceCommand(text);
+      console.log("AI Parse Result:", result);
 
       if (result.intent === 'UNKNOWN') {
+        console.warn("Intent UNKNOWN");
         setStatus('error');
       } else {
+        console.log("Executing onAddTransaction...");
         const success = onAddTransaction(result);
+        console.log("onAddTransaction result:", success);
         setStatus(success !== false ? 'success' : 'error');
       }
     } catch (err) {
-      console.error(err);
+      console.error("Error in processFinalText:", err);
       setStatus('error');
     }
 
@@ -191,7 +201,7 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
       {(status === 'active_command' || status === 'processing' || (status === 'standby' && transcript)) && (
         <div className="bg-white/90 backdrop-blur-md px-4 py-2 rounded-2xl shadow-lg border border-slate-200 mb-2 max-w-[200px] pointer-events-auto animate-in slide-in-from-right-10 fade-in duration-300">
           <p className="text-sm font-medium text-slate-600 truncate">
-            {status === 'active_command' && !transcript ? "Ouvindo..." : `"${transcript}"`}
+            {status === 'processing' ? "Processando..." : (status === 'active_command' && !transcript ? "Ouvindo..." : `"${transcript}"`)}
           </p>
         </div>
       )}
