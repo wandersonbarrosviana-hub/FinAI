@@ -12,7 +12,7 @@ interface ProfileModalProps {
 
 const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUpdate }) => {
     const [loading, setLoading] = useState(false);
-    const [formData, setFormData] = useState({ name: user.name, avatarUrl: user.avatarUrl }); // Removed avatarPreview / file hooks here, will re - add if needed or integrate logic
+    const [formData, setFormData] = useState({ name: user.name || '', avatarUrl: user.avatarUrl }); // Removed avatarPreview/file hooks here, will re-add if needed or integrate logic
     const [avatarPreview, setAvatarPreview] = useState<string | null>(user.avatarUrl || null);
     const [avatarFile, setAvatarFile] = useState<File | null>(null);
     const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'family'>('profile');
@@ -230,7 +230,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
                                         {formData.avatarUrl ? (
                                             <img src={formData.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                                         ) : (
-                                            user.name.charAt(0).toUpperCase()
+                                            (user.name || 'U').charAt(0).toUpperCase()
                                         )}
                                         <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                             <Camera className="text-white" size={24} />
