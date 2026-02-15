@@ -24,6 +24,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
 
     // Security State
     const [securityData, setSecurityData] = useState({
+        currentPassword: '',
         newPassword: '',
         confirmPassword: '',
         newEmail: ''
@@ -146,24 +147,48 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
     };
 
     const handleUpdatePassword = async () => {
+        if (!securityData.currentPassword) {
+            alert('Por favor, informe sua senha atual.');
+            return;
+        }
         if (!securityData.newPassword || !securityData.confirmPassword) {
-            alert('Preencha os campos de senha.');
+            alert('Preencha os campos de nova senha.');
             return;
         }
         if (securityData.newPassword !== securityData.confirmPassword) {
-            alert('As senhas não coincidem.');
+            alert('As novas senhas não coincidem.');
             return;
         }
         if (securityData.newPassword.length < 6) {
-            alert('A senha deve ter pelo menos 6 caracteres.');
+            alert('A nova senha deve ter pelo menos 6 caracteres.');
             return;
         }
+
         setSecurityLoading(true);
         try {
+            // Verify current password first
+            const { error: signInError } = await supabase.auth.signInWithPassword({
+                email: user.email || '',
+                password: securityData.currentPassword
+            });
+
+            if (signInError) {
+                alert('Senha atual incorreta.');
+                setSecurityLoading(false);
+                return;
+            }
+
+            // Update password
             const { error } = await supabase.auth.updateUser({ password: securityData.newPassword });
             if (error) throw error;
+
             alert('Senha atualizada com sucesso!');
-            setSecurityData(prev => ({ ...prev, newPassword: '', confirmPassword: '' }));
+            setSecurityData(prev => ({
+                ...prev,
+                currentPassword: '',
+                newPassword: '',
+                confirmPassword: ''
+            }));
         } catch (error: any) {
             console.error('Error updating password:', error);
             alert('Erro ao atualizar senha: ' + (error.message || error));
@@ -181,7 +206,8 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
         try {
             const { error } = await supabase.auth.updateUser({ email: securityData.newEmail });
             if (error) throw error;
-            alert('Verifique seu NOVO email (e o antigo) para confirmar a alteração.');
+
+            alert(`Link de confirmação enviado para ${securityData.newEmail}.\n\nPara sua segurança, clique no link enviado para confirmar a troca.`);
             setSecurityData(prev => ({ ...prev, newEmail: '' }));
         } catch (error: any) {
             console.error('Error updating email:', error);
@@ -511,6 +537,16 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
                                     </h4>
                                     <div className="grid gap-4">
                                         <div>
+                                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Senha Atual</label>
+                                            <input
+                                                type="password"
+                                                value={securityData.currentPassword}
+                                                onChange={e => setSecurityData({ ...securityData, currentPassword: e.target.value })}
+                                                className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all font-medium text-slate-700"
+                                                placeholder="Sua senha atual"
+                                            />
+                                        </div>
+                                        <div>
                                             <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Nova Senha</label>
                                             <input
                                                 type="password"
@@ -532,7 +568,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
                                         </div>
                                         <button
                                             onClick={handleUpdatePassword}
-                                            disabled={securityLoading || !securityData.newPassword}
+                                            disabled={securityLoading || !securityData.newPassword || !securityData.currentPassword}
                                             className="w-full py-3 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-slate-200 disabled:opacity-70 flex items-center justify-center gap-2"
                                         >
                                             {securityLoading ? <Loader2 size={18} className="animate-spin" /> : 'Atualizar Senha'}
