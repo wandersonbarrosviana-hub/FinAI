@@ -42,7 +42,7 @@ const ChartContainer: React.FC<ChartContainerProps> = ({ title, children, classN
     }
 
     return (
-        <div className={`bg-white border border-slate-100 rounded-[2.5rem] p-8 relative flex flex-col shadow-sm ${className}`}>
+        <div className={`bg-white border border-slate-100 rounded-3xl md:rounded-[2.5rem] p-4 md:p-8 relative flex flex-col shadow-sm ${className}`}>
             <div className="flex items-center justify-between mb-8">
                 <h3 className="font-black text-slate-900 flex items-center gap-2 text-sm sm:text-base tracking-tight">
                     {title}

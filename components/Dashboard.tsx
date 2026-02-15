@@ -291,7 +291,8 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
           <h3 className="text-lg font-bold text-slate-900">Últimos Lançamentos</h3>
           <button className="text-sky-600 text-sm font-bold hover:text-sky-700 transition-colors">Ver todos</button>
         </div>
-        <div className="overflow-x-auto">
+        {/* Desktop View */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left">
             <thead className="bg-slate-50/50">
               <tr>
@@ -318,6 +319,31 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
               ))}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile View */}
+        <div className="md:hidden flex flex-col divide-y divide-slate-50">
+          {transactions.slice(0, 5).map((t) => (
+            <div key={t.id} className="p-4 flex items-center justify-between">
+              <div className="flex flex-col gap-1">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  {new Date(t.date).toLocaleDateString('pt-BR')}
+                </span>
+                <span className="text-sm font-bold text-slate-900 line-clamp-1">{t.description}</span>
+                <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded w-fit uppercase tracking-wider">
+                  {t.category}
+                </span>
+              </div>
+              <div className={`text-sm font-black whitespace-nowrap ${t.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                {t.type === 'income' ? '+' : '-'} R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+              </div>
+            </div>
+          ))}
+          {transactions.length === 0 && (
+            <div className="p-6 text-center text-slate-500 text-sm italic">
+              Nenhum lançamento recente.
+            </div>
+          )}
         </div>
       </div>
     </div>
