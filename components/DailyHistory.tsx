@@ -134,7 +134,7 @@ const DailyHistory: React.FC<DailyHistoryProps> = ({ transactions, accounts, onC
                                                         {t.type === 'income' ? <ArrowUpCircle size={20} /> : <ArrowDownCircle size={20} />}
                                                     </div>
                                                     <div>
-                                                        <p className="font-bold text-slate-900 text-sm">{t.description}</p>
+                                                        <p className="font-bold text-slate-900 text-sm truncate max-w-[150px] sm:max-w-none">{t.description}</p>
                                                         <p className="text-xs text-slate-400 flex items-center gap-2 mt-0.5 font-medium uppercase tracking-tighter">
                                                             <span className="bg-slate-50 px-1.5 py-0.5 rounded text-[10px] border border-slate-100">
                                                                 {t.category}

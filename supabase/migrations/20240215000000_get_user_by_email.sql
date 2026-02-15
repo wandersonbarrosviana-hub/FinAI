@@ -17,6 +17,6 @@ begin
     (au.raw_user_meta_data->>'name')::text as name,
     (au.raw_user_meta_data->>'avatar_url')::text as avatar_url
   from auth.users au
-  where au.email = email_input;
+  where lower(au.email) = lower(email_input);
 end;
 $$ language plpgsql;

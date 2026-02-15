@@ -40,11 +40,14 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
 
     const checkUser = async () => {
         if (!inviteEmail || !inviteEmail.includes('@')) return;
+
+        const emailToSearch = inviteEmail.trim().toLowerCase();
         setIsCheckingUser(true);
         setFoundUser(null);
+
         try {
             const { data, error } = await supabase.rpc('get_user_by_email', {
-                email_input: inviteEmail
+                email_input: emailToSearch
             });
 
             if (error) throw error;
@@ -52,12 +55,15 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
             if (data && data.length > 0) {
                 setFoundUser(data[0]);
             } else {
-                alert('Usuário não encontrado. Verifique o e-mail.');
+                // Use a toast or custom UI instead of alert if possible, 
+                // but for now let's just make the alert more descriptive or rely on the UI state (foundUser being null)
+                // We'll keep the alert simple but clear.
+                alert('Usuário não encontrado. Verifique se o e-mail está correto e se o usuário já possui conta no App.');
                 setFoundUser(null);
             }
         } catch (error) {
             console.error('Error checking user:', error);
-            alert('Erro ao buscar usuário.');
+            alert('Erro ao buscar usuário. Tente novamente.');
         } finally {
             setIsCheckingUser(false);
         }

@@ -106,27 +106,35 @@ const TransactionStatement: React.FC<TransactionStatementProps> = ({ transaction
             </div>
 
             <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto relative">
                     <table className="w-full text-left">
                         <thead className="bg-slate-50/50">
                             <tr>
-                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Data</th>
-                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Descrição</th>
-                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Categoria/Conta</th>
-                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Valor</th>
-                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Status</th>
+                                <th className="sticky left-0 z-20 bg-slate-50 px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] w-[100px]">Status</th>
+                                <th className="sticky left-[100px] z-20 bg-slate-50 px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] min-w-[200px]">Descrição</th>
+                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">Data</th>
+                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">Categoria/Conta</th>
+                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right whitespace-nowrap">Valor</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
                             {filtered.map((t) => (
                                 <tr key={t.id} className="hover:bg-slate-50 transition-colors group">
+                                    <td className="sticky left-0 z-10 bg-white px-6 py-4 text-center shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] w-[100px]">
+                                        <span className={`px-2 py-1 rounded-lg text-[9px] font-black border uppercase tracking-widest whitespace-nowrap ${t.isPaid
+                                            ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                                            : 'bg-amber-50 text-amber-600 border-amber-100'
+                                            }`}>
+                                            {t.isPaid ? 'PAGO' : 'PENDENTE'}
+                                        </span>
+                                    </td>
+                                    <td className="sticky left-[100px] z-10 bg-white px-6 py-4 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] min-w-[200px]">
+                                        <div className="text-sm font-bold text-slate-700 truncate max-w-[180px]" title={t.description}>{t.description}</div>
+                                    </td>
                                     <td className="px-6 py-4 text-xs text-slate-400 whitespace-nowrap font-medium">
                                         {new Date(t.date).toLocaleDateString('pt-BR')}
                                     </td>
-                                    <td className="px-6 py-4">
-                                        <div className="text-sm font-bold text-slate-700">{t.description}</div>
-                                    </td>
-                                    <td className="px-6 py-4">
+                                    <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="flex flex-col">
                                             <span className="text-xs font-black text-sky-600 uppercase tracking-tighter">{t.category}</span>
                                             <span className="text-[10px] text-slate-400 font-medium">
@@ -137,14 +145,6 @@ const TransactionStatement: React.FC<TransactionStatementProps> = ({ transaction
                                     <td className={`px-6 py-4 text-right text-sm font-black whitespace-nowrap ${t.type === 'income' ? 'text-emerald-600' : 'text-rose-600'
                                         }`}>
                                         {t.type === 'income' ? '+' : '-'} R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                                    </td>
-                                    <td className="px-6 py-4 text-center">
-                                        <span className={`px-3 py-1 rounded-lg text-[10px] font-black border uppercase tracking-widest ${t.isPaid
-                                            ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
-                                            : 'bg-amber-50 text-amber-600 border-amber-100'
-                                            }`}>
-                                            {t.isPaid ? 'CONSOLIDADO' : 'PENDENTE'}
-                                        </span>
                                     </td>
                                 </tr>
                             ))}

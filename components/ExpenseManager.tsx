@@ -803,57 +803,55 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
       }
 
       <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto relative">
           <table className="w-full text-left">
             <thead className="bg-slate-50/50">
               <tr>
-                <th className="hidden md:table-cell px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Status</th>
-                <th className="px-4 md:px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Info</th>
-                <th className="hidden md:table-cell px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Categoria</th>
-                <th className="hidden md:table-cell px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Recorrência</th>
-                <th className="px-4 md:px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Valor</th>
-                <th className="px-4 md:px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Ações</th>
+                <th className="sticky left-0 z-20 bg-slate-50 px-4 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] w-[80px]">Status</th>
+                <th className="sticky left-[80px] z-20 bg-slate-50 px-4 md:px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] min-w-[200px]">Info</th>
+                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">Categoria</th>
+                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">Recorrência</th>
+                <th className="px-4 md:px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right whitespace-nowrap">Valor</th>
+                <th className="px-4 md:px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right whitespace-nowrap">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
               {filteredTransactions.map((t) => (
                 <tr key={t.id} className="hover:bg-cyan-500/5 transition-colors group">
-                  <td className="hidden md:table-cell px-6 py-4">
+                  <td className="sticky left-0 z-10 bg-white px-4 py-4 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] w-[80px]">
                     <button
                       onClick={() => toggleStatus(t.id, t.isPaid)}
-                      className="transition-transform active:scale-95 focus:outline-none"
+                      className="transition-transform active:scale-95 focus:outline-none w-full flex justify-center"
                       title="Clique para alterar status"
                     >
                       {t.isPaid ? (
-                        <div className="flex items-center text-emerald-600 text-[10px] font-bold bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-100 uppercase tracking-wider">
-                          <CheckCircle size={14} className="mr-1" /> {type === 'income' ? 'RECEBIDO' : 'PAGO'}
+                        <div className="flex items-center justify-center text-emerald-600 bg-emerald-50 w-8 h-8 rounded-full border border-emerald-100">
+                          <CheckCircle size={16} />
                         </div>
                       ) : (
-                        <div className="flex items-center text-amber-600 text-[10px] font-bold bg-amber-50 px-2 py-1 rounded-lg border border-amber-100 uppercase tracking-wider">
-                          <Clock size={14} className="mr-1" /> PENDENTE
+                        <div className="flex items-center justify-center text-amber-600 bg-amber-50 w-8 h-8 rounded-full border border-amber-100">
+                          <Clock size={16} />
                         </div>
                       )}
                     </button>
+                    {/* Mobile text label below icon if needed, or just keep icon for compactness */}
                   </td>
-                  <td className="px-4 md:px-6 py-4">
-                    <div className="font-bold text-slate-900 text-sm">{t.description}</div>
+                  <td className="sticky left-[80px] z-10 bg-white px-4 md:px-6 py-4 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] min-w-[200px]">
+                    <div className="font-bold text-slate-900 text-sm truncate max-w-[180px]" title={t.description}>{t.description}</div>
                     <div className="flex flex-wrap items-center gap-1 text-[10px] text-slate-400 mt-1 uppercase font-bold tracking-tighter">
-                      <span className="md:hidden flex items-center bg-slate-100 px-1.5 py-0.5 rounded text-slate-600 border border-slate-200">
-                        {t.category}
-                      </span>
-                      <span className="flex items-center">
+                      <span className="flex items-center whitespace-nowrap">
                         <CreditCard size={10} className="mr-1" /> {t.paymentMethod}
                       </span>
                     </div>
                   </td>
-                  <td className="hidden md:table-cell px-6 py-4">
+                  <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex flex-col">
                       <span className="text-[10px] font-black text-sky-600 flex items-center uppercase tracking-widest px-2 py-1 bg-sky-50 border border-sky-100 rounded-lg w-fit">
                         <Tag size={10} className="mr-1" /> {t.category}
                       </span>
-                      <span className="text-[10px] text-slate-400 mt-1 font-bold ml-1 uppercase">{t.subCategory}</span>
+                      {t.subCategory && <span className="text-[10px] text-slate-400 mt-1 font-bold ml-1 uppercase">{t.subCategory}</span>}
                       {t.tags && t.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mt-1 ml-3.5">
+                        <div className="flex flex-wrap gap-1 mt-1 ml-1">
                           {t.tags.map(tagId => {
                             const tag = tags.find(tg => tg.id === tagId);
                             if (!tag) return null;
@@ -867,7 +865,7 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
                       )}
                     </div>
                   </td>
-                  <td className="hidden md:table-cell px-6 py-4">
+                  <td className="px-6 py-4 whitespace-nowrap">
                     {t.recurrence === 'fixed' && (
                       <div className="flex items-center text-[10px] font-black text-indigo-600 bg-indigo-50 px-2 py-1 rounded-lg w-fit border border-indigo-100 uppercase tracking-widest">
                         <Repeat size={12} className="mr-1" /> Mensal
@@ -882,19 +880,10 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
                       <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Única</span>
                     )}
                   </td>
-                  <td className={`px-4 md:px-6 py-4 text-sm font-black text-right ${t.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                  <td className={`px-4 md:px-6 py-4 text-sm font-black text-right whitespace-nowrap ${t.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}`}>
                     <div>R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-                    <button
-                      onClick={() => toggleStatus(t.id, t.isPaid)}
-                      className={`md:hidden text-[10px] font-bold px-1.5 py-0.5 rounded border mt-1 ${t.isPaid
-                        ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                        : 'bg-amber-500/10 text-amber-500 border-amber-500/20'
-                        }`}
-                    >
-                      {t.isPaid ? 'OK' : 'Pendente'}
-                    </button>
                   </td>
-                  <td className="px-4 md:px-6 py-4 text-right">
+                  <td className="px-4 md:px-6 py-4 text-right whitespace-nowrap">
                     <div className="flex items-center justify-end gap-2">
                       <button
                         onClick={() => handleEdit(t)}

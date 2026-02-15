@@ -313,7 +313,7 @@ const CreditCardManager: React.FC<CreditCardManagerProps> = ({ accounts, transac
                                                     {new Date(t.date).getDate()}
                                                 </div>
                                                 <div>
-                                                    <h4 className="font-bold text-slate-900">{t.description}</h4>
+                                                    <h4 className="font-bold text-slate-900 truncate max-w-[150px] sm:max-w-none">{t.description}</h4>
                                                     <p className="text-xs text-slate-500">{t.category} {t.installmentNumber ? `(${t.installmentNumber}/${t.installmentCount})` : ''}</p>
                                                 </div>
                                             </div>

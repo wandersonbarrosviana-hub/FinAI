@@ -304,14 +304,14 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
             <tbody className="divide-y divide-slate-50">
               {transactions.slice(0, 5).map((t) => (
                 <tr key={t.id} className="hover:bg-slate-50 transition-colors group">
-                  <td className="px-6 py-4 text-sm text-slate-500">{new Date(t.date).toLocaleDateString('pt-BR')}</td>
-                  <td className="px-6 py-4 text-sm font-bold text-slate-900">{t.description}</td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-4 text-sm text-slate-500 whitespace-nowrap">{new Date(t.date).toLocaleDateString('pt-BR')}</td>
+                  <td className="px-6 py-4 text-sm font-bold text-slate-900 whitespace-nowrap">{t.description}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">
                     <span className="px-3 py-1 rounded-lg text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200 uppercase tracking-wider transition-all">
                       {t.category}
                     </span>
                   </td>
-                  <td className={`px-6 py-4 text-sm font-black text-right ${t.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                  <td className={`px-6 py-4 text-sm font-black text-right whitespace-nowrap ${t.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}`}>
                     {t.type === 'income' ? '+' : '-'} R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </td>
                 </tr>
