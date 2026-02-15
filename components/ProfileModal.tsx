@@ -467,4 +467,5 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
             );
 };
 
+
             export default ProfileModal;
