@@ -80,54 +80,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
         }
     };
 
-    // ... existing handleSendInvite ...
 
-    // ... existing handleDeleteInvite ...
-
-    const handleRemoveMember = async (id: string) => {
-        if (!confirm('Remover este membro da família?')) return;
-        try {
-            const { error } = await supabase.from('family_members').delete().eq('id', id);
-            if (error) throw error;
-            fetchFamilyData();
-        } catch (error) {
-            console.error('Error removing member:', error);
-        }
-    };
-
-    // ... existing fileInputRef ...
-
-    // ... inside return ...
-
-    {/* Family Members List */ }
-    {
-        familyMembers.map((member) => (
-            <div key={member.member_id} className="flex items-center justify-between p-4 bg-white border border-slate-100 rounded-xl shadow-sm">
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-bold overflow-hidden">
-                        {member.avatar_url ? (
-                            <img src={member.avatar_url} alt={member.name} className="w-full h-full object-cover" />
-                        ) : (
-                            <User size={18} />
-                        )}
-                    </div>
-                    <div>
-                        <p className="font-bold text-slate-800">{member.name} {member.is_master && '(Organizador)'}</p>
-                        <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">{member.email}</p>
-                    </div>
-                </div>
-                {!member.is_master && (
-                    <button
-                        onClick={() => handleRemoveMember(member.member_id)}
-                        className="text-slate-400 hover:text-rose-500 transition-colors"
-                        title="Remover membro"
-                    >
-                        <Trash2 size={18} />
-                    </button>
-                )}
-            </div>
-        ))
-    }
 
     const handleSendInvite = async () => {
         if (!inviteEmail) return;
@@ -449,23 +402,33 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
 
                                         {/* Family Members List */}
                                         {familyMembers.map((member) => (
-                                            <div key={member.id} className="flex items-center justify-between p-4 bg-white border border-slate-100 rounded-xl shadow-sm">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-bold">
-                                                        <User size={18} />
+                                            <div key={member.member_id} className="flex items-center justify-between p-4 bg-white border border-slate-100 rounded-xl shadow-sm gap-3">
+                                                <div className="flex items-center gap-3 min-w-0 flex-1">
+                                                    <div className="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-bold overflow-hidden flex-shrink-0">
+                                                        {member.avatar_url ? (
+                                                            <img src={member.avatar_url} alt={member.name} className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            <User size={18} />
+                                                        )}
                                                     </div>
-                                                    <div>
-                                                        <p className="font-bold text-slate-800">Membro da Família</p>
-                                                        <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">{member.role === 'editor' ? 'Editor' : 'Visualizador'}</p>
+                                                    <div className="min-w-0">
+                                                        <p className="font-bold text-slate-800 truncate" title={member.name}>
+                                                            {member.name} {member.is_master && '(Organizador)'}
+                                                        </p>
+                                                        <p className="text-xs text-slate-400 font-bold uppercase tracking-wider truncate" title={member.email}>
+                                                            {member.email}
+                                                        </p>
                                                     </div>
                                                 </div>
-                                                <button
-                                                    onClick={() => handleRemoveMember(member.id)}
-                                                    className="text-slate-400 hover:text-rose-500 transition-colors"
-                                                    title="Remover membro"
-                                                >
-                                                    <Trash2 size={18} />
-                                                </button>
+                                                {!member.is_master && (
+                                                    <button
+                                                        onClick={() => handleRemoveMember(member.member_id)}
+                                                        className="text-slate-400 hover:text-rose-500 transition-colors flex-shrink-0"
+                                                        title="Remover membro"
+                                                    >
+                                                        <Trash2 size={18} />
+                                                    </button>
+                                                )}
                                             </div>
                                         ))}
 
