@@ -192,7 +192,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-slate-900/20 backdrop-blur-sm animate-in fade-in duration-300">
             <div
-                className="bg-white w-full max-w-3xl rounded-[2.5rem] shadow-2xl overflow-hidden border border-slate-100 animate-in zoom-in-95 duration-300 flex flex-col max-h-[90vh]"
+                className="bg-white w-full max-w-5xl rounded-[2.5rem] shadow-2xl overflow-hidden border border-slate-100 animate-in zoom-in-95 duration-300 flex flex-col max-h-[90vh]"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
@@ -214,7 +214,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
                     </button>
                 </div>
 
-                <div className="flex flex-col md:flex-row h-[600px]">
+                <div className="flex flex-col md:flex-row h-[700px]">
                     {/* Sidebar Tabs */}
                     <div className="w-full md:w-64 bg-slate-50 p-6 flex flex-col gap-2 border-r border-slate-100">
                         <button
@@ -343,7 +343,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
 
                                         {foundUser && (
                                             <div className="flex items-center gap-3 p-3 bg-sky-50 border border-sky-100 rounded-xl animate-in fade-in slide-in-from-top-2">
-                                                <div className="w-10 h-10 rounded-full bg-sky-200 flex items-center justify-center overflow-hidden flex-shrink-0">
+                                                <div className="w-12 h-12 rounded-full bg-sky-200 flex items-center justify-center overflow-hidden flex-shrink-0">
                                                     {foundUser.avatar_url ? (
                                                         <img src={foundUser.avatar_url} alt={foundUser.name} className="w-full h-full object-cover" />
                                                     ) : (
@@ -404,7 +404,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
                                         {familyMembers.map((member) => (
                                             <div key={member.member_id} className="flex items-center justify-between p-4 bg-white border border-slate-100 rounded-xl shadow-sm gap-3">
                                                 <div className="flex items-center gap-3 min-w-0 flex-1">
-                                                    <div className="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-bold overflow-hidden flex-shrink-0">
+                                                    <div className="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-bold overflow-hidden flex-shrink-0">
                                                         {member.avatar_url ? (
                                                             <img src={member.avatar_url} alt={member.name} className="w-full h-full object-cover" />
                                                         ) : (
