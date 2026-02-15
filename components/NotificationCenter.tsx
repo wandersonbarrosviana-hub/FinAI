@@ -15,8 +15,9 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ onAddTransactio
     // Debug log
     console.log('NotificationCenter renderizou. Notifications recebidas:', notifications);
 
-    const pendingInvites = notifications.filter(n => n.type === 'invite' && !n.read);
+    const [smsText, setSmsText] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
+
     const [detectedTransaction, setDetectedTransaction] = useState<Partial<Transaction> | null>(null);
 
     const handleParseSMS = async () => {

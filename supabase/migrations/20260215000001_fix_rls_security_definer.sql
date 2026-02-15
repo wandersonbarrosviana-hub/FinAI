@@ -1,23 +1,6 @@
--- Create a secure function to check if the current user owns the email in the invite
-create or replace function check_invite_access(invite_email text)
-returns boolean
-language plpgsql
-security definer
-set search_path = public
-as $$
-begin
-  -- Check if the current user's email matches the invite email (case insensitive)
-  -- We query auth.users directly, which is allowed because this function is SECURITY DEFINER
-  return exists (
-    select 1 
-    from auth.users 
-    where id = auth.uid() 
-    and lower(email) = lower(invite_email)
-  );
-end;
-$$;
+-- Simplify RLS to avoid 'permission denied for table users'
+-- We verify the email directly against the user's JWT token
 
--- Update the policies to use this function
 drop policy if exists "Users can view invites they sent or received" on invites;
 
 create policy "Users can view invites they sent or received"
@@ -25,7 +8,7 @@ create policy "Users can view invites they sent or received"
   using (
     auth.uid() = inviter_id 
     or 
-    check_invite_access(email)
+    lower(email) = lower(auth.jwt() ->> 'email')
   );
 
 drop policy if exists "Users can update invites (accept/reject)" on invites;
@@ -35,5 +18,5 @@ create policy "Users can update invites (accept/reject)"
   using (
     auth.uid() = inviter_id 
     or 
-    check_invite_access(email)
+    lower(email) = lower(auth.jwt() ->> 'email')
   );
