@@ -19,6 +19,7 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
   const recognitionRef = useRef<any>(null);
   const isListeningModeRef = useRef(true); // Sync with default state
   const silenceTimer = useRef<any>(null);
+  const shouldStartActiveRef = useRef(true);
 
   // Sync ref with state
   useEffect(() => {
@@ -27,15 +28,20 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
 
   useEffect(() => {
     isListeningModeRef.current = isListeningMode;
+    console.log("[Voice] isListeningMode changed:", isListeningMode);
     if (isListeningMode) {
-      // Tentar iniciar imediatamente (pode falhar sem interação prévia dependendo do browser)
-      if (status === 'idle') startListening();
+      if (status === 'idle') {
+        console.log("[Voice] Starting listening from effect...");
+        startListening(shouldStartActiveRef.current);
+      }
     } else {
+      console.log("[Voice] Stopping listening from effect...");
       stopListening();
     }
   }, [isListeningMode]);
 
   const handleInteraction = () => {
+    console.log("[Voice] Button clicked. Mode:", isListeningMode, "Status:", status);
     if (!isListeningMode) {
       // Turn ON - Start Active
       shouldStartActiveRef.current = true;
@@ -167,7 +173,7 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
       } else if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
         setIsListeningMode(false);
         setStatus('idle');
-        alert("Para usar o 'Oi Fini', você precisa permitir o microfone.");
+        alert("Permissão de microfone negada! \n\nPor favor, clique no ícone de cadeado na barra de endereço e permita o uso do microfone.");
       } else if (event.error !== 'aborted') {
         setTimeout(() => {
           if (isListeningModeRef.current) startListening();
@@ -180,6 +186,7 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
       recognitionRef.current = recognition;
     } catch (e) {
       console.error("Start error:", e);
+      alert("Erro ao iniciar reconhecimento de voz: " + e);
       setIsListeningMode(false);
     }
   };
