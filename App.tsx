@@ -976,6 +976,83 @@ const App: React.FC = () => {
     return <Auth onLogin={() => { }} />;
   }
 
+  const handleAICommand = async (command: any) => {
+    console.log("[AI Command]", command);
+
+    // 1. Transactions - Create
+    if (command.intent === 'CREATE') {
+      await handleAddTransaction(command.data);
+      alert(`Adicionado: ${command.data.description} (R$ ${command.data.amount})`);
+      return true;
+    }
+
+    // 2. Delete / Undo
+    if (command.intent === 'DELETE_LAST') {
+      const lastTx = transactions[0];
+      if (lastTx) {
+        const confirm = window.confirm(`Deseja apagar a última transação?\n\n"${lastTx.description}"\nR$ ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(lastTx.amount)}`);
+        if (confirm) {
+          await handleDeleteTransaction(lastTx.id);
+          alert("Transação apagada!");
+          return true;
+        }
+      } else {
+        alert("Não encontrei nenhuma transação recente para apagar.");
+      }
+      return false;
+    }
+
+    if (command.intent === 'DELETE_SPECIFIC') {
+      const term = command.data.description?.toLowerCase() || '';
+      if (!term) return false;
+
+      // Find match (most recent first)
+      const targetTx = transactions.find(t => t.description.toLowerCase().includes(term));
+      if (targetTx) {
+        const confirm = window.confirm(`Encontrei esta transação para apagar:\n\n"${targetTx.description}"\nR$ ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(targetTx.amount)}\nData: ${new Date(targetTx.date).toLocaleDateString('pt-BR')}\n\nConfirmar exclusão?`);
+        if (confirm) {
+          await handleDeleteTransaction(targetTx.id);
+          alert("Transação apagada!");
+          return true;
+        }
+      } else {
+        alert(`Não encontrei nenhuma transação contendo "${term}".`);
+      }
+      return false;
+    }
+
+    // 3. Accounts
+    if (command.intent === 'CREATE_ACCOUNT') {
+      await handleAddAccount(command.data);
+      alert(`Conta "${command.data.name}" criada!`);
+      return true;
+    }
+
+    // 4. Fallback for Delete (if AI fails intent)
+    if (command.data?.originalText) {
+      const text = command.data.originalText.toLowerCase();
+      if (text.includes('apagar') || text.includes('deletar') || text.includes('remover') || text.includes('desfazer')) {
+        // Assume delete last if short or generic
+        if (text.includes('últim') || text.length < 25) {
+          const lastTx = transactions[0];
+          if (lastTx) {
+            const confirm = window.confirm(`(Fallback) Entendi que quer apagar a última transação:\n"${lastTx.description}" (R$ ${lastTx.amount})?`);
+            if (confirm) {
+              await handleDeleteTransaction(lastTx.id);
+              return true;
+            }
+          }
+        }
+      }
+    }
+
+    if (command.intent === 'UNKNOWN') {
+      alert("Não entendi o comando. Tente algo como 'Gastei 50 na padaria' ou 'Apagar última despesa'.");
+    }
+
+    return false;
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 flex overflow-hidden selection:bg-sky-500/30">
       <Sidebar currentView={currentView} onViewChange={setCurrentView} isOpen={sidebarOpen} setIsOpen={setSidebarOpen} onLogout={handleLogout} />
