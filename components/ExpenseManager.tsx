@@ -918,7 +918,7 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
         {/* Mobile Card View */}
         <div className="md:hidden flex flex-col divide-y divide-slate-100">
           {filteredTransactions.map((t) => (
-            <div key={t.id} className="p-4 bg-white hover:bg-slate-50 transition-colors">
+            <div key={t.id} className="p-3 bg-white hover:bg-slate-50 transition-colors">
               <div className="flex justify-between items-start mb-2">
                 <div className="flex-1 min-w-0 pr-2">
                   <h4 className="text-sm font-bold text-slate-900 truncate">{t.description}</h4>
@@ -930,7 +930,7 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
                     <span className="text-[10px] text-slate-400">{new Date(t.date).toLocaleDateString('pt-BR')}</span>
                   </div>
                 </div>
-                <div className="flex flex-col items-end">
+                <div className="flex flex-col items-end mr-2">
                   <div className={`text-sm font-black whitespace-nowrap ${t.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}`}>
                     R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </div>
@@ -938,8 +938,8 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
                     <button
                       onClick={() => toggleStatus(t.id, t.isPaid)}
                       className={`flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border transition-all ${t.isPaid
-                          ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
-                          : 'bg-amber-50 text-amber-600 border-amber-100'
+                        ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                        : 'bg-amber-50 text-amber-600 border-amber-100'
                         }`}
                     >
                       {t.isPaid ? <CheckCircle size={10} /> : <Clock size={10} />}
