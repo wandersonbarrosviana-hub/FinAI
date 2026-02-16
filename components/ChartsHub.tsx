@@ -31,11 +31,6 @@ import {
     Legend,
     AreaChart,
     Area,
-    Radar,
-    RadarChart,
-    PolarGrid,
-    PolarAngleAxis,
-    PolarRadiusAxis,
     ComposedChart
 } from 'recharts';
 import { Transaction } from '../types';
@@ -51,26 +46,34 @@ const ChartsHub: React.FC<ChartsHubProps> = ({ transactions }) => {
 
     // --- Data Processing & Logic ---
 
-    // 1. Financial Radar Data (Health Score)
-    const radarData = useMemo(() => {
-        if (transactions.length === 0) return [];
+    // 1. Expense Structure Data (Fixed vs Installments vs One-off)
+    const expenseStructureData = useMemo(() => {
+        const expenses = transactions.filter(t => t.type === 'expense');
+        const total = expenses.reduce((sum, t) => sum + Number(t.amount), 0);
 
-        const income = transactions.filter(t => t.type === 'income').reduce((acc, t) => acc + Number(t.amount), 0);
-        const expense = transactions.filter(t => t.type === 'expense').reduce((acc, t) => acc + Number(t.amount), 0);
-        const invest = transactions.filter(t => t.type === 'expense' && (t.category === 'Investimento' || t.category === 'Aporte')).reduce((acc, t) => acc + Number(t.amount), 0);
+        const structure = {
+            fixed: 0,
+            installment: 0,
+            one_time: 0
+        };
 
-        // Metrics (0-100 Scale Logic)
-        const savingsRate = income > 0 ? Math.max(0, ((income - expense) / income) * 100) : 0;
-        const investRate = income > 0 ? Math.min(100, (invest / income) * 100 * 3) : 0; // Create a multiplier to make visualization easier (33% invest = 100 score)
-        const balanceScore = income > expense ? 100 : Math.max(0, (income / expense) * 50);
+        expenses.forEach(t => {
+            const val = Number(t.amount);
+            // Assuming recurrence field exists and is populated correctly
+            // types: 'one_time' | 'fixed' | 'installment'
+            const type = t.recurrence || 'one_time';
+            if (structure[type] !== undefined) {
+                structure[type] += val;
+            } else {
+                structure.one_time += val; // Fallback
+            }
+        });
 
         return [
-            { subject: 'Poupança', A: Math.min(100, savingsRate), fullMark: 100 },
-            { subject: 'Investimentos', A: Math.min(100, investRate), fullMark: 100 },
-            { subject: 'Equilíbrio', A: Math.min(100, balanceScore), fullMark: 100 },
-            { subject: 'Controle', A: expense > 0 ? 80 : 100, fullMark: 100 }, // Mock logic for Control
-            { subject: 'Crescimento', A: income > 0 ? 70 : 40, fullMark: 100 }, // Mock logic
-        ];
+            { name: 'Fixas', value: structure.fixed, color: '#06b6d4', percent: total ? (structure.fixed / total) * 100 : 0 },
+            { name: 'Parceladas', value: structure.installment, color: '#f43f5e', percent: total ? (structure.installment / total) * 100 : 0 },
+            { name: 'Variáveis/À Vista', value: structure.one_time, color: '#3b82f6', percent: total ? (structure.one_time / total) * 100 : 0 }
+        ].filter(item => item.value > 0);
     }, [transactions]);
 
     // 2. Pareto Analysis (80/20 Rule)
@@ -233,8 +236,8 @@ const ChartsHub: React.FC<ChartsHubProps> = ({ transactions }) => {
                         </p>
                     </div>
                     <div className={`px-6 py-3 rounded-2xl backdrop-blur-md border flex items-center gap-3 shadow-lg ${aiInsight.sentiment === 'negative' ? 'bg-rose-500/20 border-rose-500/30 text-rose-200' :
-                            aiInsight.sentiment === 'warning' ? 'bg-amber-500/20 border-amber-500/30 text-amber-200' :
-                                'bg-emerald-500/20 border-emerald-500/30 text-emerald-200'
+                        aiInsight.sentiment === 'warning' ? 'bg-amber-500/20 border-amber-500/30 text-amber-200' :
+                            'bg-emerald-500/20 border-emerald-500/30 text-emerald-200'
                         }`}>
                         {aiInsight.sentiment === 'negative' ? <TrendingDown size={24} /> :
                             aiInsight.sentiment === 'warning' ? <Activity size={24} /> : <Zap size={24} />}
@@ -247,31 +250,50 @@ const ChartsHub: React.FC<ChartsHubProps> = ({ transactions }) => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* 1. Radar Chart (Financial Health) - NEW */}
+                {/* 1. Expense Structure (Donut) - NEW */}
                 <ChartContainer
                     title={
                         <span className="flex items-center gap-2">
-                            <RadarIcon size={18} className="text-fuchsia-500" /> Radar Financeiro
+                            <PieChartIcon size={18} className="text-fuchsia-500" /> Estrutura de Gastos
                         </span>
                     }
                 >
-                    <div className="h-[350px] w-full flex items-center justify-center">
+                    <div className="h-[350px] w-full flex items-center justify-center relative">
                         <ResponsiveContainer width="100%" height="100%">
-                            <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
-                                <PolarGrid stroke="#e2e8f0" strokeDasharray="3 3" />
-                                <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 10, fontWeight: 'bold' }} />
-                                <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                                <Radar
-                                    name="Saúde Financeira"
-                                    dataKey="A"
-                                    stroke="#8b5cf6"
-                                    strokeWidth={3}
-                                    fill="#8b5cf6"
-                                    fillOpacity={0.3}
-                                />
+                            <PieChart>
+                                <Pie
+                                    data={expenseStructureData}
+                                    innerRadius={80}
+                                    outerRadius={100}
+                                    paddingAngle={5}
+                                    dataKey="value"
+                                    stroke="none"
+                                >
+                                    {expenseStructureData.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={entry.color} />
+                                    ))}
+                                </Pie>
                                 <Tooltip content={<CustomTooltip />} />
-                            </RadarChart>
+                                <Legend
+                                    verticalAlign="bottom"
+                                    height={36}
+                                    iconType="circle"
+                                    iconSize={10}
+                                    formatter={(value, entry: any) => (
+                                        <span className="text-slate-600 dark:text-slate-300 font-bold ml-1 text-xs">
+                                            {value}
+                                        </span>
+                                    )}
+                                />
+                            </PieChart>
                         </ResponsiveContainer>
+                        {/* Center Text */}
+                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 -mt-6 text-center pointer-events-none">
+                            <p className="text-[10px] uppercase font-bold text-slate-400 tracking-widest">Total</p>
+                            <p className="text-sm font-black text-slate-800 dark:text-white">
+                                {expenseStructureData.reduce((acc, curr) => acc + curr.value, 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                            </p>
+                        </div>
                     </div>
                 </ChartContainer>
 
