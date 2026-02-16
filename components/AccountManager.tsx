@@ -54,8 +54,11 @@ const AccountManager: React.FC<AccountManagerProps> = ({ accounts, transactions,
   const accountStats = useMemo(() => {
     if (!selectedAccount) return { income: 0, expense: 0 };
     return accountTransactions.reduce((acc, t) => {
-      if (t.type === 'income') acc.income += t.amount;
-      if (t.type === 'expense') acc.expense += t.amount;
+      // Only count paid transactions for the realized stats
+      if (t.isPaid) {
+        if (t.type === 'income') acc.income += t.amount;
+        if (t.type === 'expense') acc.expense += t.amount;
+      }
       return acc;
     }, { income: 0, expense: 0 });
   }, [accountTransactions]);
