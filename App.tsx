@@ -948,36 +948,58 @@ const App: React.FC = () => {
     document.body.removeChild(link);
   };
 
-  const handleResetData = async () => {
-    if (confirm("TEM CERTEZA? Isso apagará TODAS as suas finanças (contas, transações, metas) mas manterá seu login. Essa ação não pode ser desfeita.")) {
-      try {
-        setLoading(true);
-        // Call Supabase RPC function to wipe data
-        const { error } = await supabase.rpc('reset_user_data');
+  const handleResetData = async (options?: {
+    keepCategories: boolean;
+    keepCreditCards: boolean;
+    keepAccounts: boolean;
+    keepGoals: boolean;
+  }) => {
+    // If called without options (legacy), we shouldn't proceed implicitly or should assume 'delete all'.
+    // However, the new Settings UI calls it with options.
+    // If confirmed via Modal:
+    try {
+      setLoading(true);
 
-        if (error) {
-          console.error("Error resetting data:", error);
-          // Fallback if RPC fails or not exists: manual delete (less safe but immediate workaround)
-          // But ideally we rely on the RPC.
-          alert("Erro ao resetar dados. Tente novamente ou contate o suporte.");
-        } else {
-          // Success: Clear local state
-          setTransactions([]);
-          setAccounts([]);
-          setGoals([]);
-          setBudgets([]);
-          setTags([]);
-          localStorage.removeItem('finai_current_view');
-          localStorage.removeItem('finai_current_date');
+      const { keepCategories = false, keepCreditCards = false, keepAccounts = false, keepGoals = false } = options || {};
 
-          alert("Dados resetados com sucesso! Você pode começar do zero.");
-          window.location.reload();
+      const { error } = await supabase.rpc('reset_user_data_v2', {
+        p_keep_goals: keepGoals,
+        p_keep_credit_cards: keepCreditCards,
+        p_keep_accounts: keepAccounts
+      });
+
+      if (error) {
+        console.error("Error resetting data:", error);
+        alert("Erro ao resetar dados. Tente novamente ou contate o suporte.");
+      } else {
+        // Clear LocalStorage if not kept
+        if (!keepCategories) {
+          // Specific keys for categories need to be confirmed.
+          // Assuming 'finai_categories' or clearing known keys.
+          // Will ensure we only clear if explicitly requested.
+          localStorage.removeItem('finai_categories');
+          localStorage.removeItem('finai_subcategories'); // If exists
         }
-      } catch (err) {
-        console.error("Unexpected error:", err);
-      } finally {
-        setLoading(false);
+
+        // Always remove these view/date prefs on reset? Or keep?
+        // User asked for "starting from zero", so maybe reset view too.
+        localStorage.removeItem('finai_current_view');
+        localStorage.removeItem('finai_current_date');
+
+        // Clear State
+        setTransactions([]);
+        if (!keepAccounts) setAccounts(keepCreditCards ? accounts.filter(a => a.isCredit) : []);
+        else if (!keepCreditCards) setAccounts(accounts.filter(a => !a.isCredit));
+        // If both kept, accounts stay (but likely need refetch to match DB if implementation logic was complex)
+
+        // Actually, easiest is to reload page to refetch everything from DB/LocalStorage
+        alert("Dados resetados com sucesso!");
+        window.location.reload();
       }
+    } catch (err) {
+      console.error("Unexpected error:", err);
+    } finally {
+      setLoading(false);
     }
   };
 

@@ -19,17 +19,24 @@ import {
 } from 'lucide-react';
 import { Account, Transaction, Budget, Goal } from '../types';
 
+import ResetDataModal from './ResetDataModal';
+
 interface SettingsProps {
     user: { name: string; email: string; avatarUrl?: string };
     onLogout: () => void;
     onExportData: () => void;
-    onResetData: () => void;
+    onResetData: (options: {
+        keepCategories: boolean;
+        keepCreditCards: boolean;
+        keepAccounts: boolean;
+        keepGoals: boolean;
+    }) => Promise<void>;
 }
 
 const Settings: React.FC<SettingsProps> = ({ user, onLogout, onExportData, onResetData }) => {
     const [theme, setTheme] = useState<'light' | 'dark'>('light');
     const [notifications, setNotifications] = useState(true);
-    const [blurBalances, setBlurBalances] = useState(false);
+    const [isResetModalOpen, setIsResetModalOpen] = useState(false);
 
     return (
         <div className="max-w-4xl mx-auto space-y-8 pb-24 animate-in fade-in duration-500">
@@ -153,7 +160,7 @@ const Settings: React.FC<SettingsProps> = ({ user, onLogout, onExportData, onRes
                         </button>
 
                         {/* Reset Data (Danger) */}
-                        <button onClick={onResetData} className="w-full p-5 flex items-center justify-between hover:bg-rose-50 transition-colors group">
+                        <button onClick={() => setIsResetModalOpen(true)} className="w-full p-5 flex items-center justify-between hover:bg-rose-50 transition-colors group">
                             <div className="flex items-center gap-4">
                                 <div className="p-2 bg-rose-50 text-rose-600 rounded-xl group-hover:bg-rose-100 transition-colors">
                                     <Trash2 size={20} />
@@ -207,6 +214,12 @@ const Settings: React.FC<SettingsProps> = ({ user, onLogout, onExportData, onRes
                     SAIR DA CONTA
                 </button>
             </div>
+
+            <ResetDataModal
+                isOpen={isResetModalOpen}
+                onClose={() => setIsResetModalOpen(false)}
+                onConfirm={onResetData}
+            />
         </div>
     );
 };
