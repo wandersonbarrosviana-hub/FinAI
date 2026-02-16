@@ -2,8 +2,6 @@
 import React, { useState } from 'react';
 import {
     Settings as SettingsIcon,
-    Moon,
-    Sun,
     Bell,
     Shield,
     Database,
@@ -31,11 +29,9 @@ interface SettingsProps {
         keepAccounts: boolean;
         keepGoals: boolean;
     }) => Promise<void>;
-    theme: 'light' | 'dark';
-    onToggleTheme: () => void;
 }
 
-const Settings: React.FC<SettingsProps> = ({ user, onLogout, onExportData, onResetData, theme, onToggleTheme }) => {
+const Settings: React.FC<SettingsProps> = ({ user, onLogout, onExportData, onResetData }) => {
     // Theme state is now managed by parent (App.tsx)
     const [notifications, setNotifications] = useState(true);
     const [isResetModalOpen, setIsResetModalOpen] = useState(false);
@@ -75,22 +71,7 @@ const Settings: React.FC<SettingsProps> = ({ user, onLogout, onExportData, onRes
                     </h3>
 
                     <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
-                        {/* Appearance */}
-                        <div className="p-5 flex items-center justify-between border-b border-slate-50 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                            <div className="flex items-center gap-4">
-                                <div className="p-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-xl">
-                                    {theme === 'light' ? <Sun size={20} /> : <Moon size={20} />}
-                                </div>
-                                <div>
-                                    <p className="font-bold text-slate-800 dark:text-slate-200">Tema do App</p>
-                                    <p className="text-xs text-slate-400 dark:text-slate-500 font-medium">Alternar entre Claro e Escuro</p>
-                                </div>
-                            </div>
-                            <label className="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" className="sr-only peer" checked={theme === 'dark'} onChange={onToggleTheme} />
-                                <div className="w-11 h-6 bg-slate-200 dark:bg-slate-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-sky-100 dark:peer-focus:ring-sky-900 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sky-600"></div>
-                            </label>
-                        </div>
+
 
                         {/* Notifications */}
                         <div className="p-5 flex items-center justify-between border-b border-slate-50 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">

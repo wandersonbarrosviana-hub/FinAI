@@ -43,27 +43,9 @@ const App: React.FC = () => {
   const [tags, setTags] = useState<Tag[]>([]);
   const [budgets, setBudgets] = useState<Budget[]>([]);
 
-  // Custom Hook for Theme
-  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('finai_theme') as 'light' | 'dark' || 'light';
-    }
-    return 'light';
-  });
 
-  useEffect(() => {
-    const root = window.document.documentElement;
-    if (theme === 'dark') {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-    }
-    localStorage.setItem('finai_theme', theme);
-  }, [theme]);
 
-  const toggleTheme = () => {
-    setTheme(prev => prev === 'light' ? 'dark' : 'light');
-  };
+
   const [retirementParams, setRetirementParams] = useState<any>(null);
 
   const [showNotificationPopup, setShowNotificationPopup] = useState(false);
@@ -1185,7 +1167,7 @@ const App: React.FC = () => {
           {currentView === 'expenses' && <ExpenseManager type="expense" transactions={filteredTransactions} onAddTransaction={handleAddTransaction} onDeleteTransaction={handleDeleteTransaction} onUpdateTransaction={handleUpdateTransaction} tags={tags} accounts={accounts} />}
           {currentView === 'income' && <ExpenseManager type="income" transactions={filteredTransactions} allTransactions={transactions} onAddTransaction={handleAddTransaction} onDeleteTransaction={handleDeleteTransaction} onUpdateTransaction={handleUpdateTransaction} tags={tags} accounts={accounts} />}
           {currentView === 'charts' && <ChartsHub transactions={filteredTransactions} />}
-          {currentView === 'settings' && <Settings user={user} onLogout={handleLogout} onExportData={handleExportData} onResetData={handleResetData} theme={theme} onToggleTheme={toggleTheme} />}
+          {currentView === 'settings' && <Settings user={user} onLogout={handleLogout} onExportData={handleExportData} onResetData={handleResetData} />}
         </div>
       </main>
 
