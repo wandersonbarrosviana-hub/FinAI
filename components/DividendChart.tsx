@@ -56,45 +56,46 @@ const DividendChart: React.FC<DividendChartProps> = ({ data }) => {
                 </div>
             </div>
 
-            <div className="h-[350px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                        <XAxis
-                            dataKey="year"
-                            stroke="#94a3b8"
-                            tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }}
-                            tickLine={false}
-                            axisLine={false}
-                            dy={10}
-                        />
-                        <YAxis
-                            stroke="#94a3b8"
-                            tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }}
-                            tickLine={false}
-                            axisLine={false}
-                            tickFormatter={(val) => mode === 'value' ? `R$${val >= 1000 ? (val / 1000) + 'k' : val}` : `${val}%`}
-                        />
-                        <Tooltip content={<CustomTooltip />} cursor={{ fill: '#f8fafc', radius: 4 }} />
-                        <Bar dataKey={mode} radius={[6, 6, 6, 6]} barSize={32}>
-                            {data.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={mode === 'value' ? '#10b981' : '#6366f1'} fillOpacity={0.8} />
-                            ))}
-                        </Bar>
-                    </BarChart>
-                </ResponsiveContainer>
-            </div>
+            <div className="w-full overflow-x-auto pb-4">
+                <div className="h-[350px] min-w-[600px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                            <XAxis
+                                dataKey="year"
+                                stroke="#94a3b8"
+                                tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }}
+                                tickLine={false}
+                                axisLine={false}
+                                dy={10}
+                            />
+                            <YAxis
+                                stroke="#94a3b8"
+                                tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }}
+                                tickLine={false}
+                                axisLine={false}
+                                tickFormatter={(val) => mode === 'value' ? `R$${val >= 1000 ? (val / 1000) + 'k' : val}` : `${val}%`}
+                            />
+                            <Tooltip content={<CustomTooltip />} cursor={{ fill: '#f8fafc', radius: 4 }} />
+                            <Bar dataKey={mode} radius={[6, 6, 6, 6]} barSize={32}>
+                                {data.map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={mode === 'value' ? '#10b981' : '#6366f1'} fillOpacity={0.8} />
+                                ))}
+                            </Bar>
+                        </BarChart>
+                    </ResponsiveContainer>
+                </div>
 
-            <div className="mt-8 flex justify-center gap-8">
-                <div className="flex items-center gap-3">
-                    <div className={`w-3 h-3 rounded-full ${mode === 'value' ? 'bg-emerald-500' : 'bg-indigo-500 shadow-sm shadow-indigo-200'}`}></div>
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                        {mode === 'value' ? 'Total Pago (R$)' : 'Dividend Yield (%)'}
-                    </span>
+                <div className="mt-8 flex justify-center gap-8">
+                    <div className="flex items-center gap-3">
+                        <div className={`w-3 h-3 rounded-full ${mode === 'value' ? 'bg-emerald-500' : 'bg-indigo-500 shadow-sm shadow-indigo-200'}`}></div>
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                            {mode === 'value' ? 'Total Pago (R$)' : 'Dividend Yield (%)'}
+                        </span>
+                    </div>
                 </div>
             </div>
-        </div>
-    );
+            );
 };
 
-export default DividendChart;
+            export default DividendChart;

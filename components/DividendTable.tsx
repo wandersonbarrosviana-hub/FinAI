@@ -45,26 +45,26 @@ const DividendTable: React.FC<DividendTableProps> = ({ dividends }) => {
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="border-b border-slate-100">
-                                <th className="p-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Tipo</th>
-                                <th className="p-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Data Com</th>
-                                <th className="p-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Pagamento</th>
-                                <th className="p-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Valor</th>
+                                <th className="p-5 text-[10px] font-black text-slate-400 uppercase tracking-widest sticky left-0 bg-slate-50 z-20 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Tipo</th>
+                                <th className="p-5 text-[10px] font-black text-slate-400 uppercase tracking-widest min-w-[120px]">Data Com</th>
+                                <th className="p-5 text-[10px] font-black text-slate-400 uppercase tracking-widest min-w-[120px]">Pagamento</th>
+                                <th className="p-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right min-w-[120px]">Valor</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
                             {currentItems.map((item, idx) => (
                                 <tr key={idx} className="hover:bg-white transition-colors group">
-                                    <td className="p-5">
-                                        <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${item.type.includes('Dividendo')
-                                                ? 'bg-emerald-50 text-emerald-600'
-                                                : 'bg-indigo-50 text-indigo-600'
+                                    <td className="p-5 sticky left-0 bg-slate-50 group-hover:bg-white z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] transition-colors">
+                                        <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest whitespace-nowrap ${item.type.includes('Dividendo')
+                                            ? 'bg-emerald-50 text-emerald-600'
+                                            : 'bg-indigo-50 text-indigo-600'
                                             }`}>
                                             {item.type}
                                         </span>
                                     </td>
-                                    <td className="p-5 text-sm text-slate-500 font-bold">{item.dateCom}</td>
-                                    <td className="p-5 text-sm text-slate-500 font-bold">{item.paymentDate}</td>
-                                    <td className="p-5 text-sm text-slate-900 font-black text-right">
+                                    <td className="p-5 text-sm text-slate-500 font-bold whitespace-nowrap">{item.dateCom}</td>
+                                    <td className="p-5 text-sm text-slate-500 font-bold whitespace-nowrap">{item.paymentDate}</td>
+                                    <td className="p-5 text-sm text-slate-900 font-black text-right whitespace-nowrap">
                                         {item.value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                                     </td>
                                 </tr>
