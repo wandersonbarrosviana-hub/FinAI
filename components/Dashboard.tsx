@@ -7,6 +7,7 @@ import {
 import { Transaction, Account, Goal, Budget } from '../types';
 import { TrendingUp, TrendingDown, Wallet, PlusCircle, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import ChartContainer from './ChartContainer';
+import AIInsightsWidget from './AIInsightsWidget';
 
 interface DashboardProps {
   transactions: Transaction[];
@@ -170,19 +171,19 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
             </div>
           </div>
 
-          {/* Right: Trend Chart (Last 7 Days) */}
+          {/* Middle: Trend Chart (Last 7 Days) */}
           <div className="flex-1 border-t md:border-t-0 md:border-l border-slate-100 pt-6 md:pt-0 md:pl-8 relative z-10">
             <div className="flex justify-between items-center mb-4">
               <div>
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white">Evolução Recente</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Últimos 7 dias de gastos</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Últimos 7 dias</p>
               </div>
               <div className="p-2 bg-slate-50 dark:bg-slate-800 rounded-lg">
                 <TrendingDown size={18} className="text-rose-500" />
               </div>
             </div>
-            <div className="h-40 w-full overflow-x-auto pb-2">
-              <div className="h-full min-w-[500px]">
+            <div className="h-40 w-full overflow-hidden pb-2">
+              <div className="h-full w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={last7DaysData}>
                     <defs>
@@ -202,6 +203,11 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
                 </ResponsiveContainer>
               </div>
             </div>
+          </div>
+
+          {/* Right: AI Insights */}
+          <div className="flex-1 border-t md:border-t-0 md:border-l border-slate-100 pt-6 md:pt-0 md:pl-8 relative z-10">
+            <AIInsightsWidget transactions={transactions} budgets={budgets} />
           </div>
         </div>
       </div>
