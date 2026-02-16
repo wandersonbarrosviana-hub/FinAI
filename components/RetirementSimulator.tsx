@@ -225,137 +225,137 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
     return (
         <div className="space-y-8 animate-in fade-in duration-500 pb-24">
             <div>
-                <h2 className="text-4xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-                    <TrendingUp className="text-sky-600" size={40} />
+                <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
+                    <TrendingUp className="text-sky-600 dark:text-sky-400" size={40} />
                     Simulador de Aposentadoria
                 </h2>
-                <p className="text-slate-500 text-sm font-medium mt-1">Planeje sua liberdade financeira com base em juros compostos.</p>
+                <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mt-1">Planeje sua liberdade financeira com base em juros compostos.</p>
             </div>
 
-            <div className="bg-white p-4 md:p-8 rounded-[2rem] md:rounded-[3rem] shadow-sm border border-slate-100 ring-1 ring-black/5">
+            <div className="bg-white dark:bg-slate-900 p-4 md:p-8 rounded-[2rem] md:rounded-[3rem] shadow-sm border border-slate-100 dark:border-slate-800 ring-1 ring-black/5 dark:ring-white/5">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-8">
                     <div className="space-y-2">
-                        <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Renda Desejada</label>
+                        <label className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Renda Desejada</label>
                         <div className="relative group">
-                            <span className="absolute left-4 top-4 text-slate-300 font-black">R$</span>
+                            <span className="absolute left-4 top-4 text-slate-300 dark:text-slate-600 font-black">R$</span>
                             <input
                                 type="number"
                                 value={desiredIncome}
                                 onChange={(e) => setDesiredIncome(Number(e.target.value))}
-                                className="w-full pl-12 pr-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-sky-500/5 focus:border-sky-500/50 outline-none transition-all text-slate-700 font-bold"
+                                className="w-full pl-12 pr-6 py-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl focus:ring-4 focus:ring-sky-500/5 focus:border-sky-500/50 outline-none transition-all text-slate-700 dark:text-white font-bold"
                             />
                         </div>
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Patrimônio Inicial</label>
+                        <label className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Patrimônio Inicial</label>
                         <div className="relative group">
-                            <span className="absolute left-4 top-4 text-slate-300 font-black">R$</span>
+                            <span className="absolute left-4 top-4 text-slate-300 dark:text-slate-600 font-black">R$</span>
                             <input
                                 type="number"
                                 value={currentPatrimony}
                                 onChange={(e) => setCurrentPatrimony(Number(e.target.value))}
-                                className="w-full pl-12 pr-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-sky-500/5 focus:border-sky-500/50 outline-none transition-all text-slate-700 font-bold"
+                                className="w-full pl-12 pr-6 py-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl focus:ring-4 focus:ring-sky-500/5 focus:border-sky-500/50 outline-none transition-all text-slate-700 dark:text-white font-bold"
                             />
                         </div>
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Aporte Mensal</label>
+                        <label className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Aporte Mensal</label>
                         <div className="relative group">
-                            <span className="absolute left-4 top-4 text-slate-300 font-black">R$</span>
+                            <span className="absolute left-4 top-4 text-slate-300 dark:text-slate-600 font-black">R$</span>
                             <input
                                 type="number"
                                 value={monthlyContribution}
                                 onChange={(e) => setMonthlyContribution(Number(e.target.value))}
-                                className="w-full pl-12 pr-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-sky-500/5 focus:border-sky-500/50 outline-none transition-all text-slate-700 font-bold"
+                                className="w-full pl-12 pr-6 py-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl focus:ring-4 focus:ring-sky-500/5 focus:border-sky-500/50 outline-none transition-all text-slate-700 dark:text-white font-bold"
                             />
                         </div>
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Rentabilidade (%)</label>
+                        <label className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Rentabilidade (%)</label>
                         <input
                             type="number"
                             value={annualRate}
                             onChange={(e) => setAnnualRate(Number(e.target.value))}
-                            className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-sky-500/5 focus:border-sky-500/50 outline-none transition-all text-slate-700 font-bold"
+                            className="w-full px-6 py-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl focus:ring-4 focus:ring-sky-500/5 focus:border-sky-500/50 outline-none transition-all text-slate-700 dark:text-white font-bold"
                         />
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Inflação (%)</label>
+                        <label className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Inflação (%)</label>
                         <input
                             type="number"
                             value={annualInflation}
                             onChange={(e) => setAnnualInflation(Number(e.target.value))}
-                            className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-sky-500/5 focus:border-sky-500/50 outline-none transition-all text-slate-700 font-bold"
+                            className="w-full px-6 py-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl focus:ring-4 focus:ring-sky-500/5 focus:border-sky-500/50 outline-none transition-all text-slate-700 dark:text-white font-bold"
                         />
                     </div>
                 </div>
 
-                <div className="mt-6 bg-indigo-50 p-4 rounded-2xl flex items-center justify-between border border-indigo-100 cursor-pointer hover:bg-indigo-100 transition-colors" onClick={() => setApplyBudgetSurplus(!applyBudgetSurplus)}>
+                <div className="mt-6 bg-indigo-50 dark:bg-indigo-900/10 p-4 rounded-2xl flex items-center justify-between border border-indigo-100 dark:border-indigo-900/20 cursor-pointer hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-colors" onClick={() => setApplyBudgetSurplus(!applyBudgetSurplus)}>
                     <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-xl transition-colors ${applyBudgetSurplus ? 'bg-indigo-500 text-white' : 'bg-white text-indigo-300'}`}>
+                        <div className={`p-2 rounded-xl transition-colors ${applyBudgetSurplus ? 'bg-indigo-500 dark:bg-indigo-600 text-white' : 'bg-white dark:bg-slate-800 text-indigo-300 dark:text-indigo-400'}`}>
                             <DollarSign size={20} />
                         </div>
                         <div>
-                            <p className="text-sm font-black text-indigo-900">Acelerar com Saldo do Orçamento</p>
-                            <p className="text-xs text-indigo-600 font-medium">
+                            <p className="text-sm font-black text-indigo-900 dark:text-indigo-200">Acelerar com Saldo do Orçamento</p>
+                            <p className="text-xs text-indigo-600 dark:text-indigo-400 font-medium">
                                 Adicionar <span className="font-bold">R$ {budgetSurplus.toLocaleString('pt-BR')}</span> extras todo mês (sobra do orçamento atual).
                             </p>
                         </div>
                     </div>
-                    <div className={`w-12 h-7 rounded-full p-1 transition-colors ${applyBudgetSurplus ? 'bg-indigo-500' : 'bg-slate-200'}`}>
+                    <div className={`w-12 h-7 rounded-full p-1 transition-colors ${applyBudgetSurplus ? 'bg-indigo-500 dark:bg-indigo-600' : 'bg-slate-200 dark:bg-slate-700'}`}>
                         <div className={`h-5 w-5 bg-white rounded-full shadow-sm transition-transform ${applyBudgetSurplus ? 'translate-x-5' : 'translate-x-0'}`}></div>
                     </div>
                 </div>
             </div>
 
-            <div className="bg-white p-4 md:p-8 rounded-[2rem] md:rounded-[3rem] border border-slate-100 shadow-sm ring-1 ring-black/5">
+            <div className="bg-white dark:bg-slate-900 p-4 md:p-8 rounded-[2rem] md:rounded-[3rem] border border-slate-100 dark:border-slate-800 shadow-sm ring-1 ring-black/5 dark:ring-white/5">
                 <div className="mb-8 flex flex-col md:flex-row justify-between items-center gap-6">
                     <div>
-                        <h3 className="text-xl font-black text-slate-900 tracking-tight">Projeção de Longo Prazo</h3>
-                        <p className="text-xs font-medium text-slate-400 mt-1">Simulação nominal vs real pelos próximos {yearsToSimulate} anos.</p>
+                        <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Projeção de Longo Prazo</h3>
+                        <p className="text-xs font-medium text-slate-400 dark:text-slate-500 mt-1">Simulação nominal vs real pelos próximos {yearsToSimulate} anos.</p>
                     </div>
 
                     <div className="flex flex-wrap gap-4 items-center">
-                        <div className="flex bg-slate-100 p-1.5 rounded-2xl border border-slate-200">
+                        <div className="flex bg-slate-100 dark:bg-slate-800 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-700">
                             {[5, 10, 20, 30, 40, 50, 60].map((y) => (
                                 <button
                                     key={y}
                                     onClick={() => setYearsToSimulate(y)}
-                                    className={`px-3 py-2 rounded-xl text-[10px] font-black tracking-widest transition-all ${yearsToSimulate === y ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                                    className={`px-3 py-2 rounded-xl text-[10px] font-black tracking-widest transition-all ${yearsToSimulate === y ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'}`}
                                 >
                                     {y}A
                                 </button>
                             ))}
                         </div>
-                        <div className="flex bg-slate-50 p-1.5 rounded-2xl border border-slate-200">
+                        <div className="flex bg-slate-50 dark:bg-slate-800 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-700">
                             <button
                                 onClick={() => setShowRealValues(false)}
-                                className={`px-4 py-2 rounded-xl text-xs font-black tracking-widest transition-all ${!showRealValues ? 'bg-white text-sky-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                                className={`px-4 py-2 rounded-xl text-xs font-black tracking-widest transition-all ${!showRealValues ? 'bg-white dark:bg-slate-700 text-sky-600 dark:text-sky-400 shadow-sm' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'}`}
                             >
                                 NOMINAL
                             </button>
                             <button
                                 onClick={() => setShowRealValues(true)}
-                                className={`px-4 py-2 rounded-xl text-xs font-black tracking-widest transition-all ${showRealValues ? 'bg-white text-sky-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                                className={`px-4 py-2 rounded-xl text-xs font-black tracking-widest transition-all ${showRealValues ? 'bg-white dark:bg-slate-700 text-sky-600 dark:text-sky-400 shadow-sm' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'}`}
                             >
                                 REAL
                             </button>
                         </div>
 
-                        <div className="flex bg-slate-50 p-1.5 rounded-2xl border border-slate-200">
+                        <div className="flex bg-slate-50 dark:bg-slate-800 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-700">
                             <button
                                 onClick={() => setViewMode('monthly')}
-                                className={`px-4 py-2 rounded-xl text-xs font-black tracking-widest transition-all ${viewMode === 'monthly' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                                className={`px-4 py-2 rounded-xl text-xs font-black tracking-widest transition-all ${viewMode === 'monthly' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'}`}
                             >
                                 MENSAL
                             </button>
                             <button
                                 onClick={() => setViewMode('annual')}
-                                className={`px-4 py-2 rounded-xl text-xs font-black tracking-widest transition-all ${viewMode === 'annual' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                                className={`px-4 py-2 rounded-xl text-xs font-black tracking-widest transition-all ${viewMode === 'annual' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'}`}
                             >
                                 ANUAL
                             </button>
@@ -364,16 +364,16 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                 </div>
 
                 {freedomPoint && (
-                    <div className="mb-8 p-6 bg-emerald-50 rounded-3xl border border-emerald-100 flex flex-col items-center justify-center gap-2 text-center">
+                    <div className="mb-8 p-6 bg-emerald-50 dark:bg-emerald-900/10 rounded-3xl border border-emerald-100 dark:border-emerald-900/20 flex flex-col items-center justify-center gap-2 text-center">
                         <div className="flex items-center gap-4">
                             <span className="text-3xl">🏖️</span>
-                            <p className="text-emerald-700 font-black text-lg tracking-tight">
-                                Independência Financeira em <span className="text-emerald-900 underline decoration-emerald-200 underline-offset-4">{Math.floor(freedomPoint.month / 12)} anos e {freedomPoint.month % 12} meses</span>!
+                            <p className="text-emerald-700 dark:text-emerald-400 font-black text-lg tracking-tight">
+                                Independência Financeira em <span className="text-emerald-900 dark:text-emerald-300 underline decoration-emerald-200 dark:decoration-emerald-700 underline-offset-4">{Math.floor(freedomPoint.month / 12)} anos e {freedomPoint.month % 12} meses</span>!
                             </p>
                         </div>
                         {timeReduction && (
-                            <div className="text-emerald-600 font-bold text-sm bg-emerald-100/50 px-6 py-3 rounded-2xl animate-in fade-in slide-in-from-top-2 duration-700 max-w-2xl">
-                                👏 Parabéns! Ao seguir seu orçamento, você antecipou sua independência em <span className="text-emerald-800 font-black">{timeReduction.years > 0 ? `${timeReduction.years} anos` : ''}{timeReduction.years > 0 && timeReduction.months > 0 ? ' e ' : ''}{timeReduction.months > 0 ? `${timeReduction.months} meses` : ''}</span>. Continue firme no planejamento!
+                            <div className="text-emerald-600 dark:text-emerald-400 font-bold text-sm bg-emerald-100/50 dark:bg-emerald-900/30 px-6 py-3 rounded-2xl animate-in fade-in slide-in-from-top-2 duration-700 max-w-2xl">
+                                👏 Parabéns! Ao seguir seu orçamento, você antecipou sua independência em <span className="text-emerald-800 dark:text-white font-black">{timeReduction.years > 0 ? `${timeReduction.years} anos` : ''}{timeReduction.years > 0 && timeReduction.months > 0 ? ' e ' : ''}{timeReduction.months > 0 ? `${timeReduction.months} meses` : ''}</span>. Continue firme no planejamento!
                             </div>
                         )}
                     </div>
@@ -489,21 +489,21 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                 </div>
             </div>
 
-            <div className="bg-white rounded-[3rem] border border-slate-100 shadow-sm overflow-hidden ring-1 ring-black/5">
-                <div className="p-8 border-b border-slate-50 flex items-center gap-4">
-                    <div className="p-3 bg-sky-50 text-sky-600 rounded-2xl">
+            <div className="bg-white dark:bg-slate-900 rounded-[3rem] border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden ring-1 ring-black/5 dark:ring-white/5">
+                <div className="p-8 border-b border-slate-50 dark:border-slate-800 flex items-center gap-4">
+                    <div className="p-3 bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400 rounded-2xl">
                         <Table size={24} />
                     </div>
                     <div>
-                        <h3 className="text-xl font-black text-slate-900 tracking-tight">Detalhamento Numérico</h3>
-                        <p className="text-xs font-medium text-slate-400">Evolução detalhada período a período.</p>
+                        <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Detalhamento Numérico</h3>
+                        <p className="text-xs font-medium text-slate-400 dark:text-slate-500">Evolução detalhada período a período.</p>
                     </div>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm whitespace-nowrap">
-                        <thead className="bg-slate-50 text-slate-400 uppercase font-black text-[10px] tracking-widest">
+                        <thead className="bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500 uppercase font-black text-[10px] tracking-widest">
                             <tr>
-                                <th className="px-8 py-5 sticky left-0 bg-slate-50 z-20 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Período</th>
+                                <th className="px-8 py-5 sticky left-0 bg-slate-50 dark:bg-slate-800 z-20 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Período</th>
                                 <th className="px-8 py-5">Investido</th>
                                 <th className="px-8 py-5">Juros Acum.</th>
                                 <th className="px-8 py-5">Perda Inflação</th>
@@ -511,30 +511,30 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                                 <th className="px-8 py-5">Renda Passiva</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-50">
+                        <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
                             {displayData.filter((_, idx) => viewMode === 'annual' || idx % 12 === 0 || idx === displayData.length - 1).map((row) => {
                                 const isFreedom = freedomPoint && (viewMode === 'annual' ? row.year === freedomPoint.year : row.month === freedomPoint.month);
                                 return (
-                                    <tr key={row.month} className={`group transition-all ${isFreedom ? 'bg-emerald-50/50' : 'hover:bg-slate-50/50'}`}>
-                                        <td className={`px-8 py-5 sticky left-0 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] transition-all ${isFreedom ? 'bg-emerald-50' : 'bg-white group-hover:bg-slate-50'}`}>
-                                            <span className={`px-4 py-1 rounded-full text-[10px] font-black tracking-widest ${isFreedom ? 'bg-emerald-500 text-white shadow-xl shadow-emerald-100' : 'bg-slate-100 text-slate-400 group-hover:bg-white group-hover:text-slate-600'}`}>
+                                    <tr key={row.month} className={`group transition-all ${isFreedom ? 'bg-emerald-50/50 dark:bg-emerald-900/10' : 'hover:bg-slate-50/50 dark:hover:bg-slate-800/30'}`}>
+                                        <td className={`px-8 py-5 sticky left-0 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] transition-all ${isFreedom ? 'bg-emerald-50 dark:bg-emerald-900/20' : 'bg-white dark:bg-slate-900 group-hover:bg-slate-50 dark:group-hover:bg-slate-800'}`}>
+                                            <span className={`px-4 py-1 rounded-full text-[10px] font-black tracking-widest ${isFreedom ? 'bg-emerald-500 text-white shadow-xl shadow-emerald-100 dark:shadow-none' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 group-hover:bg-white dark:group-hover:bg-slate-700 group-hover:text-slate-600 dark:group-hover:text-slate-300'}`}>
                                                 {viewMode === 'annual' ? `ANO ${row.yearLabel}` : `MÊS ${row.month}`}
                                             </span>
                                         </td>
-                                        <td className="px-8 py-5 text-slate-600 font-bold">
+                                        <td className="px-8 py-5 text-slate-600 dark:text-slate-300 font-bold">
                                             R$ {row.invested.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
                                         </td>
-                                        <td className="px-8 py-5 text-emerald-500 font-bold">
+                                        <td className="px-8 py-5 text-emerald-500 dark:text-emerald-400 font-bold">
                                             + R$ {row.displayAccumulatedInterest.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
                                         </td>
-                                        <td className="px-8 py-5 text-rose-500 font-bold">
+                                        <td className="px-8 py-5 text-rose-500 dark:text-rose-400 font-bold">
                                             R$ {row.inflationLoss.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
                                         </td>
-                                        <td className="px-8 py-5 text-slate-900 font-black">
+                                        <td className="px-8 py-5 text-slate-900 dark:text-white font-black">
                                             R$ {row.displayTotal.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
                                         </td>
                                         <td className="px-8 py-5">
-                                            <span className="text-emerald-700 font-black">R$ {row.displayPassiveIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                                            <span className="text-emerald-700 dark:text-emerald-400 font-black">R$ {row.displayPassiveIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                                         </td>
                                     </tr>
                                 );

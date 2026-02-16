@@ -36,14 +36,14 @@ const Reports: React.FC<ReportsProps> = ({ transactions, accounts, tags, current
 
     return (
         <div className="space-y-6 pb-20">
-            <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+            <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
                 {/* Header Tabs AND Actions */}
-                <div className="flex items-center justify-between border-b border-slate-100 pr-6">
+                <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pr-6">
                     <div className="flex">
-                        <button className="px-6 py-4 text-xs font-black text-sky-600 border-b-2 border-sky-600 uppercase tracking-widest">
+                        <button className="px-6 py-4 text-xs font-black text-sky-600 dark:text-sky-400 border-b-2 border-sky-600 dark:border-sky-400 uppercase tracking-widest">
                             Filtro
                         </button>
-                        <button className="px-6 py-4 text-xs font-black text-slate-400 hover:text-slate-600 transition-colors uppercase tracking-widest">
+                        <button className="px-6 py-4 text-xs font-black text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors uppercase tracking-widest">
                             Filtros salvos
                         </button>
                     </div>
@@ -81,31 +81,31 @@ const Reports: React.FC<ReportsProps> = ({ transactions, accounts, tags, current
                 <div className="p-6 space-y-8">
                     {/* General Filter Section */}
                     <div>
-                        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Filtro Geral</h3>
+                        <h3 className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-4">Filtro Geral</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
                             <div className="space-y-1">
-                                <label className="text-xs text-slate-500 font-bold ml-1">Data Inicial</label>
+                                <label className="text-xs text-slate-500 dark:text-slate-400 font-bold ml-1">Data Inicial</label>
                                 <input
                                     type="date"
                                     value={dateRange.start}
                                     onChange={e => setDateRange({ ...dateRange, start: e.target.value })}
-                                    className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-sky-500 text-slate-700 font-medium"
+                                    className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-sky-500 text-slate-700 dark:text-slate-200 font-medium"
                                 />
                             </div>
                             <div className="space-y-1">
-                                <label className="text-xs text-slate-500 font-bold ml-1">Data Final</label>
+                                <label className="text-xs text-slate-500 dark:text-slate-400 font-bold ml-1">Data Final</label>
                                 <input
                                     type="date"
                                     value={dateRange.end}
                                     onChange={e => setDateRange({ ...dateRange, end: e.target.value })}
-                                    className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-sky-500 text-slate-700 font-medium"
+                                    className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-sky-500 text-slate-700 dark:text-slate-200 font-medium"
                                 />
                             </div>
                         </div>
 
                         <div className="space-y-1">
-                            <label className="text-xs text-slate-500 font-bold ml-1">Data de referência</label>
-                            <div className="flex bg-slate-50 p-1 rounded-xl border border-slate-200">
+                            <label className="text-xs text-slate-500 dark:text-slate-400 font-bold ml-1">Data de referência</label>
+                            <div className="flex bg-slate-50 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
                                 {[
                                     { id: 'date', label: 'Lançamento', icon: Calendar },
                                     { id: 'dueDate', label: 'Vencimento', icon: Clock },
@@ -115,8 +115,8 @@ const Reports: React.FC<ReportsProps> = ({ transactions, accounts, tags, current
                                         key={item.id}
                                         onClick={() => setDateReference(item.id as any)}
                                         className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-[10px] font-black transition-all uppercase tracking-widest ${dateReference === item.id
-                                            ? 'bg-sky-50 text-sky-600 shadow-sm border border-sky-100'
-                                            : 'text-slate-400 hover:bg-slate-100'
+                                            ? 'bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400 shadow-sm border border-sky-100 dark:border-sky-900/30'
+                                            : 'text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700/50'
                                             }`}
                                     >
                                         <item.icon size={14} />
@@ -127,12 +127,12 @@ const Reports: React.FC<ReportsProps> = ({ transactions, accounts, tags, current
                         </div>
                     </div>
 
-                    <hr className="border-slate-50" />
+                    <hr className="border-slate-50 dark:border-slate-800" />
 
                     {/* Situation Section */}
                     <div>
-                        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Situação</h3>
-                        <div className="flex bg-slate-50 p-1 rounded-xl border border-slate-200">
+                        <h3 className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-4">Situação</h3>
+                        <div className="flex bg-slate-50 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
                             {['Todas', 'Efetivadas', 'Pendentes'].map((label) => {
                                 const id = label === 'Todas' ? 'all' : label === 'Efetivadas' ? 'paid' : 'pending';
                                 const isActive = status === id;
@@ -141,8 +141,8 @@ const Reports: React.FC<ReportsProps> = ({ transactions, accounts, tags, current
                                         key={id}
                                         onClick={() => setStatus(id as any)}
                                         className={`flex-1 py-2.5 rounded-lg text-[10px] font-black transition-all uppercase tracking-widest ${isActive
-                                            ? 'bg-sky-50 text-sky-600 shadow-sm border border-sky-100'
-                                            : 'text-slate-400 hover:bg-slate-100'
+                                            ? 'bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400 shadow-sm border border-sky-100 dark:border-sky-900/30'
+                                            : 'text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700/50'
                                             }`}
                                     >
                                         {label}
@@ -155,11 +155,11 @@ const Reports: React.FC<ReportsProps> = ({ transactions, accounts, tags, current
                     {/* Details Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-1">
-                            <label className="text-xs text-slate-500 font-bold ml-1">Recorrência</label>
+                            <label className="text-xs text-slate-500 dark:text-slate-400 font-bold ml-1">Recorrência</label>
                             <select
                                 value={recurrence}
                                 onChange={e => setRecurrence(e.target.value)}
-                                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-sky-500 text-slate-700 font-medium appearance-none"
+                                className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-sky-500 text-slate-700 dark:text-slate-200 font-medium appearance-none"
                             >
                                 <option value="all">Todas</option>
                                 <option value="fixed">Fixa</option>
@@ -168,11 +168,11 @@ const Reports: React.FC<ReportsProps> = ({ transactions, accounts, tags, current
                             </select>
                         </div>
                         <div className="space-y-1">
-                            <label className="text-xs text-slate-500 font-bold ml-1">Ordenar</label>
+                            <label className="text-xs text-slate-500 dark:text-slate-400 font-bold ml-1">Ordenar</label>
                             <select
                                 value={sortBy}
                                 onChange={e => setSortBy(e.target.value)}
-                                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-sky-500 text-slate-700 font-medium appearance-none"
+                                className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-sky-500 text-slate-700 dark:text-slate-200 font-medium appearance-none"
                             >
                                 <option value="date_asc">Vencimento crescente</option>
                                 <option value="date_desc">Vencimento decrescente</option>
@@ -182,55 +182,55 @@ const Reports: React.FC<ReportsProps> = ({ transactions, accounts, tags, current
                         </div>
                     </div>
 
-                    <hr className="border-slate-50" />
+                    <hr className="border-slate-50 dark:border-slate-800" />
 
                     {/* Categorias (Mock Multi-select) */}
                     <div className="space-y-1">
-                        <label className="text-xs text-slate-500 font-bold ml-1">Categorias despesas</label>
-                        <div className="flex bg-rose-50 border border-rose-100 p-2 rounded-xl items-center gap-2">
-                            <span className="bg-rose-100 text-rose-600 px-2 py-1 rounded-lg text-xs font-bold flex items-center gap-1">
-                                Todas <button className="hover:text-rose-800">×</button>
+                        <label className="text-xs text-slate-500 dark:text-slate-400 font-bold ml-1">Categorias despesas</label>
+                        <div className="flex bg-rose-50 dark:bg-rose-900/10 border border-rose-100 dark:border-rose-900/20 p-2 rounded-xl items-center gap-2">
+                            <span className="bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 px-2 py-1 rounded-lg text-xs font-bold flex items-center gap-1">
+                                Todas <button className="hover:text-rose-800 dark:hover:text-rose-200">×</button>
                             </span>
-                            <input type="text" placeholder="Buscar..." className="bg-transparent outline-none text-xs text-slate-600 flex-1" />
+                            <input type="text" placeholder="Buscar..." className="bg-transparent outline-none text-xs text-slate-600 dark:text-slate-400 flex-1 placeholder:text-slate-400 dark:placeholder:text-slate-600" />
                         </div>
                     </div>
 
                     {/* Tags */}
                     <div className="space-y-1">
-                        <label className="text-xs text-slate-500 font-bold ml-1">Tags</label>
-                        <div className="flex bg-slate-50 border border-slate-200 p-2 rounded-xl items-center gap-2">
-                            <span className="text-slate-400 text-xs italic">Nenhuma</span>
+                        <label className="text-xs text-slate-500 dark:text-slate-400 font-bold ml-1">Tags</label>
+                        <div className="flex bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2 rounded-xl items-center gap-2">
+                            <span className="text-slate-400 dark:text-slate-500 text-xs italic">Nenhuma</span>
                         </div>
                     </div>
 
                     {/* Contas */}
                     <div className="space-y-1">
-                        <label className="text-xs text-slate-500 font-bold ml-1">Contas</label>
-                        <div className="flex bg-rose-50 border border-rose-100 p-2 rounded-xl items-center gap-2">
-                            <span className="bg-rose-100 text-rose-600 px-2 py-1 rounded-lg text-xs font-bold flex items-center gap-1">
-                                Todas <button className="hover:text-rose-800">×</button>
+                        <label className="text-xs text-slate-500 dark:text-slate-400 font-bold ml-1">Contas</label>
+                        <div className="flex bg-rose-50 dark:bg-rose-900/10 border border-rose-100 dark:border-rose-900/20 p-2 rounded-xl items-center gap-2">
+                            <span className="bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 px-2 py-1 rounded-lg text-xs font-bold flex items-center gap-1">
+                                Todas <button className="hover:text-rose-800 dark:hover:text-rose-200">×</button>
                             </span>
                         </div>
                     </div>
 
                     {/* Cartões de crédito */}
                     <div className="space-y-1">
-                        <label className="text-xs text-slate-500 font-bold ml-1">Cartões de crédito</label>
-                        <div className="flex bg-sky-50 border border-sky-100 p-2 rounded-xl items-center gap-2">
-                            <span className="bg-sky-100 text-sky-600 px-2 py-1 rounded-lg text-xs font-bold flex items-center gap-1">
-                                Todos <button className="hover:text-sky-800">×</button>
+                        <label className="text-xs text-slate-500 dark:text-slate-400 font-bold ml-1">Cartões de crédito</label>
+                        <div className="flex bg-sky-50 dark:bg-sky-900/10 border border-sky-100 dark:border-sky-900/20 p-2 rounded-xl items-center gap-2">
+                            <span className="bg-sky-100 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400 px-2 py-1 rounded-lg text-xs font-bold flex items-center gap-1">
+                                Todos <button className="hover:text-sky-800 dark:hover:text-sky-200">×</button>
                             </span>
                         </div>
                     </div>
 
 
-                    <hr className="border-slate-50" />
+                    <hr className="border-slate-50 dark:border-slate-800" />
 
                     {/* View Options */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Agrupar por</h3>
-                            <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
+                            <h3 className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-4">Agrupar por</h3>
+                            <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
                                 {['Nenhum', 'Categoria', 'Subcategoria'].map((label) => {
                                     const id = label === 'Nenhum' ? 'none' : label === 'Categoria' ? 'category' : 'subcategory';
                                     const isActive = groupBy === id;
@@ -239,8 +239,8 @@ const Reports: React.FC<ReportsProps> = ({ transactions, accounts, tags, current
                                             key={id}
                                             onClick={() => setGroupBy(id as any)}
                                             className={`flex-1 py-2.5 rounded-lg text-[10px] font-black transition-all uppercase tracking-widest ${isActive
-                                                ? 'bg-white text-sky-600 shadow-sm border border-slate-100'
-                                                : 'text-slate-400 hover:text-slate-600'
+                                                ? 'bg-white dark:bg-slate-700 text-sky-600 dark:text-sky-400 shadow-sm border border-slate-100 dark:border-slate-600'
+                                                : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'
                                                 }`}
                                         >
                                             {label}
@@ -251,23 +251,23 @@ const Reports: React.FC<ReportsProps> = ({ transactions, accounts, tags, current
                         </div>
 
                         <div>
-                            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Tipo de visualização</h3>
-                            <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
+                            <h3 className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-4">Tipo de visualização</h3>
+                            <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
                                 <button
                                     onClick={() => setViewType('daily')}
                                     className={`flex-1 py-2.5 rounded-lg text-[10px] font-black transition-all uppercase tracking-widest ${viewType === 'daily'
-                                        ? 'bg-white text-sky-600 shadow-sm border border-slate-100'
-                                        : 'text-slate-400 hover:text-slate-600'
+                                        ? 'bg-white dark:bg-slate-700 text-sky-600 dark:text-sky-400 shadow-sm border border-slate-100 dark:border-slate-600'
+                                        : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'
                                         }`}
                                 >
                                     Gráfico evolução diária
                                 </button>
-                                <div className="w-[1px] bg-slate-200 my-2"></div>
+                                <div className="w-[1px] bg-slate-200 dark:bg-slate-700 my-2"></div>
                                 <button
                                     onClick={() => setViewType('monthly')}
                                     className={`flex-1 py-2.5 rounded-lg text-[10px] font-black transition-all uppercase tracking-widest ${viewType === 'monthly'
-                                        ? 'bg-white text-sky-600 shadow-sm border border-slate-100'
-                                        : 'text-slate-400 hover:text-slate-600'
+                                        ? 'bg-white dark:bg-slate-700 text-sky-600 dark:text-sky-400 shadow-sm border border-slate-100 dark:border-slate-600'
+                                        : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'
                                         }`}
                                 >
                                     Gráfico evolução mensal

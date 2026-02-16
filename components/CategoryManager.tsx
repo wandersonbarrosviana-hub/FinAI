@@ -828,8 +828,8 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ transactions }) => {
             {/* Header */}
             <div className="flex justify-between items-center">
                 <div>
-                    <h2 className="text-3xl font-black text-slate-900 tracking-tight">Categorias</h2>
-                    <p className="text-slate-500 text-sm font-medium">Organize seus gastos e receitas.</p>
+                    <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Categorias</h2>
+                    <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Organize seus gastos e receitas.</p>
                 </div>
                 <button
                     onClick={openAddCategoryModal}
@@ -849,10 +849,10 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ transactions }) => {
                     return (
                         <div
                             key={category}
-                            className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm relative group overflow-hidden transition-all hover:shadow-xl hover:shadow-sky-100/40 hover:-translate-y-1"
+                            className="bg-white dark:bg-slate-900 p-6 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-sm relative group overflow-hidden transition-all hover:shadow-xl hover:shadow-sky-100/40 dark:hover:shadow-sky-900/20 hover:-translate-y-1"
                         >
                             {/* Decorative Background Icon */}
-                            <div className="absolute -bottom-6 -right-6 text-slate-100/50 transform rotate-12 pointer-events-none">
+                            <div className="absolute -bottom-6 -right-6 text-slate-100/50 dark:text-slate-800/50 transform rotate-12 pointer-events-none">
                                 {(() => {
                                     const iconName = icons[category];
                                     const IconComponent = ICON_MAP[iconName] || FolderOpen;
@@ -865,35 +865,35 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ transactions }) => {
                                 {/* Header Row */}
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-14 h-14 bg-sky-50 rounded-2xl flex items-center justify-center text-sky-600 shadow-sm border border-sky-100">
+                                        <div className="w-14 h-14 bg-sky-50 dark:bg-sky-900/20 rounded-2xl flex items-center justify-center text-sky-600 dark:text-sky-400 shadow-sm border border-sky-100 dark:border-sky-900/30">
                                             {getIcon(category)}
                                         </div>
                                         <div>
-                                            <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight">{category}</h3>
-                                            <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">{subcategories.length} subcategorias</p>
+                                            <h3 className="text-lg font-black text-slate-800 dark:text-white uppercase tracking-tight">{category}</h3>
+                                            <p className="text-xs text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest">{subcategories.length} subcategorias</p>
                                         </div>
                                     </div>
 
                                     <div className="relative">
                                         <button
                                             onClick={() => setMenuOpenId(menuOpenId === `cat-${category}` ? null : `cat-${category}`)}
-                                            className="p-2 text-slate-300 hover:text-sky-600 transition-colors rounded-xl hover:bg-sky-50"
+                                            className="p-2 text-slate-300 dark:text-slate-600 hover:text-sky-600 dark:hover:text-sky-400 transition-colors rounded-xl hover:bg-sky-50 dark:hover:bg-sky-900/20"
                                         >
                                             <MoreVertical size={20} />
                                         </button>
 
                                         {/* Menu */}
                                         {menuOpenId === `cat-${category}` && (
-                                            <div className="absolute right-0 top-full mt-2 w-32 bg-white border border-slate-100 rounded-2xl shadow-xl z-20 animate-in fade-in zoom-in-95 overflow-hidden">
+                                            <div className="absolute right-0 top-full mt-2 w-32 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl shadow-xl z-20 animate-in fade-in zoom-in-95 overflow-hidden">
                                                 <button
                                                     onClick={() => openEditModal('category', category)}
-                                                    className="w-full flex items-center gap-2 px-4 py-3 text-xs font-bold text-slate-600 hover:bg-slate-50 hover:text-sky-600 transition-colors"
+                                                    className="w-full flex items-center gap-2 px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-sky-600 dark:hover:text-sky-400 transition-colors"
                                                 >
                                                     <Edit2 size={14} /> Editar
                                                 </button>
                                                 <button
                                                     onClick={() => handleDelete('category', category)}
-                                                    className="w-full flex items-center gap-2 px-4 py-3 text-xs font-bold text-rose-500 hover:bg-rose-50 transition-colors"
+                                                    className="w-full flex items-center gap-2 px-4 py-3 text-xs font-bold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors"
                                                 >
                                                     <Trash2 size={14} /> Excluir
                                                 </button>
@@ -904,22 +904,22 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ transactions }) => {
 
                                 {/* Total Amount */}
                                 <div className="mb-6">
-                                    <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest block mb-1">Total Gasto</span>
+                                    <span className="text-[10px] text-slate-400 dark:text-slate-500 font-black uppercase tracking-widest block mb-1">Total Gasto</span>
                                     <div className="flex items-baseline gap-1">
-                                        <span className="text-sm font-bold text-slate-400">R$</span>
-                                        <span className="text-2xl font-black text-slate-800 tracking-tighter">
+                                        <span className="text-sm font-bold text-slate-400 dark:text-slate-500">R$</span>
+                                        <span className="text-2xl font-black text-slate-800 dark:text-white tracking-tighter">
                                             {catTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                         </span>
                                     </div>
                                 </div>
 
                                 {/* Divider */}
-                                <div className="h-px bg-slate-100 mb-4"></div>
+                                <div className="h-px bg-slate-100 dark:bg-slate-800 mb-4"></div>
 
                                 {/* Subcategories Toggle */}
                                 <button
                                     onClick={() => setExpandedCategory(isExpanded ? null : category)}
-                                    className="w-full flex items-center justify-between text-xs font-bold text-slate-500 hover:text-sky-600 transition-colors uppercase tracking-wider mb-2"
+                                    className="w-full flex items-center justify-between text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 transition-colors uppercase tracking-wider mb-2"
                                 >
                                     <span>Ver Subcategorias</span>
                                     {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
@@ -929,9 +929,9 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ transactions }) => {
                                 {isExpanded && (
                                     <div className="space-y-2 animate-in slide-in-from-top-2 duration-300">
                                         {subcategories.map(sub => (
-                                            <div key={sub} className="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50 transition-colors group/sub">
+                                            <div key={sub} className="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group/sub">
                                                 <div className="flex items-center gap-2">
-                                                    <div className="text-slate-300 group-hover/sub:text-sky-500 transition-colors">
+                                                    <div className="text-slate-300 dark:text-slate-600 group-hover/sub:text-sky-500 dark:group-hover/sub:text-sky-400 transition-colors">
                                                         {(() => {
                                                             const key = `${category}-${sub}`;
                                                             const iconName = icons[key];
@@ -939,34 +939,34 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ transactions }) => {
                                                             return <IconComponent size={16} />;
                                                         })()}
                                                     </div>
-                                                    <span className="text-sm font-bold text-slate-600">{sub}</span>
+                                                    <span className="text-sm font-bold text-slate-600 dark:text-slate-300">{sub}</span>
                                                 </div>
 
                                                 <div className="flex items-center gap-2">
-                                                    <span className="text-xs font-bold text-slate-400">
+                                                    <span className="text-xs font-bold text-slate-400 dark:text-slate-500">
                                                         R$ {calculateTotal(category, sub).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                                     </span>
 
                                                     <div className="relative">
                                                         <button
                                                             onClick={() => setMenuOpenId(menuOpenId === `sub-${category}-${sub}` ? null : `sub-${category}-${sub}`)}
-                                                            className="p-1 opacity-0 group-hover/sub:opacity-100 text-slate-300 hover:text-sky-600 transition-all"
+                                                            className="p-1 opacity-0 group-hover/sub:opacity-100 text-slate-300 dark:text-slate-600 hover:text-sky-600 dark:hover:text-sky-400 transition-all"
                                                         >
                                                             <MoreVertical size={14} />
                                                         </button>
 
                                                         {/* Sub Menu */}
                                                         {menuOpenId === `sub-${category}-${sub}` && (
-                                                            <div className="absolute right-0 top-full mt-1 w-28 bg-white border border-slate-100 rounded-xl shadow-xl z-30 overflow-hidden">
+                                                            <div className="absolute right-0 top-full mt-1 w-28 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl shadow-xl z-30 overflow-hidden">
                                                                 <button
                                                                     onClick={() => openEditModal('subcategory', category, sub)}
-                                                                    className="w-full flex items-center gap-2 px-3 py-2 text-[10px] font-bold text-slate-600 hover:bg-slate-50 hover:text-sky-600 transition-colors"
+                                                                    className="w-full flex items-center gap-2 px-3 py-2 text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-sky-600 dark:hover:text-sky-400 transition-colors"
                                                                 >
                                                                     <Edit2 size={12} /> Editar
                                                                 </button>
                                                                 <button
                                                                     onClick={() => handleDelete('subcategory', category, sub)}
-                                                                    className="w-full flex items-center gap-2 px-3 py-2 text-[10px] font-bold text-rose-500 hover:bg-rose-50 transition-colors"
+                                                                    className="w-full flex items-center gap-2 px-3 py-2 text-[10px] font-bold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors"
                                                                 >
                                                                     <Trash2 size={12} /> Excluir
                                                                 </button>
@@ -979,7 +979,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ transactions }) => {
 
                                         <button
                                             onClick={() => openAddSubModal(category)}
-                                            className="w-full py-2 my-1 rounded-xl border border-dashed border-slate-200 text-slate-400 hover:text-sky-600 hover:border-sky-200 hover:bg-sky-50 transition-all text-xs font-bold flex items-center justify-center gap-1"
+                                            className="w-full py-2 my-1 rounded-xl border border-dashed border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 hover:text-sky-600 dark:hover:text-sky-400 hover:border-sky-200 dark:hover:border-sky-500/30 hover:bg-sky-50 dark:hover:bg-sky-900/20 transition-all text-xs font-bold flex items-center justify-center gap-1"
                                         >
                                             <Plus size={14} /> Adicionar
                                         </button>
@@ -994,33 +994,33 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ transactions }) => {
             {/* Modal (Redesigned) */}
             {isModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 animate-in fade-in duration-300">
-                    <div className="bg-white border border-slate-100 w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl relative animate-in zoom-in-95 duration-300 overflow-hidden max-h-[90vh] overflow-y-auto">
+                    <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl relative animate-in zoom-in-95 duration-300 overflow-hidden max-h-[90vh] overflow-y-auto ring-1 ring-black/5 dark:ring-white/5">
                         <button
                             onClick={closeModal}
-                            className="absolute top-6 right-6 p-2 bg-slate-50 text-slate-400 hover:bg-slate-100 hover:text-slate-600 rounded-full transition-all"
+                            className="absolute top-6 right-6 p-2 bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-600 dark:hover:text-slate-300 rounded-full transition-all"
                         >
                             <X size={20} />
                         </button>
 
                         <div className="mb-6">
-                            <span className="text-xs font-black text-sky-600 uppercase tracking-widest bg-sky-50 px-3 py-1 rounded-full">
+                            <span className="text-xs font-black text-sky-600 dark:text-sky-400 uppercase tracking-widest bg-sky-50 dark:bg-sky-900/20 px-3 py-1 rounded-full">
                                 {editValue ? 'Editar' : 'Nova'} {editingType === 'category' ? 'Categoria' : 'Subcategoria'}
                             </span>
-                            <h3 className="text-2xl font-black text-slate-800 mt-3 leading-tight">
+                            <h3 className="text-2xl font-black text-slate-800 dark:text-white mt-3 leading-tight">
                                 {editValue ? 'Alterar Detalhes' : 'Criar Novo Item'}
                             </h3>
                         </div>
 
                         <div className="space-y-6">
                             <div className="space-y-1">
-                                <label className="text-xs font-bold text-slate-400 uppercase ml-1">Nome</label>
+                                <label className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase ml-1">Nome</label>
                                 <input
                                     autoFocus
                                     type="text"
                                     value={newValue}
                                     onChange={(e) => setNewValue(e.target.value)}
                                     onKeyDown={(e) => e.key === 'Enter' && (editValue ? handleEdit() : (editingType === 'category' ? handleAddCategory() : handleAddSubcategory()))}
-                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-sky-500 transition-all font-bold text-slate-700"
+                                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-sky-500 transition-all font-bold text-slate-700 dark:text-white"
                                     placeholder={editingType === 'category' ? "Ex: Investimentos" : "Ex: Ações"}
                                 />
                             </div>
@@ -1028,11 +1028,11 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ transactions }) => {
                             {/* Icon Picker */}
                             <div className="space-y-1">
                                 <div className="flex items-center justify-between">
-                                    <label className="text-xs font-bold text-slate-400 uppercase ml-1">Ícone</label>
+                                    <label className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase ml-1">Ícone</label>
                                     <input
                                         type="text"
                                         placeholder="Buscar..."
-                                        className="text-xs px-2 py-1 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-sky-500 w-24 text-right"
+                                        className="text-xs px-2 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-sky-500 w-24 text-right text-slate-600 dark:text-slate-300"
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                     />
@@ -1046,8 +1046,8 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ transactions }) => {
                                                 key={iconKey}
                                                 onClick={() => setSelectedIcon(iconKey)}
                                                 className={`aspect-square flex items-center justify-center rounded-2xl border transition-all ${isSelected
-                                                    ? 'bg-sky-600 border-sky-600 text-white shadow-lg shadow-sky-200 transform scale-105'
-                                                    : 'bg-white border-slate-100 text-slate-400 hover:bg-slate-50 hover:border-slate-200'
+                                                    ? 'bg-sky-600 border-sky-600 text-white shadow-lg shadow-sky-200 dark:shadow-sky-900/30 transform scale-105'
+                                                    : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 text-slate-400 dark:text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-200 dark:hover:border-slate-600'
                                                     }`}
                                                 title={iconKey}
                                             >
@@ -1059,9 +1059,9 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ transactions }) => {
                             </div>
 
                             {editingType === 'subcategory' && (
-                                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-between">
-                                    <span className="text-xs font-bold text-slate-500 uppercase">Categoria Pai</span>
-                                    <span className="font-black text-slate-700">{targetCategory}</span>
+                                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 flex items-center justify-between">
+                                    <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Categoria Pai</span>
+                                    <span className="font-black text-slate-700 dark:text-white">{targetCategory}</span>
                                 </div>
                             )}
 

@@ -56,16 +56,16 @@ const Investments: React.FC = () => {
             {/* Header & Search */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 animate-in fade-in slide-in-from-top-4 duration-500">
                 <div>
-                    <h2 className="text-4xl font-black text-slate-900 mb-2 tracking-tight">Investimentos</h2>
-                    <p className="text-sm font-medium text-slate-500">Acompanhe seus ativos com dados fundamentalistas e históricos</p>
+                    <h2 className="text-4xl font-black text-slate-900 dark:text-white mb-2 tracking-tight">Investimentos</h2>
+                    <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Acompanhe seus ativos com dados fundamentalistas e históricos</p>
                 </div>
 
                 <div className="relative w-full md:w-96">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={20} />
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 dark:text-slate-600" size={20} />
                     <input
                         type="text"
                         placeholder="Pesquisar ativo (ex: PETR4, MXRF11...)"
-                        className="w-full bg-white border border-slate-200 rounded-2xl pl-12 pr-6 py-4 text-slate-700 font-bold outline-none focus:ring-4 focus:ring-sky-500/5 focus:border-sky-500/50 transition-all shadow-sm placeholder:text-slate-300"
+                        className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl pl-12 pr-6 py-4 text-slate-700 dark:text-slate-200 font-bold outline-none focus:ring-4 focus:ring-sky-500/5 focus:border-sky-500/50 transition-all shadow-sm placeholder:text-slate-300 dark:placeholder:text-slate-600"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -105,10 +105,10 @@ const Investments: React.FC = () => {
             )}
 
             {filteredInvestments.length === 0 && (
-                <div className="text-center py-24 bg-white rounded-[3rem] border border-slate-100 shadow-sm animate-in fade-in">
-                    <Search className="mx-auto text-slate-200 mb-6" size={64} />
-                    <p className="text-xl font-black text-slate-900">Nenhum ativo encontrado</p>
-                    <p className="text-sm font-medium text-slate-400 mt-2">Tente buscar por ticker ou nome da empresa</p>
+                <div className="text-center py-24 bg-white dark:bg-slate-900 rounded-[3rem] border border-slate-100 dark:border-slate-800 shadow-sm animate-in fade-in">
+                    <Search className="mx-auto text-slate-200 dark:text-slate-700 mb-6" size={64} />
+                    <p className="text-xl font-black text-slate-900 dark:text-white">Nenhum ativo encontrado</p>
+                    <p className="text-sm font-medium text-slate-400 dark:text-slate-500 mt-2">Tente buscar por ticker ou nome da empresa</p>
                 </div>
             )}
         </div>

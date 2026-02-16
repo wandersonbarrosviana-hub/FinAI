@@ -111,32 +111,32 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 animate-in fade-in duration-700">
-      <div className="bg-white w-full max-w-md p-10 rounded-[3rem] border border-slate-100 shadow-2xl shadow-sky-100/20 ring-1 ring-black/5 relative overflow-hidden">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-6 animate-in fade-in duration-700">
+      <div className="bg-white dark:bg-slate-800 w-full max-w-md p-10 rounded-[3rem] border border-slate-100 dark:border-slate-700 shadow-2xl shadow-sky-100/20 dark:shadow-none ring-1 ring-black/5 dark:ring-white/5 relative overflow-hidden">
         {/* Subtle Background Pattern */}
-        <div className="absolute top-0 right-0 w-32 h-32 bg-sky-50 rounded-full -mr-16 -mt-16 opacity-50"></div>
+        <div className="absolute top-0 right-0 w-32 h-32 bg-sky-50 dark:bg-sky-900/20 rounded-full -mr-16 -mt-16 opacity-50"></div>
 
         <div className="text-center mb-10 relative z-10">
-          <div className="w-20 h-20 rounded-[2rem] bg-gradient-to-tr from-sky-500 to-indigo-600 mx-auto flex items-center justify-center text-white font-black text-4xl mb-6 shadow-xl shadow-sky-200 ring-4 ring-white">F</div>
-          <h2 className="text-3xl font-black text-slate-900 tracking-tight">
+          <div className="w-20 h-20 rounded-[2rem] bg-gradient-to-tr from-sky-500 to-indigo-600 mx-auto flex items-center justify-center text-white font-black text-4xl mb-6 shadow-xl shadow-sky-200 dark:shadow-sky-900/50 ring-4 ring-white dark:ring-slate-700">F</div>
+          <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
             {mode === 'login' ? 'Bem-vindo ao FinAI' :
               mode === 'signup' ? 'Crie sua conta' : 'Recuperar Acesso'}
           </h2>
-          <p className="text-sm font-medium text-slate-500 mt-2">
+          <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-2">
             {mode === 'forgot-password' ? 'Enviaremos um link para resetar sua senha.' : 'Inteligência artificial para suas finanças.'}
           </p>
         </div>
 
         {error && (
-          <div className="bg-rose-50 border border-rose-100 text-rose-600 p-4 rounded-2xl mb-6 text-xs font-black uppercase tracking-widest flex items-center gap-3 animate-in slide-in-from-top-2">
+          <div className="bg-rose-50 dark:bg-rose-900/20 border border-rose-100 dark:border-rose-900/30 text-rose-600 dark:text-rose-400 p-4 rounded-2xl mb-6 text-xs font-black uppercase tracking-widest flex items-center gap-3 animate-in slide-in-from-top-2">
             <AlertCircle size={18} />
             {error}
           </div>
         )}
 
         {message && (
-          <div className="bg-emerald-50 border border-emerald-100 text-emerald-600 p-4 rounded-2xl mb-6 text-xs font-black uppercase tracking-widest flex items-center gap-3 animate-in slide-in-from-top-2">
-            <CheckCircle size={18} className="text-emerald-500" />
+          <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-900/30 text-emerald-600 dark:text-emerald-400 p-4 rounded-2xl mb-6 text-xs font-black uppercase tracking-widest flex items-center gap-3 animate-in slide-in-from-top-2">
+            <CheckCircle size={18} className="text-emerald-500 dark:text-emerald-400" />
             {message}
           </div>
         )}
@@ -144,7 +144,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
         {mode === 'forgot-password' && (
           <button
             onClick={() => setMode('login')}
-            className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-sky-600 transition-all mb-6 group"
+            className="flex items-center gap-2 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest hover:text-sky-600 dark:hover:text-sky-400 transition-all mb-6 group"
           >
             <ChevronLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
             Voltar para o Login
@@ -156,13 +156,13 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
             <>
               <div className="flex flex-col items-center mb-6">
                 <div
-                  className="w-24 h-24 rounded-[2rem] bg-slate-50 border-2 border-dashed border-slate-200 flex flex-col items-center justify-center relative overflow-hidden group cursor-pointer hover:border-sky-300 transition-all"
+                  className="w-24 h-24 rounded-[2rem] bg-slate-50 dark:bg-slate-900 border-2 border-dashed border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center relative overflow-hidden group cursor-pointer hover:border-sky-300 dark:hover:border-sky-500 transition-all"
                   onClick={() => fileInputRef.current?.click()}
                 >
                   {avatarPreview ? (
                     <img src={avatarPreview} alt="Preview" className="w-full h-full object-cover" />
                   ) : (
-                    <div className="flex flex-col items-center gap-1 text-slate-400">
+                    <div className="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500">
                       <Camera size={24} />
                       <span className="text-[8px] font-black uppercase tracking-tighter">Adicionar Foto</span>
                     </div>
@@ -182,14 +182,14 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Nome completo</label>
+                <label className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Nome completo</label>
                 <div className="relative group">
-                  <User className="absolute left-4 top-4 text-slate-300 group-focus-within:text-sky-500 transition-colors" size={20} />
+                  <User className="absolute left-4 top-4 text-slate-300 dark:text-slate-600 group-focus-within:text-sky-500 transition-colors" size={20} />
                   <input
                     type="text"
                     required
                     placeholder="Seu nome"
-                    className="w-full pl-12 pr-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-sky-500/5 focus:border-sky-500/50 outline-none transition-all text-slate-700 font-bold placeholder:text-slate-300"
+                    className="w-full pl-12 pr-6 py-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl focus:ring-4 focus:ring-sky-500/5 focus:border-sky-500/50 outline-none transition-all text-slate-700 dark:text-white font-bold placeholder:text-slate-300 dark:placeholder:text-slate-600"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   />
@@ -199,14 +199,14 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
           )}
 
           <div className="space-y-2">
-            <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">E-mail</label>
+            <label className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">E-mail</label>
             <div className="relative group">
-              <Mail className="absolute left-4 top-4 text-slate-300 group-focus-within:text-sky-500 transition-colors" size={20} />
+              <Mail className="absolute left-4 top-4 text-slate-300 dark:text-slate-600 group-focus-within:text-sky-500 transition-colors" size={20} />
               <input
                 type="email"
                 required
                 placeholder="exemplo@gmail.com"
-                className="w-full pl-12 pr-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-sky-500/5 focus:border-sky-500/50 outline-none transition-all text-slate-700 font-bold placeholder:text-slate-300"
+                className="w-full pl-12 pr-6 py-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl focus:ring-4 focus:ring-sky-500/5 focus:border-sky-500/50 outline-none transition-all text-slate-700 dark:text-white font-bold placeholder:text-slate-300 dark:placeholder:text-slate-600"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               />
@@ -215,21 +215,21 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
 
           {mode !== 'forgot-password' && (
             <div className="space-y-2">
-              <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Senha</label>
+              <label className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Senha</label>
               <div className="relative group">
-                <Lock className="absolute left-4 top-4 text-slate-300 group-focus-within:text-sky-500 transition-colors" size={20} />
+                <Lock className="absolute left-4 top-4 text-slate-300 dark:text-slate-600 group-focus-within:text-sky-500 transition-colors" size={20} />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   required
                   placeholder="••••••••"
-                  className="w-full pl-12 pr-12 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-sky-500/5 focus:border-sky-500/50 outline-none transition-all text-slate-700 font-bold placeholder:text-slate-300"
+                  className="w-full pl-12 pr-12 py-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl focus:ring-4 focus:ring-sky-500/5 focus:border-sky-500/50 outline-none transition-all text-slate-700 dark:text-white font-bold placeholder:text-slate-300 dark:placeholder:text-slate-600"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-4 text-slate-300 hover:text-sky-600 transition-colors"
+                  className="absolute right-4 top-4 text-slate-300 hover:text-sky-600 dark:text-slate-600 dark:hover:text-sky-400 transition-colors"
                   tabIndex={-1}
                 >
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
@@ -243,7 +243,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
               <button
                 type="button"
                 onClick={() => setMode('forgot-password')}
-                className="text-xs font-black text-sky-600 uppercase tracking-widest hover:text-sky-700 transition-all"
+                className="text-xs font-black text-sky-600 dark:text-sky-400 uppercase tracking-widest hover:text-sky-700 dark:hover:text-sky-300 transition-all"
               >
                 Esqueceu a senha?
               </button>
@@ -264,15 +264,15 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
         {mode !== 'forgot-password' && (
           <>
             <div className="relative my-8">
-              <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-200"></div></div>
-              <div className="relative flex justify-center text-sm"><span className="px-3 bg-white text-slate-400 font-bold text-[10px] uppercase tracking-widest">Ou continue com</span></div>
+              <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-200 dark:border-slate-700"></div></div>
+              <div className="relative flex justify-center text-sm"><span className="px-3 bg-white dark:bg-slate-800 text-slate-400 dark:text-slate-500 font-bold text-[10px] uppercase tracking-widest">Ou continue com</span></div>
             </div>
 
-            <p className="text-center mt-10 text-slate-400 text-xs font-medium relative z-10">
+            <p className="text-center mt-10 text-slate-400 dark:text-slate-500 text-xs font-medium relative z-10">
               {mode === 'login' ? 'Não tem uma conta?' : 'Já possui uma conta?'}
               <button
                 onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setError(null); setMessage(null); }}
-                className="ml-2 text-sky-600 font-black uppercase tracking-widest hover:text-sky-700 transition-all"
+                className="ml-2 text-sky-600 dark:text-sky-400 font-black uppercase tracking-widest hover:text-sky-700 dark:hover:text-sky-300 transition-all"
               >
                 {mode === 'login' ? 'Cadastre-se' : 'Faça login'}
               </button>

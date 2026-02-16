@@ -45,8 +45,8 @@ const AccountManager: React.FC<AccountManagerProps> = ({ accounts, onAddAccount,
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-3xl font-black text-slate-900 tracking-tight">Minhas Contas</h2>
-          <p className="text-slate-500 text-sm font-medium">Gerencie seus bancos, corretoras e reservas.</p>
+          <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Minhas Contas</h2>
+          <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Gerencie seus bancos, corretoras e reservas.</p>
         </div>
         <button
           onClick={() => setIsFormOpen(!isFormOpen)}
@@ -62,48 +62,48 @@ const AccountManager: React.FC<AccountManagerProps> = ({ accounts, onAddAccount,
       </div>
 
       {isFormOpen && (
-        <form onSubmit={handleSubmit} className="bg-white p-8 rounded-[2.5rem] border border-sky-100 shadow-2xl animate-in zoom-in duration-300">
+        <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-sky-100 dark:border-sky-900/20 shadow-2xl animate-in zoom-in duration-300 ring-1 ring-black/5 dark:ring-white/5">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-500 uppercase ml-1">Nome Identificador</label>
+              <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase ml-1">Nome Identificador</label>
               <input
                 type="text"
                 required
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-sky-500 transition-all font-medium"
+                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-sky-500 transition-all font-medium text-slate-700 dark:text-white"
                 placeholder="Ex: Minha Conta Principal"
                 value={formData.name}
                 onChange={e => setFormData({ ...formData, name: e.target.value })}
               />
             </div>
             <div className="space-y-1 relative">
-              <label className="text-xs font-bold text-slate-500 uppercase ml-1">Instituição Bancária</label>
+              <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase ml-1">Instituição Bancária</label>
 
               <div
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-sky-500 transition-all cursor-pointer flex items-center justify-between group/select hover:border-sky-300"
+                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-sky-500 transition-all cursor-pointer flex items-center justify-between group/select hover:border-sky-300"
                 onClick={() => setIsBankSelectOpen(!isBankSelectOpen)}
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-white rounded-lg p-1 shadow-sm border border-slate-100 flex items-center justify-center overflow-hidden">
+                  <div className="w-8 h-8 bg-white dark:bg-slate-800 rounded-lg p-1 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center justify-center overflow-hidden">
                     <img
                       src={getBankLogo(formData.bankId || 'itau')}
                       alt={getBankName(formData.bankId || 'itau')}
                       className="max-w-full max-h-full object-contain"
                     />
                   </div>
-                  <span className="font-bold text-slate-700">{getBankName(formData.bankId || 'itau')}</span>
+                  <span className="font-bold text-slate-700 dark:text-white">{getBankName(formData.bankId || 'itau')}</span>
                 </div>
                 <ChevronDown size={16} className={`text-slate-400 transition-transform ${isBankSelectOpen ? 'rotate-180' : ''}`} />
               </div>
 
               {isBankSelectOpen && (
-                <div className="absolute top-full left-0 w-full mt-2 bg-white rounded-2xl shadow-2xl border border-slate-100 p-2 z-50 max-h-80 overflow-y-auto">
-                  <div className="sticky top-0 bg-white p-2 border-b border-slate-50 mb-2">
+                <div className="absolute top-full left-0 w-full mt-2 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-800 p-2 z-50 max-h-80 overflow-y-auto">
+                  <div className="sticky top-0 bg-white dark:bg-slate-900 p-2 border-b border-slate-50 dark:border-slate-800 mb-2">
                     <div className="relative">
                       <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                       <input
                         type="text"
                         placeholder="Buscar banco..."
-                        className="w-full pl-9 pr-3 py-2 bg-slate-50 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-sky-500/50"
+                        className="w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-slate-800 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-sky-500/50 text-slate-700 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500"
                         value={bankSearch}
                         onChange={(e) => setBankSearch(e.target.value)}
                         onClick={(e) => e.stopPropagation()}
@@ -120,10 +120,10 @@ const AccountManager: React.FC<AccountManagerProps> = ({ accounts, onAddAccount,
                           setIsBankSelectOpen(false);
                           setBankSearch('');
                         }}
-                        className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-colors ${formData.bankId === bank.id ? 'bg-sky-50 text-sky-700' : 'hover:bg-slate-50 text-slate-700'
+                        className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-colors ${formData.bankId === bank.id ? 'bg-sky-50 dark:bg-sky-900/20 text-sky-700 dark:text-sky-400' : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
                           }`}
                       >
-                        <div className="w-8 h-8 bg-white rounded-lg p-1 shadow-sm border border-slate-100 flex items-center justify-center overflow-hidden shrink-0">
+                        <div className="w-8 h-8 bg-white dark:bg-slate-800 rounded-lg p-1 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center justify-center overflow-hidden shrink-0">
                           <img
                             src={bank.logoUrl}
                             alt={bank.name}
@@ -145,9 +145,9 @@ const AccountManager: React.FC<AccountManagerProps> = ({ accounts, onAddAccount,
               )}
             </div>
             <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-500 uppercase ml-1">Tipo de Conta</label>
+              <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase ml-1">Tipo de Conta</label>
               <select
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-sky-500 transition-all font-medium"
+                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-sky-500 transition-all font-medium text-slate-700 dark:text-white"
                 value={formData.type}
                 onChange={e => setFormData({ ...formData, type: e.target.value as any })}
               >
@@ -157,13 +157,13 @@ const AccountManager: React.FC<AccountManagerProps> = ({ accounts, onAddAccount,
               </select>
             </div>
             <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-500 uppercase ml-1">Saldo Inicial</label>
+              <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase ml-1">Saldo Inicial</label>
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">R$</span>
                 <input
                   type="number"
                   step="0.01"
-                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-sky-500 transition-all font-black text-slate-700"
+                  className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-sky-500 transition-all font-black text-slate-700 dark:text-white"
                   placeholder="0,00"
                   value={formData.balance === 0 ? '' : formData.balance}
                   onChange={e => setFormData({ ...formData, balance: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
@@ -191,7 +191,7 @@ const AccountManager: React.FC<AccountManagerProps> = ({ accounts, onAddAccount,
           return (
             <div
               key={account.id}
-              className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm relative group overflow-hidden transition-all hover:shadow-xl hover:shadow-sky-100/40 hover:-translate-y-1"
+              className="bg-white dark:bg-slate-900 p-6 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-sm relative group overflow-hidden transition-all hover:shadow-xl hover:shadow-sky-100/40 dark:hover:shadow-sky-900/20 hover:-translate-y-1"
             >
               {/* Barra lateral de cor da marca real */}
               <div
@@ -201,7 +201,7 @@ const AccountManager: React.FC<AccountManagerProps> = ({ accounts, onAddAccount,
 
               <div className="flex justify-between items-start mb-6">
                 <div
-                  className="ml-3 w-16 h-16 rounded-2xl bg-white flex items-center justify-center shadow-lg border border-slate-100 overflow-hidden p-2.5 transition-transform group-hover:scale-110 duration-500"
+                  className="ml-3 w-16 h-16 rounded-2xl bg-white dark:bg-slate-800 flex items-center justify-center shadow-lg border border-slate-100 dark:border-slate-700 overflow-hidden p-2.5 transition-transform group-hover:scale-110 duration-500"
                 >
                   {logo ? (
                     <img
@@ -229,7 +229,7 @@ const AccountManager: React.FC<AccountManagerProps> = ({ accounts, onAddAccount,
                 <div className="flex flex-col items-end gap-2">
                   <button
                     onClick={() => onDeleteAccount(account.id)}
-                    className="p-2 text-slate-200 hover:text-rose-500 transition-colors rounded-xl hover:bg-rose-50"
+                    className="p-2 text-slate-200 dark:text-slate-700 hover:text-rose-500 dark:hover:text-rose-400 transition-colors rounded-xl hover:bg-rose-50 dark:hover:bg-rose-900/20"
                     title="Excluir conta"
                   >
                     <Trash2 size={18} />
@@ -245,9 +245,9 @@ const AccountManager: React.FC<AccountManagerProps> = ({ accounts, onAddAccount,
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
                   {bankName}
                 </p>
-                <h3 className="text-xl font-black text-slate-800 leading-tight truncate">{account.name}</h3>
+                <h3 className="text-xl font-black text-slate-800 dark:text-white leading-tight truncate">{account.name}</h3>
                 <div className="flex items-center gap-1.5 mt-2">
-                  <div className="p-1 bg-slate-50 rounded-md text-slate-400">
+                  <div className="p-1 bg-slate-50 dark:bg-slate-800 rounded-md text-slate-400 dark:text-slate-500">
                     {account.type === 'checking' && <CreditCard size={12} />}
                     {account.type === 'savings' && <Landmark size={12} />}
                     {account.type === 'investment' && <TrendingUp size={12} />}
@@ -259,10 +259,10 @@ const AccountManager: React.FC<AccountManagerProps> = ({ accounts, onAddAccount,
               </div>
 
               <div className="ml-3 mt-8 pt-6 border-t border-slate-50 flex flex-col">
-                <span className="text-[10px] text-slate-400 font-black mb-1 uppercase tracking-widest">Saldo Disponível</span>
+                <span className="text-[10px] text-slate-400 dark:text-slate-500 font-black mb-1 uppercase tracking-widest">Saldo Disponível</span>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-lg font-black text-sky-600">R$</span>
-                  <span className="text-3xl font-black text-slate-800 tracking-tighter">
+                  <span className="text-lg font-black text-sky-600 dark:text-sky-400">R$</span>
+                  <span className="text-3xl font-black text-slate-800 dark:text-white tracking-tighter">
                     {account.balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </span>
                 </div>
@@ -274,11 +274,11 @@ const AccountManager: React.FC<AccountManagerProps> = ({ accounts, onAddAccount,
         })}
 
         {accounts.length === 0 && (
-          <div className="col-span-full py-24 bg-white rounded-[3rem] border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-slate-400 shadow-inner">
-            <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mb-6 shadow-sm">
+          <div className="col-span-full py-24 bg-white dark:bg-slate-900 rounded-[3rem] border-2 border-dashed border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 shadow-inner dark:shadow-none">
+            <div className="w-24 h-24 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mb-6 shadow-sm">
               <Landmark size={48} className="opacity-10 text-sky-600" />
             </div>
-            <h3 className="text-xl font-black text-slate-700">Nenhuma conta conectada</h3>
+            <h3 className="text-xl font-black text-slate-700 dark:text-white">Nenhuma conta conectada</h3>
             <p className="text-sm mt-2 max-w-xs text-center font-medium">Cadastre seus bancos para que a FinAI possa organizar seu patrimônio automaticamente.</p>
             <button
               onClick={() => setIsFormOpen(true)}

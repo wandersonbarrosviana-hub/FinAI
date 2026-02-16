@@ -110,8 +110,8 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
     <div className="space-y-6">
       <div className="flex justify-between items-center sm:flex-row flex-col gap-4 sm:gap-0">
         <div>
-          <h2 className="text-3xl font-black text-slate-900 tracking-tight">Visão Geral</h2>
-          <p className="text-slate-500 font-medium">Resumo financeiro em tempo real</p>
+          <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Visão Geral</h2>
+          <p className="text-slate-500 dark:text-slate-400 font-medium">Resumo financeiro em tempo real</p>
         </div>
         <button
           onClick={onAddClick}
@@ -124,7 +124,7 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Stats Card (Clean White) */}
-        <div className="lg:col-span-3 bg-white p-8 rounded-3xl border border-slate-100 shadow-sm flex flex-col md:flex-row gap-8 relative overflow-hidden group">
+        <div className="lg:col-span-3 bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col md:flex-row gap-8 relative overflow-hidden group">
           {/* Background Glow - Subtle */}
           <div className="absolute top-0 right-0 w-64 h-64 bg-sky-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-sky-500/10 transition-all duration-700"></div>
 
@@ -138,8 +138,8 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
                 <ArrowUpRight size={20} />
               </div>
               <div>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Entrada</p>
-                <p className="text-xl font-black text-emerald-600">R$ {monthIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Entrada</p>
+                <p className="text-xl font-black text-emerald-600 dark:text-emerald-400">R$ {monthIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
               </div>
             </div>
 
@@ -150,8 +150,8 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
                 <Wallet size={24} className="relative z-10" />
               </div>
               <div>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Saldo Mensal</p>
-                <p className={`text-2xl font-black ${monthIncome - monthExpense >= 0 ? 'text-emerald-600' : 'text-rose-600'
+                <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Saldo Mensal</p>
+                <p className={`text-2xl font-black ${monthIncome - monthExpense >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
                   }`}>
                   {monthIncome - monthExpense >= 0 ? '+' : ''} R$ {(monthIncome - monthExpense).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </p>
@@ -164,8 +164,8 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
                 <ArrowDownRight size={20} />
               </div>
               <div>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Saída</p>
-                <p className="text-xl font-black text-rose-600">R$ {monthExpense.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Saída</p>
+                <p className="text-xl font-black text-rose-600 dark:text-rose-400">R$ {monthExpense.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
               </div>
             </div>
           </div>
@@ -174,10 +174,10 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
           <div className="flex-1 border-t md:border-t-0 md:border-l border-slate-100 pt-6 md:pt-0 md:pl-8 relative z-10">
             <div className="flex justify-between items-center mb-4">
               <div>
-                <h3 className="text-lg font-bold text-slate-900">Evolução Recente</h3>
-                <p className="text-xs text-slate-500 font-medium">Últimos 7 dias de gastos</p>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Evolução Recente</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Últimos 7 dias de gastos</p>
               </div>
-              <div className="p-2 bg-slate-50 rounded-lg">
+              <div className="p-2 bg-slate-50 dark:bg-slate-800 rounded-lg">
                 <TrendingDown size={18} className="text-rose-500" />
               </div>
             </div>
@@ -207,14 +207,14 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center space-x-4 relative overflow-hidden">
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex items-center space-x-4 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-sky-500/5 to-transparent pointer-events-none"></div>
-          <div className="p-3 bg-sky-50 rounded-xl border border-sky-100 text-sky-600">
+          <div className="p-3 bg-sky-50 dark:bg-sky-900/20 rounded-xl border border-sky-100 dark:border-sky-900/10 text-sky-600 dark:text-sky-400">
             <Wallet size={24} />
           </div>
           <div>
-            <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Patrimônio Total</p>
-            <p className="text-2xl font-black text-slate-900 tracking-tight">R$ {totalBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Patrimônio Total</p>
+            <p className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">R$ {totalBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
           </div>
         </div>
       </div>
@@ -284,7 +284,7 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
               {pieData.map((entry, index) => (
                 <div key={entry.name} className="flex items-center text-sm group">
                   <div className="w-2.5 h-2.5 rounded-full mr-3" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
-                  <span className="text-slate-500 font-bold group-hover:text-slate-900 transition-colors uppercase text-[10px] tracking-tight">{entry.name}</span>
+                  <span className="text-slate-500 dark:text-slate-400 font-bold group-hover:text-slate-900 dark:group-hover:text-white transition-colors uppercase text-[10px] tracking-tight">{entry.name}</span>
                 </div>
               ))}
             </div>
@@ -292,33 +292,33 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
         </ChartContainer>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-        <div className="p-6 border-b border-slate-50 flex justify-between items-center">
-          <h3 className="text-lg font-bold text-slate-900">Últimos Lançamentos</h3>
-          <button className="text-sky-600 text-sm font-bold hover:text-sky-700 transition-colors">Ver todos</button>
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
+        <div className="p-6 border-b border-slate-50 dark:border-slate-800 flex justify-between items-center">
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white">Últimos Lançamentos</h3>
+          <button className="text-sky-600 dark:text-sky-400 text-sm font-bold hover:text-sky-700 dark:hover:text-sky-300 transition-colors">Ver todos</button>
         </div>
         {/* Desktop View */}
         <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left">
-            <thead className="bg-slate-50/50">
+            <thead className="bg-slate-50/50 dark:bg-slate-800/50">
               <tr>
-                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Data</th>
-                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Descrição</th>
-                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Categoria</th>
-                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Valor</th>
+                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Data</th>
+                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Descrição</th>
+                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Categoria</th>
+                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest text-right">Valor</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-50">
+            <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
               {transactions.slice(0, 5).map((t) => (
-                <tr key={t.id} className="hover:bg-slate-50 transition-colors group">
-                  <td className="px-6 py-4 text-sm text-slate-500 whitespace-nowrap">{new Date(t.date).toLocaleDateString('pt-BR')}</td>
-                  <td className="px-6 py-4 text-sm font-bold text-slate-900 whitespace-nowrap">{t.description}</td>
+                <tr key={t.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
+                  <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-400 whitespace-nowrap">{new Date(t.date).toLocaleDateString('pt-BR')}</td>
+                  <td className="px-6 py-4 text-sm font-bold text-slate-900 dark:text-white whitespace-nowrap">{t.description}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="px-3 py-1 rounded-lg text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200 uppercase tracking-wider transition-all">
+                    <span className="px-3 py-1 rounded-lg text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 uppercase tracking-wider transition-all">
                       {t.category}
                     </span>
                   </td>
-                  <td className={`px-6 py-4 text-sm font-black text-right whitespace-nowrap ${t.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                  <td className={`px-6 py-4 text-sm font-black text-right whitespace-nowrap ${t.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
                     {t.type === 'income' ? '+' : '-'} R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </td>
                 </tr>
@@ -328,25 +328,25 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
         </div>
 
         {/* Mobile View */}
-        <div className="md:hidden flex flex-col divide-y divide-slate-50">
+        <div className="md:hidden flex flex-col divide-y divide-slate-50 dark:divide-slate-800">
           {transactions.slice(0, 5).map((t) => (
             <div key={t.id} className="p-4 flex items-center justify-between">
               <div className="flex flex-col gap-1">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
                   {new Date(t.date).toLocaleDateString('pt-BR')}
                 </span>
-                <span className="text-sm font-bold text-slate-900 line-clamp-1">{t.description}</span>
-                <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded w-fit uppercase tracking-wider">
+                <span className="text-sm font-bold text-slate-900 dark:text-white line-clamp-1">{t.description}</span>
+                <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded w-fit uppercase tracking-wider">
                   {t.category}
                 </span>
               </div>
-              <div className={`text-sm font-black whitespace-nowrap ${t.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}`}>
+              <div className={`text-sm font-black whitespace-nowrap ${t.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
                 {t.type === 'income' ? '+' : '-'} R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </div>
             </div>
           ))}
           {transactions.length === 0 && (
-            <div className="p-6 text-center text-slate-500 text-sm italic">
+            <div className="p-6 text-center text-slate-500 dark:text-slate-400 text-sm italic">
               Nenhum lançamento recente.
             </div>
           )}

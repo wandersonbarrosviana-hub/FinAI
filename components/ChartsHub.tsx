@@ -99,11 +99,11 @@ const ChartsHub: React.FC<ChartsHubProps> = ({ transactions }) => {
     const CustomTooltip = ({ active, payload, label }: any) => {
         if (active && payload && payload.length) {
             return (
-                <div className="bg-white border border-slate-100 p-4 rounded-2xl shadow-xl text-xs">
-                    <p className="font-black text-slate-900 mb-2 uppercase tracking-widest">{label}</p>
+                <div className="bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 p-4 rounded-2xl shadow-xl text-xs">
+                    <p className="font-black text-slate-900 dark:text-white mb-2 uppercase tracking-widest">{label}</p>
                     {payload.map((p: any, index: number) => (
                         <p key={index} style={{ color: p.color }} className="flex items-center gap-2 font-bold">
-                            {p.name}: <span className="font-black">
+                            {p.name}: <span className="font-black text-slate-600 dark:text-slate-300">
                                 {p.dataKey === 'percent'
                                     ? `${Number(p.value).toFixed(1)}%`
                                     : `R$ ${Number(p.value).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
@@ -119,12 +119,12 @@ const ChartsHub: React.FC<ChartsHubProps> = ({ transactions }) => {
     return (
         <div className="space-y-8 pb-24">
             {/* Header */}
-            <div className="flex flex-col items-center justify-center space-y-2 sticky top-0 bg-white/80 backdrop-blur-xl z-20 py-6 -mx-8 px-8 border-b border-slate-100">
-                <h2 className="text-2xl font-black text-slate-900 flex items-center gap-3 tracking-tight">
-                    <BarChart2 className="text-sky-600" size={28} />
+            <div className="flex flex-col items-center justify-center space-y-2 sticky top-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl z-20 py-6 -mx-8 px-8 border-b border-slate-100 dark:border-slate-800">
+                <h2 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-3 tracking-tight">
+                    <BarChart2 className="text-sky-600 dark:text-sky-400" size={28} />
                     Central de Gráficos
                 </h2>
-                <p className="text-slate-500 text-sm font-medium">Análise detalhada do seu desempenho financeiro</p>
+                <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Análise detalhada do seu desempenho financeiro</p>
             </div>
 
             {/* Chart 1: Expenses by Category */}
@@ -135,17 +135,17 @@ const ChartsHub: React.FC<ChartsHubProps> = ({ transactions }) => {
                     </span>
                 }
                 headerAction={
-                    <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
+                    <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
                         <button
                             onClick={() => setExpenseMode('value')}
-                            className={`p-2 rounded-lg transition-all ${expenseMode === 'value' ? 'bg-white text-sky-600 shadow-sm border border-slate-100' : 'text-slate-400 hover:text-slate-600'}`}
+                            className={`p-2 rounded-lg transition-all ${expenseMode === 'value' ? 'bg-white dark:bg-slate-700 text-sky-600 dark:text-sky-400 shadow-sm border border-slate-100 dark:border-slate-600' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'}`}
                             title="Ver em R$"
                         >
                             <DollarSign size={16} />
                         </button>
                         <button
                             onClick={() => setExpenseMode('percent')}
-                            className={`p-2 rounded-lg transition-all ${expenseMode === 'percent' ? 'bg-white text-sky-600 shadow-sm border border-slate-100' : 'text-slate-400 hover:text-slate-600'}`}
+                            className={`p-2 rounded-lg transition-all ${expenseMode === 'percent' ? 'bg-white dark:bg-slate-700 text-sky-600 dark:text-sky-400 shadow-sm border border-slate-100 dark:border-slate-600' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'}`}
                             title="Ver em %"
                         >
                             <Percent size={16} />
@@ -221,7 +221,7 @@ const ChartsHub: React.FC<ChartsHubProps> = ({ transactions }) => {
                         </ResponsiveContainer>
                         {/* Center Text */}
                         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none pr-24 md:pr-24">
-                            <div className="text-xs text-slate-500 font-bold">Total</div>
+                            <div className="text-xs text-slate-500 dark:text-slate-400 font-bold">Total</div>
                         </div>
                     </div>
                 </ChartContainer>
@@ -277,8 +277,8 @@ const ChartsHub: React.FC<ChartsHubProps> = ({ transactions }) => {
                 </ChartContainer>
             </div>
 
-            <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100 text-center">
-                <p className="text-[10px] text-slate-400 italic font-medium uppercase tracking-widest">
+            <div className="p-6 bg-slate-50 dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 text-center">
+                <p className="text-[10px] text-slate-400 dark:text-slate-500 italic font-medium uppercase tracking-widest">
                     * Os gráficos mostram dados do mês selecionado no topo da tela.
                 </p>
             </div>

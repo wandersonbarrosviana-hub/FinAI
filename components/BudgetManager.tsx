@@ -129,6 +129,25 @@ const BudgetManager: React.FC<BudgetManagerProps> = ({ transactions, budgets: pe
     }));
 
     // Custom Label for Chart
+    // Custom Tooltip for Chart
+    const CustomTooltip = ({ active, payload, label }: any) => {
+        if (active && payload && payload.length) {
+            return (
+                <div className="bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 p-4 rounded-2xl shadow-xl text-xs">
+                    <p className="font-black text-slate-900 dark:text-white mb-2 uppercase tracking-widest">{label}</p>
+                    {payload.map((p: any, index: number) => (
+                        <p key={index} style={{ color: p.fill }} className="flex items-center gap-2 font-bold">
+                            {p.name}: <span className="font-black text-slate-600 dark:text-slate-300">
+                                R$ {Number(p.value).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                            </span>
+                        </p>
+                    ))}
+                </div>
+            );
+        }
+        return null;
+    };
+
     const renderCustomBarLabel = (props: any) => {
         const { x, y, width, value, index } = props;
         const item = chartData[index];
@@ -153,47 +172,48 @@ const BudgetManager: React.FC<BudgetManagerProps> = ({ transactions, budgets: pe
         <div className="space-y-8 animate-in fade-in duration-500">
             {/* Header Title */}
             <div>
-                <h2 className="text-3xl font-black text-slate-900 tracking-tight">Painel de Orçamento</h2>
-                <p className="text-slate-500 text-sm font-medium">Planejamento estratégico baseado na sua receita real.</p>
+                <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Painel de Orçamento</h2>
+                <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Planejamento estratégico baseado na sua receita real.</p>
             </div>
 
             {/* Summary Cards */}
+            {/* Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-emerald-50 p-6 rounded-[2rem] border border-emerald-100 flex flex-col justify-between relative overflow-hidden group">
+                <div className="bg-emerald-50 dark:bg-emerald-900/10 p-6 rounded-[2rem] border border-emerald-100 dark:border-emerald-900/20 flex flex-col justify-between relative overflow-hidden group">
                     <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <Wallet size={48} className="text-emerald-600" />
+                        <Wallet size={48} className="text-emerald-600 dark:text-emerald-400" />
                     </div>
-                    <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-2">Receita Total</p>
-                    <p className="text-2xl font-black text-emerald-800">
+                    <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest mb-2">Receita Total</p>
+                    <p className="text-2xl font-black text-emerald-800 dark:text-emerald-300">
                         R$ {monthlyIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </p>
                 </div>
 
-                <div className="bg-sky-50 p-6 rounded-[2rem] border border-sky-100 flex flex-col justify-between relative overflow-hidden group">
+                <div className="bg-sky-50 dark:bg-sky-900/10 p-6 rounded-[2rem] border border-sky-100 dark:border-sky-900/20 flex flex-col justify-between relative overflow-hidden group">
                     <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <TrendingUp size={48} className="text-sky-600" />
+                        <TrendingUp size={48} className="text-sky-600 dark:text-sky-400" />
                     </div>
-                    <p className="text-xs font-bold text-sky-600 uppercase tracking-widest mb-2">Total Orçado</p>
-                    <p className="text-2xl font-black text-sky-800">
+                    <p className="text-xs font-bold text-sky-600 dark:text-sky-400 uppercase tracking-widest mb-2">Total Orçado</p>
+                    <p className="text-2xl font-black text-sky-800 dark:text-sky-300">
                         R$ {totalBudgeted.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </p>
-                    <p className="text-xs font-bold text-sky-400 mt-1">
+                    <p className="text-xs font-bold text-sky-400 dark:text-sky-500 mt-1">
                         {(monthlyIncome > 0 ? (totalBudgeted / monthlyIncome) * 100 : 0).toFixed(1)}% da Receita
                     </p>
                 </div>
 
-                <div className={`p-6 rounded-[2rem] border flex flex-col justify-between relative overflow-hidden group transition-colors duration-500 ${projectedBalance < 0 ? 'bg-rose-50 border-rose-100' : 'bg-indigo-50 border-indigo-100'
+                <div className={`p-6 rounded-[2rem] border flex flex-col justify-between relative overflow-hidden group transition-colors duration-500 ${projectedBalance < 0 ? 'bg-rose-50 dark:bg-rose-900/10 border-rose-100 dark:border-rose-900/20' : 'bg-indigo-50 dark:bg-indigo-900/10 border-indigo-100 dark:border-indigo-900/20'
                     }`}>
                     <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                        {projectedBalance < 0 ? <AlertTriangle size={48} className="text-rose-600" /> : <Sparkles size={48} className="text-indigo-600" />}
+                        {projectedBalance < 0 ? <AlertTriangle size={48} className="text-rose-600 dark:text-rose-400" /> : <Sparkles size={48} className="text-indigo-600 dark:text-indigo-400" />}
                     </div>
-                    <p className={`text-xs font-bold uppercase tracking-widest mb-2 ${projectedBalance < 0 ? 'text-rose-600' : 'text-indigo-600'}`}>
+                    <p className={`text-xs font-bold uppercase tracking-widest mb-2 ${projectedBalance < 0 ? 'text-rose-600 dark:text-rose-400' : 'text-indigo-600 dark:text-indigo-400'}`}>
                         Saldo Projetado
                     </p>
-                    <p className={`text-2xl font-black ${projectedBalance < 0 ? 'text-rose-800' : 'text-indigo-800'}`}>
+                    <p className={`text-2xl font-black ${projectedBalance < 0 ? 'text-rose-800 dark:text-rose-300' : 'text-indigo-800 dark:text-indigo-300'}`}>
                         R$ {projectedBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </p>
-                    <p className={`text-xs font-bold mt-1 ${projectedBalance < 0 ? 'text-rose-400 text-xs' : 'text-indigo-400'}`}>
+                    <p className={`text-xs font-bold mt-1 ${projectedBalance < 0 ? 'text-rose-400 dark:text-rose-500 text-xs' : 'text-indigo-400 dark:text-indigo-500'}`}>
                         {projectedBalance < 0 ? '⚠️ Orçamento Estourado' : 'Disponível para Metas'}
                     </p>
                 </div>
@@ -216,21 +236,18 @@ const BudgetManager: React.FC<BudgetManagerProps> = ({ transactions, budgets: pe
             </div>
 
             {/* Comparative Chart */}
-            <div className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm">
+            <div className="bg-white dark:bg-slate-900 p-6 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-sm">
                 <div className="mb-6 px-2">
-                    <h3 className="text-lg font-black text-slate-900">Comparativo: Planejado vs. Real</h3>
+                    <h3 className="text-lg font-black text-slate-900 dark:text-white">Comparativo: Planejado vs. Real</h3>
                 </div>
                 <div className="h-64 w-full overflow-x-auto pb-4">
                     <div className="h-full min-w-[600px]">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" />
                                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} interval={0} />
                                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} tickFormatter={(value) => `R$${value / 1000}k`} />
-                                <Tooltip
-                                    cursor={{ fill: '#f8fafc' }}
-                                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
-                                />
+                                <Tooltip content={<CustomTooltip />} cursor={{ fill: 'transparent' }} />
                                 <Legend wrapperStyle={{ paddingTop: '20px' }} />
                                 <Bar dataKey="Orçado" fill="#0ea5e9" radius={[4, 4, 0, 0]} name="Meta Orçamentária" />
                                 <Bar dataKey="Realizado" fill="#e2e8f0" radius={[4, 4, 0, 0]} name="Gasto Realizado">
@@ -251,22 +268,22 @@ const BudgetManager: React.FC<BudgetManagerProps> = ({ transactions, budgets: pe
                     const isOverBudget = budget.spent > budget.amount;
 
                     return (
-                        <div key={budget.category} className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+                        <div key={budget.category} className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
 
                             {/* Header */}
                             <div className="flex items-center justify-between mb-8 relative z-10">
                                 <div className="flex items-center gap-3">
-                                    <span className="text-3xl bg-slate-50 p-3 rounded-2xl">{getCategoryIcon(budget.category)}</span>
+                                    <span className="text-3xl bg-slate-50 dark:bg-slate-800 p-3 rounded-2xl">{getCategoryIcon(budget.category)}</span>
                                     <div>
-                                        <h4 className="font-black text-slate-800 text-lg">{budget.category}</h4>
-                                        <p className="text-xs text-slate-400 font-bold">
-                                            Meta: <span className="text-sky-600">R$ {budget.amount.toLocaleString('pt-BR')}</span>
+                                        <h4 className="font-black text-slate-800 dark:text-white text-lg">{budget.category}</h4>
+                                        <p className="text-xs text-slate-400 dark:text-slate-500 font-bold">
+                                            Meta: <span className="text-sky-600 dark:text-sky-400">R$ {budget.amount.toLocaleString('pt-BR')}</span>
                                         </p>
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-xs text-slate-400 font-bold uppercase">Gasto</p>
-                                    <p className={`text-xl font-black ${isOverBudget ? 'text-rose-500' : 'text-slate-700'}`}>
+                                    <p className="text-xs text-slate-400 dark:text-slate-500 font-bold uppercase">Gasto</p>
+                                    <p className={`text-xl font-black ${isOverBudget ? 'text-rose-500 dark:text-rose-400' : 'text-slate-700 dark:text-slate-300'}`}>
                                         R$ {budget.spent.toLocaleString('pt-BR')}
                                     </p>
                                 </div>
@@ -275,10 +292,10 @@ const BudgetManager: React.FC<BudgetManagerProps> = ({ transactions, budgets: pe
                             {/* Interactive Slider Area */}
                             <div className="relative h-12 flex items-center mb-2">
                                 {/* Track Background (represents 0 to 100% of Income) */}
-                                <div className="absolute w-full h-4 bg-slate-100 rounded-full overflow-hidden">
+                                <div className="absolute w-full h-4 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                                     {/* Spending Bar (Fill) */}
                                     <div
-                                        className={`h-full transition-all duration-500 ${isOverBudget ? 'bg-rose-400' : 'bg-slate-300'}`}
+                                        className={`h-full transition-all duration-500 ${isOverBudget ? 'bg-rose-400 dark:bg-rose-500' : 'bg-slate-300 dark:bg-slate-600'}`}
                                         style={{ width: `${spendingWidth}%` }}
                                     ></div>
                                 </div>
@@ -297,20 +314,20 @@ const BudgetManager: React.FC<BudgetManagerProps> = ({ transactions, budgets: pe
 
                                 {/* The "Stylish Dash" Visual Indicator for the Budget Goal */}
                                 <div
-                                    className="absolute h-8 w-1.5 bg-black rounded-full shadow-xl pointer-events-none transition-all duration-75 z-10"
+                                    className="absolute h-8 w-1.5 bg-black dark:bg-white rounded-full shadow-xl pointer-events-none transition-all duration-75 z-10"
                                     style={{
                                         left: `calc(${budgetLeft}% - 3px)`, /* Center the 1.5 w dash */
                                     }}
                                 >
                                     {/* Tooltip above dash */}
-                                    <div className="absolute -top-9 left-1/2 -translate-x-1/2 bg-black text-white text-[10px] font-bold px-2 py-1 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <div className="absolute -top-9 left-1/2 -translate-x-1/2 bg-black dark:bg-white text-white dark:text-black text-[10px] font-bold px-2 py-1 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
                                         {(budget.amount / sliderMax * 100).toFixed(1)}%
                                     </div>
                                 </div>
                             </div>
 
                             {/* Footer Info */}
-                            <div className="flex justify-between items-center text-[10px] font-bold text-slate-400">
+                            <div className="flex justify-between items-center text-[10px] font-bold text-slate-400 dark:text-slate-500">
                                 <span>0%</span>
                                 <span>{isOverBudget ? '⚠️ Orçamento Estourado' : 'Dentro da Meta'}</span>
                                 <span>100% Rec.</span>
