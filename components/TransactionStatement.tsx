@@ -83,7 +83,7 @@ const TransactionStatement: React.FC<TransactionStatementProps> = ({ transaction
                     />
                 </div>
 
-                <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto">
+                <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto custom-scrollbar pb-2 md:pb-0">
                     <select
                         value={filterType}
                         onChange={(e) => setFilterType(e.target.value as any)}

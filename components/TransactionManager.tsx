@@ -38,12 +38,12 @@ const TransactionManager: React.FC<TransactionManagerProps> = ({
     return (
         <div className="space-y-6">
             {/* Tab Navigation */}
-            <div className="flex p-1 bg-white rounded-2xl w-fit overflow-x-auto border border-slate-100 shadow-sm">
+            <div className="flex p-1 bg-white rounded-2xl w-full max-w-full overflow-x-auto border border-slate-100 shadow-sm custom-scrollbar">
                 {tabs.map(tab => (
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id as any)}
-                        className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-[10px] font-black transition-all whitespace-nowrap uppercase tracking-widest ${activeTab === tab.id
+                        className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-[10px] font-black transition-all whitespace-nowrap uppercase tracking-widest flex-shrink-0 ${activeTab === tab.id
                             ? 'bg-slate-50 text-sky-600 shadow-sm ring-1 ring-slate-100'
                             : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50/50'
                             }`}
