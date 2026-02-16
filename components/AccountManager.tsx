@@ -1,17 +1,19 @@
 
-import React, { useState } from 'react';
-import { Account } from '../types';
+import React, { useState, useMemo } from 'react';
+import { Account, Transaction } from '../types';
 import { BANKS } from '../constants';
-import { Plus, Trash2, Wallet, CreditCard, Landmark, TrendingUp, ChevronDown, Check, Search } from 'lucide-react';
+import { Plus, Trash2, Wallet, CreditCard, Landmark, TrendingUp, ChevronDown, Check, Search, X, ArrowUpRight, ArrowDownRight, Calendar } from 'lucide-react';
 
 interface AccountManagerProps {
   accounts: Account[];
+  transactions: Transaction[];
   onAddAccount: (a: Partial<Account>) => void;
   onDeleteAccount: (id: string) => void;
 }
 
-const AccountManager: React.FC<AccountManagerProps> = ({ accounts, onAddAccount, onDeleteAccount }) => {
+const AccountManager: React.FC<AccountManagerProps> = ({ accounts, transactions, onAddAccount, onDeleteAccount }) => {
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
   const [isBankSelectOpen, setIsBankSelectOpen] = useState(false);
   const [bankSearch, setBankSearch] = useState('');
   const [formData, setFormData] = useState<Partial<Account>>({
@@ -40,6 +42,23 @@ const AccountManager: React.FC<AccountManagerProps> = ({ accounts, onAddAccount,
   const getBankColor = (bankId: string) => BANKS.find(b => b.id === bankId)?.color || '#64748b';
   const getBankLogo = (bankId: string) => BANKS.find(b => b.id === bankId)?.logoUrl || '';
   const getBankName = (bankId: string) => BANKS.find(b => b.id === bankId)?.name || 'Outro';
+
+  // Filter transactions for selected account
+  const accountTransactions = useMemo(() => {
+    if (!selectedAccount) return [];
+    return transactions
+      .filter(t => t.account === selectedAccount.id)
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }, [selectedAccount, transactions]);
+
+  const accountStats = useMemo(() => {
+    if (!selectedAccount) return { income: 0, expense: 0 };
+    return accountTransactions.reduce((acc, t) => {
+      if (t.type === 'income') acc.income += t.amount;
+      if (t.type === 'expense') acc.expense += t.amount;
+      return acc;
+    }, { income: 0, expense: 0 });
+  }, [accountTransactions]);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -191,7 +210,8 @@ const AccountManager: React.FC<AccountManagerProps> = ({ accounts, onAddAccount,
           return (
             <div
               key={account.id}
-              className="bg-white dark:bg-slate-900 p-6 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-sm relative group overflow-hidden transition-all hover:shadow-xl hover:shadow-sky-100/40 dark:hover:shadow-sky-900/20 hover:-translate-y-1"
+              onClick={() => setSelectedAccount(account)}
+              className="bg-white dark:bg-slate-900 p-6 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-sm relative group overflow-hidden transition-all hover:shadow-xl hover:shadow-sky-100/40 dark:hover:shadow-sky-900/20 hover:-translate-y-1 cursor-pointer"
             >
               {/* Barra lateral de cor da marca real */}
               <div
@@ -228,7 +248,12 @@ const AccountManager: React.FC<AccountManagerProps> = ({ accounts, onAddAccount,
                 </div>
                 <div className="flex flex-col items-end gap-2">
                   <button
-                    onClick={() => onDeleteAccount(account.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (confirm('Tem certeza que deseja excluir esta conta? O histórico será mantido, mas a conta sumirá.')) {
+                        onDeleteAccount(account.id);
+                      }
+                    }}
                     className="p-2 text-slate-200 dark:text-slate-700 hover:text-rose-500 dark:hover:text-rose-400 transition-colors rounded-xl hover:bg-rose-50 dark:hover:bg-rose-900/20"
                     title="Excluir conta"
                   >
@@ -290,6 +315,105 @@ const AccountManager: React.FC<AccountManagerProps> = ({ accounts, onAddAccount,
           </div>
         )}
       </div>
+
+      {/* Account Details / History Modal */}
+      {selectedAccount && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-white dark:bg-slate-900 w-full max-w-2xl max-h-[90vh] rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
+            {/* Header */}
+            <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-start bg-slate-50/50 dark:bg-slate-800/50">
+              <div className="flex gap-4 items-center">
+                <div className="w-14 h-14 bg-white dark:bg-slate-800 rounded-2xl p-2 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center justify-center">
+                  <img
+                    src={getBankLogo(selectedAccount.bankId)}
+                    alt={selectedAccount.name}
+                    className="max-w-full max-h-full object-contain"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                </div>
+                <div>
+                  <h3 className="text-xl font-black text-slate-900 dark:text-white">{selectedAccount.name}</h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">{getBankName(selectedAccount.bankId)}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setSelectedAccount(null)}
+                className="p-2 bg-slate-200 dark:bg-slate-800 rounded-full hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors"
+              >
+                <X size={20} className="text-slate-600 dark:text-slate-400" />
+              </button>
+            </div>
+
+            {/* Stats */}
+            <div className="grid grid-cols-2 gap-4 p-6 border-b border-slate-100 dark:border-slate-800">
+              <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-900/20">
+                <div className="flex items-center gap-2 mb-1">
+                  <ArrowUpRight size={16} className="text-emerald-500" />
+                  <span className="text-xs font-bold text-emerald-600 uppercase tracking-wider">Entradas</span>
+                </div>
+                <p className="text-lg font-black text-emerald-600 dark:text-emerald-400">
+                  R$ {accountStats.income.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </p>
+              </div>
+              <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-900/10 border border-rose-100 dark:border-rose-900/20">
+                <div className="flex items-center gap-2 mb-1">
+                  <ArrowDownRight size={16} className="text-rose-500" />
+                  <span className="text-xs font-bold text-rose-600 uppercase tracking-wider">Saídas</span>
+                </div>
+                <p className="text-lg font-black text-rose-600 dark:text-rose-400">
+                  R$ {accountStats.expense.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </p>
+              </div>
+            </div>
+
+            {/* List */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-3 custom-scrollbar">
+              <h4 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-widest mb-4 flex items-center gap-2">
+                <Calendar size={16} className="text-slate-400" /> Histórico de Transações
+              </h4>
+
+              {accountTransactions.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-slate-400">
+                  <Wallet size={48} className="mb-4 opacity-20" />
+                  <p className="font-medium text-sm">Nenhuma movimentação nesta conta.</p>
+                </div>
+              ) : (
+                accountTransactions.map(tx => (
+                  <div key={tx.id} className="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700/50 shadow-sm hover:border-sky-100 dark:hover:border-sky-900/40 transition-colors">
+                    <div className="flex items-center gap-4">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${tx.type === 'income' ? 'bg-emerald-50 text-emerald-500' : 'bg-rose-50 text-rose-500'
+                        }`}>
+                        {tx.type === 'income' ? <ArrowUpRight size={20} /> : <ArrowDownRight size={20} />}
+                      </div>
+                      <div>
+                        <p className="font-bold text-slate-800 dark:text-white text-sm">{tx.description}</p>
+                        <div className="flex gap-2 text-xs text-slate-500">
+                          <span>{new Date(tx.date).toLocaleDateString()}</span>
+                          <span>•</span>
+                          <span>{tx.category}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <span className={`font-black ${tx.type === 'income' ? 'text-emerald-500' : 'text-rose-500'}`}>
+                      {tx.type === 'income' ? '+' : '-'} R$ {tx.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Footer Balance Display */}
+            <div className="p-6 bg-slate-50 dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 flex justify-between items-center">
+              <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Saldo Atual</span>
+              <span className="text-2xl font-black text-slate-900 dark:text-white">
+                R$ {selectedAccount.balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
