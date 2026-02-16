@@ -379,111 +379,113 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                     </div>
                 )}
 
-                <div className="h-[300px] md:h-[450px] w-full mt-4">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={displayData} margin={{ top: 20, right: 0, left: 0, bottom: 20 }}>
-                            <defs>
-                                <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#d97706" stopOpacity={0.3} />
-                                    <stop offset="95%" stopColor="#d97706" stopOpacity={0} />
-                                </linearGradient>
-                                <linearGradient id="colorInvested" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.3} />
-                                    <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0} />
-                                </linearGradient>
-                                <linearGradient id="colorPassive" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
-                                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                                </linearGradient>
-                            </defs>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                            {freedomPoint && (
-                                <ReferenceLine
-                                    x={viewMode === 'annual' ? freedomPoint.yearLabel : freedomPoint.month}
-                                    stroke="#334155"
-                                    strokeDasharray="5 5"
-                                    strokeWidth={3}
-                                    label={{
-                                        value: "🏖️ APOSENTADORIA",
-                                        position: 'insideTopRight',
-                                        fontSize: 14,
-                                        fill: '#334155',
-                                        fontWeight: 'bold',
-                                        dy: 10
-                                    }}
+                <div className="w-full overflow-x-auto pb-4 mt-4">
+                    <div className="h-[300px] md:h-[450px] min-w-[600px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <AreaChart data={displayData} margin={{ top: 20, right: 0, left: 0, bottom: 20 }}>
+                                <defs>
+                                    <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#d97706" stopOpacity={0.3} />
+                                        <stop offset="95%" stopColor="#d97706" stopOpacity={0} />
+                                    </linearGradient>
+                                    <linearGradient id="colorInvested" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.3} />
+                                        <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0} />
+                                    </linearGradient>
+                                    <linearGradient id="colorPassive" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                                        <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                {freedomPoint && (
+                                    <ReferenceLine
+                                        x={viewMode === 'annual' ? freedomPoint.yearLabel : freedomPoint.month}
+                                        stroke="#334155"
+                                        strokeDasharray="5 5"
+                                        strokeWidth={3}
+                                        label={{
+                                            value: "🏖️ APOSENTADORIA",
+                                            position: 'insideTopRight',
+                                            fontSize: 14,
+                                            fill: '#334155',
+                                            fontWeight: 'bold',
+                                            dy: 10
+                                        }}
+                                    />
+                                )}
+                                <XAxis
+                                    dataKey={viewMode === 'annual' ? "yearLabel" : "month"}
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tick={{ fontSize: 10, fontWeight: 700, fill: '#94a3b8' }}
+                                    minTickGap={30}
+                                    dy={15}
                                 />
-                            )}
-                            <XAxis
-                                dataKey={viewMode === 'annual' ? "yearLabel" : "month"}
-                                axisLine={false}
-                                tickLine={false}
-                                tick={{ fontSize: 10, fontWeight: 700, fill: '#94a3b8' }}
-                                minTickGap={30}
-                                dy={15}
-                            />
-                            <YAxis
-                                yAxisId="left"
-                                axisLine={false}
-                                tickLine={false}
-                                tick={{ fontSize: 10, fontWeight: 700, fill: '#d97706' }}
-                                tickFormatter={(value) => `R$${(value / 1000).toLocaleString()} k`}
-                                dx={-10}
-                            />
-                            <YAxis
-                                yAxisId="right"
-                                orientation="right"
-                                axisLine={false}
-                                tickLine={false}
-                                domain={[0, (dataMax: number) => dataMax * 3]}
-                                tick={{ fontSize: 10, fontWeight: 700, fill: '#10b981' }}
-                                tickFormatter={(value) => `R$${value.toLocaleString()}`}
-                                dx={10}
-                            />
-                            <Tooltip
-                                contentStyle={{ backgroundColor: '#fff', borderRadius: '24px', border: '1px solid #f1f5f9', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', color: '#0f172a', padding: '16px' }}
-                                itemStyle={{ fontSize: '12px', fontWeight: 900, textTransform: 'uppercase' }}
-                                formatter={(value: number) => `R$ ${value.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}`}
-                                labelStyle={{ color: '#64748b', fontWeight: 700, marginBottom: '8px' }}
-                                labelFormatter={(label) => viewMode === 'annual' ? `Ano ${label}` : `Mês ${label}`}
-                            />
-                            <Area
-                                yAxisId="left"
-                                type="monotone"
-                                dataKey="displayTotal"
-                                stroke="#d97706"
-                                strokeWidth={3}
-                                fillOpacity={1}
-                                fill="url(#colorTotal)"
-                                name="Patrimônio Final"
-                                animationDuration={1500}
-                                animationEasing="ease-in-out"
-                            />
-                            <Area
-                                yAxisId="left"
-                                type="monotone"
-                                dataKey="invested"
-                                stroke="#0ea5e9"
-                                strokeWidth={3}
-                                fillOpacity={1}
-                                fill="url(#colorInvested)"
-                                name="Valor Investido"
-                                animationDuration={1500}
-                                animationEasing="ease-in-out"
-                            />
-                            <Area
-                                yAxisId="right"
-                                type="monotone"
-                                dataKey="displayPassiveIncome"
-                                stroke="#10b981"
-                                strokeWidth={3}
-                                fillOpacity={1}
-                                fill="url(#colorPassive)"
-                                name="Renda Passiva Mensal"
-                                animationDuration={1500}
-                                animationEasing="ease-in-out"
-                            />
-                        </AreaChart>
-                    </ResponsiveContainer>
+                                <YAxis
+                                    yAxisId="left"
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tick={{ fontSize: 10, fontWeight: 700, fill: '#d97706' }}
+                                    tickFormatter={(value) => `R$${(value / 1000).toLocaleString()} k`}
+                                    dx={-10}
+                                />
+                                <YAxis
+                                    yAxisId="right"
+                                    orientation="right"
+                                    axisLine={false}
+                                    tickLine={false}
+                                    domain={[0, (dataMax: number) => dataMax * 3]}
+                                    tick={{ fontSize: 10, fontWeight: 700, fill: '#10b981' }}
+                                    tickFormatter={(value) => `R$${value.toLocaleString()}`}
+                                    dx={10}
+                                />
+                                <Tooltip
+                                    contentStyle={{ backgroundColor: '#fff', borderRadius: '24px', border: '1px solid #f1f5f9', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', color: '#0f172a', padding: '16px' }}
+                                    itemStyle={{ fontSize: '12px', fontWeight: 900, textTransform: 'uppercase' }}
+                                    formatter={(value: number) => `R$ ${value.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}`}
+                                    labelStyle={{ color: '#64748b', fontWeight: 700, marginBottom: '8px' }}
+                                    labelFormatter={(label) => viewMode === 'annual' ? `Ano ${label}` : `Mês ${label}`}
+                                />
+                                <Area
+                                    yAxisId="left"
+                                    type="monotone"
+                                    dataKey="displayTotal"
+                                    stroke="#d97706"
+                                    strokeWidth={3}
+                                    fillOpacity={1}
+                                    fill="url(#colorTotal)"
+                                    name="Patrimônio Final"
+                                    animationDuration={1500}
+                                    animationEasing="ease-in-out"
+                                />
+                                <Area
+                                    yAxisId="left"
+                                    type="monotone"
+                                    dataKey="invested"
+                                    stroke="#0ea5e9"
+                                    strokeWidth={3}
+                                    fillOpacity={1}
+                                    fill="url(#colorInvested)"
+                                    name="Valor Investido"
+                                    animationDuration={1500}
+                                    animationEasing="ease-in-out"
+                                />
+                                <Area
+                                    yAxisId="right"
+                                    type="monotone"
+                                    dataKey="displayPassiveIncome"
+                                    stroke="#10b981"
+                                    strokeWidth={3}
+                                    fillOpacity={1}
+                                    fill="url(#colorPassive)"
+                                    name="Renda Passiva Mensal"
+                                    animationDuration={1500}
+                                    animationEasing="ease-in-out"
+                                />
+                            </AreaChart>
+                        </ResponsiveContainer>
+                    </div>
                 </div>
             </div>
 
@@ -501,7 +503,7 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                     <table className="w-full text-left text-sm whitespace-nowrap">
                         <thead className="bg-slate-50 text-slate-400 uppercase font-black text-[10px] tracking-widest">
                             <tr>
-                                <th className="px-8 py-5">Período</th>
+                                <th className="px-8 py-5 sticky left-0 bg-slate-50 z-20 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Período</th>
                                 <th className="px-8 py-5">Investido</th>
                                 <th className="px-8 py-5">Juros Acum.</th>
                                 <th className="px-8 py-5">Perda Inflação</th>
@@ -514,7 +516,7 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                                 const isFreedom = freedomPoint && (viewMode === 'annual' ? row.year === freedomPoint.year : row.month === freedomPoint.month);
                                 return (
                                     <tr key={row.month} className={`group transition-all ${isFreedom ? 'bg-emerald-50/50' : 'hover:bg-slate-50/50'}`}>
-                                        <td className="px-8 py-5">
+                                        <td className={`px-8 py-5 sticky left-0 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] transition-all ${isFreedom ? 'bg-emerald-50' : 'bg-white group-hover:bg-slate-50'}`}>
                                             <span className={`px-4 py-1 rounded-full text-[10px] font-black tracking-widest ${isFreedom ? 'bg-emerald-500 text-white shadow-xl shadow-emerald-100' : 'bg-slate-100 text-slate-400 group-hover:bg-white group-hover:text-slate-600'}`}>
                                                 {viewMode === 'annual' ? `ANO ${row.yearLabel}` : `MÊS ${row.month}`}
                                             </span>
