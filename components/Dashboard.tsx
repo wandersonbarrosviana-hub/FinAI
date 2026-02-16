@@ -181,24 +181,26 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
                 <TrendingDown size={18} className="text-rose-500" />
               </div>
             </div>
-            <div className="h-40 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={last7DaysData}>
-                  <defs>
-                    <linearGradient id="colorExpense" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.4} />
-                      <stop offset="95%" stopColor="#f43f5e" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <Tooltip
-                    contentStyle={{ backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #f1f5f9', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', color: '#0f172a' }}
-                    itemStyle={{ color: '#e11d48' }}
-                    labelStyle={{ color: '#64748b', fontWeight: 'bold' }}
-                    formatter={(value: number) => [`R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, 'Despesas']}
-                  />
-                  <Area type="monotone" dataKey="value" stroke="#e11d48" strokeWidth={4} fillOpacity={1} fill="url(#colorExpense)" />
-                </AreaChart>
-              </ResponsiveContainer>
+            <div className="h-40 w-full overflow-x-auto pb-2">
+              <div className="h-full min-w-[500px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={last7DaysData}>
+                    <defs>
+                      <linearGradient id="colorExpense" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.4} />
+                        <stop offset="95%" stopColor="#f43f5e" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <Tooltip
+                      contentStyle={{ backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #f1f5f9', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', color: '#0f172a' }}
+                      itemStyle={{ color: '#e11d48' }}
+                      labelStyle={{ color: '#64748b', fontWeight: 'bold' }}
+                      formatter={(value: number) => [`R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, 'Despesas']}
+                    />
+                    <Area type="monotone" dataKey="value" stroke="#e11d48" strokeWidth={4} fillOpacity={1} fill="url(#colorExpense)" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
             </div>
           </div>
         </div>
@@ -226,19 +228,21 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
             </span>
           }
         >
-          <div className="h-full min-h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 'bold' }} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 'bold' }} />
-                <Tooltip
-                  contentStyle={{ backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #f1f5f9', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', color: '#0f172a' }}
-                />
-                <Line type="monotone" dataKey="Receitas" stroke="#10b981" strokeWidth={4} dot={{ r: 4, fill: '#fff', strokeWidth: 3 }} activeDot={{ r: 6, fill: '#10b981' }} />
-                <Line type="monotone" dataKey="Despesas" stroke="#f43f5e" strokeWidth={4} dot={{ r: 4, fill: '#fff', strokeWidth: 3 }} activeDot={{ r: 6, fill: '#f43f5e' }} />
-              </LineChart>
-            </ResponsiveContainer>
+          <div className="h-full min-h-[300px] w-full overflow-x-auto pb-4">
+            <div className="h-full min-w-[600px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 'bold' }} dy={10} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 'bold' }} />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #f1f5f9', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', color: '#0f172a' }}
+                  />
+                  <Line type="monotone" dataKey="Receitas" stroke="#10b981" strokeWidth={4} dot={{ r: 4, fill: '#fff', strokeWidth: 3 }} activeDot={{ r: 6, fill: '#10b981' }} />
+                  <Line type="monotone" dataKey="Despesas" stroke="#f43f5e" strokeWidth={4} dot={{ r: 4, fill: '#fff', strokeWidth: 3 }} activeDot={{ r: 6, fill: '#f43f5e' }} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         </ChartContainer>
 

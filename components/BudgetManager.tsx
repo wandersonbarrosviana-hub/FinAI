@@ -220,23 +220,25 @@ const BudgetManager: React.FC<BudgetManagerProps> = ({ transactions, budgets: pe
                 <div className="mb-6 px-2">
                     <h3 className="text-lg font-black text-slate-900">Comparativo: Planejado vs. Real</h3>
                 </div>
-                <div className="h-64 w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} interval={0} />
-                            <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} tickFormatter={(value) => `R$${value / 1000}k`} />
-                            <Tooltip
-                                cursor={{ fill: '#f8fafc' }}
-                                contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
-                            />
-                            <Legend wrapperStyle={{ paddingTop: '20px' }} />
-                            <Bar dataKey="Orçado" fill="#0ea5e9" radius={[4, 4, 0, 0]} name="Meta Orçamentária" />
-                            <Bar dataKey="Realizado" fill="#e2e8f0" radius={[4, 4, 0, 0]} name="Gasto Realizado">
-                                <LabelList dataKey="Realizado" content={renderCustomBarLabel} />
-                            </Bar>
-                        </BarChart>
-                    </ResponsiveContainer>
+                <div className="h-64 w-full overflow-x-auto pb-4">
+                    <div className="h-full min-w-[600px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} interval={0} />
+                                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} tickFormatter={(value) => `R$${value / 1000}k`} />
+                                <Tooltip
+                                    cursor={{ fill: '#f8fafc' }}
+                                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                                />
+                                <Legend wrapperStyle={{ paddingTop: '20px' }} />
+                                <Bar dataKey="Orçado" fill="#0ea5e9" radius={[4, 4, 0, 0]} name="Meta Orçamentária" />
+                                <Bar dataKey="Realizado" fill="#e2e8f0" radius={[4, 4, 0, 0]} name="Gasto Realizado">
+                                    <LabelList dataKey="Realizado" content={renderCustomBarLabel} />
+                                </Bar>
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
                 </div>
             </div>
 
@@ -317,7 +319,7 @@ const BudgetManager: React.FC<BudgetManagerProps> = ({ transactions, budgets: pe
                     );
                 })}
             </div>
-        </div>
+        </div >
     );
 };
 

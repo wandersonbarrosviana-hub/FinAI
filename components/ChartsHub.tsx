@@ -153,37 +153,39 @@ const ChartsHub: React.FC<ChartsHubProps> = ({ transactions }) => {
                     </div>
                 }
             >
-                <div className="h-full w-full min-h-[300px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={expenseByCategoryData} layout="vertical" margin={{ left: 10, right: 30, top: 0, bottom: 0 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
-                            <XAxis type="number" hide />
-                            <YAxis
-                                dataKey="name"
-                                type="category"
-                                width={100}
-                                tick={{ fill: '#64748b', fontSize: 10, fontWeight: 'bold' }}
-                                axisLine={false}
-                                tickLine={false}
-                            />
-                            <Tooltip content={<CustomTooltip />} />
-                            <Bar
-                                dataKey={expenseMode === 'value' ? 'value' : 'percent'}
-                                name={expenseMode === 'value' ? 'Valor' : 'Percentual'}
-                                radius={[0, 4, 4, 0]}
-                                barSize={20}
-                            >
-                                {expenseByCategoryData.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                ))}
-                            </Bar>
-                        </BarChart>
-                    </ResponsiveContainer>
+                <div className="h-full w-full min-h-[300px] overflow-x-auto pb-4">
+                    <div className="h-full min-w-[500px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={expenseByCategoryData} layout="vertical" margin={{ left: 10, right: 30, top: 0, bottom: 0 }}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
+                                <XAxis type="number" hide />
+                                <YAxis
+                                    dataKey="name"
+                                    type="category"
+                                    width={100}
+                                    tick={{ fill: '#64748b', fontSize: 10, fontWeight: 'bold' }}
+                                    axisLine={false}
+                                    tickLine={false}
+                                />
+                                <Tooltip content={<CustomTooltip />} />
+                                <Bar
+                                    dataKey={expenseMode === 'value' ? 'value' : 'percent'}
+                                    name={expenseMode === 'value' ? 'Valor' : 'Percentual'}
+                                    radius={[0, 4, 4, 0]}
+                                    barSize={20}
+                                >
+                                    {expenseByCategoryData.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                    ))}
+                                </Bar>
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
                 </div>
             </ChartContainer>
 
             {/* Chart 2: Payment Methods (Pie) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            < div className="grid grid-cols-1 md:grid-cols-2 gap-6" >
                 <ChartContainer
                     title={
                         <span className="flex items-center gap-2">
@@ -232,43 +234,45 @@ const ChartsHub: React.FC<ChartsHubProps> = ({ transactions }) => {
                         </span>
                     }
                 >
-                    <div className="h-full w-full min-h-[250px]">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={dailyTrendData}>
-                                <defs>
-                                    <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
-                                        <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                                    </linearGradient>
-                                    <linearGradient id="colorExpense" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.3} />
-                                        <stop offset="95%" stopColor="#f43f5e" stopOpacity={0} />
-                                    </linearGradient>
-                                </defs>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                                <XAxis dataKey="day" tick={{ fill: '#64748b', fontSize: 10, fontWeight: 'bold' }} axisLine={false} tickLine={false} />
-                                <YAxis hide />
-                                <Tooltip content={<CustomTooltip />} />
-                                <Area
-                                    type="monotone"
-                                    dataKey="income"
-                                    name="Receitas"
-                                    stroke="#10b981"
-                                    strokeWidth={2}
-                                    fillOpacity={1}
-                                    fill="url(#colorIncome)"
-                                />
-                                <Area
-                                    type="monotone"
-                                    dataKey="expense"
-                                    name="Despesas"
-                                    stroke="#f43f5e"
-                                    strokeWidth={2}
-                                    fillOpacity={1}
-                                    fill="url(#colorExpense)"
-                                />
-                            </AreaChart>
-                        </ResponsiveContainer>
+                    <div className="h-full w-full min-h-[250px] overflow-x-auto pb-4">
+                        <div className="h-full min-w-[600px]">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <AreaChart data={dailyTrendData}>
+                                    <defs>
+                                        <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                                            <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                                        </linearGradient>
+                                        <linearGradient id="colorExpense" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.3} />
+                                            <stop offset="95%" stopColor="#f43f5e" stopOpacity={0} />
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                                    <XAxis dataKey="day" tick={{ fill: '#64748b', fontSize: 10, fontWeight: 'bold' }} axisLine={false} tickLine={false} />
+                                    <YAxis hide />
+                                    <Tooltip content={<CustomTooltip />} />
+                                    <Area
+                                        type="monotone"
+                                        dataKey="income"
+                                        name="Receitas"
+                                        stroke="#10b981"
+                                        strokeWidth={2}
+                                        fillOpacity={1}
+                                        fill="url(#colorIncome)"
+                                    />
+                                    <Area
+                                        type="monotone"
+                                        dataKey="expense"
+                                        name="Despesas"
+                                        stroke="#f43f5e"
+                                        strokeWidth={2}
+                                        fillOpacity={1}
+                                        fill="url(#colorExpense)"
+                                    />
+                                </AreaChart>
+                            </ResponsiveContainer>
+                        </div>
                     </div>
                 </ChartContainer>
             </div>
@@ -278,7 +282,7 @@ const ChartsHub: React.FC<ChartsHubProps> = ({ transactions }) => {
                     * Os gráficos mostram dados do mês selecionado no topo da tela.
                 </p>
             </div>
-        </div>
+        </div >
     );
 };
 
