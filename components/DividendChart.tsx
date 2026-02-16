@@ -95,7 +95,8 @@ const DividendChart: React.FC<DividendChartProps> = ({ data }) => {
                     </div>
                 </div>
             </div>
-            );
+        </div>
+    );
 };
 
-            export default DividendChart;
+export default DividendChart;
