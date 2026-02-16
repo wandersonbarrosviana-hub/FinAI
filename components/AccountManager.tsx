@@ -46,7 +46,7 @@ const AccountManager: React.FC<AccountManagerProps> = ({ accounts, transactions,
   // Filter transactions for selected account
   const accountTransactions = useMemo(() => {
     if (!selectedAccount) return [];
-    return transactions
+    return (transactions || [])
       .filter(t => t.account === selectedAccount.id)
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [selectedAccount, transactions]);
