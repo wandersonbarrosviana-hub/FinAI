@@ -23,24 +23,22 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, isOpen, se
         {/* Logo Area */}
         <div className="p-6 flex items-center justify-between border-b border-slate-100 dark:border-slate-800">
           {isOpen && (
-            { isOpen && (
-              <img
-                src="/logo.png?v=2"
-                alt="FinAI"
-                className="h-12 w-auto object-contain"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                  // Fallback to text if image fails
-                  const parent = e.currentTarget.parentElement;
-                  if (parent) {
-                    const text = document.createElement('h1');
-                    text.className = "text-2xl font-black tracking-tighter bg-gradient-to-r from-sky-600 to-blue-600 bg-clip-text text-transparent";
-                    text.innerHTML = 'FinAI<span class="text-sky-500">.</span>';
-                    parent.appendChild(text);
-                  }
-                }}
-              />
-            )}
+            <img
+              src="/logo.png?v=2"
+              alt="FinAI"
+              className="h-12 w-auto object-contain"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+                // Fallback to text if image fails
+                const parent = e.currentTarget.parentElement;
+                if (parent) {
+                  const text = document.createElement('h1');
+                  text.className = "text-2xl font-black tracking-tighter bg-gradient-to-r from-sky-600 to-blue-600 bg-clip-text text-transparent";
+                  text.innerHTML = 'FinAI<span class="text-sky-500">.</span>';
+                  parent.appendChild(text);
+                }
+              }}
+            />
           )}
           <button
             onClick={() => setIsOpen(!isOpen)}
