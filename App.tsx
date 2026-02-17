@@ -373,11 +373,13 @@ const App: React.FC = () => {
 
   // Global Filter
   // Global Filter: Compare Year and Month explicitly
+  // Global Filter: Compare Year and Month using string prefix (Robust against Timezone)
   const filteredTransactions = transactions.filter(t => {
-    // Check if date is in current month/year
-    const txDate = new Date(t.date + 'T12:00:00'); // Force noon to avoid timezone issues
-    return txDate.getMonth() === currentDate.getMonth() &&
-      txDate.getFullYear() === currentDate.getFullYear();
+    if (!t.date) return false;
+    const year = currentDate.getFullYear();
+    const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+    const filterPrefix = `${year}-${month}`;
+    return t.date.startsWith(filterPrefix);
   });
 
   const monthlyBalance = filteredTransactions.reduce((acc, t) => {
