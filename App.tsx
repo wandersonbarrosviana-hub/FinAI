@@ -138,28 +138,13 @@ const App: React.FC = () => {
       if (accRes.error) throw accRes.error;
       if (goalRes.error) throw goalRes.error;
 
-      if (user) {
-        membersMap[user.id] = { name: user.name, avatar: user.avatarUrl || '' };
-      }
-      setFamilyMembers(membersMap);
-
-      // 6. Family data is now at index 6 if custom_budgets is 5
-      // We need to ensure destructuring matches Promise.all order:
-      // [tx, acc, goal, tag, bud, cb, family]
-
-
-      // Let's process existing results and come back for custom budgets processing.
-      // Wait, I can't leave the code broken.
-      // I should update the destructuring line first.
-
-      // Changing plan: I will update the destructuring line in the next tool call, then process.
-
+      // Process Family Members
+      const membersMap: Record<string, { name: string, avatar: string }> = {};
       if (familyRes.data) {
         familyRes.data.forEach((m: any) => {
           membersMap[m.user_id] = { name: m.name, avatar: m.avatar_url };
         });
       }
-      // Add current user to map if not already there (it might be returned by RPC depending on logic, but ensuring it is good)
       if (user) {
         membersMap[user.id] = { name: user.name, avatar: user.avatarUrl || '' };
       }
@@ -193,11 +178,21 @@ const App: React.FC = () => {
 
       setTransactions(mappedTxs);
       setAccounts(mappedAccs);
-      setGoals(goalRes.data);
+      setGoals(goalRes.data || []);
       setTags(tagRes.data || []);
-      // Access 5th element from promise result (budgets)
-      // Since destructuring didn't include it in original code, need to adjust destructuring above.
-      // Wait, replacement chunk 3 updated destructuring? No, it updated the array passed to Promise.all but not the const [...] destructuring.
+      setBudgets(budRes.data || []);
+
+      if (cbRes.data) {
+        const mappedCB = cbRes.data.map((cb: any) => ({
+          id: cb.id,
+          userId: cb.user_id,
+          name: cb.name,
+          categories: cb.categories,
+          limitType: cb.limit_type,
+          limitValue: cb.limit_value
+        }));
+        setCustomBudgets(mappedCB);
+      }
       // I need to fix the destructuring line as well.
       // Let's do it in a separate chunk or check if I can combine.
       // The destructuring was: `const [txRes, accRes, goalRes, tagRes] = await Promise.all([...])`
