@@ -89,6 +89,7 @@ export type ViewState =
   | 'categories'
   | 'accounts'
   | 'budgets'
+  | 'custom-budgets'
   | 'goals'
   | 'objectives'
   | 'simulator'
@@ -155,4 +156,14 @@ export interface AppNotification {
   data?: any;
   read: boolean;
   date: string;
+}
+export interface CustomBudget {
+  id: string;
+  userId: string;
+  name: string;
+  categories: string[];
+  limitType: 'value' | 'percentage';
+  limitValue: number;
+  spent?: number; // Calculated on frontend
+  percentage?: number; // Calculated on frontend
 }

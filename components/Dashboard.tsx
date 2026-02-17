@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import AllTransactions from './AllTransactions';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   BarChart, Bar, Cell, PieChart, Pie, AreaChart, Area
@@ -20,6 +21,7 @@ interface DashboardProps {
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, budgets, onAddClick, familyMembers }) => {
+  const [showAllTransactions, setShowAllTransactions] = useState(false);
 
 
   const totalBalance = accounts.reduce((acc, curr) => acc + curr.balance, 0);
@@ -320,7 +322,7 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
       <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
         <div className="p-6 border-b border-slate-50 dark:border-slate-800 flex justify-between items-center">
           <h3 className="text-lg font-bold text-slate-900 dark:text-white">Últimos Lançamentos</h3>
-          <button className="text-sky-600 dark:text-sky-400 text-sm font-bold hover:text-sky-700 dark:hover:text-sky-300 transition-colors">Ver todos</button>
+          <button onClick={() => setShowAllTransactions(true)} className="text-sky-600 dark:text-sky-400 text-sm font-bold hover:text-sky-700 dark:hover:text-sky-300 transition-colors">Ver todos</button>
         </div>
         {/* Desktop View */}
         <div className="hidden md:block overflow-x-auto">
@@ -406,6 +408,21 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
           )}
         </div>
       </div>
+
+      {/* All Transactions Modal */}
+      {showAllTransactions && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-slate-900 w-full max-w-5xl h-[90vh] rounded-3xl shadow-2xl overflow-hidden flex flex-col relative animate-in zoom-in-95 duration-200">
+            <div className="p-6 h-full overflow-y-auto custom-scrollbar">
+              <AllTransactions
+                transactions={transactions}
+                familyMembers={familyMembers}
+                onBack={() => setShowAllTransactions(false)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

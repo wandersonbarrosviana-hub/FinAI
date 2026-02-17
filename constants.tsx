@@ -33,6 +33,7 @@ export const NAV_ITEMS = [
   { id: 'credit-cards' as ViewState, label: 'Cartões', icon: <CreditCard size={20} /> },
   { id: 'accounts' as ViewState, label: 'Contas', icon: <Wallet size={20} /> },
   { id: 'budgets' as ViewState, label: 'Orçamento', icon: <PieChart size={20} /> },
+  { id: 'custom-budgets' as ViewState, label: 'Orç. Personalizado', icon: <Calculator size={20} /> },
   { id: 'charts' as ViewState, label: 'Gráficos', icon: <BarChart2 size={20} /> },
   { id: 'categories' as ViewState, label: 'Categorias', icon: <Tags size={20} /> },
   { id: 'goals' as ViewState, label: 'Metas', icon: <Target size={20} /> },
