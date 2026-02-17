@@ -25,7 +25,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, isOpen, se
           {isOpen && (
             { isOpen && (
               <img
-                src="/logo.png"
+                src="/logo.png?v=2"
                 alt="FinAI"
                 className="h-12 w-auto object-contain"
                 onError={(e) => {
