@@ -26,7 +26,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, isOpen, se
             <img
               src="/logo.png?v=2"
               alt="FinAI"
-              className="h-16 w-auto object-contain"
+              className="h-32 w-auto object-contain"
               onError={(e) => {
                 e.currentTarget.style.display = 'none';
                 // Fallback to text if image fails
