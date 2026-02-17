@@ -372,17 +372,13 @@ const App: React.FC = () => {
   };
 
   // Global Filter
-  // Global Filter - TEMPORARY: Showing all transactions to debug visibility issues
-  const filteredTransactions = transactions;
-  /*
-  // Original Filter Logic (Reserved for future fix)
+  // Global Filter: Compare Year and Month explicitly
   const filteredTransactions = transactions.filter(t => {
-    const year = currentDate.getFullYear();
-    const month = String(currentDate.getMonth() + 1).padStart(2, '0');
-    const filterPrefix = `${year}-${month}`;
-    return t.date.startsWith(filterPrefix);
+    // Check if date is in current month/year
+    const txDate = new Date(t.date + 'T12:00:00'); // Force noon to avoid timezone issues
+    return txDate.getMonth() === currentDate.getMonth() &&
+      txDate.getFullYear() === currentDate.getFullYear();
   });
-  */
 
   const monthlyBalance = filteredTransactions.reduce((acc, t) => {
     if (!t.isPaid) return acc; // Only count paid transactions
