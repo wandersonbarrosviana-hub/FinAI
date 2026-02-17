@@ -14,6 +14,7 @@ interface TransactionManagerProps {
     onUpdateTransaction: (id: string, updates: Partial<Transaction>) => void;
     onDeleteTransaction: (id: string) => void;
     onTransfer: (data: any) => void;
+    familyMembers?: Record<string, { name: string, avatar: string }>;
 }
 
 const TransactionManager: React.FC<TransactionManagerProps> = ({
@@ -23,7 +24,8 @@ const TransactionManager: React.FC<TransactionManagerProps> = ({
     onAddTransaction,
     onUpdateTransaction,
     onDeleteTransaction,
-    onTransfer
+    onTransfer,
+    familyMembers
 }) => {
     const [activeTab, setActiveTab] = useState<'income' | 'expense' | 'transfer' | 'statement'>('expense');
 
@@ -87,6 +89,7 @@ const TransactionManager: React.FC<TransactionManagerProps> = ({
                         onUpdateTransaction={onUpdateTransaction}
                         onDeleteTransaction={onDeleteTransaction}
                         accounts={accounts}
+                        familyMembers={familyMembers}
                     />
                 )}
 
@@ -99,6 +102,7 @@ const TransactionManager: React.FC<TransactionManagerProps> = ({
                         onUpdateTransaction={onUpdateTransaction}
                         onDeleteTransaction={onDeleteTransaction}
                         accounts={accounts}
+                        familyMembers={familyMembers}
                     />
                 )}
 
@@ -120,7 +124,7 @@ const TransactionManager: React.FC<TransactionManagerProps> = ({
                 )}
 
                 {activeTab === 'statement' && (
-                    <TransactionStatement transactions={transactions} accounts={accounts} />
+                    <TransactionStatement transactions={transactions} accounts={accounts} familyMembers={familyMembers} />
                 )}
             </div>
         </div>

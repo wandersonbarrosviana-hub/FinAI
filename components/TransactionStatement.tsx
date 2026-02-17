@@ -9,9 +9,10 @@ import 'jspdf-autotable';
 interface TransactionStatementProps {
     transactions: Transaction[];
     accounts: Account[];
+    familyMembers?: Record<string, { name: string, avatar: string }>;
 }
 
-const TransactionStatement: React.FC<TransactionStatementProps> = ({ transactions, accounts }) => {
+const TransactionStatement: React.FC<TransactionStatementProps> = ({ transactions, accounts, familyMembers }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [filterType, setFilterType] = useState<'all' | 'income' | 'expense' | 'transfer'>('all');
 
@@ -130,6 +131,20 @@ const TransactionStatement: React.FC<TransactionStatementProps> = ({ transaction
                                     </td>
                                     <td className="sticky left-[100px] z-10 bg-white dark:bg-slate-900 px-6 py-4 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] min-w-[200px]">
                                         <div className="text-sm font-bold text-slate-700 dark:text-slate-200 whitespace-normal" title={t.description}>{t.description}</div>
+                                        {t.created_by && familyMembers && familyMembers[t.created_by] && (
+                                            <div className="flex items-center gap-1 mt-1">
+                                                <div className="flex items-center gap-1 bg-slate-50 dark:bg-slate-800 rounded-full pr-2 py-0.5 border border-slate-100 dark:border-slate-700">
+                                                    <img
+                                                        src={familyMembers[t.created_by].avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(familyMembers[t.created_by].name)}&background=random`}
+                                                        alt={familyMembers[t.created_by].name}
+                                                        className="w-3 h-3 rounded-full"
+                                                    />
+                                                    <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400">
+                                                        {familyMembers[t.created_by].name.split(' ')[0]}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        )}
                                     </td>
                                     <td className="px-6 py-4 text-xs text-slate-400 dark:text-slate-500 whitespace-nowrap font-medium">
                                         {new Date(t.date).toLocaleDateString('pt-BR')}

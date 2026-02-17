@@ -25,3 +25,24 @@
     @apply bg-slate-800 rounded-full hover:bg-slate-700 transition-colors;
   }
 }
+
+/* Remove default focus outline from Recharts */
+.recharts-surface:focus {
+  outline: none !important;
+}
+
+.recharts-wrapper:focus,
+.recharts-wrapper *:focus {
+  outline: none !important;
+}
+
+/* Force remove outline from any SVG element inside Recharts on focus */
+.recharts-surface:focus,
+.recharts-layer:focus,
+.recharts-sector:focus {
+  outline: none !important;
+}
+
+svg:focus {
+  outline: none !important;
+}

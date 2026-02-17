@@ -16,9 +16,10 @@ interface DashboardProps {
   budgets: Budget[];
   onAddClick: () => void;
   tags: any[];
+  familyMembers?: Record<string, { name: string, avatar: string }>;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, budgets, onAddClick }) => {
+const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, budgets, onAddClick, familyMembers }) => {
 
 
   const totalBalance = accounts.reduce((acc, curr) => acc + curr.balance, 0);
@@ -283,12 +284,16 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
                     cx="50%"
                     cy="50%"
                     innerRadius={50}
-                    outerRadius={80}
+                    outerRadius={70}
                     paddingAngle={5}
                     dataKey="value"
                     stroke="none"
-                    label={({ name, percent, value }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    labelLine={true}
+                    label={({ x, y, cx, name, percent }) => (
+                      <text x={x} y={y} fill="#1e293b" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" style={{ fontSize: '10px', fontWeight: '800' }}>
+                        {`${name} ${(percent * 100).toFixed(0)}%`}
+                      </text>
+                    )}
+                    labelLine={{ stroke: '#64748b', strokeWidth: 1, strokeDasharray: '3 3' }}
                   >
                     {pieData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} style={{ outline: 'none' }} />
@@ -332,7 +337,23 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
               {transactions.slice(0, 5).map((t) => (
                 <tr key={t.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
                   <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-400 whitespace-nowrap">{new Date(t.date).toLocaleDateString('pt-BR')}</td>
-                  <td className="px-6 py-4 text-sm font-bold text-slate-900 dark:text-white whitespace-nowrap">{t.description}</td>
+                  <td className="px-6 py-4 text-sm font-bold text-slate-900 dark:text-white whitespace-nowrap">
+                    <div className="flex items-center gap-2">
+                      {t.description}
+                      {t.created_by && familyMembers && familyMembers[t.created_by] && (
+                        <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 rounded-full pr-2 border border-slate-200 dark:border-slate-700">
+                          <img
+                            src={familyMembers[t.created_by].avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(familyMembers[t.created_by].name)}&background=random`}
+                            alt={familyMembers[t.created_by].name}
+                            className="w-4 h-4 rounded-full"
+                          />
+                          <span className="text-[9px] font-bold text-slate-600 dark:text-slate-400 max-w-[60px] truncate">
+                            {familyMembers[t.created_by].name.split(' ')[0]}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="px-3 py-1 rounded-lg text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 uppercase tracking-wider transition-all">
                       {t.category}
@@ -355,7 +376,20 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
                 <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
                   {new Date(t.date).toLocaleDateString('pt-BR')}
                 </span>
-                <span className="text-sm font-bold text-slate-900 dark:text-white line-clamp-1">{t.description}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-bold text-slate-900 dark:text-white truncate">
+                    {t.description}
+                  </span>
+                  {t.created_by && familyMembers && familyMembers[t.created_by] && (
+                    <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 rounded-full pr-2 border border-slate-200 dark:border-slate-700 min-w-fit">
+                      <img
+                        src={familyMembers[t.created_by].avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(familyMembers[t.created_by].name)}&background=random`}
+                        alt={familyMembers[t.created_by].name}
+                        className="w-3 h-3 rounded-full"
+                      />
+                    </div>
+                  )}
+                </div>
                 <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded w-fit uppercase tracking-wider">
                   {t.category}
                 </span>

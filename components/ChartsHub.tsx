@@ -72,9 +72,9 @@ const ChartsHub: React.FC<ChartsHubProps> = ({ transactions }) => {
         });
 
         return [
-            { name: 'Fixas', value: structure.fixed, color: '#06b6d4', percent: total ? (structure.fixed / total) * 100 : 0 },
-            { name: 'Parceladas', value: structure.installment, color: '#f43f5e', percent: total ? (structure.installment / total) * 100 : 0 },
-            { name: 'Variáveis/À Vista', value: structure.one_time, color: '#3b82f6', percent: total ? (structure.one_time / total) * 100 : 0 }
+            { name: 'Fixas', value: structure.fixed, color: '#06b6d4', share: total ? (structure.fixed / total) * 100 : 0 },
+            { name: 'Parceladas', value: structure.installment, color: '#f43f5e', share: total ? (structure.installment / total) * 100 : 0 },
+            { name: 'Variáveis/À Vista', value: structure.one_time, color: '#3b82f6', share: total ? (structure.one_time / total) * 100 : 0 }
         ].filter(item => item.value > 0);
     }, [transactions]);
 
@@ -265,12 +265,17 @@ const ChartsHub: React.FC<ChartsHubProps> = ({ transactions }) => {
                             <PieChart>
                                 <Pie
                                     data={expenseStructureData}
-                                    innerRadius={80}
-                                    outerRadius={100}
+                                    innerRadius={70}
+                                    outerRadius={90}
                                     paddingAngle={5}
                                     dataKey="value"
                                     stroke="none"
-                                    label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
+                                    label={({ x, y, cx, percent }) => (
+                                        <text x={x} y={y} fill="#1e293b" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" style={{ fontSize: '10px', fontWeight: '800' }}>
+                                            {`${(percent * 100).toFixed(0)}%`}
+                                        </text>
+                                    )}
+                                    labelLine={{ stroke: '#64748b', strokeWidth: 1, strokeDasharray: '3 3' }}
                                 >
                                     {expenseStructureData.map((entry, index) => (
                                         <Cell key={`cell-${index}`} fill={entry.color} style={{ outline: 'none' }} />
@@ -318,7 +323,7 @@ const ChartsHub: React.FC<ChartsHubProps> = ({ transactions }) => {
                                 <Tooltip content={<CustomTooltip />} />
                                 <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
                                 <Bar yAxisId="left" dataKey="value" name="Valor Gasto" barSize={30} fill="#6366f1" radius={[4, 4, 0, 0]}>
-                                    <LabelList dataKey="value" position="top" formatter={(val: number) => `R$${(val / 1000).toFixed(1)}k`} style={{ fill: '#6366f1', fontSize: '10px', fontWeight: 'bold' }} />
+                                    <LabelList dataKey="value" position="top" formatter={(val: number) => `R$${(val / 1000).toFixed(1)}k`} style={{ fill: '#1e293b', fontSize: '10px', fontWeight: '800' }} />
                                 </Bar>
                                 <Line yAxisId="right" type="monotone" dataKey="cumulativePercent" name="% Acumulado" stroke="#f43f5e" strokeWidth={3} dot={{ r: 4 }} />
                             </ComposedChart>
@@ -378,7 +383,7 @@ const ChartsHub: React.FC<ChartsHubProps> = ({ transactions }) => {
                                     dataKey={expenseMode === 'value' ? 'value' : 'percent'}
                                     position="right"
                                     formatter={(val: number) => expenseMode === 'value' ? `R$ ${val.toLocaleString('pt-BR', { minimumFractionDigits: 0 })}` : `${val.toFixed(1)}%`}
-                                    style={{ fill: '#64748b', fontSize: '11px', fontWeight: 'bold' }}
+                                    style={{ fill: '#1e293b', fontSize: '11px', fontWeight: '800' }}
                                 />
                             </Bar>
                         </BarChart>
@@ -400,12 +405,17 @@ const ChartsHub: React.FC<ChartsHubProps> = ({ transactions }) => {
                             <PieChart>
                                 <Pie
                                     data={paymentMethodData}
-                                    innerRadius={70}
-                                    outerRadius={90}
+                                    innerRadius={60}
+                                    outerRadius={80}
                                     paddingAngle={5}
                                     dataKey="value"
                                     stroke="none"
-                                    label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
+                                    label={({ x, y, cx, percent }) => (
+                                        <text x={x} y={y} fill="#1e293b" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" style={{ fontSize: '10px', fontWeight: '800' }}>
+                                            {`${(percent * 100).toFixed(0)}%`}
+                                        </text>
+                                    )}
+                                    labelLine={{ stroke: '#64748b', strokeWidth: 1, strokeDasharray: '3 3' }}
                                 >
                                     {paymentMethodData.map((entry, index) => (
                                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} style={{ outline: 'none' }} />

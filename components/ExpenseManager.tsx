@@ -12,10 +12,11 @@ interface ExpenseManagerProps {
   type: TransactionType;
   tags: TagType[];
   accounts: Account[];
+  familyMembers?: Record<string, { name: string, avatar: string }>;
   allTransactions?: Transaction[];
 }
 
-const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTransaction, onUpdateTransaction, onDeleteTransaction, type, tags, accounts, allTransactions }) => {
+const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTransaction, onUpdateTransaction, onDeleteTransaction, type, tags, accounts, familyMembers, allTransactions }) => {
   const filteredTransactions = transactions.filter(t => t.type === type);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
@@ -866,8 +867,20 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
                   </td>
                   <td className="sticky left-[80px] z-10 bg-white dark:bg-slate-900 px-4 md:px-6 py-4 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] min-w-[200px]">
                     <div className="font-bold text-slate-900 dark:text-white text-sm truncate max-w-[180px]" title={t.description}>{t.description}</div>
-                    <div className="flex flex-wrap items-center gap-1 text-[10px] text-slate-400 dark:text-slate-500 mt-1 uppercase font-bold tracking-tighter">
-                      <span className="flex items-center whitespace-nowrap">
+                    <div className="flex flex-wrap items-center gap-1 mt-1">
+                      {t.created_by && familyMembers && familyMembers[t.created_by] && (
+                        <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 rounded-full pr-2 border border-slate-200 dark:border-slate-700">
+                          <img
+                            src={familyMembers[t.created_by].avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(familyMembers[t.created_by].name)}&background=random`}
+                            alt={familyMembers[t.created_by].name}
+                            className="w-4 h-4 rounded-full"
+                          />
+                          <span className="text-[9px] font-bold text-slate-600 dark:text-slate-400 max-w-[60px] truncate">
+                            {familyMembers[t.created_by].name.split(' ')[0]}
+                          </span>
+                        </div>
+                      )}
+                      <span className="flex items-center whitespace-nowrap text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold tracking-tighter">
                         <CreditCard size={10} className="mr-1" /> {t.paymentMethod}
                       </span>
                     </div>
@@ -955,6 +968,19 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
                     </span>
                     <span className="text-[10px] text-slate-400 dark:text-slate-600">|</span>
                     <span className="text-[10px] text-slate-400 dark:text-slate-500">{new Date(t.date).toLocaleDateString('pt-BR')}</span>
+
+                    {t.created_by && familyMembers && familyMembers[t.created_by] && (
+                      <div className="flex items-center gap-1 bg-slate-50 dark:bg-slate-800 rounded-full pr-2 py-0.5 border border-slate-100 dark:border-slate-700 ml-1">
+                        <img
+                          src={familyMembers[t.created_by].avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(familyMembers[t.created_by].name)}&background=random`}
+                          alt={familyMembers[t.created_by].name}
+                          className="w-3 h-3 rounded-full"
+                        />
+                        <span className="text-[8px] font-bold text-slate-500 dark:text-slate-400 truncate max-w-[50px uppercase tracking-tighter">
+                          {familyMembers[t.created_by].name.split(' ')[0]}
+                        </span>
+                      </div>
+                    )}
                   </div>
 
                   {/* Account Badge */}

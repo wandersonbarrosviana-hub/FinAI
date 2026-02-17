@@ -25,13 +25,13 @@ import { Budget } from './types';
 import { Bell, Search, User as UserIcon, Plus, Sparkles, AlertCircle, ChevronLeft, ChevronRight, Loader2, LogOut, Settings as SettingsIcon, MessageSquare } from 'lucide-react';
 import { parseNotification } from './aiService';
 import { supabase } from './supabaseClient';
-import { Transaction, Account, Goal, User, ViewState, Tag, AppNotification } from './types';
+import { Transaction, Account, Goal, User, ViewState, Tag, AppNotification, Session } from './types';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<any>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-
+  const [familyMembers, setFamilyMembers] = useState<Record<string, { name: string, avatar: string }>>({});
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [currentView, setCurrentView] = useState<ViewState | 'settings'>(() => {
     return (localStorage.getItem('finai_current_view') as ViewState | 'settings') || 'dashboard';
@@ -121,22 +121,31 @@ const App: React.FC = () => {
   const fetchData = async (userId: string) => {
     setLoading(true);
     try {
-      const [txRes, accRes, goalRes, tagRes, budRes] = await Promise.all([
+      const [txRes, accRes, goalRes, tagRes, budRes, familyRes] = await Promise.all([
         supabase.from('transactions').select('*').order('date', { ascending: false }),
         supabase.from('accounts').select('*'),
         supabase.from('goals').select('*'),
         supabase.from('tags').select('*'),
-        supabase.from('budgets').select('*')
+        supabase.from('budgets').select('*'),
+        supabase.rpc('get_family_details', { current_user_id: userId })
       ]);
 
       if (txRes.error) throw txRes.error;
       if (accRes.error) throw accRes.error;
       if (goalRes.error) throw goalRes.error;
-      // Tag error check ?
 
-
-      // Map DB fields to Frontend Interface if needed (e.g. snake_case to camelCase if inconsistent)
-      // Currently interface matches mostly, check specific fields
+      // Process Family Member Data
+      const membersMap: Record<string, { name: string, avatar: string }> = {};
+      if (familyRes.data) {
+        familyRes.data.forEach((m: any) => {
+          membersMap[m.user_id] = { name: m.name, avatar: m.avatar_url };
+        });
+      }
+      // Add current user to map if not already there (it might be returned by RPC depending on logic, but ensuring it is good)
+      if (user) {
+        membersMap[user.id] = { name: user.name, avatar: user.avatarUrl || '' };
+      }
+      setFamilyMembers(membersMap);
 
       const mappedTxs = txRes.data.map((t: any) => ({
         ...t,
@@ -1161,6 +1170,7 @@ const App: React.FC = () => {
             tags={tags}
             goals={goals}
             budgets={budgets}
+            familyMembers={familyMembers}
           />}
           {currentView === 'transactions' && <TransactionManager
             transactions={filteredTransactions}
@@ -1170,6 +1180,7 @@ const App: React.FC = () => {
             onDeleteTransaction={handleDeleteTransaction}
             onUpdateTransaction={handleUpdateTransaction}
             onTransfer={handleTransfer}
+            familyMembers={familyMembers}
           />}
           {currentView === 'reports' && <Reports
             transactions={transactions}
@@ -1203,8 +1214,8 @@ const App: React.FC = () => {
               </div>
             </div>
           )}
-          {currentView === 'expenses' && <ExpenseManager type="expense" transactions={filteredTransactions} onAddTransaction={handleAddTransaction} onDeleteTransaction={handleDeleteTransaction} onUpdateTransaction={handleUpdateTransaction} tags={tags} accounts={accounts} />}
-          {currentView === 'income' && <ExpenseManager type="income" transactions={filteredTransactions} allTransactions={transactions} onAddTransaction={handleAddTransaction} onDeleteTransaction={handleDeleteTransaction} onUpdateTransaction={handleUpdateTransaction} tags={tags} accounts={accounts} />}
+          {currentView === 'expenses' && <ExpenseManager type="expense" transactions={filteredTransactions} onAddTransaction={handleAddTransaction} onDeleteTransaction={handleDeleteTransaction} onUpdateTransaction={handleUpdateTransaction} tags={tags} accounts={accounts} familyMembers={familyMembers} />}
+          {currentView === 'income' && <ExpenseManager type="income" transactions={filteredTransactions} allTransactions={transactions} onAddTransaction={handleAddTransaction} onDeleteTransaction={handleDeleteTransaction} onUpdateTransaction={handleUpdateTransaction} tags={tags} accounts={accounts} familyMembers={familyMembers} />}
           {currentView === 'charts' && <ChartsHub transactions={filteredTransactions} />}
           {currentView === 'settings' && <Settings user={user} onLogout={handleLogout} onExportData={handleExportData} onResetData={handleResetData} />}
         </div>
