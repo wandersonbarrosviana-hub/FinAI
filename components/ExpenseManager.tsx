@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import DailyHistory from './DailyHistory';
 import { Transaction, TransactionType, Tag as TagType, Account } from '../types';
-import { CATEGORIES_MAP, INCOME_CATEGORIES_MAP } from '../constants';
+import { CATEGORIES_MAP, INCOME_CATEGORIES_MAP, BANKS } from '../constants';
 import { Calendar, CreditCard, Tag, Plus, Trash2, CheckCircle, Clock, Edit2, Save, X, Repeat, Divide, ChevronDown, ChevronUp, Paperclip, FileText, PieChart, Wallet, Calculator, Camera, Image, XCircle } from 'lucide-react';
 
 interface ExpenseManagerProps {
@@ -273,6 +273,13 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
 
   const toggleStatus = (id: string, currentStatus: boolean) => {
     onUpdateTransaction(id, { isPaid: !currentStatus });
+  };
+
+  const getAccountInfo = (accountId: string) => {
+    const account = accounts.find(a => a.id === accountId);
+    if (!account) return null;
+    const bank = BANKS.find(b => b.id === account.bankId);
+    return { ...account, bankLogo: bank?.logoUrl };
   };
 
   return (
@@ -806,6 +813,7 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
             <thead className="bg-slate-50/50 dark:bg-slate-800/50">
               <tr>
                 <th className="sticky left-0 z-20 bg-slate-50 dark:bg-slate-800 px-4 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] w-[80px]">Status</th>
+                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest whitespace-nowrap">Conta</th>
                 <th className="sticky left-[80px] z-20 bg-slate-50 dark:bg-slate-800 px-4 md:px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] min-w-[200px]">Info</th>
                 <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest whitespace-nowrap">Categoria</th>
                 <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest whitespace-nowrap">Recorrência</th>
@@ -833,6 +841,28 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
                       )}
                     </button>
                     {/* Mobile text label below icon if needed, or just keep icon for compactness */}
+                  </td>
+                  {/* Account Column */}
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {(() => {
+                      const accInfo = getAccountInfo(t.account);
+                      return accInfo ? (
+                        <div className="flex items-center gap-2">
+                          <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center p-0.5 border border-slate-200 dark:border-slate-700 overflow-hidden">
+                            {accInfo.bankLogo ? (
+                              <img src={accInfo.bankLogo} alt={accInfo.name} className="w-full h-full object-contain" />
+                            ) : (
+                              <Wallet size={12} className="text-slate-400" />
+                            )}
+                          </div>
+                          <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300 truncate max-w-[100px]" title={accInfo.name}>
+                            {accInfo.name}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-[10px] text-slate-400 italic font-medium">-</span>
+                      );
+                    })()}
                   </td>
                   <td className="sticky left-[80px] z-10 bg-white dark:bg-slate-900 px-4 md:px-6 py-4 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] min-w-[200px]">
                     <div className="font-bold text-slate-900 dark:text-white text-sm truncate max-w-[180px]" title={t.description}>{t.description}</div>
@@ -915,7 +945,7 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
         {/* Mobile Card View */}
         <div className="md:hidden flex flex-col divide-y divide-slate-100 dark:divide-slate-800">
           {filteredTransactions.map((t) => (
-            <div key={t.id} className="p-3 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+            <div key={t.id} className="p-3 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors border border-slate-100 dark:border-slate-800 rounded-xl mb-2 shadow-sm">
               <div className="flex justify-between items-start mb-2">
                 <div className="flex-1 min-w-0 pr-2">
                   <h4 className="text-sm font-bold text-slate-900 dark:text-white truncate">{t.description}</h4>
@@ -926,7 +956,27 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
                     <span className="text-[10px] text-slate-400 dark:text-slate-600">|</span>
                     <span className="text-[10px] text-slate-400 dark:text-slate-500">{new Date(t.date).toLocaleDateString('pt-BR')}</span>
                   </div>
+
+                  {/* Account Badge */}
+                  {(() => {
+                    const accInfo = getAccountInfo(t.account);
+                    return accInfo ? (
+                      <div className="flex items-center gap-1 mt-1.5 ml-0.5">
+                        <div className="w-4 h-4 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center p-0.5 border border-slate-100 dark:border-slate-700 overflow-hidden">
+                          {accInfo.bankLogo ? (
+                            <img src={accInfo.bankLogo} alt={accInfo.name} className="w-full h-full object-contain" />
+                          ) : (
+                            <Wallet size={8} className="text-slate-400" />
+                          )}
+                        </div>
+                        <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400 truncate max-w-[120px]">
+                          {accInfo.name}
+                        </span>
+                      </div>
+                    ) : null;
+                  })()}
                 </div>
+
                 <div className="flex flex-col items-end mr-2">
                   <div className={`text-sm font-black whitespace-nowrap ${t.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
                     R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
@@ -946,7 +996,7 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
                 </div>
               </div>
 
-              <div className="flex items-center justify-between mt-3">
+              <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-50 dark:border-slate-800/50">
                 <div className="flex flex-col gap-1">
                   <span className="text-[10px] font-black text-sky-600 dark:text-sky-400 flex items-center uppercase tracking-widest px-2 py-0.5 bg-sky-50 dark:bg-sky-900/20 border border-sky-100 dark:border-sky-900/30 rounded w-fit">
                     <Tag size={10} className="mr-1" /> {t.category}
@@ -959,20 +1009,20 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
                   )}
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                   <button
                     onClick={() => handleEdit(t)}
                     className="p-2 bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-sky-50 dark:hover:bg-slate-700 rounded-xl border border-slate-100 dark:border-slate-700 transition-all active:scale-95"
                     title="Editar"
                   >
-                    <Edit2 size={18} />
+                    <Edit2 size={16} />
                   </button>
                   <button
                     onClick={() => onDeleteTransaction(t.id)}
                     className="p-2 bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-slate-700 rounded-xl border border-slate-100 dark:border-slate-700 transition-all active:scale-95"
                     title="Excluir"
                   >
-                    <Trash2 size={18} />
+                    <Trash2 size={16} />
                   </button>
                 </div>
               </div>
