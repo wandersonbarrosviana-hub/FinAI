@@ -244,8 +244,22 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
                   <Tooltip
                     contentStyle={{ backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #f1f5f9', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', color: '#0f172a' }}
                   />
-                  <Line type="monotone" dataKey="Receitas" stroke="#10b981" strokeWidth={4} dot={{ r: 4, fill: '#fff', strokeWidth: 3 }} activeDot={{ r: 6, fill: '#10b981' }} />
-                  <Line type="monotone" dataKey="Despesas" stroke="#f43f5e" strokeWidth={4} dot={{ r: 4, fill: '#fff', strokeWidth: 3 }} activeDot={{ r: 6, fill: '#f43f5e' }} />
+                  <Line
+                    type="monotone"
+                    dataKey="Receitas"
+                    stroke="#10b981"
+                    strokeWidth={4}
+                    dot={{ r: 4, fill: '#fff', strokeWidth: 3 }}
+                    activeDot={{ r: 6, fill: '#10b981' }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="Despesas"
+                    stroke="#f43f5e"
+                    strokeWidth={4}
+                    dot={{ r: 4, fill: '#fff', strokeWidth: 3 }}
+                    activeDot={{ r: 6, fill: '#f43f5e' }}
+                  />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -273,8 +287,8 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
                     paddingAngle={5}
                     dataKey="value"
                     stroke="none"
-                    label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
-                    labelLine={false}
+                    label={({ name, percent, value }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    labelLine={true}
                   >
                     {pieData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} style={{ outline: 'none' }} />

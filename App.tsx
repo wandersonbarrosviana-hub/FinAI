@@ -368,37 +368,76 @@ const App: React.FC = () => {
       return t;
     }));
 
-    // Handle Balance Update Logic (Sync with Account Balance)
-    if (updates.isPaid !== undefined && updates.isPaid !== originalTx.isPaid) {
-      const accountId = updates.account || originalTx.account;
-      const amount = updates.amount || originalTx.amount;
-      const type = updates.type || originalTx.type;
+    // Validations for Balance Updates
+    // We need to calculate the net effect on accounts
+    const isAmountChanged = updates.amount !== undefined && updates.amount !== originalTx.amount;
+    const isAccountChanged = updates.account !== undefined && updates.account !== originalTx.account;
+    const isTypeChanged = updates.type !== undefined && updates.type !== originalTx.type;
+    const isStatusChanged = updates.isPaid !== undefined && updates.isPaid !== originalTx.isPaid;
 
-      // Fetch current account balance first or use local?
-      // Using local logic for immediate feedback
-      setAccounts(accs => accs.map(acc => {
-        if (acc.id === accountId) {
-          const diff = amount;
-          if (type === 'expense') {
-            return { ...acc, balance: updates.isPaid ? acc.balance - diff : acc.balance + diff };
-          } else {
-            return { ...acc, balance: updates.isPaid ? acc.balance + diff : acc.balance - diff };
+    if (isAmountChanged || isAccountChanged || isTypeChanged || isStatusChanged) {
+      const accountUpdates = new Map<string, number>();
+
+      // Helper to accrue changes
+      const addChange = (accId: string, delta: number) => {
+        const current = accountUpdates.get(accId) || 0;
+        accountUpdates.set(accId, current + delta);
+      };
+
+      // 1. Revert Original Effect (if it was paid)
+      // Note: We use originalTx for this check
+      if (originalTx.isPaid) {
+        const amount = originalTx.amount;
+        const accountId = originalTx.account;
+        // If expense, we removed money. To revert, we ADD (+).
+        // If income, we added money. To revert, we SUBTRACT (-).
+        const change = originalTx.type === 'expense' ? amount : -amount;
+        if (accountId) addChange(accountId, change);
+      }
+
+      // 2. Apply New Effect (if it is paid)
+      // We construct the "new" transaction state
+      const newIsPaid = updates.isPaid !== undefined ? updates.isPaid : originalTx.isPaid;
+
+      if (newIsPaid) {
+        const amount = updates.amount !== undefined ? updates.amount : originalTx.amount;
+        const accountId = updates.account !== undefined ? updates.account : originalTx.account;
+        const type = updates.type !== undefined ? updates.type : originalTx.type;
+
+        // If expense, we remove money (-).
+        // If income, we add money (+).
+        const change = type === 'expense' ? -amount : amount;
+        if (accountId) addChange(accountId, change);
+      }
+
+      // 3. Process Account Updates
+      if (accountUpdates.size > 0) {
+        // Update Local State once
+        setAccounts(prevAccs => prevAccs.map(acc => {
+          const delta = accountUpdates.get(acc.id);
+          if (delta) {
+            return { ...acc, balance: acc.balance + delta };
+          }
+          return acc;
+        }));
+
+        // Update DB for each affected account
+        // We use the computed delta + current DB state (or optimistic state assumptions)
+        // Ideally we would trigger an RPC, but loop update is fine for now.
+        for (const [accountId, delta] of accountUpdates.entries()) {
+          if (delta !== 0) {
+            // We need to fetch the *current* balance to be safe, OR rely on local state if we trust it.
+            // Relying on previous local state (before this setAccounts check) might be stale inside the loop? 
+            // Actually, `setAccounts` above handles visual. For DB:
+            const acc = accounts.find(a => a.id === accountId);
+            if (acc) {
+              // We add delta to the KNOWN balance.
+              // Warning: concurrency issues if multiple updates happen fast. 
+              // For this app scale, this is acceptable.
+              await supabase.from('accounts').update({ balance: acc.balance + delta }).eq('id', accountId);
+            }
           }
         }
-        return acc;
-      }));
-
-      // Also update account in DB
-      const acc = accounts.find(a => a.id === accountId);
-      if (acc) {
-        const diff = amount;
-        let newBalance = acc.balance;
-        if (type === 'expense') {
-          newBalance = updates.isPaid ? acc.balance - diff : acc.balance + diff;
-        } else {
-          newBalance = updates.isPaid ? acc.balance + diff : acc.balance - diff;
-        }
-        supabase.from('accounts').update({ balance: newBalance }).eq('id', accountId);
       }
     }
 
