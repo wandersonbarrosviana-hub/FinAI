@@ -1,26 +1,21 @@
 
-
-import OpenAI from "openai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { Transaction, Account } from './types';
 import { FINAI_CONFIG } from './config';
 
 // API Keys from Config
-const GROQ_API_KEY = FINAI_CONFIG.GROQ_API_KEY;
+const GEMINI_API_KEY = FINAI_CONFIG.GEMINI_API_KEY;
 
-// Initialize Client
-const groq = GROQ_API_KEY ? new OpenAI({
-    apiKey: GROQ_API_KEY,
-    baseURL: "https://api.groq.com/openai/v1",
-    dangerouslyAllowBrowser: true // Vite/React requirement
-}) : null;
+// Initialize Google Generative AI
+const genAI = GEMINI_API_KEY ? new GoogleGenerativeAI(GEMINI_API_KEY) : null;
 
 // Models
-const GROQ_MODEL = FINAI_CONFIG.GROQ_MODEL; // High speed & stable
+const GEMINI_MODEL = FINAI_CONFIG.GEMINI_MODEL;
 
-if (GROQ_API_KEY) {
-    console.log("%c FinAI Voice Ready ", "background: #22c55e; color: #fff; border-radius: 4px; font-weight: bold;");
+if (GEMINI_API_KEY) {
+    console.log("%c FinAI Gemini Ready ", "background: #4285f4; color: #fff; border-radius: 4px; font-weight: bold;");
 } else {
-    console.warn("%c FinAI Voice Offline ", "background: #ef4444; color: #fff; border-radius: 4px; font-weight: bold;", "Chave não encontrada no .env");
+    console.warn("%c FinAI AI Offline ", "background: #ef4444; color: #fff; border-radius: 4px; font-weight: bold;", "Chave Gemini não encontrada no .env");
 }
 
 export interface VoiceCommandResult {
@@ -74,104 +69,69 @@ const retryOperation = async <T>(operation: () => Promise<T>, maxRetries: number
 };
 
 export const generateContent = async (prompt: string): Promise<string> => {
-    if (!GROQ_API_KEY) return "Erro: Chave API Groq não configurada.";
+    if (!GEMINI_API_KEY) return "Erro: Chave API Gemini não configurada.";
 
     try {
         return await retryOperation(async () => {
-            if (groq) {
-                console.log("Using Groq for Generation...");
-                const response = await groq.chat.completions.create({
-                    model: GROQ_MODEL,
-                    messages: [{ role: "user", content: prompt }],
-                });
-                return response.choices[0].message.content || "";
+            if (genAI) {
+                console.log("Using Gemini for Generation...");
+                const model = genAI.getGenerativeModel({ model: GEMINI_MODEL });
+                const result = await model.generateContent(prompt);
+                const response = await result.response;
+                return response.text() || "";
             }
-            throw new Error("Serviço Groq não inicializado.");
+            throw new Error("Serviço Gemini não inicializado.");
         });
     } catch (error: any) {
         console.error("AI Generate Error:", error);
-        if (error.message?.includes('429')) return "Erro: Limite de uso excedido no Groq (tente novamente mais tarde).";
-        if (error.message?.includes('API key')) return "Erro: Chave API Groq inválida ou expirada.";
-        return `Erro de conexão com Groq: ${error.message || 'Desconhecido'}`;
+        if (error.message?.includes('429')) return "Erro: Limite de uso excedido no Gemini (tente novamente mais tarde).";
+        if (error.message?.includes('API key')) return "Erro: Chave API Gemini inválida ou expirada.";
+        return `Erro de conexão com Gemini: ${error.message || 'Desconhecido'}`;
     }
 };
 
 export const parseVoiceCommand = async (text: string): Promise<VoiceCommandResult> => {
-    if (!GROQ_API_KEY) {
+    if (!GEMINI_API_KEY) {
         console.error("FinAI: Tentativa de uso de voz sem chave configurada.");
         return { intent: 'UNKNOWN', data: {}, message: 'Erro: Chave API não detectada.' };
     }
 
-    // Prompt Otimizado e RESTRIÇÃO JSON FORTE
     const systemPrompt = `
-      CONTEXTO: API Financeira (PT-BR). Data: ${new Date().toISOString().split('T')[0]}.
-      TAREFA: Converter comando de voz em JSON estruturado para uma aplicação financeira completa.
-      FORMATO DE RESPOSTA: Apenas JSON válido. Sem markdown, sem explicação.
+      CONTEXTO: API Financeira (PT-BR). Data atual: ${new Date().toISOString().split('T')[0]}.
+      TAREFA: Converter comando de voz em JSON estruturado para uma aplicação financeira.
       
-      INTENTS E ESTRUTURAS ESPERADAS:
-
-      1. TRANSAÇÕES (Despesa/Receita):
-         Intent: "CREATE"
-         Data: { "description": string, "amount": number, "type": "expense" | "income", "category": string, "isPaid": boolean, "date": "YYYY-MM-DD" }
-
-      2. CONTAS (Bancos/Carteiras):
-         Intent: "CREATE_ACCOUNT" | "UPDATE_ACCOUNT" | "DELETE_ACCOUNT"
-         Data: { "name": string (ex: "Nubank", "Carteira"), "balance": number, "type": "checking" | "wallet" | "investment" }
-
-      3. METAS (Objetivos):
-         Intent: "CREATE_GOAL" | "UPDATE_GOAL" | "DELETE_GOAL"
-         Data: { "title": string, "target": number, "deadline": "YYYY-MM-DD" (opcional), "current": number (opcional) }
-
-      4. ORÇAMENTOS (Budgets):
-         Intent: "CREATE_BUDGET" | "UPDATE_BUDGET" | "DELETE_BUDGET"
-         Data: { "category": string, "amount": number }
-
-      5. SIMULAÇÃO DE APOSENTADORIA:
-         Intent: "SIMULATE_RETIREMENT"
-         Data: { "monthlyContribution": number, "desiredIncome": number, "currentPatrimony": number, "years": number }
-
-      6. DELETAR/DESFAZER:
-         Intent: "DELETE_LAST" | "DELETE_SPECIFIC"
-         Data: { "type": "transaction" | "account" | "goal" | "budget", "description"?: string }
-
-      EXEMPLOS:
-      "Gastei 50 na padaria" -> {"intent":"CREATE","data":{"description":"Padaria","amount":50,"type":"expense","category":"Alimentação"}}
-      "Criar conta Nubank com saldo 1000" -> {"intent":"CREATE_ACCOUNT","data":{"name":"Nubank","balance":1000,"type":"checking"}}
-      "Mudar meta Viagem para 5000" -> {"intent":"UPDATE_GOAL","data":{"title":"Viagem","target":5000}}
-      "Deletar orçamento de Lazer" -> {"intent":"DELETE_BUDGET","data":{"category":"Lazer"}}
-      "Simular aposentadoria com 1000 por mês e renda de 5000" -> {"intent":"SIMULATE_RETIREMENT","data":{"monthlyContribution":1000,"desiredIncome":5000}}
-      "Desfazer última despesa" -> {"intent":"DELETE_LAST","data":{"type":"transaction"}}
-      "Apagar o gasto da padaria" -> {"intent":"DELETE_SPECIFIC","data":{"type":"transaction","description":"padaria"}}
+      INTENTS E ESTRUTURAS:
+      1. CREATE: { "description": string, "amount": number, "type": "expense"|"income", "category": string, "isPaid": boolean, "date": "YYYY-MM-DD" }
+      2. CREATE_ACCOUNT: { "name": string, "balance": number, "type": "checking"|"wallet"|"investment" }
+      3. CREATE_GOAL: { "title": string, "target": number, "deadline": "YYYY-MM-DD" }
+      4. CREATE_BUDGET: { "category": string, "amount": number }
+      
+      RETORNE APENAS O JSON.
     `;
 
     try {
         return await retryOperation(async () => {
-            if (groq) {
-                const response = await groq.chat.completions.create({
-                    model: GROQ_MODEL,
-                    messages: [
-                        { role: "system", content: systemPrompt },
-                        { role: "user", content: text }
-                    ],
-                    temperature: 0.1, // Mais determinístico
-                    response_format: { type: "json_object" }
+            if (genAI) {
+                const model = genAI.getGenerativeModel({
+                    model: GEMINI_MODEL,
+                    generationConfig: { responseMimeType: "application/json" }
                 });
 
-                const textResponse = response.choices[0].message.content || "";
-                const cleaned = cleanJSON(textResponse);
-                const parsed = JSON.parse(cleaned);
+                const result = await model.generateContent([systemPrompt, `Comando do usuário: "${text}"`]);
+                const textResponse = result.response.text();
+                const parsed = JSON.parse(textResponse);
 
                 if (parsed.data) {
                     parsed.data.originalText = text;
                 }
                 return parsed;
             }
-            throw new Error("Serviço Groq não inicializado.");
+            throw new Error("Serviço Gemini não inicializado.");
         });
 
     } catch (error) {
         console.error('AI Parsing Error:', error);
-        return { intent: 'UNKNOWN', data: { originalText: text }, message: 'Desculpe, não consegui entender o comando de voz via Groq.' };
+        return { intent: 'UNKNOWN', data: { originalText: text }, message: 'Desculpe, não consegui entender o comando de voz via Gemini.' };
     }
 };
 
@@ -183,9 +143,8 @@ export const chatWithFinancialAssistant = async (
     goals: any[],
     budgets: any[]
 ): Promise<string> => {
-    if (!GROQ_API_KEY) return "Erro: Chave API Groq não configurada.";
+    if (!GEMINI_API_KEY) return "Erro: Chave API Gemini não configurada.";
 
-    // Preparar Contexto Financeiro Resumido (evitar estouro de tokens)
     const financialContext = JSON.stringify({
         totalBalance: accounts.reduce((acc, a) => acc + a.balance, 0),
         recentTransactions: transactions.slice(0, 10).map(t => ({
@@ -194,39 +153,35 @@ export const chatWithFinancialAssistant = async (
             type: t.type,
             date: t.date
         })),
-        goals: goals.map(g => ({ title: g.title, progress: (g.current / g.target) * 100 })),
+        goals: goals.map(g => ({ title: g.title, progress: (g.current / (g.target || 1)) * 100 })),
         budgets: budgets
     });
 
     const systemPrompt = `
       Você é o FinAI, um assistente financeiro pessoal inteligente, experiente e sarcástico (nível leve).
       Use o contexto financeiro abaixo para responder ao usuário.
-      Se não souber, diga que não sabe. Seja direto, prático e use emojis.
-      Dê conselhos curtos e acionáveis.
-      
-      CONTEXTO FINANCEIRO DO USUÁRIO:
-      ${financialContext}
+      CONTEXTO FINANCEIRO DO USUÁRIO: ${financialContext}
     `;
 
     try {
         return await retryOperation(async () => {
-            if (groq) {
-                const response = await groq.chat.completions.create({
-                    model: GROQ_MODEL,
-                    messages: [
-                        { role: "system", content: systemPrompt },
-                        { role: "user", content: userMessage }
+            if (genAI) {
+                const model = genAI.getGenerativeModel({ model: GEMINI_MODEL });
+                const chat = model.startChat({
+                    history: [
+                        { role: "user", parts: [{ text: systemPrompt }] },
+                        { role: "model", parts: [{ text: "Entendido. Sou o FinAI e estou pronto para ajudar com sarcasmo e inteligência." }] },
                     ],
-                    temperature: 0.7, // Um pouco mais criativo que o parser
-                    max_tokens: 500
                 });
-                return response.choices[0].message.content || "Fiquei sem palavras.";
+
+                const result = await chat.sendMessage(userMessage);
+                return result.response.text();
             }
-            throw new Error("Groq não inicializado.");
+            throw new Error("Gemini não inicializado.");
         });
     } catch (error: any) {
         console.error("Chat Error:", error);
-        return "Desculpe, meu cérebro de silício deu um nó. Tente de novo.";
+        return `Erro na IA (${error.message || 'Desconhecido'}). Verifique sua chave ou limite de uso.`;
     }
 };
 
@@ -236,35 +191,29 @@ export const performDeepAnalysis = async (transactions: Transaction[], accounts:
 };
 
 export const parseNotification = async (notificationText: string): Promise<any> => {
-    if (!GROQ_API_KEY) return null;
+    if (!GEMINI_API_KEY) return null;
 
     try {
         return await retryOperation(async () => {
             const systemPrompt = `
-          Parse this notification text for a financial app.
-          
-          Return JSON ONLY:
+          Extraia os dados financeiros desta notificação bancária.
+          RETORNE APENAS JSON:
           {
-            "description": "Merchant Name or Description",
-            "amount": 123.45,
+            "description": string,
+            "amount": number,
             "type": "expense" | "income",
-            "category": "Best guess category",
-            "subCategory": "Best guess subcategory",
-            "date": "YYYY-MM-DD" (assume today if missing)
+            "category": string,
+            "date": "YYYY-MM-DD"
           }
         `;
 
-            if (groq) {
-                const response = await groq.chat.completions.create({
-                    model: GROQ_MODEL,
-                    messages: [
-                        { role: "system", content: systemPrompt },
-                        { role: "user", content: notificationText }
-                    ],
-                    response_format: { type: "json_object" }
+            if (genAI) {
+                const model = genAI.getGenerativeModel({
+                    model: GEMINI_MODEL,
+                    generationConfig: { responseMimeType: "application/json" }
                 });
-                const cleaned = cleanJSON(response.choices[0].message.content || "");
-                return JSON.parse(cleaned);
+                const result = await model.generateContent([systemPrompt, notificationText]);
+                return JSON.parse(result.response.text());
             }
             return null;
         });
@@ -276,69 +225,48 @@ export const parseNotification = async (notificationText: string): Promise<any> 
 
 // --- INVOICE PARSING ---
 export const parseInvoice = async (invoiceText: string): Promise<any> => {
-    // Basic check, might rely on config.ts or env directly
-    const apiKey = FINAI_CONFIG.GROQ_API_KEY;
-
-    if (!apiKey) {
-        console.warn("Groq API Key missing for invoice parsing.");
-        return { error: "Chave de API da IA não configurada. Verifique o .env" };
+    if (!GEMINI_API_KEY) {
+        console.warn("Gemini API Key missing for invoice parsing.");
+        return { error: "Chave de API da Gemini não configurada." };
     }
 
-    // Truncate text if too long to avoid token limits (optimistic approach)
-    const truncatedText = invoiceText.slice(0, 15000);
+    const truncatedText = invoiceText.slice(0, 30000); // Gemini tem janela maior, aumentei de 15k para 30k
 
     const parserPrompt = `
-    Analyze the following credit card invoice text and extract the transactions.
-    Return ONLY a valid JSON object with this structure:
+    Analise o texto da fatura de cartão de crédito e extraia as transações.
+    Retorne APENAS um objeto JSON com esta estrutura:
     {
       "items": [
         {
-          "date": "YYYY-MM-DD", // Date of purchase. Use current year if missing.
-          "description": "Store Name", // Clean up the name
-          "amount": 100.00, // Positive number
-          "installmentCurrent": 1, // If installment (e.g., 01/10), else null
-          "installmentTotal": 10 // If installment, else null
+          "date": "YYYY-MM-DD",
+          "description": string,
+          "amount": number,
+          "installmentCurrent": number | null,
+          "installmentTotal": number | null
         }
       ],
-      "total": 0.00,
-      "confidence": 0.9
+      "total": number,
+      "confidence": number
     }
-
-    Rules:
-    - Ignore payments, credits, or subtotal lines. Only new purchases/installments.
-    - Convert all dates to YYYY-MM-DD.
-    - If a transaction is an installment (e.g. "Parc 01/10"), extract current and total.
-    - Return JSON only. No markdown.
-
-    INVOICE TEXT:
+    TEXTO DA FATURA:
     ${truncatedText}
     `;
 
     try {
-        const completion = await groq.chat.completions.create({
-            messages: [
-                { role: "system", content: "You are a specialized financial data extractor. You output strictly valid JSON." },
-                { role: "user", content: parserPrompt }
-            ],
-            model: "llama-3.3-70b-versatile", // Updated to a known valid Groq model
-            temperature: 0.1, // Low temp for precision
-            response_format: { type: "json_object" }
+        if (!genAI) throw new Error("GenAI não inicializado");
+
+        const model = genAI.getGenerativeModel({
+            model: GEMINI_MODEL,
+            generationConfig: { responseMimeType: "application/json" }
         });
 
-        const content = completion.choices[0]?.message?.content;
-        if (!content) throw new Error("No content from Groq");
+        const result = await model.generateContent(parserPrompt);
+        const content = result.response.text();
 
-        console.log("AI Raw Response:", content);
-
+        console.log("Gemini Raw Response:", content);
         return JSON.parse(content);
     } catch (error: any) {
-        console.error("Error parsing invoice with Groq:", error);
-
-        // If it's a JSON parse error, it means the model returned something else
-        if (error instanceof SyntaxError) {
-            return { items: [], error: `Erro na IA: Resposta inválida (Não é JSON). Tente novamente.` };
-        }
-
-        return { items: [], error: `Erro na IA: ${error.message}` };
+        console.error("Error parsing invoice with Gemini:", error);
+        return { items: [], error: `Erro na Gemini: ${error.message}` };
     }
 };

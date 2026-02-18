@@ -52,7 +52,7 @@ const FinancialAssistant: React.FC<FinancialAssistantProps> = ({
         if (prev.length === 1 && prev[0].content.includes('Olá!')) {
           return [{
             ...prev[0],
-            content: `Olá, ${userName}! Sou sua IA Financeira (Powered by Groq). Posso analisar seus gastos, dar dicas de economia ou **importar notificações**.`
+            content: `Olá, ${userName}! Sou sua IA Financeira (Powered by Gemini). Posso analisar seus gastos, dar dicas de economia ou **importar notificações**.`
           }];
         }
         return prev;
@@ -215,7 +215,7 @@ const FinancialAssistant: React.FC<FinancialAssistantProps> = ({
             <h3 className="font-black text-slate-900 text-base tracking-tight">FinAI Intelligence</h3>
             <div className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-              <span className="text-[10px] text-emerald-600 font-black uppercase tracking-widest">Groq Llama 3.3</span>
+              <span className="text-[10px] text-sky-600 font-black uppercase tracking-widest">Google Gemini 1.5 Flash</span>
             </div>
           </div>
         </div>
