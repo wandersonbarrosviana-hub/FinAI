@@ -424,56 +424,42 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                                 {freedomPoint && (
                                     <>
-                                        {/* Linha Vertical de Tempo */}
+                                        {/* Linha Vertical Vermelha da base até o patrimônio alvo */}
                                         <ReferenceLine
                                             x={viewMode === 'annual' ? freedomPoint.yearLabel : freedomPoint.month}
-                                            stroke="#10b981"
-                                            strokeDasharray="5 5"
-                                            strokeWidth={2}
-                                            isFront={true}
-                                            yAxisId="right"
-                                        />
-
-                                        {/* Ponto de Convergência (Liberdade Financeira) com Rótulo de Tempo */}
-                                        <ReferenceDot
-                                            x={viewMode === 'annual' ? freedomPoint.yearLabel : freedomPoint.month}
-                                            y={freedomPoint.displayPassiveIncome}
-                                            yAxisId="right"
-                                            r={8}
-                                            fill="#10b981"
-                                            stroke="#fff"
+                                            stroke="#ef4444"
                                             strokeWidth={3}
                                             isFront={true}
-                                            className="drop-shadow-xl"
+                                            yAxisId="left"
+                                            segment={[
+                                                { x: viewMode === 'annual' ? freedomPoint.yearLabel : freedomPoint.month, y: 0 },
+                                                { x: viewMode === 'annual' ? freedomPoint.yearLabel : freedomPoint.month, y: freedomPoint.displayTotal }
+                                            ]}
+                                        />
+
+                                        {/* Símbolo da Barraca de Praia e Tempo exatamente em cima da linha */}
+                                        <ReferenceDot
+                                            x={viewMode === 'annual' ? freedomPoint.yearLabel : freedomPoint.month}
+                                            y={freedomPoint.displayTotal}
+                                            yAxisId="left"
+                                            r={0}
+                                            isFront={true}
                                         >
+                                            <Label
+                                                value="🏖️"
+                                                position="top"
+                                                fontSize={40}
+                                                offset={10}
+                                            />
                                             <Label
                                                 value={viewMode === 'annual' ? `ANO ${freedomPoint.yearLabel}` : `MÊS ${freedomPoint.month}`}
                                                 position="top"
-                                                fill="#10b981"
+                                                fill="#ef4444"
                                                 fontSize={14}
                                                 fontWeight="900"
-                                                offset={20}
-                                            />
-                                            <Label
-                                                value="🚀 LIBERDADE FINANCEIRA"
-                                                position="top"
-                                                fill="#10b981"
-                                                fontSize={10}
-                                                fontWeight="700"
-                                                offset={40}
-                                                className="uppercase tracking-widest"
+                                                offset={55}
                                             />
                                         </ReferenceDot>
-
-                                        {/* Linha Horizontal de Referência (Discreta) */}
-                                        <ReferenceLine
-                                            y={freedomPoint.displayRequiredIncome}
-                                            yAxisId="right"
-                                            stroke="#10b981"
-                                            strokeDasharray="2 4"
-                                            strokeWidth={1}
-                                            isFront={true}
-                                        />
                                     </>
                                 )}
 
