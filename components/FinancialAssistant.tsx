@@ -38,18 +38,32 @@ const FinancialAssistant: React.FC<FinancialAssistantProps> = ({
   budgets,
   onAddTransaction
 }) => {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: 'assistant',
-      content: `Olá! Sou o FinAI, seu assistente financeiro. Como posso ajudar hoje?`,
-      timestamp: new Date()
+  const [messages, setMessages] = useState<Message[]>(() => {
+    const saved = localStorage.getItem('finai_chat_history');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        return parsed.map((m: any) => ({
+          ...m,
+          timestamp: new Date(m.timestamp)
+        }));
+      } catch (e) {
+        console.error('Error parsing chat history', e);
+      }
     }
-  ]);
+    return [
+      {
+        role: 'assistant',
+        content: `Olá, ${userName}! Sou sua IA Financeira. Posso analisar seus gastos, dar dicas de economia ou **importar notificações** de app de banco.`,
+        timestamp: new Date()
+      }
+    ];
+  });
 
   useEffect(() => {
     if (userName && userName !== 'undefined') {
       setMessages(prev => {
-        if (prev.length === 1 && prev[0].content.includes('Olá!')) {
+        if (prev.length === 1 && prev[0].content.includes('IA Financeira')) {
           return [{
             ...prev[0],
             content: `Olá, ${userName}! Sou sua IA Financeira (Powered by Gemini). Posso analisar seus gastos, dar dicas de economia ou **importar notificações**.`
@@ -75,6 +89,7 @@ const FinancialAssistant: React.FC<FinancialAssistantProps> = ({
   };
 
   useEffect(() => {
+    localStorage.setItem('finai_chat_history', JSON.stringify(messages));
     scrollToBottom();
   }, [messages]);
 
