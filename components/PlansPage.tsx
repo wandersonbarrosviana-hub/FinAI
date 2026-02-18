@@ -11,7 +11,9 @@ const PlansPage: React.FC<PlansPageProps> = ({ userPlan, onUpgradeSuccess }) => 
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        // Load PayPal Script
+        // Only load PayPal if user is not premium
+        if (userPlan === 'premium') return;
+
         const script = document.createElement('script');
         script.src = `https://www.paypal.com/sdk/js?client-id=sb&currency=BRL`; // Use 'sb' for sandbox as default
         script.async = true;
@@ -23,11 +25,16 @@ const PlansPage: React.FC<PlansPageProps> = ({ userPlan, onUpgradeSuccess }) => 
         document.body.appendChild(script);
 
         return () => {
-            document.body.removeChild(script);
+            if (document.body.contains(script)) {
+                document.body.removeChild(script);
+            }
         };
-    }, []);
+    }, [userPlan]);
 
     const renderPayPalButton = () => {
+        const container = document.getElementById('paypal-button-container');
+        if (!container) return;
+
         (window as any).paypal.Buttons({
             style: {
                 layout: 'vertical',
