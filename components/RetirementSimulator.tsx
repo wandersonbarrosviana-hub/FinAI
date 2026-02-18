@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Transaction } from '../types';
-import { ComposedChart, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Line, Bar, ReferenceDot, Label, ReferenceLine } from 'recharts';
+import { ComposedChart, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Line, Bar, ReferenceDot, Label, ReferenceLine, ReferenceArea } from 'recharts';
 import { Calculator, Table, Calendar, TrendingUp, DollarSign, Info, Umbrella } from 'lucide-react';
 import ChartContainer from './ChartContainer';
 import { Budget } from '../types';
@@ -424,6 +424,15 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                                 {freedomPoint && (
                                     <>
+                                        {/* Destaque (Preenchimento) no Eixo X - Simulado com Linha Larga */}
+                                        <ReferenceLine
+                                            x={viewMode === 'annual' ? freedomPoint.yearLabel : freedomPoint.month}
+                                            stroke="#ef4444"
+                                            strokeWidth={50}
+                                            strokeOpacity={0.1}
+                                            yAxisId="left"
+                                        />
+
                                         {/* Linha Vertical Vermelha da base até o meio do gráfico */}
                                         <ReferenceLine
                                             x={viewMode === 'annual' ? freedomPoint.yearLabel : freedomPoint.month}
