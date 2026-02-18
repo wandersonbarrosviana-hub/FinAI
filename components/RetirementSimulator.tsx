@@ -489,10 +489,35 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                                     dataKey={viewMode === 'annual' ? "yearLabel" : "month"}
                                     axisLine={false}
                                     tickLine={false}
-                                    tick={{ fontSize: 10, fontWeight: 700, fill: '#94a3b8' }}
                                     minTickGap={30}
                                     dy={15}
+                                    tick={(props: any) => {
+                                        const { x, y, payload } = props;
+                                        const isFreedom = freedomPoint && (
+                                            viewMode === 'annual'
+                                                ? payload.value === freedomPoint.yearLabel
+                                                : payload.value === freedomPoint.month
+                                        );
+                                        if (isFreedom) {
+                                            return (
+                                                <g transform={`translate(${x},${y})`}>
+                                                    <rect x={-22} y={-4} width={44} height={22} rx={6} fill="#ef4444" />
+                                                    <text x={0} y={12} textAnchor="middle" fill="white" fontSize={10} fontWeight={900}>
+                                                        {payload.value}
+                                                    </text>
+                                                </g>
+                                            );
+                                        }
+                                        return (
+                                            <g transform={`translate(${x},${y})`}>
+                                                <text x={0} y={12} textAnchor="middle" fill="#94a3b8" fontSize={10} fontWeight={700}>
+                                                    {payload.value}
+                                                </text>
+                                            </g>
+                                        );
+                                    }}
                                 />
+
                                 <YAxis
                                     yAxisId="left"
                                     axisLine={false}
