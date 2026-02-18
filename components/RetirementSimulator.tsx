@@ -17,31 +17,48 @@ interface RetirementSimulatorProps {
     } | null;
 }
 
+const LS_KEY = 'finai_retirement_params';
+
 const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions, budgets, simulationParams }) => {
-    // Inputs
-    const [desiredIncome, setDesiredIncome] = useState(5000);
-    const [currentPatrimony, setCurrentPatrimony] = useState(0);
-    const [monthlyContribution, setMonthlyContribution] = useState(1000);
-    const [annualRate, setAnnualRate] = useState(10); // 10% a.a
-    const [annualInflation, setAnnualInflation] = useState(4); // 4% a.a
+    // Helper to load from localStorage
+    const loadSaved = () => {
+        try { return JSON.parse(localStorage.getItem(LS_KEY) || '{}'); } catch { return {}; }
+    };
+
+    // Inputs - initialized from localStorage
+    const saved = loadSaved();
+    const [desiredIncome, setDesiredIncome] = useState<number>(saved.desiredIncome ?? 5000);
+    const [currentPatrimony, setCurrentPatrimony] = useState<number>(saved.currentPatrimony ?? 0);
+    const [monthlyContribution, setMonthlyContribution] = useState<number>(saved.monthlyContribution ?? 1000);
+    const [annualRate, setAnnualRate] = useState<number>(saved.annualRate ?? 10);
+    const [annualInflation, setAnnualInflation] = useState<number>(saved.annualInflation ?? 4);
 
     // Display states for monetary inputs (formatted strings)
-    const [desiredIncomeDisplay, setDesiredIncomeDisplay] = useState('5.000');
-    const [currentPatrimonyDisplay, setCurrentPatrimonyDisplay] = useState('');
-    const [monthlyContributionDisplay, setMonthlyContributionDisplay] = useState('1.000');
-
     const formatCurrency = (value: number) =>
         value === 0 ? '' : value.toLocaleString('pt-BR');
-
     const parseCurrency = (text: string) =>
         Number(text.replace(/\./g, '').replace(',', '.')) || 0;
 
-    // View State
-    const [viewMode, setViewMode] = useState<'monthly' | 'annual'>('annual');
-    const [showRealValues, setShowRealValues] = useState(false);
-    const [applyBudgetSurplus, setApplyBudgetSurplus] = useState(false);
-    const [adjustContributionForInflation, setAdjustContributionForInflation] = useState(false);
-    const [yearsToSimulate, setYearsToSimulate] = useState(60); // Default to 60 years
+    const [desiredIncomeDisplay, setDesiredIncomeDisplay] = useState(() => formatCurrency(saved.desiredIncome ?? 5000));
+    const [currentPatrimonyDisplay, setCurrentPatrimonyDisplay] = useState(() => formatCurrency(saved.currentPatrimony ?? 0));
+    const [monthlyContributionDisplay, setMonthlyContributionDisplay] = useState(() => formatCurrency(saved.monthlyContribution ?? 1000));
+
+    // View State - also persisted
+    const [viewMode, setViewMode] = useState<'monthly' | 'annual'>(saved.viewMode ?? 'annual');
+    const [showRealValues, setShowRealValues] = useState<boolean>(saved.showRealValues ?? false);
+    const [applyBudgetSurplus, setApplyBudgetSurplus] = useState<boolean>(saved.applyBudgetSurplus ?? false);
+    const [adjustContributionForInflation, setAdjustContributionForInflation] = useState<boolean>(saved.adjustContributionForInflation ?? false);
+    const [yearsToSimulate, setYearsToSimulate] = useState<number>(saved.yearsToSimulate ?? 60);
+
+    // Persist all states to localStorage whenever they change
+    React.useEffect(() => {
+        localStorage.setItem(LS_KEY, JSON.stringify({
+            desiredIncome, currentPatrimony, monthlyContribution,
+            annualRate, annualInflation, viewMode, showRealValues,
+            applyBudgetSurplus, adjustContributionForInflation, yearsToSimulate
+        }));
+    }, [desiredIncome, currentPatrimony, monthlyContribution, annualRate, annualInflation,
+        viewMode, showRealValues, applyBudgetSurplus, adjustContributionForInflation, yearsToSimulate]);
 
     // Effect to update state from AI params
     React.useEffect(() => {
@@ -52,6 +69,8 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
             if (simulationParams.years) setYearsToSimulate(simulationParams.years);
         }
     }, [simulationParams]);
+
+
 
     // Budget Surplus Calculation - Refined with failover and CATEGORIES defaults
     const budgetSurplus = useMemo(() => {
