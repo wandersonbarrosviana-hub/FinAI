@@ -71,11 +71,11 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
         return Math.max(0, income - totalBudgeted);
     }, [transactions, budgets]);
 
-    // Helper to calculate simulation data
     const calculateSimulation = (extraMonthly: number) => {
         const data = [];
         let currentBalance = currentPatrimony;
         let totalInvested = currentPatrimony;
+        let totalRealInvested = currentPatrimony;
 
         const monthlyRate = Math.pow(1 + annualRate / 100, 1 / 12) - 1;
         const monthlyInflation = Math.pow(1 + annualInflation / 100, 1 / 12) - 1;
@@ -95,6 +95,7 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                     year: 0,
                     yearLabel: new Date().getFullYear(),
                     invested: currentPatrimony,
+                    realInvested: currentPatrimony,
                     interest: 0,
                     total: currentPatrimony,
                     passiveIncome: 0,
@@ -113,6 +114,10 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
             totalInvested += baseMonthlyContribution;
 
             cumulativeInflationFactor *= (1 + monthlyInflation);
+
+            // For real investment, we accumulate the present value of each contribution
+            totalRealInvested += (baseMonthlyContribution / cumulativeInflationFactor);
+
             const currentTarget = baseTarget * cumulativeInflationFactor;
 
             const realValue = currentBalance / cumulativeInflationFactor;
@@ -126,6 +131,7 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                 year: Math.floor(i / 12),
                 yearLabel: new Date().getFullYear() + Math.floor(i / 12),
                 invested: totalInvested,
+                realInvested: totalRealInvested,
                 interest: interestEarned,
                 total: currentBalance,
                 passiveIncome: interestEarned,
@@ -186,13 +192,19 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
             processedData = annualData;
         }
 
-        return processedData.map(d => ({
-            ...d,
-            displayTotal: showRealValues ? (d.realTotal || 0) : (d.total || 0),
-            displayPassiveIncome: showRealValues ? (d.realPassiveIncome || 0) : (d.passiveIncome || 0),
-            displayRequiredIncome: showRealValues ? (d.requiredIncomeReal || 0) : (d.requiredIncomeNominal || 0),
-            displayAccumulatedInterest: (showRealValues ? (d.realTotal || 0) : (d.total || 0)) - d.invested
-        })).filter(d => d.year <= yearsToSimulate);
+        return processedData.map(d => {
+            const displayTotal = showRealValues ? (d.realTotal || 0) : (d.total || 0);
+            const displayInvested = showRealValues ? (d.realInvested || 0) : (d.invested || 0);
+
+            return {
+                ...d,
+                displayTotal,
+                displayInvested,
+                displayPassiveIncome: showRealValues ? (d.realPassiveIncome || 0) : (d.passiveIncome || 0),
+                displayRequiredIncome: showRealValues ? (d.requiredIncomeReal || 0) : (d.requiredIncomeNominal || 0),
+                displayAccumulatedInterest: displayTotal - displayInvested
+            };
+        }).filter(d => d.year <= yearsToSimulate);
     }, [simulationData, viewMode, showRealValues, yearsToSimulate]);
 
     // Find Freedom Point (First time Passive Income > Required)
@@ -521,7 +533,7 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                                 <Area
                                     yAxisId="left"
                                     type="monotone"
-                                    dataKey="invested"
+                                    dataKey="displayInvested"
                                     stroke="#0ea5e9"
                                     strokeWidth={3}
                                     fillOpacity={1}
@@ -581,7 +593,7 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                                             </span>
                                         </td>
                                         <td className="px-8 py-5 text-slate-600 dark:text-slate-300 font-bold">
-                                            R$ {row.invested.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
+                                            R$ {row.displayInvested.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
                                         </td>
                                         <td className="px-8 py-5 text-emerald-500 dark:text-emerald-400 font-bold">
                                             + R$ {row.displayAccumulatedInterest.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
