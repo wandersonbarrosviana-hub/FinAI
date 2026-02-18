@@ -14,6 +14,7 @@ import {
 import { Transaction, Account } from '../types';
 // import { processLocalQuery } from '../localIntelligence'; // Legacy
 import { chatWithFinancialAssistant, parseNotification } from '../aiService';
+import { canUseAI } from '../planConstraints';
 
 interface FinancialAssistantProps {
   userName: string;
@@ -22,6 +23,8 @@ interface FinancialAssistantProps {
   goals: any[];
   budgets: any[];
   onAddTransaction: (t: any) => void;
+  userPlan: 'free' | 'premium';
+  userRole: string;
 }
 
 interface Message {
@@ -36,7 +39,9 @@ const FinancialAssistant: React.FC<FinancialAssistantProps> = ({
   accounts,
   goals,
   budgets,
-  onAddTransaction
+  onAddTransaction,
+  userPlan,
+  userRole
 }) => {
   const [messages, setMessages] = useState<Message[]>(() => {
     const saved = localStorage.getItem('finai_chat_history');
@@ -95,6 +100,23 @@ const FinancialAssistant: React.FC<FinancialAssistantProps> = ({
 
   const handleSend = async () => {
     if (!input.trim()) return;
+
+    // Check Plan Limits
+    const today = new Date().toDateString();
+    const dailyCount = messages.filter(m =>
+      m.role === 'user' &&
+      new Date(m.timestamp).toDateString() === today
+    ).length;
+
+    if (userRole !== 'admin' && !canUseAI(userPlan, dailyCount)) {
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: `Você atingiu o limite de ${dailyCount} mensagens diárias do plano Gratuito. Faça o upgrade para Premium para ter uma consultoria ilimitada! 🚀`,
+        timestamp: new Date()
+      }]);
+      setInput('');
+      return;
+    }
 
     const userMsg: Message = {
       role: 'user',

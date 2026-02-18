@@ -22,6 +22,8 @@ import ProfileModal from './components/ProfileModal';
 import FinancialAssistant from './components/FinancialAssistant';
 import CustomBudgetManager from './components/CustomBudgetManager';
 import AdminPanel from './components/AdminPanel';
+import PlansPage from './components/PlansPage';
+import { canAddTransaction } from './planConstraints';
 import { Budget, CustomBudget } from './types';
 
 import { Bell, Search, User as UserIcon, Plus, Sparkles, AlertCircle, ChevronLeft, ChevronRight, Loader2, LogOut, Settings as SettingsIcon, MessageSquare } from 'lucide-react';
@@ -37,6 +39,7 @@ const App: React.FC = () => {
   const [familyMembers, setFamilyMembers] = useState<Record<string, { name: string, avatar: string }>>({});
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [userRole, setUserRole] = useState<string>('user');
+  const [userPlan, setUserPlan] = useState<'free' | 'premium'>('free');
   const [currentView, setCurrentView] = useState<ViewState | 'settings'>(() => {
     return (localStorage.getItem('finai_current_view') as ViewState | 'settings') || 'dashboard';
   });
@@ -144,16 +147,17 @@ const App: React.FC = () => {
         supabase.from('budgets').select('*'),
         supabase.from('custom_budgets').select('*'),
         supabase.rpc('get_family_details', { current_user_id: userId }),
-        supabase.from('profiles').select('role').eq('id', userId).single()
+        supabase.from('profiles').select('role, plan_type').eq('id', userId).single()
       ]);
 
       if (txRes.error) throw txRes.error;
       if (accRes.error) throw accRes.error;
       if (goalRes.error) throw goalRes.error;
 
-      // Set user role from profile
+      // Set user role and plan from profile
       if (profileRes.data) {
         setUserRole(profileRes.data.role);
+        setUserPlan(profileRes.data.plan_type as 'free' | 'premium' || 'free');
       }
 
       // Process Family Members
@@ -198,23 +202,6 @@ const App: React.FC = () => {
       setAccounts(mappedAccs);
       setGoals(goalRes.data || []);
       setTags(tagRes.data || []);
-      setBudgets(budRes.data || []);
-
-      if (cbRes.data) {
-        const mappedCB = cbRes.data.map((cb: any) => ({
-          id: cb.id,
-          userId: cb.user_id,
-          name: cb.name,
-          categories: cb.categories,
-          limitType: cb.limit_type,
-          limitValue: cb.limit_value
-        }));
-        setCustomBudgets(mappedCB);
-      }
-      // I need to fix the destructuring line as well.
-      // Let's do it in a separate chunk or check if I can combine.
-      // The destructuring was: `const [txRes, accRes, goalRes, tagRes] = await Promise.all([...])`
-      // I need `const [txRes, accRes, goalRes, tagRes, budRes] = ...`
       setBudgets(budRes.data || []);
 
       if (cbRes.data) {
@@ -540,6 +527,16 @@ const App: React.FC = () => {
   const handleAddTransaction = async (data: Partial<Transaction>) => {
     if (!user) return;
 
+    // Check Plan Limits
+    const currentMonth = new Date().toISOString().slice(0, 7);
+    const monthlyCount = transactions.filter(t => t.date.startsWith(currentMonth)).length;
+
+    if (userRole !== 'admin' && !canAddTransaction(userPlan, monthlyCount)) {
+      alert(`Você atingiu o limite de ${monthlyCount} transações do plano Gratuito. Faça o upgrade para Premium para ter lançamentos ilimitados!`);
+      setCurrentView('plans');
+      return;
+    }
+
     const baseTx = {
       description: data.description || 'Novo Lançamento',
       amount: data.amount || 0,
@@ -859,6 +856,12 @@ const App: React.FC = () => {
 
   const handleAddCustomBudget = async (data: Partial<CustomBudget>) => {
     if (!user) return;
+
+    if (userRole !== 'admin' && userPlan !== 'premium') {
+      alert("Orçamentos personalizados são exclusivos para usuários Premium. Faça o upgrade agora!");
+      setCurrentView('plans');
+      return;
+    }
     const newCB = {
       user_id: user.id,
       name: data.name,
@@ -1307,12 +1310,15 @@ const App: React.FC = () => {
                   goals={goals}
                   budgets={budgets}
                   onAddTransaction={handleAddTransaction}
+                  userPlan={userPlan}
+                  userRole={userRole}
                 />
               </div>
             </div>
           )}
           {currentView === 'expenses' && <ExpenseManager type="expense" transactions={filteredTransactions} onAddTransaction={handleAddTransaction} onDeleteTransaction={handleDeleteTransaction} onUpdateTransaction={handleUpdateTransaction} tags={tags} accounts={accounts} familyMembers={familyMembers} />}
           {currentView === 'income' && <ExpenseManager type="income" transactions={filteredTransactions} allTransactions={transactions} onAddTransaction={handleAddTransaction} onDeleteTransaction={handleDeleteTransaction} onUpdateTransaction={handleUpdateTransaction} tags={tags} accounts={accounts} familyMembers={familyMembers} />}
+          {currentView === 'plans' && <PlansPage userPlan={userPlan} onUpgradeSuccess={() => fetchData(user!.id)} />}
           {currentView === 'charts' && <ChartsHub transactions={filteredTransactions} />}
           {currentView === 'settings' && <Settings user={user} onLogout={handleLogout} onExportData={handleExportData} onResetData={handleResetData} />}
         </div>
