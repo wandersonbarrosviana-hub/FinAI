@@ -424,7 +424,7 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                                 {freedomPoint && (
                                     <>
-                                        {/* Linha Vertical Vermelha da base até o patrimônio alvo */}
+                                        {/* Linha Vertical Vermelha da base até o meio do gráfico */}
                                         <ReferenceLine
                                             x={viewMode === 'annual' ? freedomPoint.yearLabel : freedomPoint.month}
                                             stroke="#ef4444"
@@ -433,14 +433,14 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                                             yAxisId="left"
                                             segment={[
                                                 { x: viewMode === 'annual' ? freedomPoint.yearLabel : freedomPoint.month, y: 0 },
-                                                { x: viewMode === 'annual' ? freedomPoint.yearLabel : freedomPoint.month, y: freedomPoint.displayTotal }
+                                                { x: viewMode === 'annual' ? freedomPoint.yearLabel : freedomPoint.month, y: (Math.max(...displayData.map(d => d.displayTotal), 1) / 2) }
                                             ]}
                                         />
 
-                                        {/* Símbolo da Barraca de Praia e Tempo exatamente em cima da linha */}
+                                        {/* Símbolo da Barraca de Praia e Tempo exatamente no topo da linha (meio do gráfico) */}
                                         <ReferenceDot
                                             x={viewMode === 'annual' ? freedomPoint.yearLabel : freedomPoint.month}
-                                            y={freedomPoint.displayTotal}
+                                            y={Math.max(...displayData.map(d => d.displayTotal), 1) / 2}
                                             yAxisId="left"
                                             r={0}
                                             isFront={true}
