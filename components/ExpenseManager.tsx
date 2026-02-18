@@ -865,7 +865,7 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
                   <td className="px-4 py-4 text-center whitespace-nowrap">
                     {t.attachment && t.attachment.startsWith('data:image') ? (
                       <button
-                        onClick={() => window.open(t.attachment, '_blank')}
+                        onClick={() => setSelectedAttachment(t.attachment!)}
                         className="relative group/photo inline-block"
                         title="Ver foto em tamanho completo"
                       >
