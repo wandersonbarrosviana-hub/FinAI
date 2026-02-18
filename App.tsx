@@ -39,7 +39,7 @@ const App: React.FC = () => {
   const [familyMembers, setFamilyMembers] = useState<Record<string, { name: string, avatar: string }>>({});
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [userRole, setUserRole] = useState<string>('user');
-  const [userPlan, setUserPlan] = useState<'free' | 'premium'>('free');
+  const [userPlan, setUserPlan] = useState<'free' | 'pro' | 'premium'>('free');
   const [currentView, setCurrentView] = useState<ViewState | 'settings'>(() => {
     return (localStorage.getItem('finai_current_view') as ViewState | 'settings') || 'dashboard';
   });
@@ -157,7 +157,7 @@ const App: React.FC = () => {
       // Set user role and plan from profile
       if (profileRes.data) {
         setUserRole(profileRes.data.role);
-        setUserPlan(profileRes.data.plan_type as 'free' | 'premium' || 'free');
+        setUserPlan(profileRes.data.plan_type as 'free' | 'pro' | 'premium' || 'free');
       }
 
       // Process Family Members

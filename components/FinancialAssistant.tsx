@@ -23,7 +23,7 @@ interface FinancialAssistantProps {
   goals: any[];
   budgets: any[];
   onAddTransaction: (t: any) => void;
-  userPlan: 'free' | 'premium';
+  userPlan: 'free' | 'pro' | 'premium';
   userRole: string;
 }
 

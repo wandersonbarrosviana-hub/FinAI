@@ -7,6 +7,14 @@ export const PLAN_LIMITS = {
         hasCustomBudgets: false,
         hasReports: true,
     },
+    pro: {
+        maxAccounts: Infinity,
+        maxCards: Infinity,
+        maxDailyAIMessages: Infinity,
+        canAddFamily: false,
+        hasCustomBudgets: true,
+        hasReports: true,
+    },
     premium: {
         maxAccounts: Infinity,
         maxCards: Infinity,
@@ -17,18 +25,18 @@ export const PLAN_LIMITS = {
     }
 };
 
-export const canAddAccount = (plan: 'free' | 'premium', currentCount: number) => {
+export const canAddAccount = (plan: 'free' | 'pro' | 'premium', currentCount: number) => {
     return currentCount < PLAN_LIMITS[plan].maxAccounts;
 };
 
-export const canAddCard = (plan: 'free' | 'premium', currentCount: number) => {
+export const canAddCard = (plan: 'free' | 'pro' | 'premium', currentCount: number) => {
     return currentCount < PLAN_LIMITS[plan].maxCards;
 };
 
-export const canUseAI = (plan: 'free' | 'premium', dailyCount: number) => {
+export const canUseAI = (plan: 'free' | 'pro' | 'premium', dailyCount: number) => {
     return dailyCount < PLAN_LIMITS[plan].maxDailyAIMessages;
 };
 
-export const hasAccessToFeature = (plan: 'free' | 'premium', feature: keyof typeof PLAN_LIMITS['free']) => {
+export const hasAccessToFeature = (plan: 'free' | 'pro' | 'premium', feature: keyof typeof PLAN_LIMITS['free']) => {
     return !!PLAN_LIMITS[plan][feature];
 };

@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
-import { User, Shield, Users, Calendar, Clock, Star, Search, Loader2, ChevronRight, Check, X } from 'lucide-react';
+import { User, Shield, Users, Calendar, Clock, Star, Search, Loader2, ChevronRight, Check, X, Rocket } from 'lucide-react';
 
 interface AdminUserProfile {
     id: string;
     email: string;
     full_name: string;
     avatar_url: string;
-    plan_type: 'free' | 'premium';
+    plan_type: 'free' | 'pro' | 'premium';
     role: 'user' | 'admin';
     created_at: string;
 }
@@ -38,7 +38,12 @@ const AdminPanel: React.FC = () => {
 
     const togglePlan = async (userId: string, currentPlan: string) => {
         setUpdatingUserId(userId);
-        const newPlan = currentPlan === 'premium' ? 'free' : 'premium';
+        // Cycle: free -> pro -> premium -> free
+        let newPlan: 'free' | 'pro' | 'premium' = 'free';
+        if (currentPlan === 'free') newPlan = 'pro';
+        else if (currentPlan === 'pro') newPlan = 'premium';
+        else newPlan = 'free';
+
         try {
             const { error } = await supabase
                 .from('profiles')
@@ -46,7 +51,7 @@ const AdminPanel: React.FC = () => {
                 .eq('id', userId);
 
             if (error) throw error;
-            setUsers(users.map(u => u.id === userId ? { ...u, plan_type: newPlan as any } : u));
+            setUsers(users.map(u => u.id === userId ? { ...u, plan_type: newPlan } : u));
         } catch (error) {
             console.error('Error updating plan:', error);
             alert('Erro ao atualizar plano.');
@@ -102,11 +107,15 @@ const AdminPanel: React.FC = () => {
                     <div className="w-14 h-14 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600">
                         <Star size={28} />
                     </div>
-                    <div>
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Usuários Premium</p>
-                        <h3 className="text-3xl font-black text-slate-900">
-                            {users.filter(u => u.plan_type === 'premium').length}
-                        </h3>
+                    <div className="flex-1">
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Assinantes</p>
+                        <div className="flex items-baseline gap-3">
+                            <h3 className="text-2xl font-black text-slate-900">{users.filter(u => u.plan_type !== 'free').length}</h3>
+                            <div className="flex gap-2 text-[10px] font-bold">
+                                <span className="text-sky-600">PRO: {users.filter(u => u.plan_type === 'pro').length}</span>
+                                <span className="text-amber-600">PREM: {users.filter(u => u.plan_type === 'premium').length}</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex items-center gap-6">
@@ -193,11 +202,15 @@ const AdminPanel: React.FC = () => {
                                     </td>
                                     <td className="px-8 py-5 text-center">
                                         <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest border ${u.plan_type === 'premium'
-                                                ? 'bg-amber-50 text-amber-600 border-amber-100'
+                                            ? 'bg-amber-50 text-amber-600 border-amber-100'
+                                            : u.plan_type === 'pro'
+                                                ? 'bg-sky-50 text-sky-600 border-sky-100'
                                                 : 'bg-slate-50 text-slate-400 border-slate-100'
                                             }`}>
                                             {u.plan_type === 'premium' ? (
                                                 <><Star size={12} className="mr-1 shadow-sm" /> Premium</>
+                                            ) : u.plan_type === 'pro' ? (
+                                                <><Rocket size={12} className="mr-1" /> Pro</>
                                             ) : (
                                                 'Gratuita'
                                             )}
@@ -208,10 +221,12 @@ const AdminPanel: React.FC = () => {
                                             onClick={() => togglePlan(u.id, u.plan_type)}
                                             disabled={updatingUserId === u.id || u.role === 'admin'}
                                             className={`p-3 rounded-2xl transition-all shadow-sm ${u.plan_type === 'premium'
-                                                    ? 'bg-rose-50 text-rose-500 hover:bg-rose-100 border border-rose-100'
-                                                    : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-100'
+                                                ? 'bg-amber-50 text-amber-600 hover:bg-amber-100 border border-amber-100'
+                                                : u.plan_type === 'pro'
+                                                    ? 'bg-sky-50 text-sky-600 hover:bg-sky-100 border border-sky-100'
+                                                    : 'bg-slate-50 text-slate-400 hover:bg-slate-100 border border-slate-100'
                                                 } disabled:opacity-50`}
-                                            title={u.plan_type === 'premium' ? 'Remover Premium' : 'Tornar Premium'}
+                                            title="Alternar Plano"
                                         >
                                             {updatingUserId === u.id ? (
                                                 <Loader2 size={20} className="animate-spin" />

@@ -8,7 +8,7 @@ interface ProfileModalProps {
     isOpen: boolean;
     onClose: () => void;
     onUpdate: (newName: string, newAvatarUrl?: string) => Promise<void>;
-    userPlan: 'free' | 'premium';
+    userPlan: 'free' | 'pro' | 'premium';
     userRole: string;
 }
 
@@ -108,8 +108,11 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
         setLoading(true);
         try {
             // Check Plan Limits
-            if (userRole !== 'admin' && userPlan === 'free') {
-                alert('A funcionalidade de Família está disponível apenas no plano Premium. Faça o upgrade para gerenciar finanças com outras pessoas!');
+            if (userRole !== 'admin' && userPlan !== 'premium') {
+                const message = userPlan === 'pro'
+                    ? 'A funcionalidade de Família é exclusiva do plano Premium. Faça o upgrade para convidar membros e herdar benefícios!'
+                    : 'A funcionalidade de Família está disponível apenas no plano Premium. Faça o upgrade para gerenciar finanças com outras pessoas!';
+                alert(message);
                 return;
             }
 
@@ -405,19 +408,23 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
                                 <div>
                                     <h3 className="text-lg font-black text-slate-900 mb-1">Membros da Família</h3>
                                     <p className="text-slate-500 text-sm">Adicione até 2 pessoas para gerenciar as finanças juntos.</p>
-                                    {userPlan === 'free' && userRole !== 'admin' && (
+                                    {userPlan !== 'premium' && userRole !== 'admin' && (
                                         <div className="mt-4 p-4 bg-amber-50 border border-amber-100 rounded-2xl flex items-center gap-3">
                                             <div className="p-2 bg-amber-100 text-amber-600 rounded-xl">
                                                 <Users size={20} />
                                             </div>
                                             <div>
-                                                <p className="text-sm font-bold text-amber-900">Recurso Premium</p>
-                                                <p className="text-xs text-amber-700">A gestão familiar está disponível apenas para usuários Premium.</p>
+                                                <p className="text-sm font-bold text-amber-900">Recurso Exclusivo Premium</p>
+                                                <p className="text-xs text-amber-700">
+                                                    {userPlan === 'free'
+                                                        ? 'A gestão familiar está disponível apenas para usuários Premium.'
+                                                        : 'Seu plano PRO é individual. Para gerenciar finanças com familiares, mude para Premium.'}
+                                                </p>
                                             </div>
                                         </div>
                                     )}
                                 </div>
-                                <div className={`space-y-6 ${userPlan === 'free' && userRole !== 'admin' ? 'opacity-50 pointer-events-none grayscale' : ''}`}>
+                                <div className={`space-y-6 ${userPlan !== 'premium' && userRole !== 'admin' ? 'opacity-50 pointer-events-none grayscale' : ''}`}>
                                     <div className="space-y-4">
                                         <div className="flex gap-2">
                                             <input
