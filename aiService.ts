@@ -59,17 +59,21 @@ const retryOperation = async <T>(operation: () => Promise<T>, maxRetries: number
             return await operation();
         } catch (error: any) {
             lastError = error;
-            // Check for 429 (Rate Limit) or 503 (Service Unavailable)
-            const isRateLimit = error.message?.includes('429') ||
-                error.message?.includes('503') ||
-                error.message?.includes('Resource has been exhausted') ||
-                error.message?.toLowerCase().includes('retry');
-            const isServiceOverloaded = error.message?.includes('503') || error.message?.includes('Overloaded');
+            // Check for 429 (Rate Limit), 503 (Service Unavailable) or Network issues
+            const errorMessage = error.message?.toLowerCase() || '';
+            const isRateLimit = errorMessage.includes('429') ||
+                errorMessage.includes('exhausted') ||
+                errorMessage.includes('retry');
+            const isServiceOverloaded = errorMessage.includes('503') || errorMessage.includes('overloaded');
+            const isNetworkError = errorMessage.includes('fetch') ||
+                errorMessage.includes('network') ||
+                errorMessage.includes('aborted') ||
+                errorMessage.includes('failed to fetch');
 
-            if (isRateLimit || isServiceOverloaded) {
-                console.warn(`Attempt ${i + 1} failed (Rate Limit). Retrying in ${delayMs / 1000}s...`);
+            if (isRateLimit || isServiceOverloaded || isNetworkError) {
+                console.warn(`Attempt ${i + 1} failed (${isNetworkError ? 'Network' : 'Rate/Load'}). Retrying in ${delayMs / 1000}s...`);
                 await new Promise(resolve => setTimeout(resolve, delayMs));
-                delayMs *= 2; // Exponential backoff (2s -> 4s -> 8s)
+                delayMs *= 1.5; // Slightly less aggressive backoff for network
             } else {
                 throw error; // Throw other errors immediately
             }
@@ -174,17 +178,18 @@ export const chatWithFinancialAssistant = async (
     const safeMessage = sanitizeInput(userMessage, 4000);
     if (!safeMessage) return 'Mensagem inválida ou muito longa.';
 
-    // Increased context size: 50 transactions and 10 goals
+    // Optimized Context: 20 detailed transactions + 30 summary transactions to reduce tokens/latency
     const safeContext = JSON.stringify({
         totalBalance: accounts.reduce((acc, a) => acc + a.balance, 0),
-        recentTransactions: transactions.slice(0, 50).map(t => ({
-            desc: t.description,
-            value: t.amount,
+        detailedTransactions: transactions.slice(0, 20).map(t => ({
+            desc: t.description?.slice(0, 40),
+            val: t.amount,
             type: t.type,
             date: t.date
         })),
-        goals: goals.slice(0, 10).map(g => ({ title: g.title, progress: (g.current / (g.target || 1)) * 100 })),
-        budgets: budgets.slice(0, 20)
+        olderTransactionsSummary: transactions.slice(20, 50).map(t => `${t.date}: ${t.amount} (${t.type})`),
+        goals: goals.slice(0, 5).map(g => ({ title: g.title?.slice(0, 20), p: Math.round((g.current / (g.target || 1)) * 100) })),
+        budgets: budgets.slice(0, 10).map(b => ({ cat: b.category, limit: b.amount }))
     });
 
     const systemPrompt = `

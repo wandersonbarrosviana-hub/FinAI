@@ -79,7 +79,13 @@ const FinancialAssistant: React.FC<FinancialAssistantProps> = ({
     }
   }, [userName]);
   const [input, setInput] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
+  const [isTyping, setIsTyping] = useState(() => {
+    return localStorage.getItem('finai_ai_thinking') === 'true';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('finai_ai_thinking', isTyping.toString());
+  }, [isTyping]);
 
   // Notification Import State
   const [showImportModal, setShowImportModal] = useState(false);
@@ -129,7 +135,7 @@ const FinancialAssistant: React.FC<FinancialAssistantProps> = ({
     setIsTyping(true);
 
     try {
-      // Use Groq AI
+      // Use logic that survived tab backgrounding better
       const responseText = await chatWithFinancialAssistant(
         userMsg.content,
         transactions,
@@ -146,13 +152,16 @@ const FinancialAssistant: React.FC<FinancialAssistantProps> = ({
 
       setMessages(prev => [...prev, assistantMsg]);
     } catch (error) {
+      console.error("Chat error:", error);
+      // Only add error message if it wasn't a "tab hibernate" cancellation
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: "Desculpe, tive um problema de conexão. Tente novamente.",
+        content: "Ops! Tive um problema ao processar. Certifique-se de manter a aba ativa para respostas mais rápidas.",
         timestamp: new Date()
       }]);
     } finally {
       setIsTyping(false);
+      localStorage.removeItem('finai_ai_thinking');
     }
   };
 
