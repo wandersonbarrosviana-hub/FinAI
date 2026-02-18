@@ -790,7 +790,8 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
               <tr>
                 <th className="sticky left-0 z-20 bg-slate-50 dark:bg-slate-800 px-4 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] w-[80px]">Status</th>
                 <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest whitespace-nowrap">Conta</th>
-                <th className="sticky left-[80px] z-20 bg-slate-50 dark:bg-slate-800 px-4 md:px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] min-w-[200px]">Info</th>
+                <th className="sticky left-[80px] z-20 bg-slate-50 dark:bg-slate-800 px-4 md:px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] min-w-[200px]">Descrição</th>
+                <th className="px-4 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest whitespace-nowrap text-center">Foto</th>
                 <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest whitespace-nowrap">Categoria</th>
                 <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest whitespace-nowrap">Recorrência</th>
                 <th className="px-4 md:px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest text-right whitespace-nowrap">Valor</th>
@@ -860,6 +861,27 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
                       </span>
                     </div>
                   </td>
+                  {/* Foto / Comprovante */}
+                  <td className="px-4 py-4 text-center whitespace-nowrap">
+                    {t.attachment && t.attachment.startsWith('data:image') ? (
+                      <button
+                        onClick={() => window.open(t.attachment, '_blank')}
+                        className="relative group/photo inline-block"
+                        title="Ver foto em tamanho completo"
+                      >
+                        <img
+                          src={t.attachment}
+                          alt="Comprovante"
+                          className="w-10 h-10 rounded-xl object-cover border-2 border-slate-200 dark:border-slate-700 shadow-sm group-hover/photo:border-sky-400 group-hover/photo:scale-110 transition-all duration-200"
+                        />
+                        <div className="absolute inset-0 rounded-xl bg-black/0 group-hover/photo:bg-black/20 transition-all duration-200 flex items-center justify-center">
+                          <Image size={12} className="text-white opacity-0 group-hover/photo:opacity-100 transition-opacity" />
+                        </div>
+                      </button>
+                    ) : (
+                      <span className="text-slate-200 dark:text-slate-700">—</span>
+                    )}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex flex-col">
                       <span className="text-[10px] font-black text-sky-600 dark:text-sky-400 flex items-center uppercase tracking-widest px-2 py-1 bg-sky-50 dark:bg-sky-900/20 border border-sky-100 dark:border-sky-900/30 rounded-lg w-fit">
@@ -921,7 +943,7 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
               ))}
               {filteredTransactions.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-slate-600 dark:text-slate-400 italic">
+                  <td colSpan={8} className="px-6 py-12 text-center text-slate-600 dark:text-slate-400 italic">
                     Nenhum registro encontrado para {type === 'income' ? 'receitas' : 'despesas'}.
                   </td>
                 </tr>
