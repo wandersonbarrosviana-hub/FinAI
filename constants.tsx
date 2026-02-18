@@ -45,7 +45,6 @@ export const NAV_ITEMS = [
   { id: 'retirement' as ViewState, label: 'Aposentadoria', icon: <Sunrise size={20} /> },
   { id: 'reports' as ViewState, label: 'Relatórios', icon: <FileText size={20} /> },
   { id: 'plans' as ViewState, label: 'Planos', icon: <ShieldCheck size={20} /> },
-  { id: 'settings' as ViewState, label: 'Configurações', icon: <Settings size={20} /> },
 ];
 
 export const CATEGORIES_MAP: Record<string, string[]> = {
