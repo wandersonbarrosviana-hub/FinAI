@@ -92,7 +92,7 @@ export type ViewState =
   | 'custom-budgets'
   | 'goals'
   | 'objectives'
-  | 'simulator'
+
   | 'retirement'
   | 'settings'
   | 'plans'
