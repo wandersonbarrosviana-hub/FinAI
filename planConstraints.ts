@@ -1,21 +1,28 @@
-
 export const PLAN_LIMITS = {
     free: {
-        maxMonthlyTransactions: 20,
+        maxAccounts: 2,
+        maxCards: 2,
         maxDailyAIMessages: 3,
+        canAddFamily: false,
         hasCustomBudgets: false,
         hasReports: true,
     },
     premium: {
-        maxMonthlyTransactions: Infinity,
+        maxAccounts: Infinity,
+        maxCards: Infinity,
         maxDailyAIMessages: Infinity,
+        canAddFamily: true,
         hasCustomBudgets: true,
         hasReports: true,
     }
 };
 
-export const canAddTransaction = (plan: 'free' | 'premium', currentCount: number) => {
-    return currentCount < PLAN_LIMITS[plan].maxMonthlyTransactions;
+export const canAddAccount = (plan: 'free' | 'premium', currentCount: number) => {
+    return currentCount < PLAN_LIMITS[plan].maxAccounts;
+};
+
+export const canAddCard = (plan: 'free' | 'premium', currentCount: number) => {
+    return currentCount < PLAN_LIMITS[plan].maxCards;
 };
 
 export const canUseAI = (plan: 'free' | 'premium', dailyCount: number) => {

@@ -23,7 +23,7 @@ import FinancialAssistant from './components/FinancialAssistant';
 import CustomBudgetManager from './components/CustomBudgetManager';
 import AdminPanel from './components/AdminPanel';
 import PlansPage from './components/PlansPage';
-import { canAddTransaction } from './planConstraints';
+import { canAddAccount, canAddCard, canUseAI, PLAN_LIMITS } from './planConstraints';
 import { Budget, CustomBudget } from './types';
 
 import { Bell, Search, User as UserIcon, Plus, Sparkles, AlertCircle, ChevronLeft, ChevronRight, Loader2, LogOut, Settings as SettingsIcon, MessageSquare } from 'lucide-react';
@@ -527,16 +527,6 @@ const App: React.FC = () => {
   const handleAddTransaction = async (data: Partial<Transaction>) => {
     if (!user) return;
 
-    // Check Plan Limits
-    const currentMonth = new Date().toISOString().slice(0, 7);
-    const monthlyCount = transactions.filter(t => t.date.startsWith(currentMonth)).length;
-
-    if (userRole !== 'admin' && !canAddTransaction(userPlan, monthlyCount)) {
-      alert(`Você atingiu o limite de ${monthlyCount} transações do plano Gratuito. Faça o upgrade para Premium para ter lançamentos ilimitados!`);
-      setCurrentView('plans');
-      return;
-    }
-
     const baseTx = {
       description: data.description || 'Novo Lançamento',
       amount: data.amount || 0,
@@ -965,6 +955,27 @@ const App: React.FC = () => {
 
   const handleAddAccount = async (data: Partial<Account>) => {
     if (!user) return;
+
+    // Check Plan Limits
+    const isCredit = data.isCredit || data.type === 'credit';
+    if (userRole !== 'admin') {
+      if (isCredit) {
+        const cardCount = accounts.filter(acc => acc.isCredit || acc.type === 'credit').length;
+        if (!canAddCard(userPlan, cardCount)) {
+          alert(`Você atingiu o limite de ${PLAN_LIMITS.free.maxCards} cartões de crédito do plano Gratuito. Faça o upgrade para Premium para ter acessos ilimitados!`);
+          setCurrentView('plans');
+          return;
+        }
+      } else {
+        const accCount = accounts.filter(acc => !acc.isCredit && acc.type !== 'credit').length;
+        if (!canAddAccount(userPlan, accCount)) {
+          alert(`Você atingiu o limite de ${PLAN_LIMITS.free.maxAccounts} contas bancárias do plano Gratuito. Faça o upgrade para Premium para ter acessos ilimitados!`);
+          setCurrentView('plans');
+          return;
+        }
+      }
+    }
+
     const newAccPayload = {
       user_id: user.id,
       name: data.name || 'Nova Conta',
@@ -1367,6 +1378,8 @@ const App: React.FC = () => {
           isOpen={isProfileModalOpen}
           onClose={() => setIsProfileModalOpen(false)}
           onUpdate={handleUpdateProfile}
+          userPlan={userPlan}
+          userRole={userRole}
         />
       )}
     </div>

@@ -39,10 +39,10 @@ const PlansPage: React.FC<PlansPageProps> = ({ userPlan, onUpgradeSuccess }) => 
                 return actions.order.create({
                     purchase_units: [{
                         amount: {
-                            value: '29.90', // Exemplo de valor Premium
+                            value: '11.99', // Valor atualizado
                             currency_code: 'BRL'
                         },
-                        description: 'A assinatura FinAI Premium - Acesso Ilimitado'
+                        description: 'Assinatura FinAI Premium - Acesso Ilimitado e Futuras Atualizações'
                     }]
                 });
             },
@@ -113,11 +113,11 @@ const PlansPage: React.FC<PlansPageProps> = ({ userPlan, onUpgradeSuccess }) => 
 
                     <div className="space-y-5 mb-10 flex-1">
                         {[
-                            'Até 20 transações mensais',
-                            'Dashboard Financeiro',
+                            'Até 2 contas bancárias',
+                            'Até 2 cartões de crédito',
                             '3 mensagens diárias com IA',
+                            'Dashboard Financeiro',
                             'Gráficos básicos de gastos',
-                            'Relatórios simplificados'
                         ].map((feature, i) => (
                             <div key={i} className="flex items-center gap-3 text-slate-600 font-medium">
                                 <div className="w-5 h-5 bg-slate-50 rounded-full flex items-center justify-center text-slate-400">
@@ -150,20 +150,20 @@ const PlansPage: React.FC<PlansPageProps> = ({ userPlan, onUpgradeSuccess }) => 
                         </div>
                         <h3 className="text-3xl font-black text-white">PRO Premium</h3>
                         <div className="flex items-baseline gap-1">
-                            <span className="text-4xl font-black text-white mt-2">R$ 29,90</span>
+                            <span className="text-4xl font-black text-white mt-2">R$ 11,99</span>
                             <span className="text-slate-500 font-bold uppercase text-xs tracking-widest">/ mensal</span>
                         </div>
-                        <p className="text-slate-400 font-medium font-bold">Acesso ilimitado a todas as ferramentas.</p>
+                        <p className="text-slate-400 font-medium font-bold">Acesso ilimitado e atualizações futuras.</p>
                     </div>
 
                     <div className="space-y-5 mb-10 flex-1 relative">
                         {[
-                            'Transações ilimitadas',
+                            'Contas e Cartões ilimitados',
+                            'Adição de familiares à conta',
                             'Assistente IA ilimitada (Consultoria)',
-                            'Orçamentos Personalizados Ilimitados',
                             'Gráficos e Insights Avançados',
-                            'Relatórios Completos de Investimentos',
-                            'Supoprte prioritário 24/7'
+                            'Acesso total a futuras atualizações',
+                            'Suporte prioritário 24/7'
                         ].map((feature, i) => (
                             <div key={i} className="flex items-center gap-3 text-slate-300 font-medium">
                                 <div className="w-5 h-5 bg-sky-500/20 rounded-full flex items-center justify-center text-sky-400">
