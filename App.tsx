@@ -1024,6 +1024,36 @@ const App: React.FC = () => {
   };
 
   const handleDeleteAccount = async (id: string) => {
+    // Verifica se há transações vinculadas
+    const linkedTxs = transactions.filter(t => t.account === id);
+
+    if (linkedTxs.length > 0) {
+      const deleteTxs = window.confirm(
+        `Esta conta possui ${linkedTxs.length} transação(ões) vinculada(s).\n\nClicar em OK irá EXCLUIR todas as transações junto com a conta.\nClicar em Cancelar irá MANTER as transações (apenas desvinculadas da conta).`
+      );
+
+      if (deleteTxs) {
+        // Deletar transações primeiro, depois a conta
+        const { error: txError } = await supabase.from('transactions').delete().eq('account_id', id);
+        if (txError) {
+          console.error('Erro ao deletar transações:', txError);
+          alert('Erro ao excluir transações: ' + txError.message);
+          return;
+        }
+        setTransactions(prev => prev.filter(t => t.account !== id));
+      } else {
+        // Apenas desvincular as transações (account_id = null)
+        const { error: unlinkError } = await supabase.from('transactions').update({ account_id: null }).eq('account_id', id);
+        if (unlinkError) {
+          console.error('Erro ao desvincular transações:', unlinkError);
+          alert('Erro ao desvincular transações: ' + unlinkError.message);
+          return;
+        }
+        setTransactions(prev => prev.map(t => t.account === id ? { ...t, account: undefined } : t));
+      }
+    }
+
+    // Agora deletar a conta (sem transações vinculadas)
     const snapshot = accounts;
     setAccounts(prev => prev.filter(acc => acc.id !== id));
     const { error } = await supabase.from('accounts').delete().eq('id', id);
@@ -1032,7 +1062,6 @@ const App: React.FC = () => {
       setAccounts(snapshot); // revert
       alert('Erro ao excluir conta: ' + error.message);
     } else {
-      // Refetch silencioso para garantir sincronização
       if (user) fetchData(user.id, true);
     }
   };
