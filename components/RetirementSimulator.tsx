@@ -434,25 +434,7 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                                             yAxisId="right"
                                         />
 
-                                        {/* Linha Horizontal de Renda Alvo */}
-                                        <ReferenceLine
-                                            y={freedomPoint.displayRequiredIncome}
-                                            yAxisId="right"
-                                            stroke="#10b981"
-                                            strokeDasharray="5 5"
-                                            strokeWidth={2}
-                                            isFront={true}
-                                            label={{
-                                                value: `ALVO: R$ ${freedomPoint.displayRequiredIncome.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}`,
-                                                position: 'insideLeft',
-                                                fill: '#10b981',
-                                                fontSize: 10,
-                                                fontWeight: '900',
-                                                dy: -10
-                                            }}
-                                        />
-
-                                        {/* Ponto de Convergência (Liberdade Financeira) */}
+                                        {/* Ponto de Convergência (Liberdade Financeira) com Rótulo de Tempo */}
                                         <ReferenceDot
                                             x={viewMode === 'annual' ? freedomPoint.yearLabel : freedomPoint.month}
                                             y={freedomPoint.displayPassiveIncome}
@@ -462,17 +444,36 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                                             stroke="#fff"
                                             strokeWidth={3}
                                             isFront={true}
-                                            className="drop-shadow-lg"
+                                            className="drop-shadow-xl"
                                         >
                                             <Label
-                                                value="🚀 LIBERDADE"
+                                                value={viewMode === 'annual' ? `ANO ${freedomPoint.yearLabel}` : `MÊS ${freedomPoint.month}`}
                                                 position="top"
                                                 fill="#10b981"
-                                                fontSize={12}
+                                                fontSize={14}
                                                 fontWeight="900"
-                                                offset={15}
+                                                offset={20}
+                                            />
+                                            <Label
+                                                value="🚀 LIBERDADE FINANCEIRA"
+                                                position="top"
+                                                fill="#10b981"
+                                                fontSize={10}
+                                                fontWeight="700"
+                                                offset={40}
+                                                className="uppercase tracking-widest"
                                             />
                                         </ReferenceDot>
+
+                                        {/* Linha Horizontal de Referência (Discreta) */}
+                                        <ReferenceLine
+                                            y={freedomPoint.displayRequiredIncome}
+                                            yAxisId="right"
+                                            stroke="#10b981"
+                                            strokeDasharray="2 4"
+                                            strokeWidth={1}
+                                            isFront={true}
+                                        />
                                     </>
                                 )}
 
