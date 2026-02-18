@@ -72,8 +72,13 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, isOpen, se
                     className: isActive ? 'text-sky-600 dark:text-sky-400' : 'transition-colors'
                   })}
                   {isOpen && (
-                    <span className={`ml-3 text-sm font-bold tracking-tight ${isActive ? 'text-sky-900 dark:text-sky-100' : ''}`}>
+                    <span className={`ml-3 text-sm font-bold tracking-tight flex items-center gap-1.5 whitespace-nowrap ${isActive ? 'text-sky-900 dark:text-sky-100' : ''}`}>
                       {item.label}
+                      {(item as any).badge && (
+                        <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 uppercase tracking-wide leading-none">
+                          {(item as any).badge}
+                        </span>
+                      )}
                     </span>
                   )}
                 </div>
