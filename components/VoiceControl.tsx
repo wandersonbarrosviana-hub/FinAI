@@ -126,20 +126,20 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
 
       // SILENCE DETECTION FOR ACTIVE COMMAND
       if (statusRef.current === 'active_command') {
-        // Clear existing timer
         if (silenceTimer.current) clearTimeout(silenceTimer.current);
 
-        // Set new timer (1.5s silence)
         silenceTimer.current = setTimeout(() => {
           console.log("Silence detected (1.5s). Processing command...");
           const cleanCommand = currentText.replace(/^(oi|olá|ei)?\s*fini\s*/i, '').trim();
-          console.log("Clean command detected:", cleanCommand);
 
-          if (cleanCommand.length > 2) {
+          // Security: limit command length
+          const safeCommand = cleanCommand.slice(0, 500);
+
+          if (safeCommand.length > 2) {
             stopListening();
-            processFinalText(cleanCommand);
+            processFinalText(safeCommand);
           } else {
-            console.log("Command too short to process:", cleanCommand);
+            console.log("Command too short to process:", safeCommand);
           }
         }, 1500);
       }

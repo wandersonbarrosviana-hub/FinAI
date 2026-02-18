@@ -24,8 +24,15 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Security: validate file size
       if (file.size > 2 * 1024 * 1024) {
         setError('A imagem deve ter no máximo 2MB');
+        return;
+      }
+      // Security: validate MIME type (not just extension)
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+      if (!allowedTypes.includes(file.type)) {
+        setError('Formato inválido. Use JPG, PNG, WebP ou GIF.');
         return;
       }
       setAvatarFile(file);
@@ -62,7 +69,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
     try {
       if (mode === 'login') {
         const { data, error } = await supabase.auth.signInWithPassword({
-          email: formData.email,
+          email: formData.email.trim().toLowerCase(),
           password: formData.password,
         });
 
@@ -71,12 +78,22 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
           onLogin(data.user.email);
         }
       } else if (mode === 'signup') {
-        // Sign up first
+        // Security: validate password strength
+        if (formData.password.length < 8) {
+          throw new Error('A senha deve ter no mínimo 8 caracteres.');
+        }
+        if (!/\d/.test(formData.password)) {
+          throw new Error('A senha deve conter pelo menos um número.');
+        }
+        // Security: sanitize name (strip HTML)
+        const safeName = formData.name.replace(/<[^>]*>/g, '').trim().slice(0, 100);
+        if (!safeName) throw new Error('Nome inválido.');
+
         const { data, error } = await supabase.auth.signUp({
-          email: formData.email,
+          email: formData.email.trim().toLowerCase(),
           password: formData.password,
           options: {
-            data: { name: formData.name },
+            data: { name: safeName },
             emailRedirectTo: window.location.origin
           },
         });
@@ -84,7 +101,6 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
         if (error) throw error;
         if (!data.user) throw new Error('Erro ao criar usuário');
 
-        // If avatar file exists, upload it and update metadata
         if (avatarFile) {
           const avatarUrl = await uploadAvatar(data.user.id);
           if (avatarUrl) {
@@ -97,7 +113,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
         setMessage('Cadastro realizado! Verifique seu email para confirmar a conta.');
         setMode('login');
       } else if (mode === 'forgot-password') {
-        const { error } = await supabase.auth.resetPasswordForEmail(formData.email, {
+        const { error } = await supabase.auth.resetPasswordForEmail(formData.email.trim().toLowerCase(), {
           redirectTo: `${window.location.origin}?type=recovery`,
         });
         if (error) throw error;
