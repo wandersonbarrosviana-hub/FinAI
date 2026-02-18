@@ -25,6 +25,17 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
     const [annualRate, setAnnualRate] = useState(10); // 10% a.a
     const [annualInflation, setAnnualInflation] = useState(4); // 4% a.a
 
+    // Display states for monetary inputs (formatted strings)
+    const [desiredIncomeDisplay, setDesiredIncomeDisplay] = useState('5.000');
+    const [currentPatrimonyDisplay, setCurrentPatrimonyDisplay] = useState('');
+    const [monthlyContributionDisplay, setMonthlyContributionDisplay] = useState('1.000');
+
+    const formatCurrency = (value: number) =>
+        value === 0 ? '' : value.toLocaleString('pt-BR');
+
+    const parseCurrency = (text: string) =>
+        Number(text.replace(/\./g, '').replace(',', '.')) || 0;
+
     // View State
     const [viewMode, setViewMode] = useState<'monthly' | 'annual'>('annual');
     const [showRealValues, setShowRealValues] = useState(false);
@@ -266,9 +277,21 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                         <div className="relative group">
                             <span className="absolute left-4 top-4 text-slate-300 dark:text-slate-600 font-black">R$</span>
                             <input
-                                type="number"
-                                value={desiredIncome}
-                                onChange={(e) => setDesiredIncome(Number(e.target.value))}
+                                type="text"
+                                inputMode="numeric"
+                                value={desiredIncomeDisplay}
+                                onChange={(e) => {
+                                    const raw = e.target.value.replace(/[^0-9]/g, '');
+                                    setDesiredIncomeDisplay(raw === '' ? '' : Number(raw).toLocaleString('pt-BR'));
+                                    setDesiredIncome(Number(raw) || 0);
+                                }}
+                                onFocus={(e) => {
+                                    const raw = desiredIncome === 0 ? '' : String(desiredIncome);
+                                    setDesiredIncomeDisplay(raw);
+                                    setTimeout(() => e.target.select(), 0);
+                                }}
+                                onBlur={() => setDesiredIncomeDisplay(formatCurrency(desiredIncome))}
+                                placeholder="0"
                                 className="w-full pl-12 pr-6 py-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl focus:ring-4 focus:ring-sky-500/5 focus:border-sky-500/50 outline-none transition-all text-slate-700 dark:text-white font-bold"
                             />
                         </div>
@@ -279,9 +302,21 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                         <div className="relative group">
                             <span className="absolute left-4 top-4 text-slate-300 dark:text-slate-600 font-black">R$</span>
                             <input
-                                type="number"
-                                value={currentPatrimony}
-                                onChange={(e) => setCurrentPatrimony(Number(e.target.value))}
+                                type="text"
+                                inputMode="numeric"
+                                value={currentPatrimonyDisplay}
+                                onChange={(e) => {
+                                    const raw = e.target.value.replace(/[^0-9]/g, '');
+                                    setCurrentPatrimonyDisplay(raw === '' ? '' : Number(raw).toLocaleString('pt-BR'));
+                                    setCurrentPatrimony(Number(raw) || 0);
+                                }}
+                                onFocus={(e) => {
+                                    const raw = currentPatrimony === 0 ? '' : String(currentPatrimony);
+                                    setCurrentPatrimonyDisplay(raw);
+                                    setTimeout(() => e.target.select(), 0);
+                                }}
+                                onBlur={() => setCurrentPatrimonyDisplay(formatCurrency(currentPatrimony))}
+                                placeholder="0"
                                 className="w-full pl-12 pr-6 py-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl focus:ring-4 focus:ring-sky-500/5 focus:border-sky-500/50 outline-none transition-all text-slate-700 dark:text-white font-bold"
                             />
                         </div>
@@ -292,9 +327,21 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                         <div className="relative group">
                             <span className="absolute left-4 top-4 text-slate-300 dark:text-slate-600 font-black">R$</span>
                             <input
-                                type="number"
-                                value={monthlyContribution}
-                                onChange={(e) => setMonthlyContribution(Number(e.target.value))}
+                                type="text"
+                                inputMode="numeric"
+                                value={monthlyContributionDisplay}
+                                onChange={(e) => {
+                                    const raw = e.target.value.replace(/[^0-9]/g, '');
+                                    setMonthlyContributionDisplay(raw === '' ? '' : Number(raw).toLocaleString('pt-BR'));
+                                    setMonthlyContribution(Number(raw) || 0);
+                                }}
+                                onFocus={(e) => {
+                                    const raw = monthlyContribution === 0 ? '' : String(monthlyContribution);
+                                    setMonthlyContributionDisplay(raw);
+                                    setTimeout(() => e.target.select(), 0);
+                                }}
+                                onBlur={() => setMonthlyContributionDisplay(formatCurrency(monthlyContribution))}
+                                placeholder="0"
                                 className="w-full pl-12 pr-6 py-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl focus:ring-4 focus:ring-sky-500/5 focus:border-sky-500/50 outline-none transition-all text-slate-700 dark:text-white font-bold"
                             />
                         </div>
