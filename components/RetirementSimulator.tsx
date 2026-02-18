@@ -29,6 +29,7 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
     const [viewMode, setViewMode] = useState<'monthly' | 'annual'>('annual');
     const [showRealValues, setShowRealValues] = useState(false);
     const [applyBudgetSurplus, setApplyBudgetSurplus] = useState(false);
+    const [adjustContributionForInflation, setAdjustContributionForInflation] = useState(false);
     const [yearsToSimulate, setYearsToSimulate] = useState(60); // Default to 60 years
 
     // Effect to update state from AI params
@@ -84,6 +85,8 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
         const baseTarget = (desiredIncome / monthlyRate);
 
         let cumulativeInflationFactor = 1;
+        // Aporte atual (pode ser reajustado anualmente pela inflação)
+        let currentMonthlyContribution = baseMonthlyContribution;
 
         for (let i = 0; i <= 70 * 12; i++) {
             const interestEarned = currentBalance * monthlyRate;
@@ -110,13 +113,18 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                 continue;
             }
 
-            currentBalance += interestEarned + baseMonthlyContribution;
-            totalInvested += baseMonthlyContribution;
+            // Reajuste anual do aporte pela inflação (a cada 12 meses)
+            if (adjustContributionForInflation && i > 0 && i % 12 === 0) {
+                currentMonthlyContribution *= (1 + annualInflation / 100);
+            }
+
+            currentBalance += interestEarned + currentMonthlyContribution;
+            totalInvested += currentMonthlyContribution;
 
             cumulativeInflationFactor *= (1 + monthlyInflation);
 
             // For real investment, we accumulate the present value of each contribution
-            totalRealInvested += (baseMonthlyContribution / cumulativeInflationFactor);
+            totalRealInvested += (currentMonthlyContribution / cumulativeInflationFactor);
 
             const currentTarget = baseTarget * cumulativeInflationFactor;
 
@@ -124,7 +132,7 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
             const inflationLoss = currentBalance - realValue;
             const realInterest = interestEarned / cumulativeInflationFactor;
 
-            const adjustedContribution = baseMonthlyContribution * cumulativeInflationFactor;
+            const adjustedContribution = currentMonthlyContribution * cumulativeInflationFactor;
 
             data.push({
                 month: i,
@@ -150,7 +158,7 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
     const simulationData = useMemo(() => {
         const extra = applyBudgetSurplus ? budgetSurplus : 0;
         return calculateSimulation(extra);
-    }, [desiredIncome, currentPatrimony, monthlyContribution, annualRate, annualInflation, applyBudgetSurplus, budgetSurplus]);
+    }, [desiredIncome, currentPatrimony, monthlyContribution, annualRate, annualInflation, applyBudgetSurplus, budgetSurplus, adjustContributionForInflation]);
 
     const baselineSimulationData = useMemo(() => {
         return calculateSimulation(0);
@@ -329,7 +337,26 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                         <div className={`h-5 w-5 bg-white rounded-full shadow-sm transition-transform ${applyBudgetSurplus ? 'translate-x-5' : 'translate-x-0'}`}></div>
                     </div>
                 </div>
+
+                {/* Toggle: Reajuste do aporte pela inflação */}
+                <div className="mt-4 bg-amber-50 dark:bg-amber-900/10 p-4 rounded-2xl flex items-center justify-between border border-amber-100 dark:border-amber-900/20 cursor-pointer hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors" onClick={() => setAdjustContributionForInflation(!adjustContributionForInflation)}>
+                    <div className="flex items-center gap-3">
+                        <div className={`p-2 rounded-xl transition-colors ${adjustContributionForInflation ? 'bg-amber-500 dark:bg-amber-600 text-white' : 'bg-white dark:bg-slate-800 text-amber-300 dark:text-amber-400'}`}>
+                            <TrendingUp size={20} />
+                        </div>
+                        <div>
+                            <p className="text-sm font-black text-amber-900 dark:text-amber-200">Reajustar Aporte pela Inflação</p>
+                            <p className="text-xs text-amber-600 dark:text-amber-400 font-medium">
+                                Aumentar o aporte em <span className="font-bold">{annualInflation}% ao ano</span> para manter o poder de compra.
+                            </p>
+                        </div>
+                    </div>
+                    <div className={`w-12 h-7 rounded-full p-1 transition-colors ${adjustContributionForInflation ? 'bg-amber-500 dark:bg-amber-600' : 'bg-slate-200 dark:bg-slate-700'}`}>
+                        <div className={`h-5 w-5 bg-white rounded-full shadow-sm transition-transform ${adjustContributionForInflation ? 'translate-x-5' : 'translate-x-0'}`}></div>
+                    </div>
+                </div>
             </div>
+
 
             <div className="bg-white dark:bg-slate-900 p-4 md:p-8 rounded-[2rem] md:rounded-[3rem] border border-slate-100 dark:border-slate-800 shadow-sm ring-1 ring-black/5 dark:ring-white/5">
                 <div className="mb-8 flex flex-col md:flex-row justify-between items-center gap-6">
