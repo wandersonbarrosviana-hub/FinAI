@@ -436,14 +436,16 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                                 {freedomPoint && (
                                     <>
-                                        {/* Destaque (Preenchimento) no Eixo X - Simulado com Linha Larga */}
-                                        <ReferenceLine
-                                            x={viewMode === 'annual' ? freedomPoint.yearLabel : freedomPoint.month}
-                                            stroke="#ef4444"
-                                            strokeWidth={50}
-                                            strokeOpacity={0.1}
+                                        {/* Faixa de destaque vertical dentro do gráfico */}
+                                        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                                        <ReferenceArea
+                                            x1={viewMode === 'annual' ? freedomPoint.yearLabel : freedomPoint.month}
+                                            x2={viewMode === 'annual' ? freedomPoint.yearLabel : freedomPoint.month}
                                             yAxisId="left"
+                                            {...{ fill: '#ef4444', fillOpacity: 0.12, stroke: '#ef4444', strokeOpacity: 0.4, strokeWidth: 2 } as any}
                                         />
+
+
 
                                         {/* Linha Vertical Vermelha da base até o meio do gráfico */}
                                         <ReferenceLine
@@ -490,7 +492,6 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                                     axisLine={false}
                                     tickLine={false}
                                     minTickGap={30}
-                                    dy={15}
                                     tick={(props: any) => {
                                         const { x, y, payload } = props;
                                         const isFreedom = freedomPoint && (
@@ -500,8 +501,8 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                                         );
                                         if (isFreedom) {
                                             return (
-                                                <g transform={`translate(${x},${y})`}>
-                                                    <rect x={-22} y={-4} width={44} height={22} rx={6} fill="#ef4444" />
+                                                <g transform={`translate(${x},${y + 6})`}>
+                                                    <rect x={-24} y={-4} width={48} height={22} rx={6} fill="#ef4444" />
                                                     <text x={0} y={12} textAnchor="middle" fill="white" fontSize={10} fontWeight={900}>
                                                         {payload.value}
                                                     </text>
@@ -509,7 +510,7 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                                             );
                                         }
                                         return (
-                                            <g transform={`translate(${x},${y})`}>
+                                            <g transform={`translate(${x},${y + 6})`}>
                                                 <text x={0} y={12} textAnchor="middle" fill="#94a3b8" fontSize={10} fontWeight={700}>
                                                     {payload.value}
                                                 </text>
@@ -517,6 +518,7 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                                         );
                                     }}
                                 />
+
 
                                 <YAxis
                                     yAxisId="left"
