@@ -33,6 +33,14 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
     .filter(t => t.type === 'expense' && t.isPaid)
     .reduce((acc, curr) => acc + curr.amount, 0);
 
+  const monthIncomeForecast = transactions
+    .filter(t => t.type === 'income')
+    .reduce((acc, curr) => acc + curr.amount, 0);
+
+  const monthExpenseForecast = transactions
+    .filter(t => t.type === 'expense')
+    .reduce((acc, curr) => acc + curr.amount, 0);
+
   // Process Last 7 Days Data
   const processLast7Days = () => {
     const today = new Date();
@@ -46,7 +54,7 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
         .reduce((sum, t) => sum + t.amount, 0);
 
       data.push({
-        name: d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+        name: `Dia ${String(d.getDate()).padStart(2, '0')}`,
         value: dayVal
       });
     }
@@ -144,6 +152,9 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
               <div>
                 <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Entrada</p>
                 <p className="text-xl font-black text-emerald-600 dark:text-emerald-400">R$ {monthIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium mt-1">
+                  Previsto: R$ {monthIncomeForecast.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </p>
               </div>
             </div>
 
@@ -159,6 +170,9 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
                   }`}>
                   {monthIncome - monthExpense >= 0 ? '+' : ''} R$ {(monthIncome - monthExpense).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </p>
+                <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium mt-1">
+                  Previsto: {monthIncomeForecast - monthExpenseForecast >= 0 ? '+' : ''} R$ {(monthIncomeForecast - monthExpenseForecast).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </p>
               </div>
             </div>
 
@@ -170,6 +184,9 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
               <div>
                 <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Saída</p>
                 <p className="text-xl font-black text-rose-600 dark:text-rose-400">R$ {monthExpense.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium mt-1">
+                  Previsto: R$ {monthExpenseForecast.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </p>
               </div>
             </div>
           </div>
@@ -178,7 +195,7 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
           <div className="flex-1 border-t md:border-t-0 md:border-l border-slate-100 pt-6 md:pt-0 md:pl-8 relative z-10">
             <div className="flex justify-between items-center mb-4">
               <div>
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Evolução Recente</h3>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Despesas Diárias</h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Últimos 7 dias</p>
               </div>
               <div className="p-2 bg-slate-50 dark:bg-slate-800 rounded-lg">
@@ -195,6 +212,14 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
                         <stop offset="95%" stopColor="#f43f5e" stopOpacity={0} />
                       </linearGradient>
                     </defs>
+                    <XAxis
+                      dataKey="name"
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 'bold' }}
+                      dy={5}
+                      interval={0}
+                    />
                     <Tooltip
                       contentStyle={{ backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #f1f5f9', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', color: '#0f172a' }}
                       itemStyle={{ color: '#e11d48' }}

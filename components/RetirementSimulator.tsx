@@ -168,11 +168,18 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                 if (lastMonthOfYear) {
                     annualData.push({
                         ...lastMonthOfYear,
-                        interest: yearInterest,
-                        realPassiveIncome: yearRealInterest,
-                        passiveIncome: yearInterest,
-                        requiredIncomeNominal: yearRequiredNominal,
-                        requiredIncomeReal: yearRequiredReal,
+                        yearLabel: y,
+                        interest: yearInterest, // Total accumulated interest in year
+                        // User requested Annual Passive Income / 12 for the annual chart
+                        // Currently 'yearInterest' is the SUM of interest/passive income of all months.
+                        // So dividing by 12 gives the average monthly passive income for that year.
+                        realPassiveIncome: yearRealInterest / 12,
+                        passiveIncome: yearInterest / 12,
+                        // Required income is also monthly target, but summed up? 
+                        // Let's check logic. `requiredIncomeNominal` in monthly data is the monthly required.
+                        // Ideally we show the Monthly Required Target vs Monthly Passive Income Average.
+                        requiredIncomeNominal: yearRequiredNominal / 12,
+                        requiredIncomeReal: yearRequiredReal / 12,
                     });
                 }
             });
@@ -365,17 +372,34 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
 
                 {freedomPoint && (
                     <div className="mb-8 p-6 bg-emerald-50 dark:bg-emerald-900/10 rounded-3xl border border-emerald-100 dark:border-emerald-900/20 flex flex-col items-center justify-center gap-2 text-center">
-                        <div className="flex items-center gap-4">
-                            <span className="text-3xl">🏖️</span>
-                            <p className="text-emerald-700 dark:text-emerald-400 font-black text-lg tracking-tight">
-                                Independência Financeira em <span className="text-emerald-900 dark:text-emerald-300 underline decoration-emerald-200 dark:decoration-emerald-700 underline-offset-4">{Math.floor(freedomPoint.month / 12)} anos e {freedomPoint.month % 12} meses</span>!
-                            </p>
+                        <div className="flex flex-col items-center gap-1">
+                            <div className="flex items-center gap-3 md:gap-4">
+                                <span className="text-2xl md:text-3xl">🏖️</span>
+                                <p className="text-emerald-700 dark:text-emerald-400 font-black text-base md:text-lg tracking-tight">
+                                    No ano <span className="font-extrabold">{freedomPoint.yearLabel}</span> você alcançará a sua liberdade financeira, ou seja, faltam apenas <span className="text-emerald-900 dark:text-emerald-300 underline decoration-emerald-200 dark:decoration-emerald-700 underline-offset-4">{Math.floor(freedomPoint.month / 12)} anos{freedomPoint.month % 12 > 0 ? ` e ${freedomPoint.month % 12} meses` : ''}</span>!
+                                </p>
+                            </div>
+                            <p className="text-[10px] md:text-xs font-bold text-emerald-600/70 dark:text-emerald-400/60 uppercase tracking-widest">(Considerando rentabilidade real)</p>
                         </div>
                         {timeReduction && (
                             <div className="text-emerald-600 dark:text-emerald-400 font-bold text-sm bg-emerald-100/50 dark:bg-emerald-900/30 px-6 py-3 rounded-2xl animate-in fade-in slide-in-from-top-2 duration-700 max-w-2xl">
                                 👏 Parabéns! Ao seguir seu orçamento, você antecipou sua independência em <span className="text-emerald-800 dark:text-white font-black">{timeReduction.years > 0 ? `${timeReduction.years} anos` : ''}{timeReduction.years > 0 && timeReduction.months > 0 ? ' e ' : ''}{timeReduction.months > 0 ? `${timeReduction.months} meses` : ''}</span>. Continue firme no planejamento!
                             </div>
                         )}
+                    </div>
+                )}
+
+                {!freedomPoint && (
+                    <div className="mb-8 p-6 bg-slate-50 dark:bg-slate-800/50 rounded-3xl border border-slate-200 dark:border-slate-700 border-dashed flex flex-col items-center justify-center gap-2 text-center">
+                        <div className="flex items-center gap-4">
+                            <span className="text-3xl grayscale opacity-50">⏳</span>
+                            <p className="text-slate-500 dark:text-slate-400 font-bold text-lg tracking-tight">
+                                Independência Financeira não atingida em {yearsToSimulate} anos.
+                            </p>
+                        </div>
+                        <p className="text-sm text-slate-400 dark:text-slate-500">
+                            Tente aumentar seus aportes mensais, a rentabilidade ou o prazo da simulação.
+                        </p>
                     </div>
                 )}
 
@@ -401,19 +425,22 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                                 {freedomPoint && (
                                     <ReferenceLine
                                         x={viewMode === 'annual' ? freedomPoint.yearLabel : freedomPoint.month}
-                                        stroke="#334155"
-                                        strokeDasharray="5 5"
+                                        stroke="#10b981"
+                                        strokeDasharray="3 3"
                                         strokeWidth={3}
+                                        isFront={true}
                                         label={{
-                                            value: "🏖️ APOSENTADORIA",
-                                            position: 'insideTopRight',
-                                            fontSize: 14,
-                                            fill: '#334155',
-                                            fontWeight: 'bold',
-                                            dy: 10
+                                            value: viewMode === 'annual' ? `🏖️ EM ${freedomPoint.yearLabel}` : `🏖️ MÊS ${freedomPoint.month}`,
+                                            position: 'insideBottom',
+                                            fill: '#10b981',
+                                            fontSize: 12,
+                                            fontWeight: '900',
+                                            dy: -10
                                         }}
                                     />
                                 )}
+
+
                                 <XAxis
                                     dataKey={viewMode === 'annual' ? "yearLabel" : "month"}
                                     axisLine={false}

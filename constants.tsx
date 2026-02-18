@@ -28,7 +28,7 @@ export const NAV_ITEMS = [
   { id: 'dashboard' as ViewState, label: 'Dashboard', icon: <LayoutDashboard size={20} /> },
 
   { id: 'transactions' as ViewState, label: 'Transações', icon: <ArrowRightLeft size={20} /> },
-  { id: 'investments' as ViewState, label: 'Investimentos', icon: <TrendingUp size={20} /> },
+  // { id: 'investments' as ViewState, label: 'Investimentos', icon: <TrendingUp size={20} /> },
   // { id: 'transfers' as ViewState, label: 'Transferências', icon: <ArrowRightLeft size={20} /> }, // Removed
   { id: 'credit-cards' as ViewState, label: 'Cartões', icon: <CreditCard size={20} /> },
   { id: 'accounts' as ViewState, label: 'Contas', icon: <Wallet size={20} /> },
@@ -37,7 +37,7 @@ export const NAV_ITEMS = [
   { id: 'charts' as ViewState, label: 'Gráficos', icon: <BarChart2 size={20} /> },
   { id: 'categories' as ViewState, label: 'Categorias', icon: <Tags size={20} /> },
   { id: 'goals' as ViewState, label: 'Metas', icon: <Target size={20} /> },
-  { id: 'objectives' as ViewState, label: 'Objetivos', icon: <Flag size={20} /> },
+  // { id: 'objectives' as ViewState, label: 'Objetivos', icon: <Flag size={20} /> },
   { id: 'simulator' as ViewState, label: 'Simulador', icon: <Calculator size={20} /> },
   { id: 'ai-assistant' as ViewState, label: 'Assistente Virtual', icon: <Bot size={20} /> },
   { id: 'retirement' as ViewState, label: 'Aposentadoria', icon: <Sunrise size={20} /> },

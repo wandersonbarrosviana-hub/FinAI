@@ -1271,7 +1271,7 @@ const App: React.FC = () => {
           {currentView === 'goals' && <GoalManager goals={goals} transactions={filteredTransactions} accounts={accounts} onAddGoal={handleAddGoal} onDeleteGoal={handleDeleteGoal} />}
           {currentView === 'categories' && <CategoryManager transactions={filteredTransactions} />}
           {currentView === 'accounts' && <AccountManager accounts={accounts} transactions={transactions} onAddAccount={handleAddAccount} onDeleteAccount={handleDeleteAccount} />}
-          {currentView === 'investments' && <Investments />}
+          {/* {currentView === 'investments' && <Investments />} */}
           {currentView === 'retirement' && <RetirementSimulator transactions={transactions} budgets={budgets} simulationParams={retirementParams} />}
           {currentView === 'tags' && <TagManager tags={tags} onAddTag={handleAddTag} onDeleteTag={handleDeleteTag} onUpdateTag={handleUpdateTag} />}
           {currentView === 'ai-assistant' && (

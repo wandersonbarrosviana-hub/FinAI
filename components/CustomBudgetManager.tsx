@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Transaction, CustomBudget } from '../types';
 import { CATEGORIES } from '../constants';
-import { Plus, Trash2, PieChart, Info, Check, X, Calculator, DollarSign } from 'lucide-react';
+import { Plus, Trash2, PieChart, Info, Check, X, Calculator, DollarSign, Calendar, CreditCard, ShoppingBag } from 'lucide-react';
 
 interface CustomBudgetManagerProps {
     customBudgets: CustomBudget[];
@@ -19,6 +19,7 @@ const CustomBudgetManager: React.FC<CustomBudgetManagerProps> = ({
     onDeleteCustomBudget
 }) => {
     const [isFormOpen, setIsFormOpen] = useState(false);
+    const [selectedBudget, setSelectedBudget] = useState<CustomBudget | null>(null);
     const [formData, setFormData] = useState<Partial<CustomBudget>>({
         name: '',
         categories: [],
@@ -85,6 +86,15 @@ const CustomBudgetManager: React.FC<CustomBudgetManagerProps> = ({
         });
     };
 
+    // Helper to get transactions for the selected budget
+    const getBudgetTransactions = (budget: CustomBudget) => {
+        return transactions.filter(t =>
+            t.date.startsWith(currentMonth) &&
+            t.type === 'expense' &&
+            budget.categories.includes(t.category)
+        ).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    };
+
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
             <div className="flex justify-between items-center">
@@ -104,6 +114,84 @@ const CustomBudgetManager: React.FC<CustomBudgetManagerProps> = ({
                     )}
                 </button>
             </div>
+
+            {/* Modal de Detalhes do Orçamento */}
+            {selectedBudget && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setSelectedBudget(null)}>
+                    <div
+                        className="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-100 dark:border-slate-800"
+                        onClick={e => e.stopPropagation()}
+                    >
+                        {/* Header do Modal */}
+                        <div className="p-8 border-b border-slate-100 dark:border-slate-800 flex justify-between items-start bg-slate-50/50 dark:bg-slate-800/50">
+                            <div>
+                                <h3 className="text-2xl font-black text-slate-900 dark:text-white leading-tight">{selectedBudget.name}</h3>
+                                <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mt-1">Transações deste mês</p>
+                                <div className="flex flex-wrap gap-1 mt-3">
+                                    {selectedBudget.categories.map(c => (
+                                        <span key={c} className="text-[10px] font-bold px-2 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 uppercase border border-indigo-100 dark:border-indigo-800">
+                                            {c}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setSelectedBudget(null)}
+                                className="p-2 bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-full transition-colors"
+                            >
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        {/* Lista de Transações */}
+                        <div className="max-h-[60vh] overflow-y-auto p-8">
+                            <div className="space-y-4">
+                                {getBudgetTransactions(selectedBudget).length > 0 ? (
+                                    getBudgetTransactions(selectedBudget).map(transaction => (
+                                        <div key={transaction.id} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800 hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10 transition-colors group">
+                                            <div className="flex items-center gap-4">
+                                                <div className="bg-white dark:bg-slate-800 p-3 rounded-xl shadow-sm text-2xl group-hover:scale-110 transition-transform">
+                                                    {transaction.category === 'Alimentação' ? '🍽️' :
+                                                        transaction.category === 'Transporte' ? '🚗' :
+                                                            transaction.category === 'Lazer' ? '🎮' : '💰'}
+                                                </div>
+                                                <div>
+                                                    <p className="font-bold text-slate-800 dark:text-slate-200">{transaction.description}</p>
+                                                    <div className="flex items-center gap-3 text-xs font-medium text-slate-400 mt-0.5">
+                                                        <span className="flex items-center gap-1"><Calendar size={12} /> {new Date(transaction.date + 'T12:00:00').toLocaleDateString('pt-BR')}</span>
+                                                        <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
+                                                        <span className="uppercase">{transaction.category}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="font-black text-rose-500 dark:text-rose-400 text-lg">
+                                                    - R$ {transaction.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="text-center py-12">
+                                        <div className="bg-slate-50 dark:bg-slate-800 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                                            <ShoppingBag className="text-slate-300 dark:text-slate-600" size={24} />
+                                        </div>
+                                        <p className="text-slate-500 dark:text-slate-400 font-medium">Nenhuma transação encontrada para este orçamento neste mês.</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Footer Totais */}
+                        <div className="p-6 bg-slate-50/80 dark:bg-slate-800/80 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center backdrop-blur-sm">
+                            <span className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase">Total Gasto</span>
+                            <span className="text-2xl font-black text-slate-900 dark:text-white">
+                                R$ {getBudgetTransactions(selectedBudget).reduce((acc, t) => acc + t.amount, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {isFormOpen && (
                 <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-indigo-100 dark:border-indigo-900/20 shadow-2xl animate-in zoom-in duration-300 ring-1 ring-black/5 dark:ring-white/5">
@@ -200,7 +288,11 @@ const CustomBudgetManager: React.FC<CustomBudgetManagerProps> = ({
                     const percentageFormatted = Math.min(budget.percentage, 100);
 
                     return (
-                        <div key={budget.id} className="bg-white dark:bg-slate-900 p-6 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-xl transition-all relative overflow-hidden group">
+                        <div
+                            key={budget.id}
+                            onClick={() => setSelectedBudget(budget)}
+                            className="bg-white dark:bg-slate-900 p-6 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-xl transition-all relative overflow-hidden group cursor-pointer hover:border-indigo-200 dark:hover:border-indigo-800/50"
+                        >
                             <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
                                 <PieChart size={64} className="text-indigo-600" />
                             </div>
@@ -217,7 +309,13 @@ const CustomBudgetManager: React.FC<CustomBudgetManagerProps> = ({
                                         )}
                                     </div>
                                 </div>
-                                <button onClick={() => onDeleteCustomBudget(budget.id)} className="p-2 text-slate-300 hover:text-rose-500 transition-colors">
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation(); // Previne abrir o modal ao deletar
+                                        onDeleteCustomBudget(budget.id);
+                                    }}
+                                    className="p-2 text-slate-300 hover:text-rose-500 transition-colors bg-transparent hover:bg-slate-50 dark:hover:bg-slate-800 rounded-full"
+                                >
                                     <Trash2 size={16} />
                                 </button>
                             </div>
@@ -249,6 +347,7 @@ const CustomBudgetManager: React.FC<CustomBudgetManagerProps> = ({
                                     {budget.limitType === 'percentage' ? <Calculator size={12} /> : <DollarSign size={12} />}
                                     {budget.limitType === 'percentage' ? `${budget.limitValue}% da Renda` : 'Valor Fixo'}
                                 </span>
+                                <span className="text-indigo-500 font-bold opacity-0 group-hover:opacity-100 transition-opacity">Ver Detalhes &rarr;</span>
                             </div>
                         </div>
                     );
