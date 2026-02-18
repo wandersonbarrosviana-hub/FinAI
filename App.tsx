@@ -21,6 +21,7 @@ import Settings from './components/Settings';
 import ProfileModal from './components/ProfileModal';
 import FinancialAssistant from './components/FinancialAssistant';
 import CustomBudgetManager from './components/CustomBudgetManager';
+import AdminPanel from './components/AdminPanel';
 import { Budget, CustomBudget } from './types';
 
 import { Bell, Search, User as UserIcon, Plus, Sparkles, AlertCircle, ChevronLeft, ChevronRight, Loader2, LogOut, Settings as SettingsIcon, MessageSquare } from 'lucide-react';
@@ -35,6 +36,7 @@ const App: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [familyMembers, setFamilyMembers] = useState<Record<string, { name: string, avatar: string }>>({});
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [userRole, setUserRole] = useState<string>('user');
   const [currentView, setCurrentView] = useState<ViewState | 'settings'>(() => {
     return (localStorage.getItem('finai_current_view') as ViewState | 'settings') || 'dashboard';
   });
@@ -134,19 +136,25 @@ const App: React.FC = () => {
   const fetchData = async (userId: string, silent: boolean = false) => {
     if (!silent) setLoading(true);
     try {
-      const [txRes, accRes, goalRes, tagRes, budRes, cbRes, familyRes] = await Promise.all([
+      const [txRes, accRes, goalRes, tagRes, budRes, cbRes, familyRes, profileRes] = await Promise.all([
         supabase.from('transactions').select('*').order('date', { ascending: false }),
         supabase.from('accounts').select('*'),
         supabase.from('goals').select('*'),
         supabase.from('tags').select('*'),
         supabase.from('budgets').select('*'),
         supabase.from('custom_budgets').select('*'),
-        supabase.rpc('get_family_details', { current_user_id: userId })
+        supabase.rpc('get_family_details', { current_user_id: userId }),
+        supabase.from('profiles').select('role').eq('id', userId).single()
       ]);
 
       if (txRes.error) throw txRes.error;
       if (accRes.error) throw accRes.error;
       if (goalRes.error) throw goalRes.error;
+
+      // Set user role from profile
+      if (profileRes.data) {
+        setUserRole(profileRes.data.role);
+      }
 
       // Process Family Members
       const membersMap: Record<string, { name: string, avatar: string }> = {};
@@ -1158,7 +1166,7 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex overflow-hidden selection:bg-sky-500/30">
-      <Sidebar currentView={currentView} onViewChange={setCurrentView} isOpen={sidebarOpen} setIsOpen={setSidebarOpen} onLogout={handleLogout} />
+      <Sidebar currentView={currentView} onViewChange={setCurrentView} isOpen={sidebarOpen} setIsOpen={setSidebarOpen} onLogout={handleLogout} userRole={userRole} />
       <main className={`flex-1 flex flex-col transition-all duration-300 mb-[88px] md:mb-0 ml-0 ${sidebarOpen ? 'md:ml-64' : 'md:ml-20'}`}>
         {/* Header - White Glassmorphism */}
         <header className="h-20 bg-white/80 backdrop-blur-xl border-b border-slate-200 flex items-center justify-between px-4 md:px-8 sticky top-0 z-40">
@@ -1241,6 +1249,7 @@ const App: React.FC = () => {
 
         {/* Main Content Area */}
         <div className="flex-1 overflow-y-auto overflow-x-hidden p-6 relative scrollbar-hide">
+          {currentView === 'admin' && userRole === 'admin' && <AdminPanel />}
           {currentView === 'dashboard' && <Dashboard
             transactions={filteredTransactions}
             accounts={accounts}

@@ -100,6 +100,7 @@ export type ViewState =
   | 'transactions'
   | 'ai-assistant'
   | 'tags'
+  | 'admin'
   | 'investments';
 
 export interface InvestmentIndicator {

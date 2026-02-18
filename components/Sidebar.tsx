@@ -10,9 +10,14 @@ interface SidebarProps {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
   onLogout: () => void;
+  userRole?: string;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, isOpen, setIsOpen, onLogout }) => {
+const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, isOpen, setIsOpen, onLogout, userRole }) => {
+  const filteredNavItems = NAV_ITEMS.filter(item =>
+    item.id !== 'admin' || userRole === 'admin'
+  );
+
   return (
     <>
       {/* Desktop Sidebar */}
@@ -50,7 +55,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, isOpen, se
 
         {/* Navigation Items */}
         <nav className="flex-1 overflow-y-auto py-6 px-3 scrollbar-hide space-y-2">
-          {NAV_ITEMS.map((item) => {
+          {filteredNavItems.map((item) => {
             const isActive = currentView === item.id;
             return (
               <button
@@ -123,7 +128,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, isOpen, se
       {/* Mobile Bottom Navigation (Clean White) */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800">
         <div className="flex items-center overflow-x-auto pb-safe no-scrollbar">
-          {NAV_ITEMS.map((item) => {
+          {filteredNavItems.map((item) => {
             const isActive = currentView === item.id;
             return (
               <button

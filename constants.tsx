@@ -20,11 +20,13 @@ import {
   Tags,
   LogOut,
   Bell,
-  Grid
+  Grid,
+  Shield
 } from 'lucide-react';
 import { ViewState } from './types';
 
 export const NAV_ITEMS = [
+  { id: 'admin' as ViewState, label: 'Administrador', icon: <Shield size={20} /> },
   { id: 'dashboard' as ViewState, label: 'Dashboard', icon: <LayoutDashboard size={20} /> },
 
   { id: 'transactions' as ViewState, label: 'Transações', icon: <ArrowRightLeft size={20} /> },
