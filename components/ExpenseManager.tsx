@@ -21,6 +21,7 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [selectedAttachment, setSelectedAttachment] = useState<string | null>(null);
 
   const targetMap = type === 'income' ? INCOME_CATEGORIES_MAP : CATEGORIES_MAP;
   const categoriesList = Object.keys(targetMap);
@@ -107,10 +108,8 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
       setCustomSubCategory(t.subCategory || '');
     }
 
-    // When editing, we usually see the per-installment value
     setInstallmentValueType('installment');
 
-    // Load extra fields
     setPaymentDate(t.paymentDate || new Date().toISOString().split('T')[0]);
     setAccountId(t.account || (accounts.length > 0 ? accounts[0].id : ''));
     setAttachment(t.attachment || '');
@@ -133,7 +132,6 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
       finalSubCategory = customSubCategory || 'Diversos';
     }
 
-    // Calculate final monthly amount based on installment logic
     let finalAmount = parseFloat(inputValue);
     let finalInstallmentTotal = undefined;
 
@@ -143,7 +141,6 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
         finalAmount = finalAmount / formData.installmentCount;
       } else {
         finalInstallmentTotal = finalAmount * formData.installmentCount;
-        // finalAmount is already the installment value
       }
     }
 
@@ -153,7 +150,6 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
       category: finalCategory,
       subCategory: finalSubCategory,
       installmentTotal: finalInstallmentTotal,
-      // Ensure type is correct
       type: type,
       paymentDate: paymentDate,
       account: accountId,
@@ -195,7 +191,6 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
     setInputValue('');
     setInstallmentValueType('total');
 
-    // Reset New Fields
     setPaymentDate(new Date().toISOString().split('T')[0]);
     setAccountId(accounts.length > 0 ? accounts[0].id : '');
     setAttachment('');
@@ -332,7 +327,6 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {/* Description */}
             <div className="space-y-1">
               <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase ml-1">Descrição</label>
               <input
@@ -345,7 +339,6 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
               />
             </div>
 
-            {/* Recurrence Selector */}
             <div className="space-y-1">
               <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase ml-1">Periodicidade</label>
               <div className="flex flex-col sm:flex-row bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 gap-1 sm:gap-0">
@@ -373,7 +366,6 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
               </div>
             </div>
 
-            {/* Installments Logic - Only if Parcelada */}
             {formData.recurrence === 'installment' && (
               <div className="space-y-4 md:col-span-2 lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-4 bg-sky-50/50 p-4 rounded-xl border border-sky-100 animate-in fade-in zoom-in duration-300">
                 <div className="space-y-1">
@@ -424,7 +416,6 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
               </div>
             )}
 
-            {/* Value Input */}
             <div className="space-y-1">
               <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase ml-1">
                 {formData.recurrence === 'installment'
@@ -451,7 +442,6 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
               )}
             </div>
 
-            {/* Category Select */}
             <div className="space-y-1">
               <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase ml-1">Categoria</label>
               <select
@@ -468,7 +458,6 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
               </select>
             </div>
 
-            {/* Custom Input for 'Outros' */}
             {formData.category === 'Outros' ? (
               <>
                 <div className="space-y-1 animate-in fade-in zoom-in duration-300">
@@ -509,7 +498,6 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
               </div>
             )}
 
-            {/* Account Selector */}
             <div className="space-y-1">
               <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase ml-1">Conta / Carteira</label>
               <div className="relative">
@@ -555,7 +543,6 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
               </div>
             )}
 
-            {/* Effective Date (Data de Efetivação) */}
             <div className="space-y-1">
               <label className="text-xs font-bold text-slate-500 uppercase ml-1">Data Efetivação</label>
               <input
@@ -566,7 +553,6 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
               />
             </div>
 
-            {/* Payment Method - Dynamic based on Type */}
             <div className="space-y-1">
               <label className="text-xs font-bold text-slate-500 uppercase ml-1">Método</label>
               <select
@@ -595,7 +581,6 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
               </select>
             </div>
 
-            {/* Paid Toggle */}
             <div className="flex items-end pb-1 md:col-span-2 lg:col-span-1">
               <label className={`flex items-center space-x-3 cursor-pointer p-3 rounded-xl border transition-all w-full ${formData.isPaid ? 'bg-emerald-50 border-emerald-100' : 'bg-slate-50 border-slate-200'}`}>
                 <input
@@ -613,7 +598,6 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
               </label>
             </div>
 
-            {/* Tags Selector */}
             <div className="md:col-span-2 lg:col-span-3 space-y-1">
               <label className="text-xs font-bold text-slate-500 uppercase ml-1">Tags</label>
               <div className="flex flex-wrap gap-2 p-3 bg-slate-50 border border-slate-200 rounded-xl min-h-[50px]">
@@ -649,8 +633,6 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
               </div>
             </div>
 
-
-            {/* Divider for More Info */}
             <div className="md:col-span-2 lg:col-span-3 pt-2">
               <button
                 type="button"
@@ -662,138 +644,132 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
               </button>
             </div>
 
-            {/* Expandable Section */}
-            {
-              showMoreInfo && (
-                <div className="md:col-span-2 lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-500 bg-slate-50 p-4 rounded-xl border border-slate-100">
+            {showMoreInfo && (
+              <div className="md:col-span-2 lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-500 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                <div className="space-y-1 md:col-span-2">
+                  <label className="text-xs font-bold text-slate-500 uppercase ml-1 flex items-center gap-1">
+                    <Paperclip size={12} /> Anexo / Comprovante
+                  </label>
+                  <div className="flex flex-col gap-3">
+                    <input
+                      type="text"
+                      placeholder="Cole o link do documento ou foto aqui..."
+                      className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-sky-500/20 transition-all text-slate-900 text-sm font-medium"
+                      value={attachment.startsWith('data:image') ? 'Imagem anexada' : attachment}
+                      onChange={e => setAttachment(e.target.value)}
+                      readOnly={attachment.startsWith('data:image')}
+                    />
 
-                  <div className="space-y-1 md:col-span-2">
-                    <label className="text-xs font-bold text-slate-500 uppercase ml-1 flex items-center gap-1">
-                      <Paperclip size={12} /> Anexo / Comprovante
-                    </label>
-                    <div className="flex flex-col gap-3">
+                    <div className="flex flex-wrap gap-2">
                       <input
-                        type="text"
-                        placeholder="Cole o link do documento ou foto aqui..."
-                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-sky-500/20 transition-all text-slate-900 text-sm font-medium"
-                        value={attachment.startsWith('data:image') ? 'Imagem anexada' : attachment}
-                        onChange={e => setAttachment(e.target.value)}
-                        readOnly={attachment.startsWith('data:image')}
+                        type="file"
+                        id="cameraInput"
+                        accept="image/*"
+                        capture="environment"
+                        className="hidden"
+                        onChange={handleFileUpload}
                       />
+                      <button
+                        type="button"
+                        onClick={() => document.getElementById('cameraInput')?.click()}
+                        className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-[10px] font-bold text-slate-600 hover:bg-slate-50 transition-all uppercase tracking-widest"
+                      >
+                        <Camera size={14} className="text-sky-600" />
+                        Bater Foto
+                      </button>
 
-                      <div className="flex flex-wrap gap-2">
-                        <input
-                          type="file"
-                          id="cameraInput"
-                          accept="image/*"
-                          capture="environment"
-                          className="hidden"
-                          onChange={handleFileUpload}
-                        />
+                      <input
+                        type="file"
+                        id="fileInput"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleFileUpload}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => document.getElementById('fileInput')?.click()}
+                        className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-[10px] font-bold text-slate-600 hover:bg-slate-50 transition-all uppercase tracking-widest"
+                      >
+                        <Image size={14} className="text-emerald-600" />
+                        Importar
+                      </button>
+
+                      {attachment && (
                         <button
                           type="button"
-                          onClick={() => document.getElementById('cameraInput')?.click()}
-                          className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-[10px] font-bold text-slate-600 hover:bg-slate-50 transition-all uppercase tracking-widest"
+                          onClick={() => setAttachment('')}
+                          className="flex items-center gap-2 px-4 py-2 bg-rose-50 border border-rose-100 rounded-xl text-[10px] font-bold text-rose-600 hover:bg-rose-100 transition-all uppercase tracking-widest"
                         >
-                          <Camera size={14} className="text-sky-600" />
-                          Bater Foto
+                          <Trash2 size={14} />
+                          Remover Anexo
                         </button>
-
-                        <input
-                          type="file"
-                          id="fileInput"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={handleFileUpload}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => document.getElementById('fileInput')?.click()}
-                          className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-[10px] font-bold text-slate-600 hover:bg-slate-50 transition-all uppercase tracking-widest"
-                        >
-                          <Image size={14} className="text-emerald-600" />
-                          Importar
-                        </button>
-
-                        {attachment && (
-                          <button
-                            type="button"
-                            onClick={() => setAttachment('')}
-                            className="flex items-center gap-2 px-4 py-2 bg-rose-50 border border-rose-100 rounded-xl text-[10px] font-bold text-rose-600 hover:bg-rose-100 transition-all uppercase tracking-widest"
-                          >
-                            <Trash2 size={14} />
-                            Remover Anexo
-                          </button>
-                        )}
-                      </div>
-
-                      {attachment && attachment.startsWith('data:image') && (
-                        <div className="relative w-full max-w-[200px] h-[200px] rounded-2xl overflow-hidden border-4 border-white shadow-lg animate-in fade-in zoom-in duration-300">
-                          <img src={attachment} alt="Preview" className="w-full h-full object-cover" />
-                          <button
-                            type="button"
-                            onClick={() => setAttachment('')}
-                            className="absolute top-2 right-2 p-1 bg-rose-500 text-white rounded-full shadow-lg hover:bg-rose-600 transition-colors"
-                          >
-                            <X size={14} />
-                          </button>
-                        </div>
                       )}
                     </div>
-                    <p className="text-[10px] text-slate-600 italic px-1 mt-1">
-                      * As fotos são salvas em formato otimizado para não pesar no sistema.
-                    </p>
+
+                    {attachment && attachment.startsWith('data:image') && (
+                      <div className="relative w-full max-w-[200px] h-[200px] rounded-2xl overflow-hidden border-4 border-white shadow-lg animate-in fade-in zoom-in duration-300">
+                        <img src={attachment} alt="Preview" className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => setAttachment('')}
+                          className="absolute top-2 right-2 p-1 bg-rose-500 text-white rounded-full shadow-lg hover:bg-rose-600 transition-colors"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    )}
                   </div>
-
-                  {/* Observations */}
-                  <div className="space-y-1 md:col-span-2">
-                    <label className="text-xs font-bold text-slate-500 uppercase ml-1 flex items-center gap-1">
-                      <FileText size={12} /> Observações
-                    </label>
-                    <textarea
-                      className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-sky-500/20 transition-all text-slate-900 text-sm font-medium min-h-[80px]"
-                      placeholder="Detalhes adicionais sobre este lançamento..."
-                      value={notes}
-                      onChange={e => setNotes(e.target.value)}
-                    />
-                  </div>
-
-                  {/* Toggles */}
-                  <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-4 paddingTop-2">
-                    <label className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-white border border-transparent hover:border-slate-100 transition-colors">
-                      <input
-                        type="checkbox"
-                        className="w-4 h-4 rounded border-slate-300 bg-white text-rose-500 focus:ring-rose-500"
-                        checked={ignoreInStatistics}
-                        onChange={e => setIgnoreInStatistics(e.target.checked)}
-                      />
-                      <span className="text-xs font-bold text-slate-500">Ignorar em Gráficos</span>
-                    </label>
-
-                    <label className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-white border border-transparent hover:border-slate-100 transition-colors">
-                      <input
-                        type="checkbox"
-                        className="w-4 h-4 rounded border-slate-300 bg-white text-rose-500 focus:ring-rose-500"
-                        checked={ignoreInBudgets}
-                        onChange={e => setIgnoreInBudgets(e.target.checked)}
-                      />
-                      <span className="text-xs font-bold text-slate-500">Ignorar Orçamentos</span>
-                    </label>
-
-                    <label className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-white border border-transparent hover:border-slate-100 transition-colors">
-                      <input
-                        type="checkbox"
-                        className="w-4 h-4 rounded border-slate-300 bg-white text-rose-500 focus:ring-rose-500"
-                        checked={ignoreInTotals}
-                        onChange={e => setIgnoreInTotals(e.target.checked)}
-                      />
-                      <span className="text-xs font-bold text-slate-500">Ignorar Totais</span>
-                    </label>
-                  </div>
+                  <p className="text-[10px] text-slate-600 italic px-1 mt-1">
+                    * As fotos são salvas em formato otimizado para não pesar no sistema.
+                  </p>
                 </div>
-              )
-            }
-          </div >
+
+                <div className="space-y-1 md:col-span-2">
+                  <label className="text-xs font-bold text-slate-500 uppercase ml-1 flex items-center gap-1">
+                    <FileText size={12} /> Observações
+                  </label>
+                  <textarea
+                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-sky-500/20 transition-all text-slate-900 text-sm font-medium min-h-[80px]"
+                    placeholder="Detalhes adicionais sobre este lançamento..."
+                    value={notes}
+                    onChange={e => setNotes(e.target.value)}
+                  />
+                </div>
+
+                <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-4 paddingTop-2">
+                  <label className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-white border border-transparent hover:border-slate-100 transition-colors">
+                    <input
+                      type="checkbox"
+                      className="w-4 h-4 rounded border-slate-300 bg-white text-rose-500 focus:ring-rose-500"
+                      checked={ignoreInStatistics}
+                      onChange={e => setIgnoreInStatistics(e.target.checked)}
+                    />
+                    <span className="text-xs font-bold text-slate-500">Ignorar em Gráficos</span>
+                  </label>
+
+                  <label className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-white border border-transparent hover:border-slate-100 transition-colors">
+                    <input
+                      type="checkbox"
+                      className="w-4 h-4 rounded border-slate-300 bg-white text-rose-500 focus:ring-rose-500"
+                      checked={ignoreInBudgets}
+                      onChange={e => setIgnoreInBudgets(e.target.checked)}
+                    />
+                    <span className="text-xs font-bold text-slate-500">Ignorar Orçamentos</span>
+                  </label>
+
+                  <label className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-white border border-transparent hover:border-slate-100 transition-colors">
+                    <input
+                      type="checkbox"
+                      className="w-4 h-4 rounded border-slate-300 bg-white text-rose-500 focus:ring-rose-500"
+                      checked={ignoreInTotals}
+                      onChange={e => setIgnoreInTotals(e.target.checked)}
+                    />
+                    <span className="text-xs font-bold text-slate-500">Ignorar Totais</span>
+                  </label>
+                </div>
+              </div>
+            )}
+          </div>
           <div className="mt-6 flex justify-end">
             <button
               type="submit"
@@ -803,9 +779,8 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
               <span>{editingId ? 'Atualizar' : 'Salvar Registro'}</span>
             </button>
           </div>
-        </form >
-      )
-      }
+        </form>
+      )}
 
       <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
         {/* Desktop Table View */}
@@ -1061,7 +1036,53 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
           )}
         </div>
       </div>
-    </div >
+
+      {/* Attachment Modal Viewer */}
+      {selectedAttachment && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="relative bg-white rounded-3xl overflow-hidden shadow-2xl max-w-2xl w-full animate-in zoom-in-95 duration-300">
+            <div className="p-4 border-b border-slate-100 flex justify-between items-center">
+              <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest">Visualizar Anexo</h3>
+              <button
+                onClick={() => setSelectedAttachment(null)}
+                className="p-2 hover:bg-slate-100 rounded-xl transition-colors text-slate-400 hover:text-slate-600"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-4 flex justify-center bg-slate-50 min-h-[300px] max-h-[70vh] overflow-y-auto">
+              {selectedAttachment.startsWith('data:image') ? (
+                <img src={selectedAttachment} alt="Anexo" className="max-w-full h-auto rounded-xl shadow-sm" />
+              ) : (
+                <div className="flex flex-col items-center justify-center gap-4 py-12">
+                  <div className="p-6 bg-white rounded-3xl shadow-sm border border-slate-100">
+                    <FileText size={48} className="text-sky-500" />
+                  </div>
+                  <p className="text-slate-500 font-medium text-center">Este anexo é um link externo.</p>
+                  <a
+                    href={selectedAttachment}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-6 py-3 bg-sky-600 text-white rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-sky-500 transition-all shadow-lg shadow-sky-100"
+                  >
+                    Abrir Link Externo
+                  </a>
+                </div>
+              )}
+            </div>
+            <div className="p-4 border-t border-slate-100 flex justify-end">
+              <button
+                onClick={() => setSelectedAttachment(null)}
+                className="px-6 py-2 bg-slate-100 text-slate-600 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-slate-200 transition-all"
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
+
 export default ExpenseManager;

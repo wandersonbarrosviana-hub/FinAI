@@ -98,31 +98,41 @@ const App: React.FC = () => {
       }
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      if (session?.user) {
-        setUser({
-          id: session.user.id,
-          email: session.user.email!,
-          name: session.user.user_metadata.name || session.user.email!.split('@')[0],
-          avatarUrl: session.user.user_metadata.avatar_url
-        });
-        fetchData(session.user.id);
-        checkPendingInvites(session.user.email!, session.user.id);
-      } else {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      // Only refresh if session changes significantly or it's a login/logout
+      if (event === 'SIGNED_IN') {
+        setSession(session);
+        if (session?.user) {
+          setUser({
+            id: session.user.id,
+            email: session.user.email!,
+            name: session.user.user_metadata.name || session.user.email!.split('@')[0],
+            avatarUrl: session.user.user_metadata.avatar_url
+          });
+          fetchData(session.user.id);
+          checkPendingInvites(session.user.email!, session.user.id);
+        }
+      } else if (event === 'SIGNED_OUT') {
+        setSession(null);
         setUser(null);
         setTransactions([]);
         setAccounts([]);
         setGoals([]);
         setLoading(false);
+      } else if (event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+        setSession(session);
+        if (session?.user) {
+          // Silent fetch on token refresh to keep data updated without flashing
+          fetchData(session.user.id, true);
+        }
       }
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  const fetchData = async (userId: string) => {
-    setLoading(true);
+  const fetchData = async (userId: string, silent: boolean = false) => {
+    if (!silent) setLoading(true);
     try {
       const [txRes, accRes, goalRes, tagRes, budRes, cbRes, familyRes] = await Promise.all([
         supabase.from('transactions').select('*').order('date', { ascending: false }),

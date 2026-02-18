@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
 import { Transaction, Account } from '../types';
-import { FileText, Download, Filter, Search, ArrowUpCircle, ArrowDownCircle, ArrowRightCircle } from 'lucide-react';
+import { FileText, Download, Filter, Search, ArrowUpCircle, ArrowDownCircle, ArrowRightCircle, Paperclip, X } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
@@ -15,6 +14,7 @@ interface TransactionStatementProps {
 const TransactionStatement: React.FC<TransactionStatementProps> = ({ transactions, accounts, familyMembers }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [filterType, setFilterType] = useState<'all' | 'income' | 'expense' | 'transfer'>('all');
+    const [selectedAttachment, setSelectedAttachment] = useState<string | null>(null);
 
     const filtered = transactions.filter(t => {
         const matchesSearch = t.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -174,6 +174,51 @@ const TransactionStatement: React.FC<TransactionStatementProps> = ({ transaction
                     </table>
                 </div>
             </div>
+
+            {/* Attachment Modal Viewer */}
+            {selectedAttachment && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className="relative bg-white rounded-3xl overflow-hidden shadow-2xl max-w-2xl w-full animate-in zoom-in-95 duration-300">
+                        <div className="p-4 border-b border-slate-100 flex justify-between items-center">
+                            <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest">Visualizar Anexo</h3>
+                            <button
+                                onClick={() => setSelectedAttachment(null)}
+                                className="p-2 hover:bg-slate-100 rounded-xl transition-colors text-slate-400 hover:text-slate-600"
+                            >
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <div className="p-4 flex justify-center bg-slate-50 min-h-[300px] max-h-[70vh] overflow-y-auto">
+                            {selectedAttachment.startsWith('data:image') ? (
+                                <img src={selectedAttachment} alt="Anexo" className="max-w-full h-auto rounded-xl shadow-sm" />
+                            ) : (
+                                <div className="flex flex-col items-center justify-center gap-4 py-12">
+                                    <div className="p-6 bg-white rounded-3xl shadow-sm border border-slate-100">
+                                        <FileText size={48} className="text-sky-500" />
+                                    </div>
+                                    <p className="text-slate-500 font-medium text-center">Este anexo é um link externo.</p>
+                                    <a
+                                        href={selectedAttachment}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center gap-2 px-6 py-3 bg-sky-600 text-white rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-sky-500 transition-all shadow-lg shadow-sky-100"
+                                    >
+                                        Abrir Link Externo
+                                    </a>
+                                </div>
+                            )}
+                        </div>
+                        <div className="p-4 border-t border-slate-100 flex justify-end">
+                            <button
+                                onClick={() => setSelectedAttachment(null)}
+                                className="px-6 py-2 bg-slate-100 text-slate-600 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-slate-200 transition-all"
+                            >
+                                Fechar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
