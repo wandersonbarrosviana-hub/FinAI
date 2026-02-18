@@ -1261,53 +1261,73 @@ const App: React.FC = () => {
           </div>
         </header>
 
-        {/* Main Content Area */}
+        {/* Main Content Area - All views stay mounted, hidden via CSS to preserve state */}
         <div className="flex-1 overflow-y-auto overflow-x-hidden p-6 relative scrollbar-hide">
-          {currentView === 'admin' && userRole === 'admin' && <AdminPanel />}
-          {currentView === 'dashboard' && <Dashboard
-            transactions={filteredTransactions}
-            accounts={accounts}
-            onAddClick={() => setCurrentView('expenses')} // Updated logic
-            tags={tags}
-            goals={goals}
-            budgets={budgets}
-            familyMembers={familyMembers}
-          />}
-          {currentView === 'transactions' && <TransactionManager
-            transactions={filteredTransactions}
-            accounts={accounts}
-            tags={tags}
-            onAddTransaction={handleAddTransaction}
-            onDeleteTransaction={handleDeleteTransaction}
-            onUpdateTransaction={handleUpdateTransaction}
-            onTransfer={handleTransfer}
-            familyMembers={familyMembers}
-          />}
-          {currentView === 'reports' && <Reports
-            transactions={transactions}
-            accounts={accounts}
-            currentDate={currentDate}
-            tags={tags}
-          />}
-
-          {currentView === 'credit-cards' && <CreditCardManager accounts={accounts.filter(a => a.isCredit)} transactions={transactions} onAddTransaction={handleAddTransaction} onAddAccount={handleAddAccount} />}
-          {currentView === 'budgets' && <BudgetManager transactions={filteredTransactions} budgets={budgets} onUpdateBudget={handleUpdateBudget} onAddBudget={handleAddBudget} />}
-          {currentView === 'custom-budgets' && <CustomBudgetManager
-            customBudgets={customBudgets}
-            transactions={filteredTransactions}
-            monthlyIncome={filteredTransactions
-              .filter(t => t.type === 'income' && t.date.startsWith(currentDate.toISOString().slice(0, 7)))
-              .reduce((sum, t) => sum + t.amount, 0)}
-            onAddCustomBudget={handleAddCustomBudget}
-            onDeleteCustomBudget={handleDeleteCustomBudget}
-          />}
-          {currentView === 'goals' && <GoalManager goals={goals} transactions={filteredTransactions} accounts={accounts} onAddGoal={handleAddGoal} onDeleteGoal={handleDeleteGoal} />}
-          {currentView === 'categories' && <CategoryManager transactions={filteredTransactions} />}
-          {currentView === 'accounts' && <AccountManager accounts={accounts} transactions={transactions} onAddAccount={handleAddAccount} onDeleteAccount={handleDeleteAccount} />}
-          {/* {currentView === 'investments' && <Investments />} */}
-          {currentView === 'retirement' && <RetirementSimulator transactions={transactions} budgets={budgets} simulationParams={retirementParams} />}
-          {currentView === 'tags' && <TagManager tags={tags} onAddTag={handleAddTag} onDeleteTag={handleDeleteTag} onUpdateTag={handleUpdateTag} />}
-          {currentView === 'ai-assistant' && (
+          <div className={currentView === 'admin' && userRole === 'admin' ? '' : 'hidden'}><AdminPanel /></div>
+          <div className={currentView === 'dashboard' ? '' : 'hidden'}>
+            <Dashboard
+              transactions={filteredTransactions}
+              accounts={accounts}
+              onAddClick={() => setCurrentView('expenses')}
+              tags={tags}
+              goals={goals}
+              budgets={budgets}
+              familyMembers={familyMembers}
+            />
+          </div>
+          <div className={currentView === 'transactions' ? '' : 'hidden'}>
+            <TransactionManager
+              transactions={filteredTransactions}
+              accounts={accounts}
+              tags={tags}
+              onAddTransaction={handleAddTransaction}
+              onDeleteTransaction={handleDeleteTransaction}
+              onUpdateTransaction={handleUpdateTransaction}
+              onTransfer={handleTransfer}
+              familyMembers={familyMembers}
+            />
+          </div>
+          <div className={currentView === 'reports' ? '' : 'hidden'}>
+            <Reports
+              transactions={transactions}
+              accounts={accounts}
+              currentDate={currentDate}
+              tags={tags}
+            />
+          </div>
+          <div className={currentView === 'credit-cards' ? '' : 'hidden'}>
+            <CreditCardManager accounts={accounts.filter(a => a.isCredit)} transactions={transactions} onAddTransaction={handleAddTransaction} onAddAccount={handleAddAccount} />
+          </div>
+          <div className={currentView === 'budgets' ? '' : 'hidden'}>
+            <BudgetManager transactions={filteredTransactions} budgets={budgets} onUpdateBudget={handleUpdateBudget} onAddBudget={handleAddBudget} />
+          </div>
+          <div className={currentView === 'custom-budgets' ? '' : 'hidden'}>
+            <CustomBudgetManager
+              customBudgets={customBudgets}
+              transactions={filteredTransactions}
+              monthlyIncome={filteredTransactions
+                .filter(t => t.type === 'income' && t.date.startsWith(currentDate.toISOString().slice(0, 7)))
+                .reduce((sum, t) => sum + t.amount, 0)}
+              onAddCustomBudget={handleAddCustomBudget}
+              onDeleteCustomBudget={handleDeleteCustomBudget}
+            />
+          </div>
+          <div className={currentView === 'goals' ? '' : 'hidden'}>
+            <GoalManager goals={goals} transactions={filteredTransactions} accounts={accounts} onAddGoal={handleAddGoal} onDeleteGoal={handleDeleteGoal} />
+          </div>
+          <div className={currentView === 'categories' ? '' : 'hidden'}>
+            <CategoryManager transactions={filteredTransactions} />
+          </div>
+          <div className={currentView === 'accounts' ? '' : 'hidden'}>
+            <AccountManager accounts={accounts} transactions={transactions} onAddAccount={handleAddAccount} onDeleteAccount={handleDeleteAccount} />
+          </div>
+          <div className={currentView === 'retirement' ? '' : 'hidden'}>
+            <RetirementSimulator transactions={transactions} budgets={budgets} simulationParams={retirementParams} />
+          </div>
+          <div className={currentView === 'tags' ? '' : 'hidden'}>
+            <TagManager tags={tags} onAddTag={handleAddTag} onDeleteTag={handleDeleteTag} onUpdateTag={handleUpdateTag} />
+          </div>
+          <div className={currentView === 'ai-assistant' ? '' : 'hidden'}>
             <div className="p-4 md:p-8 overflow-y-auto scrollbar-hide text-slate-800 h-full flex flex-col">
               <div className="max-w-4xl mx-auto w-full h-full">
                 <div className="mb-6">
@@ -1326,13 +1346,24 @@ const App: React.FC = () => {
                 />
               </div>
             </div>
-          )}
-          {currentView === 'expenses' && <ExpenseManager type="expense" transactions={filteredTransactions} onAddTransaction={handleAddTransaction} onDeleteTransaction={handleDeleteTransaction} onUpdateTransaction={handleUpdateTransaction} tags={tags} accounts={accounts} familyMembers={familyMembers} />}
-          {currentView === 'income' && <ExpenseManager type="income" transactions={filteredTransactions} allTransactions={transactions} onAddTransaction={handleAddTransaction} onDeleteTransaction={handleDeleteTransaction} onUpdateTransaction={handleUpdateTransaction} tags={tags} accounts={accounts} familyMembers={familyMembers} />}
-          {currentView === 'plans' && <PlansPage userPlan={userPlan} onUpgradeSuccess={() => fetchData(user!.id)} />}
-          {currentView === 'charts' && <ChartsHub transactions={filteredTransactions} />}
-          {currentView === 'settings' && <Settings user={user} onLogout={handleLogout} onExportData={handleExportData} onResetData={handleResetData} />}
+          </div>
+          <div className={currentView === 'expenses' ? '' : 'hidden'}>
+            <ExpenseManager type="expense" transactions={filteredTransactions} onAddTransaction={handleAddTransaction} onDeleteTransaction={handleDeleteTransaction} onUpdateTransaction={handleUpdateTransaction} tags={tags} accounts={accounts} familyMembers={familyMembers} />
+          </div>
+          <div className={currentView === 'income' ? '' : 'hidden'}>
+            <ExpenseManager type="income" transactions={filteredTransactions} allTransactions={transactions} onAddTransaction={handleAddTransaction} onDeleteTransaction={handleDeleteTransaction} onUpdateTransaction={handleUpdateTransaction} tags={tags} accounts={accounts} familyMembers={familyMembers} />
+          </div>
+          <div className={currentView === 'plans' ? '' : 'hidden'}>
+            <PlansPage userPlan={userPlan} onUpgradeSuccess={() => fetchData(user!.id)} />
+          </div>
+          <div className={currentView === 'charts' ? '' : 'hidden'}>
+            <ChartsHub transactions={filteredTransactions} />
+          </div>
+          <div className={currentView === 'settings' ? '' : 'hidden'}>
+            <Settings user={user} onLogout={handleLogout} onExportData={handleExportData} onResetData={handleResetData} />
+          </div>
         </div>
+
       </main>
 
       {/* Global Voice Control - Floating Action Button */}
