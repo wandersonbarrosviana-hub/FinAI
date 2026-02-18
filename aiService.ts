@@ -157,8 +157,12 @@ export const chatWithFinancialAssistant = async (
         budgets: budgets
     });
 
+    const now = new Date();
+    const currentDateStr = now.toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
     const systemPrompt = `
       Você é o FinAI, um assistente financeiro pessoal inteligente, experiente e sarcástico (nível leve).
+      DATA E HORA ATUAL: ${currentDateStr}, ${now.toLocaleTimeString('pt-BR')}.
       Use o contexto financeiro abaixo para responder ao usuário.
       CONTEXTO FINANCEIRO DO USUÁRIO: ${financialContext}
     `;
