@@ -693,6 +693,8 @@ const App: React.FC = () => {
             }
           }
         });
+        // Refetch silencioso para garantir sincronização
+        if (user) fetchData(user.id, true);
       }
     } catch (err) {
       console.error("Error creating transaction", err);
@@ -701,8 +703,15 @@ const App: React.FC = () => {
   };
 
   const handleUpdateAccount = async (id: string, updates: Partial<Account>) => {
+    const prev = accounts.find(a => a.id === id);
     setAccounts(prev => prev.map(a => a.id === id ? { ...a, ...updates } : a));
-    await supabase.from('accounts').update(updates).eq('id', id);
+    const { error } = await supabase.from('accounts').update(updates).eq('id', id);
+    if (error) {
+      console.error('Erro ao atualizar conta:', error);
+      // Revert
+      if (prev) setAccounts(accs => accs.map(a => a.id === id ? prev : a));
+      alert('Erro ao atualizar conta: ' + error.message);
+    }
   };
 
   const handleUpdateGoal = async (id: string, updates: Partial<Goal>) => {
@@ -919,6 +928,8 @@ const App: React.FC = () => {
     }
 
     await supabase.from('transactions').delete().eq('id', id);
+    // Refetch silencioso para garantir sincronização
+    if (user) fetchData(user.id, true);
   };
 
   const handleTransfer = async (data: {
@@ -1007,12 +1018,23 @@ const App: React.FC = () => {
         dueDay: inserted.due_day
       };
       setAccounts(prev => [...prev, newAcc]);
+      // Refetch silencioso para garantir sincronização
+      if (user) fetchData(user.id, true);
     }
   };
 
   const handleDeleteAccount = async (id: string) => {
+    const snapshot = accounts;
     setAccounts(prev => prev.filter(acc => acc.id !== id));
-    await supabase.from('accounts').delete().eq('id', id);
+    const { error } = await supabase.from('accounts').delete().eq('id', id);
+    if (error) {
+      console.error('Erro ao deletar conta:', error);
+      setAccounts(snapshot); // revert
+      alert('Erro ao excluir conta: ' + error.message);
+    } else {
+      // Refetch silencioso para garantir sincronização
+      if (user) fetchData(user.id, true);
+    }
   };
 
   const handleAddGoal = async (data: Partial<Goal>) => {
@@ -1027,14 +1049,28 @@ const App: React.FC = () => {
     };
 
     const { data: inserted, error } = await supabase.from('goals').insert(newGoalPayload).select().single();
-    if (inserted && !error) {
+    if (error) {
+      console.error('Erro ao criar meta:', error);
+      alert('Erro ao criar meta: ' + error.message);
+      return;
+    }
+    if (inserted) {
       setGoals(prev => [...prev, inserted]);
+      fetchData(user.id, true);
     }
   };
 
   const handleDeleteGoal = async (id: string) => {
+    const snapshot = goals;
     setGoals(prev => prev.filter(g => g.id !== id));
-    await supabase.from('goals').delete().eq('id', id);
+    const { error } = await supabase.from('goals').delete().eq('id', id);
+    if (error) {
+      console.error('Erro ao deletar meta:', error);
+      setGoals(snapshot);
+      alert('Erro ao excluir meta: ' + error.message);
+    } else {
+      if (user) fetchData(user.id, true);
+    }
   };
 
   const handleAddTag = async (data: Partial<Tag>) => {
@@ -1046,8 +1082,14 @@ const App: React.FC = () => {
     };
 
     const { data: inserted, error } = await supabase.from('tags').insert(newTag).select().single();
-    if (inserted && !error) {
+    if (error) {
+      console.error('Erro ao criar tag:', error);
+      alert('Erro ao criar tag: ' + error.message);
+      return;
+    }
+    if (inserted) {
       setTags(prev => [...prev, inserted]);
+      fetchData(user.id, true);
     }
   };
 
@@ -1084,8 +1126,16 @@ const App: React.FC = () => {
   };
 
   const handleDeleteTag = async (id: string) => {
+    const snapshot = tags;
     setTags(prev => prev.filter(t => t.id !== id));
-    await supabase.from('tags').delete().eq('id', id);
+    const { error } = await supabase.from('tags').delete().eq('id', id);
+    if (error) {
+      console.error('Erro ao deletar tag:', error);
+      setTags(snapshot);
+      alert('Erro ao excluir tag: ' + error.message);
+    } else {
+      if (user) fetchData(user.id, true);
+    }
   };
 
   const handleExportData = () => {
