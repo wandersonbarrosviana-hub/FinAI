@@ -423,21 +423,57 @@ const RetirementSimulator: React.FC<RetirementSimulatorProps> = ({ transactions,
                                 </defs>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                                 {freedomPoint && (
-                                    <ReferenceLine
-                                        x={viewMode === 'annual' ? freedomPoint.yearLabel : freedomPoint.month}
-                                        stroke="#10b981"
-                                        strokeDasharray="3 3"
-                                        strokeWidth={3}
-                                        isFront={true}
-                                        label={{
-                                            value: viewMode === 'annual' ? `🏖️ EM ${freedomPoint.yearLabel}` : `🏖️ MÊS ${freedomPoint.month}`,
-                                            position: 'insideBottom',
-                                            fill: '#10b981',
-                                            fontSize: 12,
-                                            fontWeight: '900',
-                                            dy: -10
-                                        }}
-                                    />
+                                    <>
+                                        {/* Linha Vertical de Tempo */}
+                                        <ReferenceLine
+                                            x={viewMode === 'annual' ? freedomPoint.yearLabel : freedomPoint.month}
+                                            stroke="#10b981"
+                                            strokeDasharray="5 5"
+                                            strokeWidth={2}
+                                            isFront={true}
+                                            yAxisId="right"
+                                        />
+
+                                        {/* Linha Horizontal de Renda Alvo */}
+                                        <ReferenceLine
+                                            y={freedomPoint.displayRequiredIncome}
+                                            yAxisId="right"
+                                            stroke="#10b981"
+                                            strokeDasharray="5 5"
+                                            strokeWidth={2}
+                                            isFront={true}
+                                            label={{
+                                                value: `ALVO: R$ ${freedomPoint.displayRequiredIncome.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}`,
+                                                position: 'insideLeft',
+                                                fill: '#10b981',
+                                                fontSize: 10,
+                                                fontWeight: '900',
+                                                dy: -10
+                                            }}
+                                        />
+
+                                        {/* Ponto de Convergência (Liberdade Financeira) */}
+                                        <ReferenceDot
+                                            x={viewMode === 'annual' ? freedomPoint.yearLabel : freedomPoint.month}
+                                            y={freedomPoint.displayPassiveIncome}
+                                            yAxisId="right"
+                                            r={8}
+                                            fill="#10b981"
+                                            stroke="#fff"
+                                            strokeWidth={3}
+                                            isFront={true}
+                                            className="drop-shadow-lg"
+                                        >
+                                            <Label
+                                                value="🚀 LIBERDADE"
+                                                position="top"
+                                                fill="#10b981"
+                                                fontSize={12}
+                                                fontWeight="900"
+                                                offset={15}
+                                            />
+                                        </ReferenceDot>
+                                    </>
                                 )}
 
 
