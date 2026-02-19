@@ -210,17 +210,49 @@ const App: React.FC = () => {
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
-    // Supabase Realtime: Ouvir mudanças nas tabelas críticas
+    // Supabase Realtime: handle INSERT/UPDATE/DELETE in real-time
     const channel = supabase
       .channel('schema-db-changes')
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'transactions' },
+        { event: 'DELETE', schema: 'public', table: 'transactions' },
+        (payload) => {
+          const deletedId = payload.old?.id;
+          if (deletedId) {
+            console.log(`[FinAI] Realtime DELETE transaction: ${deletedId}`);
+            db.transactions.delete(deletedId);
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'DELETE', schema: 'public', table: 'accounts' },
+        (payload) => {
+          const deletedId = payload.old?.id;
+          if (deletedId) {
+            console.log(`[FinAI] Realtime DELETE account: ${deletedId}`);
+            db.accounts.delete(deletedId);
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'transactions' },
         () => user?.id && fetchData(user.id, true)
       )
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'accounts' },
+        { event: 'UPDATE', schema: 'public', table: 'transactions' },
+        () => user?.id && fetchData(user.id, true)
+      )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'accounts' },
+        () => user?.id && fetchData(user.id, true)
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'accounts' },
         () => user?.id && fetchData(user.id, true)
       )
       .subscribe();
@@ -343,9 +375,47 @@ const App: React.FC = () => {
           limitValue: cb.limit_value
         }));
 
-        // Persistir no Dexie e Redundância localStorage
-        // ONLY bulkPut if there are no pending sync items for these tables to avoid overwriting edits
+        // --- TRUE SYNC: Reconcile local data with server (remove orphans) ---
         if (pendingSync === 0) {
+          // Build sets of server IDs for fast lookup
+          const serverTxIds = new Set(mappedTxs.map((t: any) => t.id));
+          const serverAccIds = new Set(mappedAccs.map((a: any) => a.id));
+          const serverGoalIds = new Set(goalData.map((g: any) => g.id));
+          const serverTagIds = new Set(tagData.map((t: any) => t.id));
+          const serverBudgetIds = new Set(budData.map((b: any) => b.id));
+          const serverCBIds = new Set(mappedCB.map((c: any) => c.id));
+
+          // Find and delete local records no longer on server
+          const [localTxs, localAccs, localGoals, localTags, localBudgets, localCBs] = await Promise.all([
+            db.transactions.toArray(),
+            db.accounts.toArray(),
+            db.goals.toArray(),
+            db.tags.toArray(),
+            db.budgets.toArray(),
+            db.customBudgets.toArray()
+          ]);
+
+          const orphanTxIds = localTxs.filter(t => !serverTxIds.has(t.id)).map(t => t.id);
+          const orphanAccIds = localAccs.filter(a => !serverAccIds.has(a.id)).map(a => a.id);
+          const orphanGoalIds = localGoals.filter(g => !serverGoalIds.has(g.id)).map(g => g.id);
+          const orphanTagIds = localTags.filter(t => !serverTagIds.has(t.id)).map(t => t.id);
+          const orphanBudgetIds = localBudgets.filter(b => !serverBudgetIds.has(b.id)).map(b => b.id);
+          const orphanCBIds = localCBs.filter(c => !serverCBIds.has(c.id)).map(c => c.id);
+
+          if (orphanTxIds.length > 0) {
+            console.log(`[FinAI] Reconcile: removing ${orphanTxIds.length} orphan transactions.`);
+            await db.transactions.bulkDelete(orphanTxIds);
+          }
+          if (orphanAccIds.length > 0) {
+            console.log(`[FinAI] Reconcile: removing ${orphanAccIds.length} orphan accounts.`);
+            await db.accounts.bulkDelete(orphanAccIds);
+          }
+          if (orphanGoalIds.length > 0) await db.goals.bulkDelete(orphanGoalIds);
+          if (orphanTagIds.length > 0) await db.tags.bulkDelete(orphanTagIds);
+          if (orphanBudgetIds.length > 0) await db.budgets.bulkDelete(orphanBudgetIds);
+          if (orphanCBIds.length > 0) await db.customBudgets.bulkDelete(orphanCBIds);
+
+          // Upsert server data locally
           await db.transactions.bulkPut(mappedTxs);
           await db.accounts.bulkPut(mappedAccs);
           await db.goals.bulkPut(goalData);
@@ -356,7 +426,7 @@ const App: React.FC = () => {
           localStorage.setItem('finai_fallback_txs', JSON.stringify(mappedTxs.slice(0, 50)));
           localStorage.setItem('finai_fallback_accs', JSON.stringify(mappedAccs));
         } else {
-          console.warn("[FinAI] Skipping bulkPut due to pending sync items to prevent data loss.");
+          console.warn("[FinAI] Skipping reconcile due to pending sync items to prevent data loss.");
         }
 
         const syncTime = new Date().toLocaleString('pt-BR');
@@ -1353,7 +1423,7 @@ const App: React.FC = () => {
             <ChartsHub transactions={filteredTransactions} />
           </div>
           <div className={currentView === 'settings' ? '' : 'hidden'}>
-            <Settings user={user} onLogout={handleLogout} onExportData={handleExportData} onResetData={handleResetData} />
+            <Settings user={user} onLogout={handleLogout} onExportData={handleExportData} onForceSync={() => user?.id && fetchData(user.id, true)} onResetData={handleResetData} />
           </div>
           <div className={currentView === 'investments' ? '' : 'hidden'}>
             <div className="flex flex-col items-center justify-center h-full min-h-[60vh] gap-6">

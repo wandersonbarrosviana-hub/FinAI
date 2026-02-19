@@ -23,6 +23,7 @@ interface SettingsProps {
     user: { name: string; email: string; avatarUrl?: string };
     onLogout: () => void;
     onExportData: () => void;
+    onForceSync?: () => void;
     onResetData: (options: {
         keepCategories: boolean;
         keepCreditCards: boolean;
@@ -31,7 +32,7 @@ interface SettingsProps {
     }) => Promise<void>;
 }
 
-const Settings: React.FC<SettingsProps> = ({ user, onLogout, onExportData, onResetData }) => {
+const Settings: React.FC<SettingsProps> = ({ user, onLogout, onExportData, onForceSync, onResetData }) => {
     // Theme state is now managed by parent (App.tsx)
     const [notifications, setNotifications] = useState(true);
     const [isResetModalOpen, setIsResetModalOpen] = useState(false);
@@ -114,6 +115,22 @@ const Settings: React.FC<SettingsProps> = ({ user, onLogout, onExportData, onRes
                     </h3>
 
                     <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
+                        {/* Force Sync */}
+                        {onForceSync && (
+                            <button onClick={onForceSync} className="w-full p-5 flex items-center justify-between border-b border-slate-50 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
+                                <div className="flex items-center gap-4">
+                                    <div className="p-2 bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400 rounded-xl group-hover:bg-sky-100 dark:group-hover:bg-sky-900/40 transition-colors">
+                                        <Database size={20} />
+                                    </div>
+                                    <div className="text-left">
+                                        <p className="font-bold text-slate-800 dark:text-slate-200">Sincronizar Agora</p>
+                                        <p className="text-xs text-slate-400 dark:text-slate-500 font-medium">Força reconciliação completa com a nuvem</p>
+                                    </div>
+                                </div>
+                                <ChevronRight size={18} className="text-slate-300 dark:text-slate-600 group-hover:text-sky-500 dark:group-hover:text-sky-400 transition-colors" />
+                            </button>
+                        )}
+
                         {/* Export Data */}
                         <button onClick={onExportData} className="w-full p-5 flex items-center justify-between border-b border-slate-50 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
                             <div className="flex items-center gap-4">
