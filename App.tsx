@@ -190,7 +190,6 @@ const App: React.FC = () => {
           setSession(null);
           setUser(null);
           localStorage.removeItem('finai_user_data');
-          // Reset tables but don't force reload to avoid loops
           db.syncQueue.count().then(count => {
             if (count === 0) {
               db.transactions.clear();
@@ -201,10 +200,37 @@ const App: React.FC = () => {
       }
     });
 
+    // Visibility Listener: Sincronizar ao voltar para a aba
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && user?.id) {
+        console.log('[FinAI] Tab focused, triggering silent sync...');
+        fetchData(user.id, true);
+        if (user.email) checkPendingInvites(user.email, user.id);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Supabase Realtime: Ouvir mudanças nas tabelas críticas
+    const channel = supabase
+      .channel('schema-db-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'transactions' },
+        () => user?.id && fetchData(user.id, true)
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'accounts' },
+        () => user?.id && fetchData(user.id, true)
+      )
+      .subscribe();
+
     return () => {
       authListener.subscription.unsubscribe();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      supabase.removeChannel(channel);
     };
-  }, []);
+  }, [user?.id]);
 
   // Update localStorage when roles change
   useEffect(() => {
