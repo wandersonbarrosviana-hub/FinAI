@@ -35,12 +35,19 @@ import { db } from './db';
 import { useOfflineSync } from './useOfflineSync';
 import { useLiveQuery } from 'dexie-react-hooks';
 
+const APP_VERSION = "1.1.0-OFFLINE-FIX";
+
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(() => {
     try { return JSON.parse(localStorage.getItem('finai_user_data') || 'null'); } catch { return null; }
   });
   const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+  // Boot Local-First: Se temos usuário no cache, começamos com loading false
+  const [loading, setLoading] = useState(() => {
+    return !localStorage.getItem('finai_user_data');
+  });
+  const [showEmergencySkip, setShowEmergencySkip] = useState(false);
+
   const [familyMembers, setFamilyMembers] = useState<Record<string, { name: string, avatar: string }>>(() => {
     try { return JSON.parse(localStorage.getItem('finai_family_members') || '{}'); } catch { return {}; }
   });
@@ -55,14 +62,18 @@ const App: React.FC = () => {
 
   const { isOnline, addToSyncQueue } = useOfflineSync(user?.id);
 
-  // Fonte de dados agora vem do Dexie (IndexedDB)
-  // Fonte de dados agora vem do Dexie (IndexedDB) com Fallback localStorage
-  const transactions = useLiveQuery(() => db.transactions.toArray()) || (() => {
+  // Fonte de dados Híbrida (Dexie + Fallback localStorage)
+  const dexieTransactions = useLiveQuery(() => db.transactions.toArray()) || [];
+  const dexieAccounts = useLiveQuery(() => db.accounts.toArray()) || [];
+
+  const transactions = dexieTransactions.length > 0 ? dexieTransactions : (() => {
     try { return JSON.parse(localStorage.getItem('finai_fallback_txs') || '[]'); } catch { return []; }
   })();
-  const accounts = useLiveQuery(() => db.accounts.toArray()) || (() => {
+
+  const accounts = dexieAccounts.length > 0 ? dexieAccounts : (() => {
     try { return JSON.parse(localStorage.getItem('finai_fallback_accs') || '[]'); } catch { return []; }
   })();
+
   const goals = useLiveQuery(() => db.goals.toArray()) || [];
   const tags = useLiveQuery(() => db.tags.toArray()) || [];
   const budgets = useLiveQuery(() => db.budgets.toArray()) || [];
@@ -103,71 +114,69 @@ const App: React.FC = () => {
     localStorage.setItem('finai_current_date', currentDate.toISOString());
   }, [currentDate]);
 
-  // Persist user data
-  useEffect(() => {
-    if (user) {
-      localStorage.setItem('finai_user_data', JSON.stringify(user));
-    } else {
-      localStorage.removeItem('finai_user_data');
-    }
-  }, [user]);
+  // No auto-clearing user from localStorage based on state
+  // It will be managed by Auth events explicitly.
 
   useEffect(() => {
+    // Local-First Auth: Get session silently
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (session?.user) {
-        setUser({
+        // Silently update user data if online
+        const userData = {
           id: session.user.id,
           email: session.user.email!,
           name: session.user.user_metadata.name || session.user.email!.split('@')[0],
           avatarUrl: session.user.user_metadata.avatar_url
-        });
-        fetchData(session.user.id);
+        };
+        setUser(userData);
+        localStorage.setItem('finai_user_data', JSON.stringify(userData));
+
+        // Background fetch
+        fetchData(session.user.id, true);
         checkPendingInvites(session.user.email!, session.user.id);
-      } else {
-        setLoading(false);
       }
+      // Releasing loading if it was still active
+      setLoading(false);
+    }).catch(err => {
+      console.error("[FinAI] Auth Session Error:", err);
+      setLoading(false); // Never block
     });
 
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      // Only refresh if session changes significantly or it's a login/logout
+      console.log(`[FinAI] Auth Event: ${event}`);
       if (event === 'SIGNED_IN') {
         setSession(session);
         if (session?.user) {
-          setUser({
+          const userData = {
             id: session.user.id,
             email: session.user.email!,
             name: session.user.user_metadata.name || session.user.email!.split('@')[0],
             avatarUrl: session.user.user_metadata.avatar_url
-          });
-          fetchData(session.user.id);
+          };
+          setUser(userData);
+          localStorage.setItem('finai_user_data', JSON.stringify(userData));
+          fetchData(session.user.id, true);
           checkPendingInvites(session.user.email!, session.user.id);
         }
       } else if (event === 'SIGNED_OUT') {
-        setSession(null);
-        setUser(null);
-        setLoading(false);
-      } else if (event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
-        setSession(session);
-        if (session) {
-          // navigator.onLine is handled by useOfflineSync hook
-          // Fetched data from profile will update roles
-          fetchData(session.user.id);
-        } else {
-          setLoading(false);
+        if (!session && navigator.onLine) {
+          setSession(null);
+          setUser(null);
+          localStorage.removeItem('finai_user_data');
+          // Reset tables but don't force reload to avoid loops
+          db.syncQueue.count().then(count => {
+            if (count === 0) {
+              db.transactions.clear();
+              db.accounts.clear();
+            }
+          });
         }
       }
     });
 
-    // Safety timeout to release UI if network is slow/offline
-    const safetyTimeout = setTimeout(() => {
-      setLoading(false);
-      console.log("[FinAI] Safety timeout: Releasing UI...");
-    }, 2500);
-
     return () => {
       authListener.subscription.unsubscribe();
-      clearTimeout(safetyTimeout);
     };
   }, []);
 
@@ -188,14 +197,22 @@ const App: React.FC = () => {
     }
   }, [isOnline]);
 
-  const fetchData = async (userId: string, silent: boolean = false) => {
-    if (!silent) setLoading(true);
+  const fetchData = async (userId: string, silent = false) => {
+    // Local-First: We never block the UI for network
     setIsSyncing(true);
     console.log(`[FinAI] Fetching data for ${userId}. Online: ${isOnline}`);
 
     // Log Dexie status for debugging
     const txCount = await db.transactions.count();
     console.log(`[FinAI] Current Dexie Transaction Count: ${txCount}`);
+
+    // Verify if there are pending sync items
+    const pendingSync = await db.syncQueue.count();
+    if (pendingSync > 0 && isOnline) {
+      console.log(`[FinAI] Pending sync items (${pendingSync}). Waiting for sync to complete...`);
+      // We don't return here because we want the UI to be released, 
+      // but we will avoid bulkPut if we can't guarantee order.
+    }
 
     try {
       if (isOnline) {
@@ -213,6 +230,13 @@ const App: React.FC = () => {
         if (txRes.error) throw txRes.error;
         if (accRes.error) throw accRes.error;
         if (goalRes.error) throw goalRes.error;
+
+        const txData = txRes.data || [];
+        const accData = accRes.data || [];
+        const goalData = goalRes.data || [];
+        const tagData = tagRes.data || [];
+        const budData = budRes.data || [];
+        const cbData = cbRes.data || [];
 
         // Set user role and plan from profile
         if (profileRes.data) {
@@ -232,7 +256,7 @@ const App: React.FC = () => {
         }
         setFamilyMembers(membersMap);
 
-        const mappedTxs = txRes.data.map((t: any) => ({
+        const mappedTxs = txData.map((t: any) => ({
           ...t,
           date: t.date ? t.date.split('T')[0] : new Date().toISOString().split('T')[0],
           dueDate: t.due_date ? t.due_date.split('T')[0] : undefined,
@@ -249,7 +273,7 @@ const App: React.FC = () => {
           ignoreInTotals: t.ignore_in_totals
         }));
 
-        const mappedAccs = accRes.data.map((a: any) => ({
+        const mappedAccs = accData.map((a: any) => ({
           ...a,
           bankId: a.bank_id,
           isCredit: a.is_credit,
@@ -258,25 +282,30 @@ const App: React.FC = () => {
           dueDay: a.due_day
         }));
 
-        const mappedCB = (cbRes.data || []).map((cb: any) => ({
+        const mappedCB = cbData.map((cb: any) => ({
           id: cb.id,
           userId: cb.user_id,
           name: cb.name,
-          categories: cb.categories,
+          categories: cb.categories || [],
           limitType: cb.limit_type,
           limitValue: cb.limit_value
         }));
 
         // Persistir no Dexie e Redundância localStorage
-        await db.transactions.bulkPut(mappedTxs);
-        await db.accounts.bulkPut(mappedAccs);
-        await db.goals.bulkPut(goalRes.data || []);
-        await db.tags.bulkPut(tagRes.data || []);
-        await db.budgets.bulkPut(budRes.data || []);
-        await db.customBudgets.bulkPut(mappedCB);
+        // ONLY bulkPut if there are no pending sync items for these tables to avoid overwriting edits
+        if (pendingSync === 0) {
+          await db.transactions.bulkPut(mappedTxs);
+          await db.accounts.bulkPut(mappedAccs);
+          await db.goals.bulkPut(goalData);
+          await db.tags.bulkPut(tagData);
+          await db.budgets.bulkPut(budData);
+          await db.customBudgets.bulkPut(mappedCB);
 
-        localStorage.setItem('finai_fallback_txs', JSON.stringify(mappedTxs.slice(0, 50))); // Save small sample for emergency
-        localStorage.setItem('finai_fallback_accs', JSON.stringify(mappedAccs));
+          localStorage.setItem('finai_fallback_txs', JSON.stringify(mappedTxs.slice(0, 50)));
+          localStorage.setItem('finai_fallback_accs', JSON.stringify(mappedAccs));
+        } else {
+          console.warn("[FinAI] Skipping bulkPut due to pending sync items to prevent data loss.");
+        }
 
         const syncTime = new Date().toLocaleString('pt-BR');
         setLastSync(syncTime);
@@ -956,23 +985,30 @@ const App: React.FC = () => {
 
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center bg-slate-50 text-sky-600"><Loader2 size={40} className="animate-spin" /></div>;
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
+        <div className="relative">
+          <div className="w-16 h-16 border-4 border-sky-100 border-t-sky-600 rounded-full animate-spin"></div>
+          <Sparkles className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-sky-600 animate-pulse" size={24} />
+        </div>
+        <div className="mt-8 text-center space-y-4">
+          <h2 className="text-xl font-black text-slate-900 tracking-tight uppercase">Carregando FinAI...</h2>
+          <p className="text-sm font-bold text-slate-400 uppercase tracking-widest animate-pulse">Inteligência Financeira Ativa</p>
+
+          {showEmergencySkip && (
+            <button
+              onClick={() => setLoading(false)}
+              className="mt-6 px-6 py-2 bg-white border border-slate-200 text-[10px] font-black text-slate-400 hover:text-sky-600 rounded-xl shadow-sm transition-all uppercase tracking-widest"
+            >
+              Ignorar e Entrar (Modo Offline)
+            </button>
+          )}
+        </div>
+      </div>
+    );
   }
 
-  if (!user) {
-    // Auth component doesn't need onLogin anymore if we rely on session state
-    // But let's keep it to satisfy interface if needed, or update props.
-    // Actually Auth calls onLogin, which calls old handleLogin.
-    // Let's refactor Auth usage.
-    /* 
-       Wait, Auth component internally calls supabase.auth.signIn...
-       So on successful login, the onAuthStateChange in App.tsx will trigger.
-       So onLogin prop is actually redundant if Auth does the call.
-       But Auth component implementation I wrote:
-          if (data.user?.email) { onLogin(data.user.email); }
-       So it calls it.
-       I can just pass a no-op or simple function.
-    */
+  if (!user && !session) {
     return <Auth onLogin={() => { }} />;
   }
 
@@ -983,9 +1019,31 @@ const App: React.FC = () => {
       <Sidebar currentView={currentView} onViewChange={setCurrentView} isOpen={sidebarOpen} setIsOpen={setSidebarOpen} onLogout={handleLogout} userRole={userRole} />
       <main className={`flex-1 flex flex-col transition-all duration-300 mb-[88px] md:mb-0 ml-0 ${sidebarOpen ? 'md:ml-64' : 'md:ml-20'}`}>
         {/* Header - White Glassmorphism */}
+        {isSyncing && (
+          <div className="bg-sky-600 text-white text-[9px] font-black text-center py-0.5 uppercase tracking-tighter flex items-center justify-center gap-2">
+            <Loader2 size={10} className="animate-spin" />
+            <span>Sincronizando dados com a nuvem...</span>
+          </div>
+        )}
         {!isOnline && (
-          <div className="bg-amber-500 text-white text-[10px] font-black text-center py-1 uppercase tracking-widest animate-pulse">
-            Você está em modo offline - Usando dados locais
+          <div className="bg-slate-800 text-slate-400 text-[10px] font-black text-center py-1 uppercase tracking-widest flex items-center justify-center gap-4">
+            <div className="flex items-center gap-2">
+              <div className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"></div>
+              <span>MODO LOCAL (OFFLINE) - {APP_VERSION}</span>
+            </div>
+            <button
+              onClick={() => {
+                if (confirm("Deseja tentar reparar o cache? O app irá reiniciar.")) {
+                  navigator.serviceWorker.getRegistrations().then(regs => {
+                    for (let reg of regs) reg.unregister();
+                    window.location.reload();
+                  });
+                }
+              }}
+              className="bg-white/10 px-2 py-0.5 rounded hover:bg-white/20 transition-colors text-[9px]"
+            >
+              REPARAR APP
+            </button>
           </div>
         )}
         <header className="h-20 bg-white/80 backdrop-blur-xl border-b border-slate-200 flex items-center justify-between px-4 md:px-8 sticky top-0 z-40">

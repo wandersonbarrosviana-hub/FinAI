@@ -36,29 +36,44 @@ export const useOfflineSync = (userId: string | undefined) => {
 
             for (const action of pendingActions) {
                 try {
+                    console.log(`[FinAI] Syncing ${action.table} (${action.action}) - ID: ${action.entityId}`);
                     let success = false;
 
-                    if (action.action === 'INSERT' || action.action === 'UPDATE') {
-                        const tableData = await (db as any)[action.table].get(action.entityId);
-                        if (tableData) {
-                            // Converter para formato do Supabase
-                            const dbPayload = mapToSupabaseFormat(action.table, tableData);
-                            const { error } = await supabase.from(action.table).upsert({ ...dbPayload, user_id: userId });
-                            if (!error) success = true;
-                        } else if (action.action === 'UPDATE') {
-                            // Se o dado foi deletado localmente antes do sync de update, ignoramos
-                            success = true;
+                    // Timeout promise to avoid hanging forever on a bad request
+                    const syncPromise = (async () => {
+                        if (action.action === 'INSERT' || action.action === 'UPDATE') {
+                            const tableData = await (db as any)[action.table].get(action.entityId);
+                            if (tableData) {
+                                const dbPayload = mapToSupabaseFormat(action.table, tableData);
+                                const { error } = await supabase.from(action.table).upsert({ ...dbPayload, user_id: userId });
+                                if (!error) return true;
+                                console.error(`[FinAI] Supabase Error during sync:`, error);
+                            } else if (action.action === 'UPDATE') {
+                                return true; // Already gone, consider synced
+                            }
+                        } else if (action.action === 'DELETE') {
+                            const { error } = await supabase.from(action.table).delete().eq('id', action.entityId);
+                            if (!error) return true;
                         }
-                    } else if (action.action === 'DELETE') {
-                        const { error } = await supabase.from(action.table).delete().eq('id', action.entityId);
-                        if (!error) success = true;
-                    }
+                        return false;
+                    })();
+
+                    // Wait for sync or fail after 10s
+                    success = await Promise.race([
+                        syncPromise,
+                        new Promise<boolean>(resolve => setTimeout(() => resolve(false), 10000))
+                    ]);
 
                     if (success) {
                         await db.syncQueue.delete(action.id!);
+                    } else {
+                        // If one fails, we pause the queue to prevent out-of-order execution risk
+                        console.warn(`[FinAI] Sync failed for item ${action.id}, pausing queue.`);
+                        break;
                     }
                 } catch (e) {
                     console.error(`Erro ao processar item da fila de sync:`, e);
+                    break;
                 }
             }
         } finally {

@@ -41,6 +41,9 @@ export default defineConfig(({ mode }) => {
               purpose: 'any maskable'
             }
           ]
+        },
+        workbox: {
+          maximumFileSizeToCacheInBytes: 5242880, // 5MB limit should be enough
         }
       })
     ],
