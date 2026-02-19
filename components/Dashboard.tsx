@@ -1,14 +1,17 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import AllTransactions from './AllTransactions';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   BarChart, Bar, Cell, PieChart, Pie, AreaChart, Area
 } from 'recharts';
 import { Transaction, Account, Goal, Budget } from '../types';
-import { TrendingUp, TrendingDown, Wallet, PlusCircle, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wallet, PlusCircle, ArrowUpRight, ArrowDownRight, Sparkles } from 'lucide-react';
 import ChartContainer from './ChartContainer';
 import AIInsightsWidget from './AIInsightsWidget';
+import AdvancedAIIntelligence from './AdvancedAIIntelligence';
+import { AdvancedAIInsights } from '../types';
+import { getAdvancedAIInsights } from '../aiService';
 
 interface DashboardProps {
   transactions: Transaction[];
@@ -22,6 +25,44 @@ interface DashboardProps {
 
 const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, budgets, onAddClick, familyMembers }) => {
   const [showAllTransactions, setShowAllTransactions] = useState(false);
+  const [activeTab, setActiveTab] = useState<'overview' | 'intelligence'>('overview');
+
+  // IA State Persistence
+  const [aiInsights, setAiInsights] = useState<AdvancedAIInsights | null>(null);
+  const [isAILoading, setIsAILoading] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+
+  const fetchAIInsights = async (force = false) => {
+    if (isAILoading) return;
+    if (aiInsights && !force) return;
+    if (transactions.length < 5) {
+      setAiError("Dados insuficientes para análise.");
+      return;
+    }
+
+    setIsAILoading(true);
+    setAiError(null);
+    try {
+      const data = await getAdvancedAIInsights(transactions, accounts, budgets, goals);
+      if (data) setAiInsights(data);
+      else setAiError("Erro ao gerar insights.");
+    } catch (err: any) {
+      if (err.message === "COTA_EXCEDIDA") {
+        setAiError("Limite de cota atingido. Tente novamente em alguns minutos.");
+      } else {
+        setAiError(err.message || "Erro na conexão com IA.");
+      }
+    } finally {
+      setIsAILoading(false);
+    }
+  };
+
+  const handleTabChange = (tab: 'overview' | 'intelligence') => {
+    setActiveTab(tab);
+    if (tab === 'intelligence' && !aiInsights) {
+      fetchAIInsights();
+    }
+  };
 
 
   const totalBalance = accounts.reduce((acc, curr) => acc + curr.balance, 0);
@@ -41,8 +82,8 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
     .filter(t => t.type === 'expense')
     .reduce((acc, curr) => acc + curr.amount, 0);
 
-  // Process Last 7 Days Data
-  const processLast7Days = () => {
+  // Process Last 7 Days Data (Memoized)
+  const last7DaysData = useMemo(() => {
     const today = new Date();
     const data = [];
     for (let i = 6; i >= 0; i--) {
@@ -59,11 +100,10 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
       });
     }
     return data;
-  };
+  }, [transactions]);
 
-  const last7DaysData = processLast7Days();
-
-  const processChartData = () => {
+  // Process Weekly Data (Memoized)
+  const chartData = useMemo(() => {
     const weeks: { [key: string]: { Receitas: number; Despesas: number } } = {};
     for (let i = 1; i <= 4; i++) {
       weeks[`Semana ${i}`] = { Receitas: 0, Despesas: 0 };
@@ -90,11 +130,10 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
       Receitas: weeks[key].Receitas,
       Despesas: weeks[key].Despesas
     }));
-  };
+  }, [transactions]);
 
-  const chartData = processChartData();
-
-  const processPieData = () => {
+  // Process Category Data (Memoized)
+  const pieData = useMemo(() => {
     const expenses = transactions.filter(t => t.type === 'expense' && t.isPaid);
     const categoryMap: { [key: string]: number } = {};
 
@@ -110,9 +149,7 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
       name: category,
       value: categoryMap[category]
     })).sort((a, b) => b.value - a.value).slice(0, 5);
-  };
-
-  const pieData = processPieData();
+  }, [transactions]);
 
   // Clean Palette
   const BASE_COLORS = ['#0284c7', '#059669', '#db2777', '#7c3aed', '#d97706', '#dc2626'];
@@ -134,305 +171,336 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
         </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Stats Card (Clean White) */}
-        <div className="lg:col-span-3 bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col md:flex-row gap-8 relative overflow-hidden group">
-          {/* Background Glow - Subtle */}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-sky-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-sky-500/10 transition-all duration-700"></div>
-
-          {/* Vertical Flow */}
-          <div className="flex-1 max-w-xs flex flex-col justify-between py-2 relative z-10">
-            <div className="absolute left-[19px] top-4 bottom-4 w-[2px] bg-gradient-to-b from-emerald-100 via-slate-100 to-rose-100 z-0"></div>
-
-            {/* Income */}
-            <div className="relative z-10 flex items-center gap-4 group/item">
-              <div className="w-10 h-10 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 shadow-sm transition-all">
-                <ArrowUpRight size={20} />
-              </div>
-              <div>
-                <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Entrada</p>
-                <p className="text-xl font-black text-emerald-600 dark:text-emerald-400">R$ {monthIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium mt-1">
-                  Previsto: R$ {monthIncomeForecast.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                </p>
-              </div>
-            </div>
-
-            {/* Balance (Net) */}
-            <div className="relative z-10 flex items-center gap-4 my-6 group/item">
-              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border shadow-sm relative ${monthIncome - monthExpense >= 0 ? 'bg-emerald-600 text-white border-emerald-500' : 'bg-rose-600 text-white border-rose-500'
-                }`}>
-                <Wallet size={24} className="relative z-10" />
-              </div>
-              <div>
-                <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Saldo Mensal</p>
-                <p className={`text-2xl font-black ${monthIncome - monthExpense >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
-                  }`}>
-                  {monthIncome - monthExpense >= 0 ? '+' : ''} R$ {(monthIncome - monthExpense).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                </p>
-                <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium mt-1">
-                  Previsto: {monthIncomeForecast - monthExpenseForecast >= 0 ? '+' : ''} R$ {(monthIncomeForecast - monthExpenseForecast).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                </p>
-              </div>
-            </div>
-
-            {/* Expense */}
-            <div className="relative z-10 flex items-center gap-4 group/item">
-              <div className="w-10 h-10 rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-600 shadow-sm transition-all">
-                <ArrowDownRight size={20} />
-              </div>
-              <div>
-                <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Saída</p>
-                <p className="text-xl font-black text-rose-600 dark:text-rose-400">R$ {monthExpense.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium mt-1">
-                  Previsto: R$ {monthExpenseForecast.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Middle: Trend Chart (Last 7 Days) */}
-          <div className="flex-1 border-t md:border-t-0 md:border-l border-slate-100 pt-6 md:pt-0 md:pl-8 relative z-10">
-            <div className="flex justify-between items-center mb-4">
-              <div>
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Despesas Diárias</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Últimos 7 dias</p>
-              </div>
-              <div className="p-2 bg-slate-50 dark:bg-slate-800 rounded-lg">
-                <TrendingDown size={18} className="text-rose-500" />
-              </div>
-            </div>
-            <div className="h-40 w-full overflow-hidden pb-2">
-              <div className="h-full w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={last7DaysData}>
-                    <defs>
-                      <linearGradient id="colorExpense" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.4} />
-                        <stop offset="95%" stopColor="#f43f5e" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <XAxis
-                      dataKey="name"
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 'bold' }}
-                      dy={5}
-                      interval={0}
-                    />
-                    <Tooltip
-                      contentStyle={{ backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #f1f5f9', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', color: '#0f172a' }}
-                      itemStyle={{ color: '#e11d48' }}
-                      labelStyle={{ color: '#64748b', fontWeight: 'bold' }}
-                      formatter={(value: number) => [`R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, 'Despesas']}
-                    />
-                    <Area type="monotone" dataKey="value" stroke="#e11d48" strokeWidth={4} fillOpacity={1} fill="url(#colorExpense)" />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-          </div>
-
-          {/* Right: AI Insights */}
-          <div className="flex-1 border-t md:border-t-0 md:border-l border-slate-100 pt-6 md:pt-0 md:pl-8 relative z-10">
-            <AIInsightsWidget transactions={transactions} budgets={budgets} />
-          </div>
-        </div>
+      {/* Modern Tabs */}
+      <div className="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-2xl w-fit">
+        <button
+          onClick={() => handleTabChange('overview')}
+          className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'overview' ? 'bg-white dark:bg-slate-900 text-sky-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+        >
+          Resumo Geral
+        </button>
+        <button
+          onClick={() => handleTabChange('intelligence')}
+          className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${activeTab === 'intelligence' ? 'bg-white dark:bg-slate-900 text-purple-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+        >
+          <Sparkles size={14} className={activeTab === 'intelligence' ? 'text-amber-400' : ''} />
+          Inteligência IA
+        </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex items-center space-x-4 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-sky-500/5 to-transparent pointer-events-none"></div>
-          <div className="p-3 bg-sky-50 dark:bg-sky-900/20 rounded-xl border border-sky-100 dark:border-sky-900/10 text-sky-600 dark:text-sky-400">
-            <Wallet size={24} />
-          </div>
-          <div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Patrimônio Total</p>
-            <p className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">R$ {totalBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-          </div>
-        </div>
-      </div>
+      {activeTab === 'intelligence' ? (
+        <AdvancedAIIntelligence
+          transactions={transactions}
+          accounts={accounts}
+          budgets={budgets}
+          goals={goals}
+          insights={aiInsights}
+          isLoading={isAILoading}
+          error={aiError}
+          onRefresh={() => fetchAIInsights(true)}
+        />
+      ) : (
+        <>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <ChartContainer
-          title={
-            <span className="flex items-center gap-2">
-              <span className="w-1 h-6 bg-cyan-500 rounded-full"></span>
-              Fluxo de Caixa
-            </span>
-          }
-        >
-          <div className="h-full min-h-[300px] w-full overflow-x-auto pb-4">
-            <div className="h-full min-w-[600px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 'bold' }} dy={10} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 'bold' }} />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #f1f5f9', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', color: '#0f172a' }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="Receitas"
-                    stroke="#10b981"
-                    strokeWidth={4}
-                    dot={{ r: 4, fill: '#fff', strokeWidth: 3 }}
-                    activeDot={{ r: 6, fill: '#10b981' }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="Despesas"
-                    stroke="#f43f5e"
-                    strokeWidth={4}
-                    dot={{ r: 4, fill: '#fff', strokeWidth: 3 }}
-                    activeDot={{ r: 6, fill: '#f43f5e' }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        </ChartContainer>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Main Stats Card (Clean White) */}
+            <div className="lg:col-span-3 bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col md:flex-row gap-8 relative overflow-hidden group">
+              {/* Background Glow - Subtle */}
+              <div className="absolute top-0 right-0 w-64 h-64 bg-sky-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-sky-500/10 transition-all duration-700"></div>
 
-        <ChartContainer
-          title={
-            <span className="flex items-center gap-2">
-              <span className="w-1 h-6 bg-purple-500 rounded-full"></span>
-              Gastos por Categoria
-            </span>
-          }
-        >
-          <div className="h-full min-h-[300px] w-full flex items-center md:flex-row flex-col">
-            <div className="flex-1 h-[250px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={pieData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={50}
-                    outerRadius={70}
-                    paddingAngle={5}
-                    dataKey="value"
-                    stroke="none"
-                    label={({ x, y, cx, name, percent }) => (
-                      <text x={x} y={y} fill="#1e293b" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" style={{ fontSize: '10px', fontWeight: '800' }}>
-                        {`${name} ${(percent * 100).toFixed(0)}%`}
-                      </text>
-                    )}
-                    labelLine={{ stroke: '#64748b', strokeWidth: 1, strokeDasharray: '3 3' }}
-                  >
-                    {pieData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} style={{ outline: 'none' }} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={{ backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #f1f5f9', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', color: '#0f172a' }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="space-y-3 pr-4 w-full md:w-auto mt-4 md:mt-0">
-              {pieData.map((entry, index) => (
-                <div key={entry.name} className="flex items-center text-sm group">
-                  <div className="w-2.5 h-2.5 rounded-full mr-3" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
-                  <span className="text-slate-500 dark:text-slate-400 font-bold group-hover:text-slate-900 dark:group-hover:text-white transition-colors uppercase text-[10px] tracking-tight">{entry.name}</span>
+              {/* Vertical Flow */}
+              <div className="flex-1 max-w-xs flex flex-col justify-between py-2 relative z-10">
+                <div className="absolute left-[19px] top-4 bottom-4 w-[2px] bg-gradient-to-b from-emerald-100 via-slate-100 to-rose-100 z-0"></div>
+
+                {/* Income */}
+                <div className="relative z-10 flex items-center gap-4 group/item">
+                  <div className="w-10 h-10 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 shadow-sm transition-all">
+                    <ArrowUpRight size={20} />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Entrada</p>
+                    <p className="text-xl font-black text-emerald-600 dark:text-emerald-400">R$ {monthIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                    <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium mt-1">
+                      Previsto: R$ {monthIncomeForecast.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </p>
+                  </div>
                 </div>
-              ))}
+
+                {/* Balance (Net) */}
+                <div className="relative z-10 flex items-center gap-4 my-6 group/item">
+                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border shadow-sm relative ${monthIncome - monthExpense >= 0 ? 'bg-emerald-600 text-white border-emerald-500' : 'bg-rose-600 text-white border-rose-500'
+                    }`}>
+                    <Wallet size={24} className="relative z-10" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Saldo Mensal</p>
+                    <p className={`text-2xl font-black ${monthIncome - monthExpense >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
+                      }`}>
+                      {monthIncome - monthExpense >= 0 ? '+' : ''} R$ {(monthIncome - monthExpense).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </p>
+                    <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium mt-1">
+                      Previsto: {monthIncomeForecast - monthExpenseForecast >= 0 ? '+' : ''} R$ {(monthIncomeForecast - monthExpenseForecast).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Expense */}
+                <div className="relative z-10 flex items-center gap-4 group/item">
+                  <div className="w-10 h-10 rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-600 shadow-sm transition-all">
+                    <ArrowDownRight size={20} />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Saída</p>
+                    <p className="text-xl font-black text-rose-600 dark:text-rose-400">R$ {monthExpense.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                    <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium mt-1">
+                      Previsto: R$ {monthExpenseForecast.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Middle: Trend Chart (Last 7 Days) */}
+              <div className="flex-1 border-t md:border-t-0 md:border-l border-slate-100 pt-6 md:pt-0 md:pl-8 relative z-10">
+                <div className="flex justify-between items-center mb-4">
+                  <div>
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">Despesas Diárias</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Últimos 7 dias</p>
+                  </div>
+                  <div className="p-2 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                    <TrendingDown size={18} className="text-rose-500" />
+                  </div>
+                </div>
+                <div className="h-40 w-full overflow-hidden pb-2">
+                  <div className="h-full w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={last7DaysData}>
+                        <defs>
+                          <linearGradient id="colorExpense" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.4} />
+                            <stop offset="95%" stopColor="#f43f5e" stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <XAxis
+                          dataKey="name"
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 'bold' }}
+                          dy={5}
+                          interval={0}
+                        />
+                        <Tooltip
+                          contentStyle={{ backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #f1f5f9', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', color: '#0f172a' }}
+                          itemStyle={{ color: '#e11d48' }}
+                          labelStyle={{ color: '#64748b', fontWeight: 'bold' }}
+                          formatter={(value: number) => [`R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, 'Despesas']}
+                        />
+                        <Area type="monotone" dataKey="value" stroke="#e11d48" strokeWidth={4} fillOpacity={1} fill="url(#colorExpense)" />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right: AI Insights */}
+              <div className="flex-1 border-t md:border-t-0 md:border-l border-slate-100 pt-6 md:pt-0 md:pl-8 relative z-10">
+                <AIInsightsWidget transactions={transactions} budgets={budgets} />
+              </div>
             </div>
           </div>
-        </ChartContainer>
-      </div>
 
-      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
-        <div className="p-6 border-b border-slate-50 dark:border-slate-800 flex justify-between items-center">
-          <h3 className="text-lg font-bold text-slate-900 dark:text-white">Últimos Lançamentos</h3>
-          <button onClick={() => setShowAllTransactions(true)} className="text-sky-600 dark:text-sky-400 text-sm font-bold hover:text-sky-700 dark:hover:text-sky-300 transition-colors">Ver todos</button>
-        </div>
-        {/* Desktop View */}
-        <div className="hidden md:block overflow-x-auto">
-          <table className="w-full text-left">
-            <thead className="bg-slate-50/50 dark:bg-slate-800/50">
-              <tr>
-                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Data</th>
-                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Descrição</th>
-                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Categoria</th>
-                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest text-right">Valor</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex items-center space-x-4 relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-sky-500/5 to-transparent pointer-events-none"></div>
+              <div className="p-3 bg-sky-50 dark:bg-sky-900/20 rounded-xl border border-sky-100 dark:border-sky-900/10 text-sky-600 dark:text-sky-400">
+                <Wallet size={24} />
+              </div>
+              <div>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Patrimônio Total</p>
+                <p className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">R$ {totalBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <ChartContainer
+              title={
+                <span className="flex items-center gap-2">
+                  <span className="w-1 h-6 bg-cyan-500 rounded-full"></span>
+                  Fluxo de Caixa
+                </span>
+              }
+            >
+              <div className="h-full min-h-[300px] w-full overflow-x-auto pb-4">
+                <div className="h-full min-w-[600px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                      <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 'bold' }} dy={10} />
+                      <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 'bold' }} />
+                      <Tooltip
+                        contentStyle={{ backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #f1f5f9', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', color: '#0f172a' }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="Receitas"
+                        stroke="#10b981"
+                        strokeWidth={4}
+                        dot={{ r: 4, fill: '#fff', strokeWidth: 3 }}
+                        activeDot={{ r: 6, fill: '#10b981' }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="Despesas"
+                        stroke="#f43f5e"
+                        strokeWidth={4}
+                        dot={{ r: 4, fill: '#fff', strokeWidth: 3 }}
+                        activeDot={{ r: 6, fill: '#f43f5e' }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </ChartContainer>
+
+            <ChartContainer
+              title={
+                <span className="flex items-center gap-2">
+                  <span className="w-1 h-6 bg-purple-500 rounded-full"></span>
+                  Gastos por Categoria
+                </span>
+              }
+            >
+              <div className="h-full min-h-[300px] w-full flex items-center md:flex-row flex-col">
+                <div className="flex-1 h-[250px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={pieData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={50}
+                        outerRadius={70}
+                        paddingAngle={5}
+                        dataKey="value"
+                        stroke="none"
+                        label={({ x, y, cx, name, percent }) => (
+                          <text x={x} y={y} fill="#1e293b" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" style={{ fontSize: '10px', fontWeight: '800' }}>
+                            {`${name} ${(percent * 100).toFixed(0)}%`}
+                          </text>
+                        )}
+                        labelLine={{ stroke: '#64748b', strokeWidth: 1, strokeDasharray: '3 3' }}
+                      >
+                        {pieData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} style={{ outline: 'none' }} />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        contentStyle={{ backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #f1f5f9', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', color: '#0f172a' }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="space-y-3 pr-4 w-full md:w-auto mt-4 md:mt-0">
+                  {pieData.map((entry, index) => (
+                    <div key={entry.name} className="flex items-center text-sm group">
+                      <div className="w-2.5 h-2.5 rounded-full mr-3" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
+                      <span className="text-slate-500 dark:text-slate-400 font-bold group-hover:text-slate-900 dark:group-hover:text-white transition-colors uppercase text-[10px] tracking-tight">{entry.name}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </ChartContainer>
+          </div>
+
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
+            <div className="p-6 border-b border-slate-50 dark:border-slate-800 flex justify-between items-center">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">Últimos Lançamentos</h3>
+              <button onClick={() => setShowAllTransactions(true)} className="text-sky-600 dark:text-sky-400 text-sm font-bold hover:text-sky-700 dark:hover:text-sky-300 transition-colors">Ver todos</button>
+            </div>
+            {/* Desktop View */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left">
+                <thead className="bg-slate-50/50 dark:bg-slate-800/50">
+                  <tr>
+                    <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Data</th>
+                    <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Descrição</th>
+                    <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Categoria</th>
+                    <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest text-right">Valor</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
+                  {transactions.slice(0, 5).map((t) => (
+                    <tr key={t.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
+                      <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-400 whitespace-nowrap">{new Date(t.date).toLocaleDateString('pt-BR')}</td>
+                      <td className="px-6 py-4 text-sm font-bold text-slate-900 dark:text-white whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          {t.description}
+                          {t.created_by && familyMembers && familyMembers[t.created_by] && (
+                            <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 rounded-full pr-2 border border-slate-200 dark:border-slate-700">
+                              <img
+                                src={familyMembers[t.created_by].avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(familyMembers[t.created_by].name)}&background=random`}
+                                alt={familyMembers[t.created_by].name}
+                                className="w-4 h-4 rounded-full"
+                              />
+                              <span className="text-[9px] font-bold text-slate-600 dark:text-slate-400 max-w-[60px] truncate">
+                                {familyMembers[t.created_by].name.split(' ')[0]}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="px-3 py-1 rounded-lg text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 uppercase tracking-wider transition-all">
+                          {t.category}
+                        </span>
+                      </td>
+                      <td className={`px-6 py-4 text-sm font-black text-right whitespace-nowrap ${t.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                        {t.type === 'income' ? '+' : '-'} R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile View */}
+            <div className="md:hidden flex flex-col divide-y divide-slate-50 dark:divide-slate-800">
               {transactions.slice(0, 5).map((t) => (
-                <tr key={t.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
-                  <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-400 whitespace-nowrap">{new Date(t.date).toLocaleDateString('pt-BR')}</td>
-                  <td className="px-6 py-4 text-sm font-bold text-slate-900 dark:text-white whitespace-nowrap">
+                <div key={t.id} className="p-4 flex items-center justify-between">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                      {new Date(t.date).toLocaleDateString('pt-BR')}
+                    </span>
                     <div className="flex items-center gap-2">
-                      {t.description}
+                      <span className="text-sm font-bold text-slate-900 dark:text-white truncate">
+                        {t.description}
+                      </span>
                       {t.created_by && familyMembers && familyMembers[t.created_by] && (
-                        <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 rounded-full pr-2 border border-slate-200 dark:border-slate-700">
+                        <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 rounded-full pr-2 border border-slate-200 dark:border-slate-700 min-w-fit h-fit">
                           <img
                             src={familyMembers[t.created_by].avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(familyMembers[t.created_by].name)}&background=random`}
                             alt={familyMembers[t.created_by].name}
-                            className="w-4 h-4 rounded-full"
+                            className="w-3 h-3 rounded-full"
                           />
-                          <span className="text-[9px] font-bold text-slate-600 dark:text-slate-400 max-w-[60px] truncate">
+                          <span className="text-[8px] font-bold text-slate-500 dark:text-slate-400 truncate max-w-[40px]">
                             {familyMembers[t.created_by].name.split(' ')[0]}
                           </span>
                         </div>
                       )}
                     </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="px-3 py-1 rounded-lg text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 uppercase tracking-wider transition-all">
+                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded w-fit uppercase tracking-wider">
                       {t.category}
                     </span>
-                  </td>
-                  <td className={`px-6 py-4 text-sm font-black text-right whitespace-nowrap ${t.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                  </div>
+                  <div className={`text-sm font-black whitespace-nowrap ${t.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
                     {t.type === 'income' ? '+' : '-'} R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Mobile View */}
-        <div className="md:hidden flex flex-col divide-y divide-slate-50 dark:divide-slate-800">
-          {transactions.slice(0, 5).map((t) => (
-            <div key={t.id} className="p-4 flex items-center justify-between">
-              <div className="flex flex-col gap-1">
-                <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-                  {new Date(t.date).toLocaleDateString('pt-BR')}
-                </span>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold text-slate-900 dark:text-white truncate">
-                    {t.description}
-                  </span>
-                  {t.created_by && familyMembers && familyMembers[t.created_by] && (
-                    <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 rounded-full pr-2 border border-slate-200 dark:border-slate-700 min-w-fit">
-                      <img
-                        src={familyMembers[t.created_by].avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(familyMembers[t.created_by].name)}&background=random`}
-                        alt={familyMembers[t.created_by].name}
-                        className="w-3 h-3 rounded-full"
-                      />
-                    </div>
-                  )}
+                  </div>
                 </div>
-                <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded w-fit uppercase tracking-wider">
-                  {t.category}
-                </span>
-              </div>
-              <div className={`text-sm font-black whitespace-nowrap ${t.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
-                {t.type === 'income' ? '+' : '-'} R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-              </div>
+              ))}
             </div>
-          ))}
-          {transactions.length === 0 && (
-            <div className="p-6 text-center text-slate-500 dark:text-slate-400 text-sm italic">
-              Nenhum lançamento recente.
-            </div>
-          )}
-        </div>
-      </div>
+          </div>
+        </>
+      )}
 
       {/* All Transactions Modal */}
       {showAllTransactions && (

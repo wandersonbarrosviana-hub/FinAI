@@ -6,7 +6,11 @@ export const FINAI_CONFIG = {
     GEMINI_API_KEY: import.meta.env.VITE_GOOGLE_API_KEY || "",
     GEMINI_MODEL: 'gemini-flash-latest',
 
-    // Groq (Legado/Fallback)
+    // OpenAI (Fallback Secundário)
+    OPENAI_API_KEY: import.meta.env.VITE_OPENAI_API_KEY || "",
+    OPENAI_MODEL: 'gpt-4o-mini',
+
+    // Groq (Reserva Final)
     GROQ_API_KEY: import.meta.env.VITE_GROQ_API_KEY || "",
     GROQ_MODEL: 'llama-3.3-70b-versatile',
 

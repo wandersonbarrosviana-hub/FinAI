@@ -168,3 +168,43 @@ export interface CustomBudget {
   spent?: number; // Calculated on frontend
   percentage?: number; // Calculated on frontend
 }
+export interface HighSpendingDay {
+  day: string;
+  amount: number;
+  isImpulsive: boolean;
+}
+
+export interface DecisionScenario {
+  description: string;
+  action: string;
+  impact: string;
+  targetObjective?: string;
+}
+
+export interface ProjectionPoint {
+  date: string;
+  amount: number;
+}
+
+export interface HealthScoreDetail {
+  score: number; // 0-100
+  liquidity: number;
+  reserve: number;
+  debt: number;
+  stability: number;
+  message: string;
+}
+
+export interface AdvancedAIInsights {
+  emotionalPatterns: {
+    peakDay: string;
+    peakCategory: string;
+    impulsivityScore: number;
+    description: string;
+    highSpendingDays: HighSpendingDay[];
+  };
+  scenarios: DecisionScenario[];
+  projections: ProjectionPoint[];
+  healthScore: HealthScoreDetail;
+  updatedAt: string;
+}

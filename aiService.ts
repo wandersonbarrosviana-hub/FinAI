@@ -1,5 +1,6 @@
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import OpenAI from "openai";
 import { Transaction, Account } from './types';
 import { FINAI_CONFIG } from './config';
 
@@ -12,10 +13,33 @@ const genAI = GEMINI_API_KEY ? new GoogleGenerativeAI(GEMINI_API_KEY) : null;
 // Models
 const GEMINI_MODEL = FINAI_CONFIG.GEMINI_MODEL;
 
+// OpenAI Config (Fallback Secundário)
+const OPENAI_API_KEY = FINAI_CONFIG.OPENAI_API_KEY;
+const OPENAI_MODEL = FINAI_CONFIG.OPENAI_MODEL;
+
+const openai = OPENAI_API_KEY ? new OpenAI({
+    apiKey: OPENAI_API_KEY,
+    dangerouslyAllowBrowser: true
+}) : null;
+
+// Groq Config (Reserva Final)
+const GROQ_API_KEY = FINAI_CONFIG.GROQ_API_KEY;
+const GROQ_MODEL = FINAI_CONFIG.GROQ_MODEL;
+
+const groq = GROQ_API_KEY ? new OpenAI({
+    apiKey: GROQ_API_KEY,
+    dangerouslyAllowBrowser: true,
+    baseURL: "https://api.groq.com/openai/v1"
+}) : null;
+
 if (GEMINI_API_KEY) {
     console.log("%c FinAI Gemini Ready ", "background: #4285f4; color: #fff; border-radius: 4px; font-weight: bold;");
 } else {
     console.warn("%c FinAI AI Offline ", "background: #ef4444; color: #fff; border-radius: 4px; font-weight: bold;", "Chave Gemini não encontrada no .env");
+}
+
+if (OPENAI_API_KEY) {
+    console.log("%c FinAI OpenAI Ready ", "background: #10a37f; color: #fff; border-radius: 4px; font-weight: bold;");
 }
 
 export interface VoiceCommandResult {
@@ -51,7 +75,7 @@ const sanitizeInput = (text: string, maxLength = 4000): string => {
 };
 
 // Helper for Exponential Backoff Retry
-const retryOperation = async <T>(operation: () => Promise<T>, maxRetries: number = 3, delayMs: number = 2000): Promise<T> => {
+const retryOperation = async <T>(operation: () => Promise<T>, maxRetries: number = 2, delayMs: number = 3000): Promise<T> => {
     let lastError: any;
 
     for (let i = 0; i < maxRetries; i++) {
@@ -97,10 +121,38 @@ export const generateContent = async (prompt: string): Promise<string> => {
             throw new Error("Serviço Gemini não inicializado.");
         });
     } catch (error: any) {
-        console.error("AI Generate Error:", error);
-        if (error.message?.includes('429')) return "Erro: Limite de uso excedido no Gemini (tente novamente mais tarde).";
-        if (error.message?.includes('API key')) return "Erro: Chave API Gemini inválida ou expirada.";
-        return `Erro de conexão com Gemini: ${error.message || 'Desconhecido'}`;
+        console.warn("AI Generate Gemini Error, trying Triple Fallback:", error.message);
+
+        // 1. Fallback to OpenAI
+        if (openai) {
+            console.log("Generate Fallback to OpenAI activated...");
+            try {
+                const response = await openai.chat.completions.create({
+                    model: OPENAI_MODEL,
+                    messages: [{ role: "user", content: prompt }]
+                });
+                return response.choices[0]?.message?.content || "";
+            } catch (openaiErr) {
+                console.error("OpenAI Generate Fallback failed:", openaiErr);
+            }
+        }
+
+        // 2. Fallback to Groq
+        if (groq) {
+            console.log("Generate Fallback to Groq activated...");
+            try {
+                const response = await groq.chat.completions.create({
+                    model: GROQ_MODEL,
+                    messages: [{ role: "user", content: prompt }]
+                });
+                return response.choices[0]?.message?.content || "";
+            } catch (groqErr) {
+                console.error("Groq Generate Fallback failed:", groqErr);
+            }
+        }
+
+        if (error.message?.includes('429')) return "Erro: Limite de uso excedido (tente novamente mais tarde).";
+        return `Erro de conexão com IA: ${error.message || 'Desconhecido'}`;
     }
 };
 
@@ -142,10 +194,38 @@ export const parseVoiceCommand = async (text: string): Promise<VoiceCommandResul
             }
             throw new Error("Serviço Gemini não inicializado.");
         });
+    } catch (error: any) {
+        console.warn('Gemini Voice Parse failing, trying Triple Fallback...', error.message);
 
-    } catch (error) {
-        console.error('AI Parsing Error:', error);
-        return { intent: 'UNKNOWN', data: { originalText: text }, message: 'Desculpe, não consegui entender o comando de voz via Gemini.' };
+        // 1. Fallback to OpenAI (Secondary)
+        if (openai) {
+            try {
+                const openaiResponse = await callOpenAI(systemPrompt, `Comando do usuário: "${text}"`);
+                if (openaiResponse) {
+                    const parsed = JSON.parse(cleanJSON(openaiResponse));
+                    if (parsed.data) parsed.data.originalText = text;
+                    return parsed;
+                }
+            } catch (openaiErr) {
+                console.error("OpenAI Voice Fallback failed:", openaiErr);
+            }
+        }
+
+        // 2. Fallback to Groq (Final Backup)
+        if (groq) {
+            try {
+                const groqResponse = await callGroqAI(systemPrompt, `Comando do usuário: "${text}"`);
+                if (groqResponse) {
+                    const parsed = JSON.parse(cleanJSON(groqResponse));
+                    if (parsed.data) parsed.data.originalText = text;
+                    return parsed;
+                }
+            } catch (groqErr) {
+                console.error("Groq Voice Fallback failed:", groqErr);
+            }
+        }
+
+        return { intent: 'UNKNOWN', data: { originalText: text }, message: 'Desculpe, não consegui entender o comando de voz.' };
     }
 };
 
@@ -158,21 +238,6 @@ export const chatWithFinancialAssistant = async (
     budgets: any[]
 ): Promise<string> => {
     if (!GEMINI_API_KEY) return "Erro: Chave API Gemini não configurada.";
-
-    const financialContext = JSON.stringify({
-        totalBalance: accounts.reduce((acc, a) => acc + a.balance, 0),
-        recentTransactions: transactions.slice(0, 10).map(t => ({
-            desc: t.description,
-            value: t.amount,
-            type: t.type,
-            date: t.date
-        })),
-        goals: goals.map(g => ({ title: g.title, progress: (g.current / (g.target || 1)) * 100 })),
-        budgets: budgets
-    });
-
-    const now = new Date();
-    const currentDateStr = now.toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
     // Security: sanitize user message
     const safeMessage = sanitizeInput(userMessage, 4000);
@@ -191,6 +256,9 @@ export const chatWithFinancialAssistant = async (
         goals: goals.slice(0, 5).map(g => ({ title: g.title?.slice(0, 20), p: Math.round((g.current / (g.target || 1)) * 100) })),
         budgets: budgets.slice(0, 10).map(b => ({ cat: b.category, limit: b.amount }))
     });
+
+    const now = new Date();
+    const currentDateStr = now.toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
     const systemPrompt = `
       Você é o FinAI, um assistente pessoal inteligente e experiente.
@@ -222,7 +290,46 @@ export const chatWithFinancialAssistant = async (
             throw new Error("Gemini não inicializado.");
         });
     } catch (error: any) {
-        console.error("Chat Error:", error);
+        console.error("Chat Error, trying Triple Fallback:", error.message);
+
+        const isRateLimit = error.message?.includes('429') || error.message?.includes('quota');
+
+        // 1. Fallback to OpenAI (Secondary)
+        if (openai) {
+            console.log("Chat Fallback to OpenAI activated...");
+            try {
+                const response = await openai.chat.completions.create({
+                    model: OPENAI_MODEL,
+                    messages: [
+                        { role: "system", content: systemPrompt },
+                        { role: "user", content: safeMessage }
+                    ]
+                });
+                const content = response.choices[0]?.message?.content;
+                if (content) return content;
+            } catch (openaiErr) {
+                console.error("OpenAI Chat Fallback failed:", openaiErr);
+            }
+        }
+
+        // 2. Fallback to Groq (Final Backup)
+        if (groq) {
+            console.log("Chat Fallback to Groq activated...");
+            try {
+                const response = await groq.chat.completions.create({
+                    model: GROQ_MODEL,
+                    messages: [
+                        { role: "system", content: systemPrompt },
+                        { role: "user", content: safeMessage }
+                    ]
+                });
+                const content = response.choices[0]?.message?.content;
+                if (content) return content;
+            } catch (groqErr) {
+                console.error("Groq Chat Fallback failed:", groqErr);
+            }
+        }
+
         return `Erro na IA (${error.message || 'Desconhecido'}). Verifique sua chave ou limite de uso.`;
     }
 };
@@ -259,8 +366,19 @@ export const parseNotification = async (notificationText: string): Promise<any> 
             }
             return null;
         });
-    } catch (error) {
-        console.error("Notification Parse Error:", error);
+    } catch (error: any) {
+        console.warn("Notification Parse Gemini Error, trying Fallback...", error.message);
+
+        const systemPrompt = `Extraia JSON: { "description": string, "amount": number, "type": "expense"|"income", "category": string, "date": "YYYY-MM-DD" }`;
+
+        if (openai) {
+            const resp = await callOpenAI(systemPrompt, notificationText);
+            if (resp) return JSON.parse(cleanJSON(resp));
+        }
+        if (groq) {
+            const resp = await callGroqAI(systemPrompt, notificationText);
+            if (resp) return JSON.parse(cleanJSON(resp));
+        }
         return null;
     }
 };
@@ -308,7 +426,171 @@ export const parseInvoice = async (invoiceText: string): Promise<any> => {
         console.log("Gemini Raw Response:", content);
         return JSON.parse(content);
     } catch (error: any) {
-        console.error("Error parsing invoice with Gemini:", error);
-        return { items: [], error: `Erro na Gemini: ${error.message}` };
+        console.warn("Invoice Parse Gemini Error, trying Fallback...", error.message);
+
+        if (openai) {
+            console.log("Invoice Fallback to OpenAI activated...");
+            const resp = await callOpenAI(parserPrompt, ""); // Empty user prompt since prompt is in systemPrompt
+            if (resp) return JSON.parse(cleanJSON(resp));
+        }
+        if (groq) {
+            console.log("Invoice Fallback to Groq activated...");
+            const resp = await callGroqAI(parserPrompt, "");
+            if (resp) return JSON.parse(cleanJSON(resp));
+        }
+
+        return { items: [], error: `Erro na extração: ${error.message}` };
+    }
+};
+
+// --- OPENAI FALLBACK HELPER ---
+
+const callOpenAI = async (systemPrompt: string, userPrompt: string): Promise<string | null> => {
+    if (!openai) return null;
+    try {
+        const response = await openai.chat.completions.create({
+            model: OPENAI_MODEL,
+            messages: [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: userPrompt }
+            ],
+            response_format: { type: "json_object" }
+        });
+        return response.choices[0]?.message?.content || null;
+    } catch (error) {
+        console.error("OpenAI Error:", error);
+        return null;
+    }
+};
+
+// --- GROQ FALLBACK HELPER ---
+
+const callGroqAI = async (systemPrompt: string, userPrompt: string): Promise<string | null> => {
+    if (!groq) return null;
+    try {
+        const response = await groq.chat.completions.create({
+            model: GROQ_MODEL,
+            messages: [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: userPrompt }
+            ],
+            response_format: { type: "json_object" }
+        });
+        return response.choices[0]?.message?.content || null;
+    } catch (error) {
+        console.error("Groq Error:", error);
+        return null;
+    }
+};
+
+// --- ADVANCED AI INSIGHTS ---
+
+export const getAdvancedAIInsights = async (
+    transactions: Transaction[],
+    accounts: Account[],
+    budgets: any[],
+    goals: any[]
+): Promise<any> => {
+    if (!GEMINI_API_KEY) return null;
+
+    // Prepare context with more history (up to 100 transactions) to "learn" patterns
+    const context = {
+        accounts: accounts.map(a => ({ name: a.name, balance: a.balance, type: a.type, isCredit: a.isCredit })),
+        recentTransactions: transactions.slice(0, 60).map(t => ({
+            date: t.date,
+            desc: t.description?.slice(0, 30),
+            val: t.amount,
+            cat: t.category,
+            type: t.type
+        })),
+        budgets: budgets.map(b => ({ cat: b.category, limit: b.amount })),
+        goals: goals.map(g => ({ title: g.title, target: g.target, current: g.current, deadline: g.deadline }))
+    };
+
+    const systemPrompt = `
+      Você é um Analista Financeiro de Elite e Especialista em Psicologia Comportamental.
+      Sua tarefa é analisar os dados financeiros do usuário e fornecer insights profundos.
+      
+      ESTRUTURA DE RETORNO (JSON APENAS):
+      {
+        "emotionalPatterns": {
+          "peakDay": "string (ex: Sexta-feira)",
+          "peakCategory": "string",
+          "impulsivityScore": number (0-100),
+          "description": "Explicação curta sobre o padrão de consumo emocional",
+          "highSpendingDays": [{ "day": "YYYY-MM-DD", "amount": number, "isImpulsive": boolean }]
+        },
+        "scenarios": [
+          { "description": "Cenário atual", "action": "O que fazer", "impact": "Resultado esperado", "targetObjective": "Nome do objetivo" }
+        ],
+        "projections": [
+          { "date": "YYYY-MM-DD", "amount": number } // Projeção para os próximos 6 meses (1 ponto por mês)
+        ],
+        "healthScore": {
+          "score": number (0-100),
+          "liquidity": number (0-100),
+          "reserve": number (0-100),
+          "debt": number (0-100),
+          "stability": number (0-100),
+          "message": "Resumo da saúde financeira"
+        }
+      }
+
+      REGRAS:
+      1. Score de Saúde: Calcule baseado em liquidez, reserva (saldo cobre X meses), endividamento e estabilidade.
+      2. Padrão Emocional: Identifique se há gastos exagerados em fins de semana ou em categorias específicas em dias específicos.
+      3. Projeção: Use os dados para prever o saldo nos próximos 6 meses se o padrão atual continuar.
+      4. Simulador: Crie 2 cenários acionáveis.
+      5. ISENÇÃO: Esta é uma ferramenta de simulação pessoal. Não forneça conselhos financeiros regulados, apenas análises de dados baseadas no histórico fornecido.
+    `;
+
+    try {
+        return await retryOperation(async () => {
+            if (genAI) {
+                const model = genAI.getGenerativeModel({
+                    model: GEMINI_MODEL,
+                    generationConfig: { responseMimeType: "application/json" }
+                });
+                const result = await model.generateContent([systemPrompt, `DADOS: ${JSON.stringify(context)}`]);
+                const text = result.response.text();
+                return JSON.parse(cleanJSON(text));
+            }
+            throw new Error("Gemini não inicializado.");
+        });
+    } catch (error: any) {
+        console.warn("Gemini failing, trying Triple Fallback...", error.message);
+
+        // 1. Fallback to OpenAI (Secondary)
+        if (openai) {
+            console.log("Fallback 1: OpenAI activated...");
+            const openaiResponse = await callOpenAI(systemPrompt, `DADOS: ${JSON.stringify(context)}`);
+            if (openaiResponse) {
+                try {
+                    return JSON.parse(cleanJSON(openaiResponse));
+                } catch (e) {
+                    console.error("OpenAI JSON Parse Error:", e);
+                }
+            }
+        }
+
+        // 2. Fallback to Groq (Final Backup)
+        if (groq) {
+            console.log("Fallback 2: Groq activated...");
+            const groqResponse = await callGroqAI(systemPrompt, `DADOS: ${JSON.stringify(context)}`);
+            if (groqResponse) {
+                try {
+                    return JSON.parse(cleanJSON(groqResponse));
+                } catch (e) {
+                    console.error("Groq JSON Parse Error:", e);
+                }
+            }
+        }
+
+        // Return improved error message
+        if (error.message?.includes('429') || error.message?.includes('quota')) {
+            throw new Error("COTA_EXCEDIDA");
+        }
+
+        throw new Error(error.message || "Erro na análise de IA.");
     }
 };
