@@ -31,25 +31,42 @@ import { parseNotification } from './aiService';
 import { supabase } from './supabaseClient';
 import { Transaction, Account, Goal, User, ViewState, Tag, AppNotification } from './types';
 import { Session } from '@supabase/supabase-js';
+import { db } from './db';
+import { useOfflineSync } from './useOfflineSync';
+import { useLiveQuery } from 'dexie-react-hooks';
 
 const App: React.FC = () => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    try { return JSON.parse(localStorage.getItem('finai_user_data') || 'null'); } catch { return null; }
+  });
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [familyMembers, setFamilyMembers] = useState<Record<string, { name: string, avatar: string }>>({});
+  const [familyMembers, setFamilyMembers] = useState<Record<string, { name: string, avatar: string }>>(() => {
+    try { return JSON.parse(localStorage.getItem('finai_family_members') || '{}'); } catch { return {}; }
+  });
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [userRole, setUserRole] = useState<string>('user');
-  const [userPlan, setUserPlan] = useState<'free' | 'pro' | 'premium'>('free');
+  const [userRole, setUserRole] = useState<string>(() => localStorage.getItem('finai_user_role') || 'user');
+  const [userPlan, setUserPlan] = useState<'free' | 'pro' | 'premium'>(() => (localStorage.getItem('finai_user_plan') as any) || 'free');
   const [currentView, setCurrentView] = useState<ViewState | 'settings'>(() => {
     return (localStorage.getItem('finai_current_view') as ViewState | 'settings') || 'dashboard';
   });
+  const [lastSync, setLastSync] = useState<string | null>(() => localStorage.getItem('finai_last_sync'));
+  const [isSyncing, setIsSyncing] = useState(false);
 
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [accounts, setAccounts] = useState<Account[]>([]);
-  const [goals, setGoals] = useState<Goal[]>([]);
-  const [tags, setTags] = useState<Tag[]>([]);
-  const [budgets, setBudgets] = useState<Budget[]>([]);
-  const [customBudgets, setCustomBudgets] = useState<CustomBudget[]>([]);
+  const { isOnline, addToSyncQueue } = useOfflineSync(user?.id);
+
+  // Fonte de dados agora vem do Dexie (IndexedDB)
+  // Fonte de dados agora vem do Dexie (IndexedDB) com Fallback localStorage
+  const transactions = useLiveQuery(() => db.transactions.toArray()) || (() => {
+    try { return JSON.parse(localStorage.getItem('finai_fallback_txs') || '[]'); } catch { return []; }
+  })();
+  const accounts = useLiveQuery(() => db.accounts.toArray()) || (() => {
+    try { return JSON.parse(localStorage.getItem('finai_fallback_accs') || '[]'); } catch { return []; }
+  })();
+  const goals = useLiveQuery(() => db.goals.toArray()) || [];
+  const tags = useLiveQuery(() => db.tags.toArray()) || [];
+  const budgets = useLiveQuery(() => db.budgets.toArray()) || [];
+  const customBudgets = useLiveQuery(() => db.customBudgets.toArray()) || [];
 
 
 
@@ -86,6 +103,15 @@ const App: React.FC = () => {
     localStorage.setItem('finai_current_date', currentDate.toISOString());
   }, [currentDate]);
 
+  // Persist user data
+  useEffect(() => {
+    if (user) {
+      localStorage.setItem('finai_user_data', JSON.stringify(user));
+    } else {
+      localStorage.removeItem('finai_user_data');
+    }
+  }, [user]);
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
@@ -103,7 +129,7 @@ const App: React.FC = () => {
       }
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       // Only refresh if session changes significantly or it's a login/logout
       if (event === 'SIGNED_IN') {
         setSession(session);
@@ -120,92 +146,119 @@ const App: React.FC = () => {
       } else if (event === 'SIGNED_OUT') {
         setSession(null);
         setUser(null);
-        setTransactions([]);
-        setAccounts([]);
-        setGoals([]);
         setLoading(false);
       } else if (event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
         setSession(session);
-        if (session?.user) {
-          // Silent fetch on token refresh to keep data updated without flashing
-          fetchData(session.user.id, true);
+        if (session) {
+          // navigator.onLine is handled by useOfflineSync hook
+          // Fetched data from profile will update roles
+          fetchData(session.user.id);
+        } else {
+          setLoading(false);
         }
       }
     });
 
-    return () => subscription.unsubscribe();
+    // Safety timeout to release UI if network is slow/offline
+    const safetyTimeout = setTimeout(() => {
+      setLoading(false);
+      console.log("[FinAI] Safety timeout: Releasing UI...");
+    }, 2500);
+
+    return () => {
+      authListener.subscription.unsubscribe();
+      clearTimeout(safetyTimeout);
+    };
   }, []);
+
+  // Update localStorage when roles change
+  useEffect(() => {
+    localStorage.setItem('finai_user_role', userRole);
+    localStorage.setItem('finai_user_plan', userPlan);
+  }, [userRole, userPlan]);
+
+  useEffect(() => {
+    localStorage.setItem('finai_family_members', JSON.stringify(familyMembers));
+  }, [familyMembers]);
+
+  // Re-fetch data when coming back online
+  useEffect(() => {
+    if (isOnline && user?.id) {
+      fetchData(user.id, true); // silent fetch
+    }
+  }, [isOnline]);
 
   const fetchData = async (userId: string, silent: boolean = false) => {
     if (!silent) setLoading(true);
+    setIsSyncing(true);
+    console.log(`[FinAI] Fetching data for ${userId}. Online: ${isOnline}`);
+
+    // Log Dexie status for debugging
+    const txCount = await db.transactions.count();
+    console.log(`[FinAI] Current Dexie Transaction Count: ${txCount}`);
+
     try {
-      const [txRes, accRes, goalRes, tagRes, budRes, cbRes, familyRes, profileRes] = await Promise.all([
-        supabase.from('transactions').select('*').order('date', { ascending: false }),
-        supabase.from('accounts').select('*'),
-        supabase.from('goals').select('*'),
-        supabase.from('tags').select('*'),
-        supabase.from('budgets').select('*'),
-        supabase.from('custom_budgets').select('*'),
-        supabase.rpc('get_family_details', { current_user_id: userId }),
-        supabase.from('profiles').select('role, plan_type').eq('id', userId).single()
-      ]);
+      if (isOnline) {
+        const [txRes, accRes, goalRes, tagRes, budRes, cbRes, familyRes, profileRes] = await Promise.all([
+          supabase.from('transactions').select('*').order('date', { ascending: false }),
+          supabase.from('accounts').select('*'),
+          supabase.from('goals').select('*'),
+          supabase.from('tags').select('*'),
+          supabase.from('budgets').select('*'),
+          supabase.from('custom_budgets').select('*'),
+          supabase.rpc('get_family_details', { current_user_id: userId }),
+          supabase.from('profiles').select('role, plan_type').eq('id', userId).single()
+        ]);
 
-      if (txRes.error) throw txRes.error;
-      if (accRes.error) throw accRes.error;
-      if (goalRes.error) throw goalRes.error;
+        if (txRes.error) throw txRes.error;
+        if (accRes.error) throw accRes.error;
+        if (goalRes.error) throw goalRes.error;
 
-      // Set user role and plan from profile
-      if (profileRes.data) {
-        setUserRole(profileRes.data.role);
-        setUserPlan(profileRes.data.plan_type as 'free' | 'pro' | 'premium' || 'free');
-      }
+        // Set user role and plan from profile
+        if (profileRes.data) {
+          setUserRole(profileRes.data.role);
+          setUserPlan(profileRes.data.plan_type as 'free' | 'pro' | 'premium' || 'free');
+        }
 
-      // Process Family Members
-      const membersMap: Record<string, { name: string, avatar: string }> = {};
-      if (familyRes.data) {
-        familyRes.data.forEach((m: any) => {
-          membersMap[m.user_id] = { name: m.name, avatar: m.avatar_url };
-        });
-      }
-      if (user) {
-        membersMap[user.id] = { name: user.name, avatar: user.avatarUrl || '' };
-      }
-      setFamilyMembers(membersMap);
+        // Process Family Members
+        const membersMap: Record<string, { name: string, avatar: string }> = {};
+        if (familyRes.data) {
+          familyRes.data.forEach((m: any) => {
+            membersMap[m.user_id] = { name: m.name, avatar: m.avatar_url };
+          });
+        }
+        if (user) {
+          membersMap[user.id] = { name: user.name, avatar: user.avatarUrl || '' };
+        }
+        setFamilyMembers(membersMap);
 
-      const mappedTxs = txRes.data.map((t: any) => ({
-        ...t,
-        date: t.date ? t.date.split('T')[0] : new Date().toISOString().split('T')[0],
-        dueDate: t.due_date ? t.due_date.split('T')[0] : undefined,
-        paymentDate: t.payment_date ? t.payment_date.split('T')[0] : undefined,
-        installmentCount: t.installment_count,
-        installmentTotal: t.installment_total,
-        isPaid: t.is_paid,
-        tags: t.tag_ids || [],
-        account: t.account_id,
-        subCategory: t.sub_category,
-        paymentMethod: t.payment_method,
-        ignoreInStatistics: t.ignore_in_statistics,
-        ignoreInBudgets: t.ignore_in_budgets,
-        ignoreInTotals: t.ignore_in_totals
-      }));
+        const mappedTxs = txRes.data.map((t: any) => ({
+          ...t,
+          date: t.date ? t.date.split('T')[0] : new Date().toISOString().split('T')[0],
+          dueDate: t.due_date ? t.due_date.split('T')[0] : undefined,
+          paymentDate: t.payment_date ? t.payment_date.split('T')[0] : undefined,
+          installmentCount: t.installment_count,
+          installmentTotal: t.installment_total,
+          isPaid: t.is_paid,
+          tags: t.tag_ids || [],
+          account: t.account_id,
+          subCategory: t.sub_category,
+          paymentMethod: t.payment_method,
+          ignoreInStatistics: t.ignore_in_statistics,
+          ignoreInBudgets: t.ignore_in_budgets,
+          ignoreInTotals: t.ignore_in_totals
+        }));
 
-      const mappedAccs = accRes.data.map((a: any) => ({
-        ...a,
-        bankId: a.bank_id,
-        isCredit: a.is_credit,
-        creditLimit: a.credit_limit,
-        closingDay: a.closing_day,
-        dueDay: a.due_day
-      }));
+        const mappedAccs = accRes.data.map((a: any) => ({
+          ...a,
+          bankId: a.bank_id,
+          isCredit: a.is_credit,
+          creditLimit: a.credit_limit,
+          closingDay: a.closing_day,
+          dueDay: a.due_day
+        }));
 
-      setTransactions(mappedTxs);
-      setAccounts(mappedAccs);
-      setGoals(goalRes.data || []);
-      setTags(tagRes.data || []);
-      setBudgets(budRes.data || []);
-
-      if (cbRes.data) {
-        const mappedCB = cbRes.data.map((cb: any) => ({
+        const mappedCB = (cbRes.data || []).map((cb: any) => ({
           id: cb.id,
           userId: cb.user_id,
           name: cb.name,
@@ -213,18 +266,27 @@ const App: React.FC = () => {
           limitType: cb.limit_type,
           limitValue: cb.limit_value
         }));
-        setCustomBudgets(mappedCB);
+
+        // Persistir no Dexie e Redundância localStorage
+        await db.transactions.bulkPut(mappedTxs);
+        await db.accounts.bulkPut(mappedAccs);
+        await db.goals.bulkPut(goalRes.data || []);
+        await db.tags.bulkPut(tagRes.data || []);
+        await db.budgets.bulkPut(budRes.data || []);
+        await db.customBudgets.bulkPut(mappedCB);
+
+        localStorage.setItem('finai_fallback_txs', JSON.stringify(mappedTxs.slice(0, 50))); // Save small sample for emergency
+        localStorage.setItem('finai_fallback_accs', JSON.stringify(mappedAccs));
+
+        const syncTime = new Date().toLocaleString('pt-BR');
+        setLastSync(syncTime);
+        localStorage.setItem('finai_last_sync', syncTime);
       }
-
-      // After fetching data, run initial AI logic
-      // if (mappedTxs.length > 0) {
-      //   getFinancialAdvice(mappedTxs, mappedAccs).then(setAiAdvice);
-      // }
-
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
       setLoading(false);
+      setIsSyncing(false);
     }
   };
 
@@ -391,118 +453,48 @@ const App: React.FC = () => {
 
 
   const handleUpdateTransaction = async (id: string, updates: Partial<Transaction>) => {
-    /* 
-       Optimistic Update:
-       1. Update local state immediately
-       2. Send via API
-       3. If fail, revert
-    */
-
-    // Calculate Balance Diff for Account update logic (Optimistic)
-    // Finding original transaction
-    const originalTx = transactions.find(t => t.id === id);
+    // 1. Buscar transação original no banco local
+    const originalTx = await db.transactions.get(id);
     if (!originalTx) return;
 
-    // Apply updates locally
-    setTransactions(prev => prev.map(t => {
-      if (t.id === id) {
-        return { ...t, ...updates };
-      }
-      return t;
-    }));
+    // 2. Persistir localmente no Dexie
+    await db.transactions.update(id, updates);
 
-    // Validations for Balance Updates
-    // We need to calculate the net effect on accounts
+    // 3. Adicionar na fila de sincronização
+    await addToSyncQueue('transactions', id, 'UPDATE');
+
+    // 4. Lógica de Atualização de Saldo de Conta (se necessário)
     const isAmountChanged = updates.amount !== undefined && updates.amount !== originalTx.amount;
     const isAccountChanged = updates.account !== undefined && updates.account !== originalTx.account;
     const isTypeChanged = updates.type !== undefined && updates.type !== originalTx.type;
     const isStatusChanged = updates.isPaid !== undefined && updates.isPaid !== originalTx.isPaid;
 
     if (isAmountChanged || isAccountChanged || isTypeChanged || isStatusChanged) {
-      const accountUpdates = new Map<string, number>();
-
-      // Helper to accrue changes
-      const addChange = (accId: string, delta: number) => {
-        const current = accountUpdates.get(accId) || 0;
-        accountUpdates.set(accId, current + delta);
-      };
-
-      // 1. Revert Original Effect (if it was paid)
-      // Note: We use originalTx for this check
+      // Reverter efeito antigo
       if (originalTx.isPaid) {
-        const amount = originalTx.amount;
-        const accountId = originalTx.account;
-        // If expense, we removed money. To revert, we ADD (+).
-        // If income, we added money. To revert, we SUBTRACT (-).
-        const change = originalTx.type === 'expense' ? amount : -amount;
-        if (accountId) addChange(accountId, change);
+        const acc = await db.accounts.get(originalTx.account);
+        if (acc) {
+          const revertDelta = originalTx.type === 'expense' ? originalTx.amount : -originalTx.amount;
+          await db.accounts.update(acc.id, { balance: acc.balance + revertDelta });
+          await addToSyncQueue('accounts', acc.id, 'UPDATE');
+        }
       }
 
-      // 2. Apply New Effect (if it is paid)
-      // We construct the "new" transaction state
+      // Aplicar novo efeito
       const newIsPaid = updates.isPaid !== undefined ? updates.isPaid : originalTx.isPaid;
-
       if (newIsPaid) {
-        const amount = updates.amount !== undefined ? updates.amount : originalTx.amount;
-        const accountId = updates.account !== undefined ? updates.account : originalTx.account;
-        const type = updates.type !== undefined ? updates.type : originalTx.type;
+        const newAmount = updates.amount !== undefined ? updates.amount : originalTx.amount;
+        const newAccount = updates.account !== undefined ? updates.account : originalTx.account;
+        const newType = updates.type !== undefined ? updates.type : originalTx.type;
 
-        // If expense, we remove money (-).
-        // If income, we add money (+).
-        const change = type === 'expense' ? -amount : amount;
-        if (accountId) addChange(accountId, change);
-      }
-
-      // 3. Process Account Updates
-      if (accountUpdates.size > 0) {
-        // Update Local State once
-        setAccounts(prevAccs => prevAccs.map(acc => {
-          const delta = accountUpdates.get(acc.id);
-          if (delta) {
-            return { ...acc, balance: acc.balance + delta };
-          }
-          return acc;
-        }));
-
-        // Update DB for each affected account
-        // We use the computed delta + current DB state (or optimistic state assumptions)
-        // Ideally we would trigger an RPC, but loop update is fine for now.
-        for (const [accountId, delta] of accountUpdates.entries()) {
-          if (delta !== 0) {
-            // We need to fetch the *current* balance to be safe, OR rely on local state if we trust it.
-            // Relying on previous local state (before this setAccounts check) might be stale inside the loop? 
-            // Actually, `setAccounts` above handles visual. For DB:
-            const acc = accounts.find(a => a.id === accountId);
-            if (acc) {
-              // We add delta to the KNOWN balance.
-              // Warning: concurrency issues if multiple updates happen fast. 
-              // For this app scale, this is acceptable.
-              await supabase.from('accounts').update({ balance: acc.balance + delta }).eq('id', accountId);
-            }
-          }
+        const acc = await db.accounts.get(newAccount);
+        if (acc) {
+          const applyDelta = newType === 'expense' ? -newAmount : newAmount;
+          await db.accounts.update(acc.id, { balance: acc.balance + applyDelta });
+          await addToSyncQueue('accounts', acc.id, 'UPDATE');
         }
       }
     }
-
-    // Map updates to DB columns
-    const dbUpdates: any = {};
-    if (updates.description !== undefined) dbUpdates.description = updates.description;
-    if (updates.amount !== undefined) dbUpdates.amount = updates.amount;
-    if (updates.date !== undefined) dbUpdates.date = updates.date;
-    if (updates.isPaid !== undefined) dbUpdates.is_paid = updates.isPaid;
-    if (updates.category !== undefined) dbUpdates.category = updates.category;
-    if (updates.subCategory !== undefined) dbUpdates.sub_category = updates.subCategory;
-    if (updates.tags !== undefined) dbUpdates.tag_ids = updates.tags;
-    if (updates.paymentDate !== undefined) dbUpdates.payment_date = updates.paymentDate;
-    if (updates.account !== undefined) dbUpdates.account_id = updates.account;
-    if (updates.attachment !== undefined) dbUpdates.attachment = updates.attachment;
-    if (updates.notes !== undefined) dbUpdates.notes = updates.notes;
-    if (updates.ignoreInStatistics !== undefined) dbUpdates.ignore_in_statistics = updates.ignoreInStatistics;
-    if (updates.ignoreInBudgets !== undefined) dbUpdates.ignore_in_budgets = updates.ignoreInBudgets;
-    if (updates.ignoreInTotals !== undefined) dbUpdates.ignore_in_totals = updates.ignoreInTotals;
-    if (updates.dueDate !== undefined) dbUpdates.due_date = updates.dueDate;
-
-    await supabase.from('transactions').update(dbUpdates).eq('id', id);
   };
 
   // Helper to add months to a date string (YYYY-MM-DD) handling end-of-month correctly
@@ -533,7 +525,7 @@ const App: React.FC = () => {
       category: data.category || 'Outros',
       subCategory: data.subCategory || 'Diversos',
       type: data.type || 'expense',
-      account: data.account || accounts[0]?.id, // Must fix this logic if no accounts
+      account: data.account || accounts[0]?.id,
       paymentMethod: data.paymentMethod || 'PIX',
       isPaid: data.isPaid !== undefined ? data.isPaid : data.type === 'income',
       recurrence: data.recurrence || 'one_time',
@@ -554,182 +546,81 @@ const App: React.FC = () => {
       return;
     }
 
-    const newTransactions: any[] = []; // for DB
-    const newOptimisticTxs: Transaction[] = []; // for State
-
     const baseDate = data.date || new Date().toISOString().split('T')[0];
-    const baseDueDate = data.dueDate || baseDate;
+    const newTxs: Transaction[] = [];
 
-    // Helper to generate IDs safely? Supabase generates UUIDs.
-    // Ideally we let Supabase generate IDs and return them.
-    // BUT for recurrence we are generating multiple.
-    // Strategy: Insert to DB, wait for response, then update state.
-
-    // Construct payload objects (without IDs)
     if (baseTx.recurrence === 'fixed') {
       for (let i = 0; i < 12; i++) {
-        newTransactions.push({
-          user_id: user.id,
-          description: baseTx.description,
-          amount: baseTx.amount,
+        newTxs.push({
+          ...baseTx,
+          id: crypto.randomUUID(),
           date: addMonths(baseDate, i),
-          category: baseTx.category,
-          sub_category: baseTx.subCategory,
-          type: baseTx.type,
-          account_id: baseTx.account,
-          payment_method: baseTx.paymentMethod,
-          is_paid: i === 0 ? baseTx.isPaid : false,
-          recurrence: 'fixed',
-          installment_total: baseTx.installmentTotal,
-          installment_count: baseTx.installmentCount,
-          attachment: baseTx.attachment,
-          notes: baseTx.notes,
-          payment_date: baseTx.paymentDate,
-          ignore_in_statistics: baseTx.ignoreInStatistics,
-          ignore_in_budgets: baseTx.ignoreInBudgets,
-          ignore_in_totals: baseTx.ignoreInTotals,
-          due_date: baseTx.dueDate || baseDate,
-          created_by: user.id
-        });
+          isPaid: i === 0 ? baseTx.isPaid : false,
+          user_id: user.id
+        } as Transaction);
       }
     } else if (baseTx.recurrence === 'installment' && baseTx.installmentCount && baseTx.installmentCount > 1) {
       for (let i = 0; i < baseTx.installmentCount; i++) {
-        newTransactions.push({
-          user_id: user.id,
+        newTxs.push({
+          ...baseTx,
+          id: crypto.randomUUID(),
           description: `${baseTx.description} (${i + 1}/${baseTx.installmentCount})`,
-          amount: baseTx.amount,
           date: addMonths(baseDate, i),
-          category: baseTx.category,
-          sub_category: baseTx.subCategory,
-          type: baseTx.type,
-          account_id: baseTx.account,
-          payment_method: baseTx.paymentMethod,
-          is_paid: i === 0 ? baseTx.isPaid : false,
-          recurrence: 'installment',
-          installment_total: baseTx.installmentTotal,
-          installment_count: baseTx.installmentCount,
-          attachment: baseTx.attachment,
-          notes: baseTx.notes,
-          payment_date: baseTx.paymentDate,
-          ignore_in_statistics: baseTx.ignoreInStatistics,
-          ignore_in_budgets: baseTx.ignoreInBudgets,
-          ignore_in_totals: baseTx.ignoreInTotals,
-          due_date: baseTx.dueDate || baseDate,
-          created_by: user.id
-        });
+          isPaid: i === 0 ? baseTx.isPaid : false,
+          user_id: user.id
+        } as Transaction);
       }
     } else {
-      newTransactions.push({
-        user_id: user.id,
-        description: baseTx.description,
-        amount: baseTx.amount,
+      newTxs.push({
+        ...baseTx,
+        id: crypto.randomUUID(),
         date: baseDate,
-        category: baseTx.category,
-        sub_category: baseTx.subCategory,
-        type: baseTx.type,
-        account_id: baseTx.account,
-        payment_method: baseTx.paymentMethod,
-        is_paid: baseTx.isPaid,
-        recurrence: 'one_time',
-        tag_ids: baseTx.tags,
-        attachment: baseTx.attachment,
-        notes: baseTx.notes,
-        payment_date: baseTx.paymentDate,
-        ignore_in_statistics: baseTx.ignoreInStatistics,
-        ignore_in_budgets: baseTx.ignoreInBudgets,
-        ignore_in_totals: baseTx.ignoreInTotals,
-        due_date: baseTx.dueDate || baseDate,
-        created_by: user.id // Track who created
-      });
+        user_id: user.id
+      } as Transaction);
     }
 
     try {
-      const { data: insertedData, error } = await supabase.from('transactions').insert(newTransactions).select();
+      // 1. Persistir Localmente (Dexie)
+      await db.transactions.bulkAdd(newTxs);
 
-      if (error) throw error;
-
-      // Map back to Frontend Types
-      if (insertedData) {
-        const mappedNew = insertedData.map((t: any) => ({
-          ...t,
-          date: t.date.split('T')[0],
-          // account: t.account_id, // interface uses 'account' string
-          account: t.account_id,
-          subCategory: t.sub_category,
-          paymentMethod: t.payment_method,
-          isPaid: t.is_paid,
-          installmentCount: t.installment_count,
-          installmentTotal: t.installment_total,
-          tags: t.tag_ids || [],
-          attachment: t.attachment,
-          notes: t.notes,
-          paymentDate: t.payment_date,
-          ignoreInStatistics: t.ignore_in_statistics,
-          ignoreInBudgets: t.ignore_in_budgets,
-          ignoreInTotals: t.ignore_in_totals,
-          dueDate: t.due_date
-        }));
-
-        setTransactions(prev => [...mappedNew, ...prev]);
-
-        // Handle Account Balance Update
-        mappedNew.forEach((tx: any) => {
-          if (tx.isPaid) {
-            // Update Local
-            setAccounts(prev => prev.map(acc => {
-              const diff = tx.amount;
-              if (acc.id === tx.account) {
-                return { ...acc, balance: tx.type === 'expense' ? acc.balance - diff : acc.balance + diff };
-              }
-              return acc;
-            }));
-
-            // Update DB (Optimized: could do one update per account at end, but simplistic here)
-            const acc = accounts.find(a => a.id === tx.account);
-            if (acc) {
-              const diff = tx.amount;
-              const newBalance = tx.type === 'expense' ? acc.balance - diff : acc.balance + diff;
-              supabase.from('accounts').update({ balance: newBalance }).eq('id', tx.account);
-            }
+      // 2. Atualizar Saldos de Contas Localmente
+      for (const tx of newTxs) {
+        if (tx.isPaid) {
+          const acc = accounts.find(a => a.id === tx.account);
+          if (acc) {
+            const delta = tx.type === 'expense' ? -tx.amount : tx.amount;
+            await db.accounts.update(acc.id, { balance: acc.balance + delta });
+            await addToSyncQueue('accounts', acc.id, 'UPDATE');
           }
-        });
-        // Refetch silencioso para garantir sincronização
-        if (user) fetchData(user.id, true);
+        }
+        // 3. Adicionar na fila de sincronização
+        await addToSyncQueue('transactions', tx.id, 'INSERT');
       }
+
     } catch (err) {
       console.error("Error creating transaction", err);
-      alert("Erro ao salvar transação");
+      alert("Erro ao salvar transação localmente");
     }
   };
 
   const handleUpdateAccount = async (id: string, updates: Partial<Account>) => {
-    const prev = accounts.find(a => a.id === id);
-    setAccounts(prev => prev.map(a => a.id === id ? { ...a, ...updates } : a));
-    const { error } = await supabase.from('accounts').update(updates).eq('id', id);
-    if (error) {
-      console.error('Erro ao atualizar conta:', error);
-      // Revert
-      if (prev) setAccounts(accs => accs.map(a => a.id === id ? prev : a));
-      alert('Erro ao atualizar conta: ' + error.message);
-    }
+    await db.accounts.update(id, updates);
+    await addToSyncQueue('accounts', id, 'UPDATE');
   };
 
   const handleUpdateGoal = async (id: string, updates: Partial<Goal>) => {
-    setGoals(prev => prev.map(g => g.id === id ? { ...g, ...updates } : g));
-    await supabase.from('goals').update(updates).eq('id', id);
+    await db.goals.update(id, updates);
+    await addToSyncQueue('goals', id, 'UPDATE');
   };
 
-  const handleAICommand = async (result: any) => {
-    console.log("AI Command:", result);
 
-    // 1. Transactions
+  const handleAICommand = async (result: any) => {
+    console.log('AI Command:', result);
+
     if (result.intent === 'CREATE') {
       await handleAddTransaction(result.data);
       return true;
-    }
-
-    // 2. Status Update
-    else if (result.intent === 'UPDATE_STATUS') {
+    } else if (result.intent === 'UPDATE_STATUS') {
       const { searchDescription, newStatus } = result.data;
       const tx = transactions.find(t =>
         t.description.toLowerCase().includes(searchDescription.toLowerCase())
@@ -739,95 +630,69 @@ const App: React.FC = () => {
         return true;
       }
       return false;
-    }
-
-    // 3. Accounts
-    else if (result.intent === 'CREATE_ACCOUNT') {
+    } else if (result.intent === 'CREATE_ACCOUNT') {
       await handleAddAccount(result.data);
       return true;
-    }
-    else if (result.intent === 'UPDATE_ACCOUNT') {
+    } else if (result.intent === 'UPDATE_ACCOUNT') {
       const acc = accounts.find(a => a.name.toLowerCase().includes(result.data.name.toLowerCase()));
       if (acc) {
         await handleUpdateAccount(acc.id, result.data.updates);
         return true;
       }
       return false;
-    }
-    else if (result.intent === 'DELETE_ACCOUNT') {
+    } else if (result.intent === 'DELETE_ACCOUNT') {
       const acc = accounts.find(a => a.name.toLowerCase().includes(result.data.name.toLowerCase()));
       if (acc) {
         await handleDeleteAccount(acc.id);
         return true;
       }
       return false;
-    }
-
-    // 4. Goals
-    else if (result.intent === 'CREATE_GOAL') {
+    } else if (result.intent === 'CREATE_GOAL') {
       await handleAddGoal(result.data);
       return true;
-    }
-    else if (result.intent === 'UPDATE_GOAL') {
+    } else if (result.intent === 'UPDATE_GOAL') {
       const goal = goals.find(g => g.title.toLowerCase().includes(result.data.title.toLowerCase()));
       if (goal) {
         await handleUpdateGoal(goal.id, result.data.updates);
         return true;
       }
       return false;
-    }
-    else if (result.intent === 'DELETE_GOAL') {
+    } else if (result.intent === 'DELETE_GOAL') {
       const goal = goals.find(g => g.title.toLowerCase().includes(result.data.title.toLowerCase()));
       if (goal) {
         await handleDeleteGoal(goal.id);
         return true;
       }
       return false;
-    }
-
-    // 5. Budgets
-    else if (result.intent === 'CREATE_BUDGET') {
+    } else if (result.intent === 'CREATE_BUDGET') {
       await handleAddBudget(result.data);
       return true;
-    }
-    else if (result.intent === 'UPDATE_BUDGET') {
-      // Logic to find budget by category (and current month?)
+    } else if (result.intent === 'UPDATE_BUDGET') {
       const budget = budgets.find(b => b.category.toLowerCase() === result.data.category.toLowerCase());
       if (budget) {
         await handleUpdateBudget(budget.id, { amount: result.data.amount });
         return true;
       }
       return false;
-    }
-    else if (result.intent === 'DELETE_BUDGET') {
+    } else if (result.intent === 'DELETE_BUDGET') {
       const budget = budgets.find(b => b.category.toLowerCase() === result.data.category.toLowerCase());
       if (budget) {
-        // We don't have a delete budget function yet, let's add one or just set amount to 0?
-        // Actually, Supabase delete is needed.
-        // implementation below
-        setBudgets(prev => prev.filter(b => b.id !== budget.id));
-        await supabase.from('budgets').delete().eq('id', budget.id);
+        await db.budgets.delete(budget.id);
+        await addToSyncQueue('budgets', budget.id, 'DELETE');
         return true;
       }
       return false;
-    }
-
-    // 6. Retirement Simulation
-    else if (result.intent === 'SIMULATE_RETIREMENT') {
+    } else if (result.intent === 'SIMULATE_RETIREMENT') {
       setRetirementParams(result.data);
       setCurrentView('retirement');
       return true;
-    }
-
-    // 7. Advice / Chat
-    else if (result.intent === 'ADVICE_REQUEST') {
-      const answer = "Funcionalidade de chat desativada. Use comandos diretos.";
-      alert("FinAI: " + answer);
+    } else if (result.intent === 'ADVICE_REQUEST') {
+      alert('FinAI: ' + result.data.answer);
       return true;
     }
-
     return false;
   };
+
 
   const handleAddBudget = async (data: Partial<Budget>) => {
     if (!user) return;
@@ -848,7 +713,10 @@ const App: React.FC = () => {
       // Create
       const { data: inserted, error } = await supabase.from('budgets').insert(newBudget).select().single();
       if (inserted && !error) {
-        setBudgets(prev => [...prev, inserted]);
+        // O liveQuery do Dexie atualizará o estado automaticamente se o db for atualizado
+        // Se estivermos usando Supabase diretamente aqui, precisamos garantir que o db local reflita isso ou confiar no liveQuery.
+        // Como o plano é usar Dexie como fonte da verdade, o ideal seria db.budgets.put(inserted)
+        await db.budgets.put(inserted);
       }
     }
   };
@@ -877,14 +745,14 @@ const App: React.FC = () => {
     }
 
     if (inserted) {
-      setCustomBudgets(prev => [...prev, {
+      await db.customBudgets.put({
         id: inserted.id,
         userId: inserted.user_id,
         name: inserted.name,
         categories: inserted.categories,
         limitType: inserted.limit_type,
         limitValue: inserted.limit_value
-      }]);
+      });
     }
   };
 
@@ -895,43 +763,31 @@ const App: React.FC = () => {
       alert("Erro ao excluir orçamento");
       return;
     }
-    setCustomBudgets(prev => prev.filter(cb => cb.id !== id));
+    // O liveQuery do Dexie atualizará o estado automaticamente
+    await db.customBudgets.delete(id);
   };
 
   const handleUpdateBudget = async (id: string, updates: Partial<Budget>) => {
-    setBudgets(prev => prev.map(b => b.id === id ? { ...b, ...updates } : b));
+    // Atualiza localmente e o liveQuery reflete a mudança
+    await db.budgets.update(id, updates);
     await supabase.from('budgets').update(updates).eq('id', id);
   };
 
 
   const handleDeleteTransaction = async (id: string) => {
-    const tx = transactions.find(t => t.id === id);
-    if (!tx) return;
-
-    // Optimistic Delete
-    setTransactions(prev => prev.filter(t => t.id !== id));
-
-    // Balance Revert
-    if (tx.isPaid) {
-      setAccounts(prev => prev.map(acc => {
-        if (acc.id === tx.account) {
-          return { ...acc, balance: tx.type === 'expense' ? acc.balance + tx.amount : acc.balance - tx.amount };
-        }
-        return acc;
-      }));
-      // DB Balance Revert... ideally async in background
-      const acc = accounts.find(a => a.id === tx.account);
+    const originalTx = await db.transactions.get(id);
+    if (!originalTx) return;
+    await db.transactions.delete(id);
+    await addToSyncQueue('transactions', id, 'DELETE');
+    if (originalTx.isPaid) {
+      const acc = await db.accounts.get(originalTx.account);
       if (acc) {
-        const newBalance = tx.type === 'expense' ? acc.balance + tx.amount : acc.balance - tx.amount;
-        await supabase.from('accounts').update({ balance: newBalance }).eq('id', tx.account);
+        const revertDelta = originalTx.type === 'expense' ? originalTx.amount : -originalTx.amount;
+        await db.accounts.update(acc.id, { balance: acc.balance + revertDelta });
+        await addToSyncQueue('accounts', acc.id, 'UPDATE');
       }
     }
-
-    await supabase.from('transactions').delete().eq('id', id);
-    // Refetch silencioso para garantir sincronização
-    if (user) fetchData(user.id, true);
   };
-
   const handleTransfer = async (data: {
     sourceAccountId: string;
     destinationAccountId: string;
@@ -939,9 +795,8 @@ const App: React.FC = () => {
     date: string;
     description: string;
   }) => {
-    // Create Withdraw (Expense) from Source
     await handleAddTransaction({
-      description: `Transferência para: ${(accounts.find(a => a.id === data.destinationAccountId)?.name)} - ${data.description}`,
+      description: `Transferência para: ${data.description}`,
       amount: data.amount,
       type: 'expense',
       account: data.sourceAccountId,
@@ -951,9 +806,8 @@ const App: React.FC = () => {
       isPaid: true
     });
 
-    // Create Deposit (Income) to Destination
     await handleAddTransaction({
-      description: `Transferência de: ${(accounts.find(a => a.id === data.sourceAccountId)?.name)} - ${data.description}`,
+      description: `Transferência de: ${data.description}`,
       amount: data.amount,
       type: 'income',
       account: data.destinationAccountId,
@@ -966,205 +820,79 @@ const App: React.FC = () => {
 
   const handleAddAccount = async (data: Partial<Account>) => {
     if (!user) return;
-
-    // Check Plan Limits
-    const isCredit = data.isCredit || data.type === 'credit';
-    if (userRole !== 'admin') {
-      if (isCredit) {
-        const cardCount = accounts.filter(acc => acc.isCredit || acc.type === 'credit').length;
-        if (!canAddCard(userPlan, cardCount)) {
-          alert(`Você atingiu o limite de ${PLAN_LIMITS.free.maxCards} cartões de crédito do plano Gratuito. Faça o upgrade para Premium para ter acessos ilimitados!`);
-          setCurrentView('plans');
-          return;
-        }
-      } else {
-        const accCount = accounts.filter(acc => !acc.isCredit && acc.type !== 'credit').length;
-        if (!canAddAccount(userPlan, accCount)) {
-          alert(`Você atingiu o limite de ${PLAN_LIMITS.free.maxAccounts} contas bancárias do plano Gratuito. Faça o upgrade para Premium para ter acessos ilimitados!`);
-          setCurrentView('plans');
-          return;
-        }
-      }
-    }
-
-    const newAccPayload = {
-      user_id: user.id,
+    const newId = crypto.randomUUID();
+    const newAcc: Account = {
+      id: newId,
+      userId: user.id,
       name: data.name || 'Nova Conta',
       balance: data.balance || 0,
       type: data.type || 'checking',
-      bank_id: data.bankId || 'outro',
+      bankId: data.bankId || 'outro',
       color: data.color || '#64748b',
-      is_credit: data.isCredit || false, // default to false if undefined, but respect true
-      credit_limit: data.creditLimit || 0,
-      closing_day: data.closingDay || 1,
-      due_day: data.dueDay || 10
-    };
+      isCredit: data.isCredit || false,
+      creditLimit: data.creditLimit || 0,
+      closingDay: data.closingDay || 1,
+      dueDay: data.dueDay || 10
+    } as Account;
 
-    const { data: inserted, error } = await supabase.from('accounts').insert(newAccPayload).select().single();
-
-    if (error) {
-      console.error("Erro ao criar conta:", error);
-      alert(`Erro ao criar cartão: ${error.message} (${error.details || ''})`);
-      return;
-    }
-
-    if (inserted) {
-      const newAcc = {
-        ...inserted,
-        bankId: inserted.bank_id,
-        isCredit: inserted.is_credit,
-        creditLimit: inserted.credit_limit,
-        closingDay: inserted.closing_day,
-        dueDay: inserted.due_day
-      };
-      setAccounts(prev => [...prev, newAcc]);
-      // Refetch silencioso para garantir sincronização
-      if (user) fetchData(user.id, true);
+    try {
+      await db.accounts.add(newAcc);
+      await addToSyncQueue('accounts', newId, 'INSERT');
+    } catch (err) {
+      console.error('Erro ao criar conta localmente:', err);
+      alert('Erro ao criar conta no banco local');
     }
   };
 
   const handleDeleteAccount = async (id: string) => {
-    // Verifica se há transações vinculadas
-    const linkedTxs = transactions.filter(t => t.account === id);
+    if (!user) return;
+    if (!window.confirm('Tem certeza que deseja excluir esta conta? Todas as transa??es vinculadas ser?o mantidas mas sem conta associada.')) return;
 
-    if (linkedTxs.length > 0) {
-      const deleteTxs = window.confirm(
-        `Esta conta possui ${linkedTxs.length} transação(ões) vinculada(s).\n\nClicar em OK irá EXCLUIR todas as transações junto com a conta.\nClicar em Cancelar irá MANTER as transações (apenas desvinculadas da conta).`
-      );
-
-      if (deleteTxs) {
-        // Deletar transações primeiro, depois a conta
-        const { error: txError } = await supabase.from('transactions').delete().eq('account_id', id);
-        if (txError) {
-          console.error('Erro ao deletar transações:', txError);
-          alert('Erro ao excluir transações: ' + txError.message);
-          return;
-        }
-        setTransactions(prev => prev.filter(t => t.account !== id));
-      } else {
-        // Apenas desvincular as transações (account_id = null)
-        const { error: unlinkError } = await supabase.from('transactions').update({ account_id: null }).eq('account_id', id);
-        if (unlinkError) {
-          console.error('Erro ao desvincular transações:', unlinkError);
-          alert('Erro ao desvincular transações: ' + unlinkError.message);
-          return;
-        }
-        setTransactions(prev => prev.map(t => t.account === id ? { ...t, account: undefined } : t));
-      }
-    }
-
-    // Agora deletar a conta (sem transações vinculadas)
-    const snapshot = accounts;
-    setAccounts(prev => prev.filter(acc => acc.id !== id));
-    const { error } = await supabase.from('accounts').delete().eq('id', id);
-    if (error) {
-      console.error('Erro ao deletar conta:', error);
-      setAccounts(snapshot); // revert
-      alert('Erro ao excluir conta: ' + error.message);
-    } else {
-      if (user) fetchData(user.id, true);
+    try {
+      await db.accounts.delete(id);
+      await addToSyncQueue('accounts', id, 'DELETE');
+    } catch (err) {
+      console.error('Erro ao excluir conta localmente:', err);
     }
   };
 
   const handleAddGoal = async (data: Partial<Goal>) => {
     if (!user) return;
-    const newGoalPayload = {
-      user_id: user.id,
-      title: data.title || 'Novo Objetivo',
-      target: data.target || 0,
-      current: data.current || 0,
-      deadline: data.deadline || null,
-      category: data.category || 'Geral'
-    };
-
-    const { data: inserted, error } = await supabase.from('goals').insert(newGoalPayload).select().single();
-    if (error) {
-      console.error('Erro ao criar meta:', error);
-      alert('Erro ao criar meta: ' + error.message);
-      return;
-    }
-    if (inserted) {
-      setGoals(prev => [...prev, inserted]);
-      fetchData(user.id, true);
-    }
+    const newId = crypto.randomUUID();
+    const newGoal: Goal = {
+      id: newId,
+      ...data,
+      userId: user.id
+    } as Goal;
+    await db.goals.add(newGoal);
+    await addToSyncQueue('goals', newId, 'INSERT');
   };
 
   const handleDeleteGoal = async (id: string) => {
-    const snapshot = goals;
-    setGoals(prev => prev.filter(g => g.id !== id));
-    const { error } = await supabase.from('goals').delete().eq('id', id);
-    if (error) {
-      console.error('Erro ao deletar meta:', error);
-      setGoals(snapshot);
-      alert('Erro ao excluir meta: ' + error.message);
-    } else {
-      if (user) fetchData(user.id, true);
-    }
+    await db.goals.delete(id);
+    await addToSyncQueue('goals', id, 'DELETE');
   };
 
   const handleAddTag = async (data: Partial<Tag>) => {
     if (!user) return;
-    const newTag = {
-      user_id: user.id,
+    const newId = crypto.randomUUID();
+    const newTag: Tag = {
+      id: newId,
       name: data.name || 'Nova Tag',
-      color: data.color || '#64748b'
-    };
-
-    const { data: inserted, error } = await supabase.from('tags').insert(newTag).select().single();
-    if (error) {
-      console.error('Erro ao criar tag:', error);
-      alert('Erro ao criar tag: ' + error.message);
-      return;
-    }
-    if (inserted) {
-      setTags(prev => [...prev, inserted]);
-      fetchData(user.id, true);
-    }
+      userId: user.id
+    } as Tag;
+    await db.tags.add(newTag);
+    await addToSyncQueue('tags', newId, 'INSERT');
   };
 
   const handleUpdateTag = async (id: string, updates: Partial<Tag>) => {
-    try {
-      const { error } = await supabase.from('tags').update(updates).eq('id', id);
-      if (error) throw error;
-      setTags(tags.map(t => (t.id === id ? { ...t, ...updates } : t)));
-    } catch (error) {
-      console.error('Error updating tag:', error);
-    }
-  };
-
-  const handleUpdateProfile = async (newName: string, newAvatarUrl?: string) => {
-    if (!user) return;
-    try {
-      const updates: any = { name: newName };
-      if (newAvatarUrl) updates.avatar_url = newAvatarUrl;
-
-      const { data, error } = await supabase.auth.updateUser({
-        data: updates
-      });
-      if (error) throw error;
-
-      setUser(prev => prev ? {
-        ...prev,
-        name: newName,
-        avatarUrl: newAvatarUrl || prev.avatarUrl
-      } : null);
-      setIsProfileModalOpen(false); // Close modal after update
-    } catch (error) {
-      console.error('Error updating profile:', error);
-    }
+    await db.tags.update(id, updates);
+    await addToSyncQueue('tags', id, 'UPDATE');
   };
 
   const handleDeleteTag = async (id: string) => {
-    const snapshot = tags;
-    setTags(prev => prev.filter(t => t.id !== id));
-    const { error } = await supabase.from('tags').delete().eq('id', id);
-    if (error) {
-      console.error('Erro ao deletar tag:', error);
-      setTags(snapshot);
-      alert('Erro ao excluir tag: ' + error.message);
-    } else {
-      if (user) fetchData(user.id, true);
-    }
+    await db.tags.delete(id);
+    await addToSyncQueue('tags', id, 'DELETE');
   };
 
   const handleExportData = () => {
@@ -1185,12 +913,8 @@ const App: React.FC = () => {
     keepAccounts: boolean;
     keepGoals: boolean;
   }) => {
-    // If called without options (legacy), we shouldn't proceed implicitly or should assume 'delete all'.
-    // However, the new Settings UI calls it with options.
-    // If confirmed via Modal:
     try {
       setLoading(true);
-
       const { keepCategories = false, keepCreditCards = false, keepAccounts = false, keepGoals = false } = options || {};
 
       const { error } = await supabase.rpc('reset_user_data_v2', {
@@ -1200,39 +924,36 @@ const App: React.FC = () => {
       });
 
       if (error) {
-        console.error("Error resetting data:", error);
-        alert("Erro ao resetar dados. Tente novamente ou contate o suporte.");
+        console.error('Error resetting data:', error);
+        alert('Erro ao resetar dados. Tente novamente ou contate o suporte.');
       } else {
-        // Clear LocalStorage if not kept
         if (!keepCategories) {
-          // Specific keys for categories need to be confirmed.
-          // Assuming 'finai_categories' or clearing known keys.
-          // Will ensure we only clear if explicitly requested.
           localStorage.removeItem('finai_categories');
-          localStorage.removeItem('finai_subcategories'); // If exists
+          localStorage.removeItem('finai_subcategories');
         }
-
-        // Always remove these view/date prefs on reset? Or keep?
-        // User asked for "starting from zero", so maybe reset view too.
         localStorage.removeItem('finai_current_view');
         localStorage.removeItem('finai_current_date');
 
-        // Clear State
-        setTransactions([]);
-        if (!keepAccounts) setAccounts(keepCreditCards ? accounts.filter(a => a.isCredit) : []);
-        else if (!keepCreditCards) setAccounts(accounts.filter(a => !a.isCredit));
-        // If both kept, accounts stay (but likely need refetch to match DB if implementation logic was complex)
+        // Limpar Banco Local (Dexie)
+        await db.transactions.clear();
+        if (!keepAccounts) await db.accounts.clear();
+        else if (!keepCreditCards) {
+          const accs = await db.accounts.toArray();
+          const idsToRemove = accs.filter(a => a.isCredit).map(a => a.id);
+          await db.accounts.bulkDelete(idsToRemove);
+        }
+        if (!keepGoals) await db.goals.clear();
 
-        // Actually, easiest is to reload page to refetch everything from DB/LocalStorage
-        alert("Dados resetados com sucesso!");
+        alert('Dados resetados com sucesso!');
         window.location.reload();
       }
     } catch (err) {
-      console.error("Unexpected error:", err);
+      console.error('Unexpected error:', err);
     } finally {
       setLoading(false);
     }
   };
+
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center bg-slate-50 text-sky-600"><Loader2 size={40} className="animate-spin" /></div>;
@@ -1262,6 +983,11 @@ const App: React.FC = () => {
       <Sidebar currentView={currentView} onViewChange={setCurrentView} isOpen={sidebarOpen} setIsOpen={setSidebarOpen} onLogout={handleLogout} userRole={userRole} />
       <main className={`flex-1 flex flex-col transition-all duration-300 mb-[88px] md:mb-0 ml-0 ${sidebarOpen ? 'md:ml-64' : 'md:ml-20'}`}>
         {/* Header - White Glassmorphism */}
+        {!isOnline && (
+          <div className="bg-amber-500 text-white text-[10px] font-black text-center py-1 uppercase tracking-widest animate-pulse">
+            Você está em modo offline - Usando dados locais
+          </div>
+        )}
         <header className="h-20 bg-white/80 backdrop-blur-xl border-b border-slate-200 flex items-center justify-between px-4 md:px-8 sticky top-0 z-40">
           {/* Global Month Filter in Center */}
           <div className="flex-1 flex justify-center">
@@ -1288,6 +1014,13 @@ const App: React.FC = () => {
               </button>
             </div>
           </div>
+
+          {/* Final diagnósticos em modo offline */}
+          {!isOnline && (
+            <div className="hidden lg:flex items-center gap-2 text-[10px] font-bold text-amber-600 ml-4">
+              <span>LOCAL: {transactions.length} TXs | {accounts.length} CONTAS</span>
+            </div>
+          )}
 
           <div className="flex items-center space-x-4">
             <NotificationCenter
@@ -1498,7 +1231,7 @@ const App: React.FC = () => {
           user={user}
           isOpen={isProfileModalOpen}
           onClose={() => setIsProfileModalOpen(false)}
-          onUpdate={handleUpdateProfile}
+          onUpdate={async () => { }}
           userPlan={userPlan}
           userRole={userRole}
         />
