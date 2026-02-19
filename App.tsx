@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
 import Auth from './components/Auth';
@@ -63,16 +63,42 @@ const App: React.FC = () => {
   const { isOnline, addToSyncQueue } = useOfflineSync(user?.id);
 
   // Fonte de dados Híbrida (Dexie + Fallback localStorage)
+  // Merging Logic: Se o Dexie tem poucos itens, complementamos com o backup do localStorage
   const dexieTransactions = useLiveQuery(() => db.transactions.toArray()) || [];
   const dexieAccounts = useLiveQuery(() => db.accounts.toArray()) || [];
 
-  const transactions = dexieTransactions.length > 0 ? dexieTransactions : (() => {
-    try { return JSON.parse(localStorage.getItem('finai_fallback_txs') || '[]'); } catch { return []; }
-  })();
+  const transactions = useMemo(() => {
+    const fallbackTxs = (() => {
+      try { return JSON.parse(localStorage.getItem('finai_fallback_txs') || '[]'); } catch { return []; }
+    })();
+    // Se não temos nada no Dexie, usamos todo o fallback
+    if (dexieTransactions.length === 0) return fallbackTxs;
 
-  const accounts = dexieAccounts.length > 0 ? dexieAccounts : (() => {
-    try { return JSON.parse(localStorage.getItem('finai_fallback_accs') || '[]'); } catch { return []; }
-  })();
+    // Se temos itens no Dexie, mesclamos (removendo duplicados por ID)
+    const merged = [...dexieTransactions];
+    const dexieIds = new Set(dexieTransactions.map(t => t.id));
+
+    fallbackTxs.forEach((t: Transaction) => {
+      if (!dexieIds.has(t.id)) {
+        merged.push(t);
+      }
+    });
+    return merged.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }, [dexieTransactions]);
+
+  const accounts = useMemo(() => {
+    const fallbackAccs = (() => {
+      try { return JSON.parse(localStorage.getItem('finai_fallback_accs') || '[]'); } catch { return []; }
+    })();
+    if (dexieAccounts.length === 0) return fallbackAccs;
+
+    const merged = [...dexieAccounts];
+    const dexieIds = new Set(dexieAccounts.map(a => a.id));
+    fallbackAccs.forEach((a: Account) => {
+      if (!dexieIds.has(a.id)) merged.push(a);
+    });
+    return merged;
+  }, [dexieAccounts]);
 
   const goals = useLiveQuery(() => db.goals.toArray()) || [];
   const tags = useLiveQuery(() => db.tags.toArray()) || [];
