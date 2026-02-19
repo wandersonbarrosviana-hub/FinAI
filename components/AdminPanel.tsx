@@ -12,25 +12,45 @@ interface AdminUserProfile {
     created_at: string;
 }
 
-const AdminPanel: React.FC = () => {
-    const [users, setUsers] = useState<AdminUserProfile[]>([]);
-    const [loading, setLoading] = useState(true);
+interface AdminPanelProps {
+    isOnline?: boolean;
+}
+
+const AdminPanel: React.FC<AdminPanelProps> = ({ isOnline = true }) => {
+    const [users, setUsers] = useState<AdminUserProfile[]>(() => {
+        try {
+            return JSON.parse(localStorage.getItem('finai_admin_users_cache') || '[]');
+        } catch {
+            return [];
+        }
+    });
+    const [loading, setLoading] = useState(isOnline);
     const [searchQuery, setSearchQuery] = useState('');
     const [updatingUserId, setUpdatingUserId] = useState<string | null>(null);
 
     useEffect(() => {
-        fetchUsers();
-    }, []);
+        if (isOnline) {
+            fetchUsers();
+        } else {
+            setLoading(false);
+        }
+    }, [isOnline]);
 
     const fetchUsers = async () => {
+        if (!isOnline) return;
         setLoading(true);
         try {
             const { data, error } = await supabase.rpc('get_all_users');
             if (error) throw error;
             setUsers(data || []);
+            // Cache para visualização offline
+            localStorage.setItem('finai_admin_users_cache', JSON.stringify(data || []));
         } catch (error) {
             console.error('Error fetching users:', error);
-            alert('Erro ao carregar usuários. Certifique-se de que você tem permissão de administrador.');
+            // Silencioso em caso de erro de rede ou se não houver permissão real
+            if (navigator.onLine) {
+                alert('Erro ao carregar usuários. Verifique sua permissão de administrador.');
+            }
         } finally {
             setLoading(false);
         }
