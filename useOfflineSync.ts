@@ -1,11 +1,15 @@
 import { useEffect, useState } from 'react';
 import { db } from './db';
 import { supabase } from './supabaseClient';
+import { useLiveQuery } from 'dexie-react-hooks';
 import { Transaction, Account, Goal, Tag, Budget, CustomBudget } from './types';
 
 export const useOfflineSync = (userId: string | undefined) => {
     const [isOnline, setIsOnline] = useState(navigator.onLine);
     const [syncing, setSyncing] = useState(false);
+
+    // Monitorar contagem da fila em tempo real
+    const pendingCount = useLiveQuery(() => db.syncQueue.count()) ?? 0;
 
     useEffect(() => {
         const handleOnline = () => setIsOnline(true);
@@ -153,5 +157,12 @@ export const useOfflineSync = (userId: string | undefined) => {
         }
     };
 
-    return { isOnline, syncing, addToSyncQueue, processSyncQueue };
+    const clearSyncQueue = async () => {
+        if (window.confirm("Isso limpará as ações pendentes localmente. Use apenas se o sincronismo estiver travado. Continuar?")) {
+            await db.syncQueue.clear();
+            console.log("[FinAI] Sync queue cleared manually.");
+        }
+    };
+
+    return { isOnline, syncing, pendingCount, addToSyncQueue, processSyncQueue, clearSyncQueue };
 };

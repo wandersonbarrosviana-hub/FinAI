@@ -60,7 +60,7 @@ const App: React.FC = () => {
   const [lastSync, setLastSync] = useState<string | null>(() => localStorage.getItem('finai_last_sync'));
   const [isSyncing, setIsSyncing] = useState(false);
 
-  const { isOnline, addToSyncQueue } = useOfflineSync(user?.id);
+  const { isOnline, syncing, pendingCount, addToSyncQueue, clearSyncQueue, processSyncQueue } = useOfflineSync(user?.id);
 
   // Fonte de dados Híbrida (Dexie + Fallback localStorage)
   // Merging Logic: Se o Dexie tem poucos itens, complementamos com o backup do localStorage
@@ -259,11 +259,11 @@ const App: React.FC = () => {
     console.log(`[FinAI] Current Dexie Transaction Count: ${txCount}`);
 
     // Verify if there are pending sync items
-    const pendingSync = await db.syncQueue.count();
+    let pendingSync = await db.syncQueue.count();
     if (pendingSync > 0 && isOnline) {
-      console.log(`[FinAI] Pending sync items (${pendingSync}). Waiting for sync to complete...`);
-      // We don't return here because we want the UI to be released, 
-      // but we will avoid bulkPut if we can't guarantee order.
+      console.log(`[FinAI] Found ${pendingSync} pending items. Attempting pre-fetch sync...`);
+      await processSyncQueue();
+      pendingSync = await db.syncQueue.count(); // Refresh count
     }
 
     try {
@@ -949,6 +949,34 @@ const App: React.FC = () => {
     await addToSyncQueue('goals', newId, 'INSERT');
   };
 
+  const handleReconcileBalances = async () => {
+    if (!confirm("Isso recalculará o saldo de todas as contas com base no histórico de transações local. Deseja continuar?")) return;
+
+    setIsSyncing(true);
+    try {
+      console.log("[FinAI] Reconciling all accounts...");
+      for (const acc of accounts) {
+        const accTxs = transactions.filter(t => t.account === acc.id && t.isPaid);
+        const newBalance = accTxs.reduce((sum, t) => {
+          return t.type === 'income' ? sum + t.amount : sum - t.amount;
+        }, 0);
+
+        if (Math.abs(newBalance - acc.balance) > 0.01) {
+          console.log(`[FinAI] Reconciling ${acc.name}: ${acc.balance} -> ${newBalance}`);
+          await db.accounts.update(acc.id, { balance: newBalance });
+          await addToSyncQueue('accounts', acc.id, 'UPDATE');
+        }
+      }
+      alert("Saldos reconciliados localmente e enviados para sincronia!");
+      if (isOnline && user?.id) fetchData(user.id, true);
+    } catch (err) {
+      console.error("Reconciliation error:", err);
+      alert("Erro ao reconciliar saldos.");
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   const handleDeleteGoal = async (id: string) => {
     await db.goals.delete(id);
     await addToSyncQueue('goals', id, 'DELETE');
@@ -1077,25 +1105,68 @@ const App: React.FC = () => {
             <span>Sincronizando dados com a nuvem...</span>
           </div>
         )}
+        {pendingCount > 0 && (
+          <div className="bg-amber-600 text-white text-[10px] font-black text-center py-1 uppercase tracking-widest flex items-center justify-center gap-4">
+            <div className="flex items-center gap-2">
+              <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></div>
+              <span>{pendingCount} ALTERAÇÕES PENDENTES NESTE DISPOSITIVO</span>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={async () => {
+                  if (isOnline) {
+                    await processSyncQueue();
+                    fetchData(user?.id || '', true);
+                  } else {
+                    alert("Você precisa estar online para sincronizar.");
+                  }
+                }}
+                className="bg-white/20 px-2 py-0.5 rounded hover:bg-white/30 transition-colors"
+              >
+                TENTAR REENVIAR
+              </button>
+              <button
+                onClick={async () => {
+                  if (confirm("Isso apagará as alterações locais que não subiram. Use apenas se o saldo estiver incorreto. Continuar?")) {
+                    await db.syncQueue.clear();
+                    if (user?.id) fetchData(user.id, true);
+                  }
+                }}
+                className="bg-black/20 px-2 py-0.5 rounded hover:bg-black/30 transition-colors"
+              >
+                LIMPAR FILA (FORÇAR NUVEM)
+              </button>
+            </div>
+          </div>
+        )}
         {!isOnline && (
           <div className="bg-slate-800 text-slate-400 text-[10px] font-black text-center py-1 uppercase tracking-widest flex items-center justify-center gap-4">
             <div className="flex items-center gap-2">
-              <div className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"></div>
+              <div className="w-1.5 h-1.5 bg-sky-500 rounded-full animate-pulse"></div>
               <span>MODO LOCAL (OFFLINE) - {APP_VERSION}</span>
             </div>
-            <button
-              onClick={() => {
-                if (confirm("Deseja tentar reparar o cache? O app irá reiniciar.")) {
-                  navigator.serviceWorker.getRegistrations().then(regs => {
-                    for (let reg of regs) reg.unregister();
-                    window.location.reload();
-                  });
-                }
-              }}
-              className="bg-white/10 px-2 py-0.5 rounded hover:bg-white/20 transition-colors text-[9px]"
-            >
-              REPARAR APP
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={handleReconcileBalances}
+                className="bg-sky-500/20 text-sky-400 px-2 py-0.5 rounded hover:bg-sky-500/30 transition-colors"
+                title="Recalcula saldos com base nas transações"
+              >
+                RECONCILIAR SALDOS
+              </button>
+              <button
+                onClick={() => {
+                  if (confirm("Deseja tentar reparar o cache? O app irá reiniciar.")) {
+                    navigator.serviceWorker.getRegistrations().then(regs => {
+                      for (let reg of regs) reg.unregister();
+                      window.location.reload();
+                    });
+                  }
+                }}
+                className="bg-white/10 px-2 py-0.5 rounded hover:bg-white/20 transition-colors"
+              >
+                REPARAR APP
+              </button>
+            </div>
           </div>
         )}
         <header className="h-20 bg-white/80 backdrop-blur-xl border-b border-slate-200 flex items-center justify-between px-4 md:px-8 sticky top-0 z-40">
