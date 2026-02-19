@@ -44,45 +44,59 @@ export const useOfflineSync = (userId: string | undefined) => {
             for (const action of pendingActions) {
                 try {
                     let success = false;
+                    let isGhost = false; // item whose local data no longer exists
 
                     const syncPromise = (async () => {
                         if (action.action === 'INSERT' || action.action === 'UPDATE') {
                             const tableData = await (db as any)[action.table].get(action.entityId);
-                            if (tableData) {
-                                const dbPayload = mapToSupabaseFormat(action.table, tableData);
-                                const { error } = await supabase.from(action.table).upsert(dbPayload);
-                                if (!error) return true;
-                                console.error(`[FinAI] Supabase Error (${action.table}):`, error);
-                            } else if (action.action === 'UPDATE') {
-                                return true;
+
+                            // If local data is gone, this is a ghost item from before a reset → discard it
+                            if (!tableData) {
+                                console.warn(`[FinAI] Ghost item detected (${action.table}:${action.entityId}), discarding.`);
+                                isGhost = true;
+                                return false;
                             }
+
+                            const dbPayload = mapToSupabaseFormat(action.table, tableData);
+                            const { error } = await supabase.from(action.table).upsert(dbPayload);
+                            if (!error) return true;
+                            console.error(`[FinAI] Supabase Error (${action.table}):`, error);
                         } else if (action.action === 'DELETE') {
                             const { error } = await supabase.from(action.table).delete().eq('id', action.entityId);
-                            if (!error) return true;
+                            // If row doesn't exist on server (already gone), treat as success
+                            if (!error || error.code === 'PGRST116') return true;
+                            console.error(`[FinAI] Delete Error (${action.table}):`, error);
                         }
                         return false;
                     })();
 
-                    success = await Promise.race([
+                    const result = await Promise.race([
                         syncPromise,
                         new Promise<boolean>(resolve => setTimeout(() => resolve(false), 15000))
                     ]);
 
-                    if (success) {
+                    // Remove item if synced successfully OR if it's a ghost (stale pre-reset data)
+                    if (result || isGhost) {
                         await db.syncQueue.delete(action.id!);
+                        if (isGhost) {
+                            success = true; // count as resolved so we don't break
+                        } else {
+                            success = true;
+                        }
                     } else {
-                        console.warn(`[FinAI] Sync stalled for ${action.table}:${action.entityId}. Retrying later.`);
-                        break;
+                        // Log the failure but CONTINUE to next item — don't block the whole queue
+                        console.warn(`[FinAI] Sync failed for ${action.table}:${action.entityId}. Continuing with next item.`);
                     }
                 } catch (e) {
                     console.error(`[FinAI] Critical Sync Loop Error:`, e);
-                    break;
+                    // Don't break — continue processing remaining items
                 }
             }
         } finally {
             setSyncing(false);
         }
     };
+
 
     const mapToSupabaseFormat = (table: string, data: any) => {
         // Criar uma cópia limpa
