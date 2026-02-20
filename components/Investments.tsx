@@ -3,12 +3,16 @@ import AssetCard from './AssetCard';
 import AssetDetail from './AssetDetail';
 import { InvestmentData } from '../types';
 import { Search } from 'lucide-react';
-import { getAssetData, getFundamentalData } from '../src/services/profitService';
+import { getAssetData, getFundamentalData, searchAssets } from '../src/services/profitService';
+import { SearchSuggestion } from '../types';
 
 const Investments: React.FC = () => {
     const [investments, setInvestments] = useState<InvestmentData[]>([]);
     const [loading, setLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
+    const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
+    const [showSuggestions, setShowSuggestions] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const [selectedAsset, setSelectedAsset] = useState<InvestmentData | null>(null);
 
     const filteredInvestments = investments; // Exibe todos os buscados na sessão
@@ -16,6 +20,8 @@ const Investments: React.FC = () => {
     const handleSearch = async (ticker: string) => {
         if (!ticker) return;
         setLoading(true);
+        setError(null);
+        setShowSuggestions(false);
         try {
             const quote = await getAssetData(ticker);
             const fundamentals = await getFundamentalData(ticker);
@@ -56,12 +62,29 @@ const Investments: React.FC = () => {
                 const filtered = prev.filter(a => a.ticker !== newAsset.ticker);
                 return [newAsset, ...filtered];
             });
-        } catch (error) {
+        } catch (error: any) {
             console.error("Erro ao buscar ativo:", error);
+            setError(error.message || "Não foi possível encontrar o ativo. Verifique se o código está correto.");
         } finally {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        const fetchSuggestions = async () => {
+            if (searchTerm.length >= 2) {
+                const results = await searchAssets(searchTerm);
+                setSuggestions(results);
+                setShowSuggestions(true);
+            } else {
+                setSuggestions([]);
+                setShowSuggestions(false);
+            }
+        };
+
+        const timer = setTimeout(fetchSuggestions, 300);
+        return () => clearTimeout(timer);
+    }, [searchTerm]);
 
     useEffect(() => {
         // Opcional: carregar favoritos/ativos padrões
@@ -103,11 +126,41 @@ const Investments: React.FC = () => {
                     <input
                         type="text"
                         placeholder="Pesquisar ativo (ex: PETR4, MXRF11...)"
-                        className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl pl-12 pr-6 py-4 text-slate-700 dark:text-slate-200 font-bold outline-none focus:ring-4 focus:ring-sky-500/5 focus:border-sky-500/50 transition-all shadow-sm placeholder:text-slate-300 dark:placeholder:text-slate-600"
+                        className={`w-full bg-white dark:bg-slate-900 border ${error ? 'border-red-500' : 'border-slate-200 dark:border-slate-800'} rounded-2xl pl-12 pr-6 py-4 text-slate-700 dark:text-slate-200 font-bold outline-none focus:ring-4 focus:ring-sky-500/5 focus:border-sky-500/50 transition-all shadow-sm placeholder:text-slate-300 dark:placeholder:text-slate-600`}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleSearch(searchTerm)}
+                        onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                        onFocus={() => searchTerm.length >= 2 && setShowSuggestions(true)}
                     />
+
+                    {/* Autocomplete Dropdown */}
+                    {showSuggestions && suggestions.length > 0 && (
+                        <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                            {suggestions.map((item, idx) => (
+                                <button
+                                    key={idx}
+                                    onClick={() => {
+                                        setSearchTerm(item.ticker);
+                                        handleSearch(item.ticker);
+                                    }}
+                                    className="w-full px-6 py-4 text-left hover:bg-slate-50 dark:hover:bg-slate-800/50 flex items-center justify-between border-b border-slate-50 dark:border-slate-800/50 last:border-0 transition-colors"
+                                >
+                                    <div className="flex flex-col">
+                                        <span className="text-sm font-black text-slate-900 dark:text-white uppercase">{item.ticker}</span>
+                                        <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase truncate max-w-[200px]">{item.name}</span>
+                                    </div>
+                                    <span className="text-[10px] bg-sky-50 dark:bg-sky-500/10 text-sky-500 px-2 py-1 rounded-lg font-black uppercase">{item.exchange || 'B3'}</span>
+                                </button>
+                            ))}
+                        </div>
+                    )}
+
+                    {error && (
+                        <div className="absolute top-full left-0 mt-2 text-[10px] font-black text-red-500 uppercase tracking-widest bg-red-50 dark:bg-red-500/10 px-3 py-1.5 rounded-lg border border-red-100 dark:border-red-500/20 animate-in shake duration-300">
+                            {error}
+                        </div>
+                    )}
                 </div>
             </div>
 

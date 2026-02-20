@@ -234,3 +234,10 @@ export interface AdvancedAIInsights {
   healthScore: HealthScoreDetail;
   updatedAt: string;
 }
+
+export interface SearchSuggestion {
+  ticker: string;
+  name: string;
+  exchange: string;
+  type: string;
+}
