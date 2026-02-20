@@ -1420,10 +1420,21 @@ const App: React.FC = () => {
               onAddDebt={handleAddDebt}
               onUpdateDebt={handleUpdateDebt}
               onDeleteDebt={handleDeleteDebt}
-              onNavigateToExpenses={({ description, amount }) => {
-                // Navega para despesas e pré-preenche via localStorage temporário
-                localStorage.setItem('finai_expense_prefill', JSON.stringify({ description, amount, type: 'expense' }));
-                setCurrentView('expenses');
+              onCreateExpense={async ({ description, amount }) => {
+                const today = new Date().toISOString().split('T')[0];
+                await handleAddTransaction({
+                  description,
+                  amount,
+                  type: 'expense',
+                  category: 'Dívidas',
+                  subCategory: 'Parcela',
+                  date: today,
+                  paymentMethod: 'Débito Automático',
+                  isPaid: true,
+                  recurrence: 'one_time',
+                  account: accounts[0]?.id,
+                  tags: [],
+                });
               }}
               monthlyIncome={filteredTransactions
                 .filter(t => t.type === 'income' && t.date.startsWith(currentDate.toISOString().slice(0, 7)))

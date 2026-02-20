@@ -11,7 +11,7 @@ interface DebtManagerProps {
     onAddDebt: (debt: Partial<Debt>) => void;
     onUpdateDebt: (id: string, updates: Partial<Debt>) => void;
     onDeleteDebt: (id: string) => void;
-    onNavigateToExpenses?: (prefill: { description: string; amount: number; category: string }) => void;
+    onCreateExpense?: (data: { description: string; amount: number }) => Promise<void> | void;
     monthlyIncome?: number;
 }
 
@@ -169,7 +169,7 @@ const MoneyInput: React.FC<{ label: string; value: number | undefined; onChange:
     </div>
 );
 
-const DebtManager: React.FC<DebtManagerProps> = ({ debts, onAddDebt, onUpdateDebt, onDeleteDebt, onNavigateToExpenses, monthlyIncome = 0 }) => {
+const DebtManager: React.FC<DebtManagerProps> = ({ debts, onAddDebt, onUpdateDebt, onDeleteDebt, onCreateExpense, monthlyIncome = 0 }) => {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [form, setForm] = useState<Partial<Debt> & { createExpense?: boolean }>(defaultForm());
@@ -177,6 +177,7 @@ const DebtManager: React.FC<DebtManagerProps> = ({ debts, onAddDebt, onUpdateDeb
     const [simMode, setSimMode] = useState<'installments' | 'value'>('installments');
     const [simInstallments, setSimInstallments] = useState<number>(1);
     const [simExtra, setSimExtra] = useState<number>(0);
+    const [expenseLaunched, setExpenseLaunched] = useState<string | null>(null);
 
     const summary = useMemo(() => {
         const total = debts.reduce((s, d) => s + d.currentBalance, 0);
@@ -225,11 +226,10 @@ const DebtManager: React.FC<DebtManagerProps> = ({ debts, onAddDebt, onUpdateDeb
             setEditingId(null);
         } else {
             onAddDebt(debtData);
-            if (createExpense && onNavigateToExpenses) {
-                onNavigateToExpenses({
+            if (createExpense && onCreateExpense) {
+                onCreateExpense({
                     description: `Parcela – ${debtData.name || 'Dívida'}`,
                     amount: debtData.installmentValue || 0,
-                    category: 'Outros',
                 });
             }
         }
@@ -524,12 +524,19 @@ const DebtManager: React.FC<DebtManagerProps> = ({ debts, onAddDebt, onUpdateDeb
                                             className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-lg bg-rose-50 dark:bg-rose-900/20 text-rose-500 dark:text-rose-400 hover:bg-rose-100 transition-colors">
                                             <Trash2 size={12} /> Excluir
                                         </button>
-                                        {onNavigateToExpenses && (
-                                            <button onClick={() => onNavigateToExpenses({ description: `Parcela – ${debt.name}`, amount: debt.installmentValue, category: 'Outros' })}
-                                                className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 transition-colors">
-                                                <Receipt size={12} /> Lançar Despesa
-                                            </button>
-                                        )}
+                                        <button onClick={async () => {
+                                            if (!onCreateExpense) return;
+                                            await onCreateExpense({ description: `Parcela – ${debt.name}`, amount: debt.installmentValue });
+                                            setExpenseLaunched(debt.id);
+                                            setTimeout(() => setExpenseLaunched(null), 3000);
+                                        }}
+                                            className={`flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all ${expenseLaunched === debt.id
+                                                    ? 'bg-emerald-600 text-white'
+                                                    : 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100'
+                                                }`}>
+                                            {expenseLaunched === debt.id ? <CheckCircle size={12} /> : <Receipt size={12} />}
+                                            {expenseLaunched === debt.id ? 'Despesa Criada!' : 'Lançar Despesa'}
+                                        </button>
                                     </div>
 
                                     {/* Simulation Panel */}
