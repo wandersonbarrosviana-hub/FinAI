@@ -695,8 +695,8 @@ const App: React.FC = () => {
       dueDate: data.dueDate
     };
 
-    if (!baseTx.account) {
-      alert("Por favor, crie uma conta antes de adicionar transações.");
+    if (accounts.length === 0) {
+      setIsAccountModalOpen(true);
       return;
     }
 

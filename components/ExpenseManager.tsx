@@ -324,6 +324,12 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
 
           <button
             onClick={() => {
+              if (!isFormOpen && accounts.length === 0) {
+                if (onOpenAccountModal) {
+                  onOpenAccountModal();
+                  return;
+                }
+              }
               if (isFormOpen && editingId) { setIsFormOpen(false); setEditingId(null); resetForm(); }
               else setIsFormOpen(!isFormOpen);
             }}
