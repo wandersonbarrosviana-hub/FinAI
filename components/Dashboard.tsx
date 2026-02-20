@@ -425,6 +425,7 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
                     <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Data</th>
                     <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Descrição</th>
                     <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Categoria</th>
+                    <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Status</th>
                     <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest text-right">Valor</th>
                   </tr>
                 </thead>
@@ -452,6 +453,14 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className="px-3 py-1 rounded-lg text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 uppercase tracking-wider transition-all">
                           {t.category}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest ${t.isPaid
+                            ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400'
+                            : 'bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400'
+                          }`}>
+                          {t.isPaid ? 'Pago' : 'Pendente'}
                         </span>
                       </td>
                       <td className={`px-6 py-4 text-sm font-black text-right whitespace-nowrap ${t.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
@@ -488,9 +497,17 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
                         </div>
                       )}
                     </div>
-                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded w-fit uppercase tracking-wider">
-                      {t.category}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded w-fit uppercase tracking-wider">
+                        {t.category}
+                      </span>
+                      <span className={`text-[9px] font-black uppercase tracking-tighter ${t.isPaid
+                          ? 'text-emerald-600 dark:text-emerald-400'
+                          : 'text-amber-600 dark:text-amber-400'
+                        }`}>
+                        • {t.isPaid ? 'Pago' : 'Pendente'}
+                      </span>
+                    </div>
                   </div>
                   <div className={`text-sm font-black whitespace-nowrap ${t.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
                     {t.type === 'income' ? '+' : '-'} R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
