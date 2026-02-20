@@ -943,7 +943,11 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
                     )}
                     {t.recurrence === 'installment' && (
                       <div className="flex items-center text-[10px] font-black text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20 px-2 py-1 rounded-lg w-fit border border-orange-100 dark:border-orange-900/30 uppercase tracking-widest">
-                        <Divide size={12} className="mr-1" /> {t.installmentCount}x
+                        <Divide size={12} className="mr-1" />
+                        {(() => {
+                          const m = t.description?.match(/\((\d+)\/(\d+)\)/);
+                          return m ? `${m[1]}/${m[2]}x` : `${t.installmentCount}x`;
+                        })()}
                       </div>
                     )}
                     {(!t.recurrence || t.recurrence === 'one_time') && (
@@ -1059,7 +1063,9 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
                   {t.recurrence && t.recurrence !== 'one_time' && (
                     <span className="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase ml-1 flex items-center">
                       {t.recurrence === 'installment' ? <Divide size={10} className="mr-1" /> : <Repeat size={10} className="mr-1" />}
-                      {t.recurrence === 'installment' ? `${t.installmentCount}x` : 'Mensal'}
+                      {t.recurrence === 'installment'
+                        ? (() => { const m = t.description?.match(/\((\d+)\/(\d+)\)/); return m ? `${m[1]}/${m[2]}x` : `${t.installmentCount}x`; })()
+                        : 'Mensal'}
                     </span>
                   )}
                 </div>
