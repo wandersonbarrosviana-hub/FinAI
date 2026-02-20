@@ -614,6 +614,16 @@ const App: React.FC = () => {
     const originalTx = await db.transactions.get(id);
     if (!originalTx) return;
 
+    // Detectar mudança de recorrência para atualizar descrição se for parcelado
+    const isChangingToInstallment = updates.recurrence === 'installment' && originalTx.recurrence === 'one_time';
+    if (isChangingToInstallment) {
+      const count = updates.installmentCount || originalTx.installmentCount || 1;
+      const desc = updates.description || originalTx.description;
+      if (!desc.includes('(1/')) {
+        updates.description = `${desc} (1/${count})`;
+      }
+    }
+
     // 2. Persistir localmente no Dexie
     await db.transactions.update(id, updates);
 
@@ -649,6 +659,50 @@ const App: React.FC = () => {
           const applyDelta = newType === 'expense' ? -newAmount : newAmount;
           await db.accounts.update(acc.id, { balance: acc.balance + applyDelta });
           await addToSyncQueue('accounts', acc.id, 'UPDATE');
+        }
+      }
+    }
+
+    // 5. Lógica de Recorrência na Edição
+    const recurrenceChanged = updates.recurrence && updates.recurrence !== originalTx.recurrence;
+    if (recurrenceChanged && originalTx.recurrence === 'one_time') {
+      const baseDate = updates.date || originalTx.date;
+      const futureTxs: Transaction[] = [];
+      const baseTx = { ...originalTx, ...updates };
+      const count = updates.installmentCount || originalTx.installmentCount || 1;
+
+      if (updates.recurrence === 'fixed') {
+        for (let i = 1; i < 12; i++) {
+          const { id: _, ...txWithoutId } = baseTx;
+          futureTxs.push({
+            ...txWithoutId,
+            id: crypto.randomUUID(),
+            date: addMonths(baseDate, i),
+            isPaid: false,
+          } as Transaction);
+        }
+      } else if (updates.recurrence === 'installment' && count > 1) {
+        for (let i = 1; i < count; i++) {
+          const { id: _, ...txWithoutId } = baseTx;
+          futureTxs.push({
+            ...txWithoutId,
+            id: crypto.randomUUID(),
+            description: `${baseTx.description.split(' (1/')[0]} (${i + 1}/${count})`,
+            date: addMonths(baseDate, i),
+            isPaid: false,
+          } as Transaction);
+        }
+      }
+
+      if (futureTxs.length > 0) {
+        try {
+          await db.transactions.bulkAdd(futureTxs);
+          for (const tx of futureTxs) {
+            await addToSyncQueue('transactions', tx.id, 'INSERT');
+          }
+          console.log(`[FinAI] Geradas ${futureTxs.length} transações futuras por mudança de recorrência.`);
+        } catch (err) {
+          console.error("Error creating future transactions after update", err);
         }
       }
     }
