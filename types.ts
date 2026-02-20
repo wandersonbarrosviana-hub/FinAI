@@ -92,7 +92,7 @@ export type ViewState =
   | 'custom-budgets'
   | 'goals'
   | 'objectives'
-
+  | 'debts'
   | 'retirement'
   | 'settings'
   | 'plans'
@@ -102,6 +102,32 @@ export type ViewState =
   | 'tags'
   | 'admin'
   | 'investments';
+
+export type DebtType = 'financing' | 'personal_loan' | 'credit_card' | 'informal' | 'other';
+export type AmortizationType = 'sac' | 'price' | 'unknown';
+export type DebtClassification = 'productive' | 'passive';
+export type DebtReason = 'consumption' | 'emergency' | 'education' | 'real_estate' | 'vehicle' | 'investment' | 'other';
+
+export interface Debt {
+  id: string;
+  userId: string;
+  name: string;
+  type: DebtType;
+  creditor: string;
+  totalContracted: number;
+  currentBalance: number;
+  interestRateMonthly?: number;
+  totalInstallments: number;
+  remainingInstallments: number;
+  installmentValue: number;
+  startDate: string;
+  endDate: string;
+  amortizationType: AmortizationType;
+  reason?: DebtReason;
+  classification?: DebtClassification;
+  linkedTransactionId?: string;
+  createdAt?: string;
+}
 
 export interface InvestmentIndicator {
   dy: number;

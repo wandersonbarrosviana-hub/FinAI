@@ -17,6 +17,7 @@ import CategoryManager from './components/CategoryManager';
 import Reports from './components/Reports';
 import Investments from './components/Investments';
 import Settings from './components/Settings';
+import DebtManager from './components/DebtManager';
 
 import ProfileModal from './components/ProfileModal';
 import FinancialAssistant from './components/FinancialAssistant';
@@ -30,7 +31,8 @@ import { Budget, CustomBudget } from './types';
 import { Bell, Search, User as UserIcon, Plus, Sparkles, AlertCircle, ChevronLeft, ChevronRight, Loader2, LogOut, Settings as SettingsIcon, MessageSquare } from 'lucide-react';
 import { parseNotification } from './aiService';
 import { supabase } from './supabaseClient';
-import { Transaction, Account, Goal, User, ViewState, Tag, AppNotification } from './types';
+import { Transaction, Account, Goal, User, ViewState, Tag, AppNotification, Debt } from './types';
+
 import { Session } from '@supabase/supabase-js';
 import { db } from './db';
 import { useOfflineSync } from './useOfflineSync';
@@ -107,6 +109,8 @@ const App: React.FC = () => {
   const tags = useLiveQuery(() => db.tags.toArray()) || [];
   const budgets = useLiveQuery(() => db.budgets.toArray()) || [];
   const customBudgets = useLiveQuery(() => db.customBudgets.toArray()) || [];
+  const debts = useLiveQuery(() => db.debts.toArray()) || [];
+
 
 
 
@@ -766,6 +770,63 @@ const App: React.FC = () => {
     await addToSyncQueue('goals', id, 'UPDATE');
   };
 
+  const handleAddDebt = async (debtData: Partial<Debt>) => {
+    if (!user) return;
+    const newDebt: Debt = {
+      id: crypto.randomUUID(),
+      userId: user.id,
+      name: debtData.name || '',
+      type: debtData.type || 'personal_loan',
+      creditor: debtData.creditor || '',
+      totalContracted: debtData.totalContracted || 0,
+      currentBalance: debtData.currentBalance || 0,
+      interestRateMonthly: debtData.interestRateMonthly,
+      totalInstallments: debtData.totalInstallments || 1,
+      remainingInstallments: debtData.remainingInstallments || 1,
+      installmentValue: debtData.installmentValue || 0,
+      startDate: debtData.startDate || new Date().toISOString().split('T')[0],
+      endDate: debtData.endDate || '',
+      amortizationType: debtData.amortizationType || 'unknown',
+      reason: debtData.reason,
+      classification: debtData.classification,
+      createdAt: new Date().toISOString(),
+    };
+    await db.debts.add(newDebt);
+    // Sync to Supabase
+    try {
+      const { error } = await supabase.from('debts').insert([{
+        id: newDebt.id, user_id: newDebt.userId, name: newDebt.name,
+        type: newDebt.type, creditor: newDebt.creditor,
+        total_contracted: newDebt.totalContracted, current_balance: newDebt.currentBalance,
+        interest_rate_monthly: newDebt.interestRateMonthly, total_installments: newDebt.totalInstallments,
+        remaining_installments: newDebt.remainingInstallments, installment_value: newDebt.installmentValue,
+        start_date: newDebt.startDate, end_date: newDebt.endDate,
+        amortization_type: newDebt.amortizationType, reason: newDebt.reason,
+        classification: newDebt.classification,
+      }]);
+      if (error) console.warn('Debt sync error:', error.message);
+    } catch (e) { console.warn('Debt offline:', e); }
+  };
+
+  const handleUpdateDebt = async (id: string, updates: Partial<Debt>) => {
+    await db.debts.update(id, updates);
+    try {
+      await supabase.from('debts').update({
+        name: updates.name, type: updates.type, creditor: updates.creditor,
+        total_contracted: updates.totalContracted, current_balance: updates.currentBalance,
+        interest_rate_monthly: updates.interestRateMonthly, total_installments: updates.totalInstallments,
+        remaining_installments: updates.remainingInstallments, installment_value: updates.installmentValue,
+        start_date: updates.startDate, end_date: updates.endDate,
+        amortization_type: updates.amortizationType, reason: updates.reason, classification: updates.classification,
+      }).eq('id', id);
+    } catch (e) { console.warn('Debt update offline:', e); }
+  };
+
+  const handleDeleteDebt = async (id: string) => {
+    await db.debts.delete(id);
+    try { await supabase.from('debts').delete().eq('id', id); }
+    catch (e) { console.warn('Debt delete offline:', e); }
+  };
 
   const handleAICommand = async (result: any) => {
     console.log('AI Command:', result);
@@ -1351,6 +1412,17 @@ const App: React.FC = () => {
               onTransfer={handleTransfer}
               familyMembers={familyMembers}
               onOpenAccountModal={() => setIsAccountModalOpen(true)}
+            />
+          </div>
+          <div className={currentView === 'debts' ? '' : 'hidden'}>
+            <DebtManager
+              debts={debts as any}
+              onAddDebt={handleAddDebt}
+              onUpdateDebt={handleUpdateDebt}
+              onDeleteDebt={handleDeleteDebt}
+              monthlyIncome={filteredTransactions
+                .filter(t => t.type === 'income' && t.date.startsWith(currentDate.toISOString().slice(0, 7)))
+                .reduce((sum, t) => sum + t.amount, 0)}
             />
           </div>
           <div className={currentView === 'reports' ? '' : 'hidden'}>

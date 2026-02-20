@@ -1,5 +1,5 @@
 import Dexie, { Table } from 'dexie';
-import { Transaction, Account, Goal, Tag, Budget, CustomBudget } from './types';
+import { Transaction, Account, Goal, Tag, Budget, CustomBudget, Debt } from './types';
 
 export interface SyncStatus {
     id?: number;
@@ -16,6 +16,7 @@ export class FinAIDatabase extends Dexie {
     tags!: Table<Tag>;
     budgets!: Table<Budget>;
     customBudgets!: Table<CustomBudget>;
+    debts!: Table<Debt>;
     syncQueue!: Table<SyncStatus>;
 
     constructor() {
@@ -27,6 +28,16 @@ export class FinAIDatabase extends Dexie {
             tags: 'id, name',
             budgets: 'id, category, month',
             customBudgets: 'id, name, userId',
+            syncQueue: '++id, table, entityId, action, timestamp'
+        });
+        this.version(2).stores({
+            transactions: 'id, date, category, account, type, user_id',
+            accounts: 'id, name, type, userId',
+            goals: 'id, title, category',
+            tags: 'id, name',
+            budgets: 'id, category, month',
+            customBudgets: 'id, name, userId',
+            debts: 'id, name, type, userId',
             syncQueue: '++id, table, entityId, action, timestamp'
         });
     }
