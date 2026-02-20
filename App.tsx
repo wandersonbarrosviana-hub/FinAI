@@ -115,7 +115,6 @@ const App: React.FC = () => {
 
   const [showNotificationPopup, setShowNotificationPopup] = useState(false);
   const [notificationData, setNotificationData] = useState<any>(null);
-  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   // aiAdvice moved to Dashboard component
 
