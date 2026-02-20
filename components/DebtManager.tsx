@@ -1,21 +1,21 @@
 import React, { useState, useMemo } from 'react';
 import {
-    Plus, X, Landmark, AlertTriangle, TrendingDown, TrendingUp, Clock,
-    DollarSign, Calendar, ChevronDown, ChevronUp, Target, Zap, Save,
-    Edit2, Trash2, Info, BarChart2, CheckCircle, ArrowRight
+    Plus, X, Landmark, AlertTriangle, TrendingDown, Clock,
+    DollarSign, Calendar, Target, Zap, Save,
+    Edit2, Trash2, Info, CheckCircle, ArrowRight, Receipt
 } from 'lucide-react';
 import { Debt, DebtType, AmortizationType, DebtReason, DebtClassification } from '../types';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 
 interface DebtManagerProps {
     debts: Debt[];
     onAddDebt: (debt: Partial<Debt>) => void;
     onUpdateDebt: (id: string, updates: Partial<Debt>) => void;
     onDeleteDebt: (id: string) => void;
+    onNavigateToExpenses?: (prefill: { description: string; amount: number; category: string }) => void;
     monthlyIncome?: number;
 }
 
-const defaultForm = (): Partial<Debt> => ({
+const defaultForm = (): Partial<Debt> & { createExpense?: boolean } => ({
     name: '',
     type: 'personal_loan',
     creditor: '',
@@ -30,6 +30,7 @@ const defaultForm = (): Partial<Debt> => ({
     amortizationType: 'unknown',
     reason: undefined,
     classification: undefined,
+    createExpense: false,
 });
 
 const DEBT_TYPE_LABELS: Record<DebtType, string> = {
@@ -60,26 +61,122 @@ function calcMonthsToQuit(balance: number, rate: number, payment: number): numbe
     if (payment <= 0 || balance <= 0) return 0;
     if (rate <= 0) return Math.ceil(balance / payment);
     const r = rate / 100;
-    const months = Math.log(payment / (payment - balance * r)) / Math.log(1 + r);
-    return isFinite(months) ? Math.ceil(months) : 999;
+    const val = payment / (payment - balance * r);
+    if (val <= 0) return 999;
+    const months = Math.log(val) / Math.log(1 + r);
+    return isFinite(months) && months > 0 ? Math.ceil(months) : 999;
 }
 
-function calcInterestSaved(balance: number, rateMonthly: number, currentMonths: number, newMonths: number): number {
-    const r = rateMonthly / 100;
-    if (r <= 0) return 0;
-    const totalNow = balance * Math.pow(1 + r, currentMonths);
-    const totalNew = balance * Math.pow(1 + r, newMonths);
-    return Math.max(0, totalNow - totalNew);
+// Calcula economia ao antecipar N parcelas (pagando N*installment agora e reduzindo saldo + prazo)
+function calcAnticipationByInstallments(debt: Debt, nInstallments: number) {
+    const rate = (debt.interestRateMonthly || 0) / 100;
+    const payment = debt.installmentValue;
+    const balance = debt.currentBalance;
+    const remaining = debt.remainingInstallments;
+
+    const n = Math.max(0, Math.min(nInstallments, remaining));
+    const anticipationValue = n * payment;
+
+    // Novo saldo após amortização
+    let newBalance = Math.max(0, balance - anticipationValue);
+    const newRemaining = Math.max(0, remaining - n);
+
+    // Custo total original (sem antecipação): parcelas * valor
+    const totalOriginal = remaining * payment;
+    // Custo total após antecipação: valor antecipado agora + parcelas restantes
+    const totalNew = anticipationValue + newRemaining * payment;
+    const totalSaved = Math.max(0, totalOriginal - totalNew);
+
+    // Economia em juros (diferença de encargos futuros)
+    let interestSaved = 0;
+    if (rate > 0) {
+        // juros totais sem antecipação
+        const interestOriginal = remaining * payment - balance;
+        // juros totais com antecipação
+        const interestNew = newRemaining * payment - newBalance;
+        interestSaved = Math.max(0, interestOriginal - interestNew);
+    }
+
+    const newEndDate = (() => {
+        const d = new Date();
+        d.setMonth(d.getMonth() + newRemaining);
+        return d;
+    })();
+
+    return {
+        nInstallments: n,
+        anticipationValue,
+        newBalance,
+        newRemaining,
+        monthsReduced: n,
+        interestSaved,
+        newEndDate,
+    };
 }
 
-const DebtManager: React.FC<DebtManagerProps> = ({ debts, onAddDebt, onUpdateDebt, onDeleteDebt, monthlyIncome = 0 }) => {
+// Calcula economia ao aportar valor extra
+function calcAnticipationByValue(debt: Debt, extraValue: number) {
+    const rate = (debt.interestRateMonthly || 0) / 100;
+    const payment = debt.installmentValue;
+    const balance = debt.currentBalance;
+    const remaining = debt.remainingInstallments;
+
+    const extra = Math.max(0, Math.min(extraValue, balance));
+    const newBalance = balance - extra;
+
+    const originalMonths = remaining;
+    const newMonths = payment > 0
+        ? calcMonthsToQuit(newBalance, debt.interestRateMonthly || 0, payment)
+        : 0;
+    const monthsReduced = Math.max(0, originalMonths - newMonths);
+
+    let interestSaved = 0;
+    if (rate > 0) {
+        const interestOriginal = Math.max(0, originalMonths * payment - balance);
+        const interestNew = Math.max(0, newMonths * payment - newBalance);
+        interestSaved = Math.max(0, interestOriginal - interestNew);
+    }
+
+    const newEndDate = (() => {
+        const d = new Date();
+        d.setMonth(d.getMonth() + newMonths);
+        return d;
+    })();
+
+    return { extra, newBalance, newMonths, monthsReduced, interestSaved, newEndDate };
+}
+
+// Formatação de moeda
+const fmt = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+// Campo monetário com prefixo R$
+const MoneyInput: React.FC<{ label: string; value: number | undefined; onChange: (v: number) => void; required?: boolean; placeholder?: string }> = ({ label, value, onChange, required, placeholder }) => (
+    <div className="space-y-1">
+        <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase ml-1">{label}{required ? ' *' : ''}</label>
+        <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm pointer-events-none">R$</span>
+            <input
+                required={required}
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder={placeholder || "0,00"}
+                value={value || ''}
+                onChange={e => onChange(parseFloat(e.target.value) || 0)}
+                className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all font-medium text-slate-900 dark:text-white"
+            />
+        </div>
+    </div>
+);
+
+const DebtManager: React.FC<DebtManagerProps> = ({ debts, onAddDebt, onUpdateDebt, onDeleteDebt, onNavigateToExpenses, monthlyIncome = 0 }) => {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
-    const [form, setForm] = useState<Partial<Debt>>(defaultForm());
-    const [expandedDebt, setExpandedDebt] = useState<string | null>(null);
+    const [form, setForm] = useState<Partial<Debt> & { createExpense?: boolean }>(defaultForm());
     const [simulateDebt, setSimulateDebt] = useState<string | null>(null);
-    const [simExtra, setSimExtra] = useState<number>(0);
+    const [simMode, setSimMode] = useState<'installments' | 'value'>('installments');
     const [simInstallments, setSimInstallments] = useState<number>(1);
+    const [simExtra, setSimExtra] = useState<number>(0);
 
     const summary = useMemo(() => {
         const total = debts.reduce((s, d) => s + d.currentBalance, 0);
@@ -91,8 +188,7 @@ const DebtManager: React.FC<DebtManagerProps> = ({ debts, onAddDebt, onUpdateDeb
             if (!d.interestRateMonthly || d.interestRateMonthly <= 0) return s;
             const r = d.interestRateMonthly / 100;
             const n = d.remainingInstallments;
-            const interest = d.currentBalance * Math.pow(1 + r, n) - d.currentBalance;
-            return s + Math.max(0, interest);
+            return s + Math.max(0, d.currentBalance * Math.pow(1 + r, n) - d.currentBalance);
         }, 0);
         const maxMonths = debts.length > 0 ? Math.max(...debts.map(d =>
             calcMonthsToQuit(d.currentBalance, d.interestRateMonthly || 0, d.installmentValue)
@@ -104,37 +200,38 @@ const DebtManager: React.FC<DebtManagerProps> = ({ debts, onAddDebt, onUpdateDeb
         const list: string[] = [];
         if (summary.percentRenda > 40) list.push(`⚠️ Comprometimento de ${summary.percentRenda.toFixed(1)}% da renda ultrapassa o limite recomendado de 40%`);
         debts.forEach(d => {
-            if (d.interestRateMonthly && d.interestRateMonthly > 4) {
-                list.push(`🔴 "${d.name}" possui juros de ${d.interestRateMonthly}% a.m. (acima de 4%)`);
-            }
-            if (d.type === 'credit_card' && d.installmentValue < d.currentBalance * 0.03) {
+            if (d.interestRateMonthly && d.interestRateMonthly > 4)
+                list.push(`🔴 "${d.name}" possui juros de ${d.interestRateMonthly}% a.m. (acima de 4% — cuidado!)`);
+            if (d.type === 'credit_card' && d.installmentValue < d.currentBalance * 0.03)
                 list.push(`💳 "${d.name}": você pode estar pagando apenas o mínimo do cartão`);
-            }
         });
         return list;
     }, [debts, summary]);
 
-    const sortedAvalanche = useMemo(() =>
-        [...debts].sort((a, b) => (b.interestRateMonthly || 0) - (a.interestRateMonthly || 0)),
-        [debts]);
-
-    const sortedSnowball = useMemo(() =>
-        [...debts].sort((a, b) => a.currentBalance - b.currentBalance),
-        [debts]);
+    const sortedAvalanche = useMemo(() => [...debts].sort((a, b) => (b.interestRateMonthly || 0) - (a.interestRateMonthly || 0)), [debts]);
+    const sortedSnowball = useMemo(() => [...debts].sort((a, b) => a.currentBalance - b.currentBalance), [debts]);
 
     const handleEdit = (debt: Debt) => {
-        setForm({ ...debt });
+        setForm({ ...debt, createExpense: false });
         setEditingId(debt.id);
         setIsFormOpen(true);
     };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        const { createExpense, ...debtData } = form;
         if (editingId) {
-            onUpdateDebt(editingId, form);
+            onUpdateDebt(editingId, debtData);
             setEditingId(null);
         } else {
-            onAddDebt(form);
+            onAddDebt(debtData);
+            if (createExpense && onNavigateToExpenses) {
+                onNavigateToExpenses({
+                    description: `Parcela – ${debtData.name || 'Dívida'}`,
+                    amount: debtData.installmentValue || 0,
+                    category: 'Outros',
+                });
+            }
         }
         setForm(defaultForm());
         setIsFormOpen(false);
@@ -145,42 +242,11 @@ const DebtManager: React.FC<DebtManagerProps> = ({ debts, onAddDebt, onUpdateDeb
         return Math.min(100, ((d.totalContracted - d.currentBalance) / d.totalContracted) * 100);
     };
 
-    const thermometerColor = summary.percentRenda < 30
-        ? 'bg-emerald-500' : summary.percentRenda < 50
-            ? 'bg-amber-500' : 'bg-rose-500';
+    const thermometerColor = summary.percentRenda < 30 ? 'bg-emerald-500' : summary.percentRenda < 50 ? 'bg-amber-500' : 'bg-rose-500';
+    const thermometerLabel = summary.percentRenda < 30 ? '✅ Saudável' : summary.percentRenda < 50 ? '⚠️ Alerta' : '🔴 Crítico';
 
-    const thermometerLabel = summary.percentRenda < 30
-        ? '✅ Saudável' : summary.percentRenda < 50
-            ? '⚠️ Alerta' : '🔴 Crítico';
-
-    const fmt = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-
-    const timelineData = useMemo(() => {
-        const months: { label: string; count: number }[] = [];
-        const now = new Date();
-        for (let i = 0; i < 36; i++) {
-            const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
-            const label = `${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
-            const count = debts.filter(debt => {
-                const end = new Date(debt.endDate);
-                return end >= d && end < new Date(d.getFullYear(), d.getMonth() + 1, 1);
-            }).length;
-            months.push({ label, count });
-        }
-        return months.filter((_, i) => i % 3 === 0 || months[i].count > 0).slice(0, 12);
-    }, [debts]);
-
-    const getSimulationResult = (debt: Debt) => {
-        const rate = debt.interestRateMonthly || 0;
-        const newBalance = Math.max(0, debt.currentBalance - simExtra);
-        const paidInstallments = debt.totalInstallments - debt.remainingInstallments;
-        const newRemaining = Math.max(0, debt.remainingInstallments - simInstallments);
-        const newEndMonths = calcMonthsToQuit(newBalance, rate, debt.installmentValue);
-        const currentEndMonths = debt.remainingInstallments;
-        const savedInterest = calcInterestSaved(debt.currentBalance, rate, currentEndMonths, Math.min(newRemaining, newEndMonths));
-        const monthsReduced = currentEndMonths - Math.min(newRemaining, newEndMonths);
-        return { newBalance, newEndMonths, savedInterest, monthsReduced };
-    };
+    const inputClass = "w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all font-medium text-slate-900 dark:text-white";
+    const labelClass = "text-xs font-bold text-slate-500 dark:text-slate-400 uppercase ml-1";
 
     return (
         <div className="space-y-6">
@@ -206,8 +272,7 @@ const DebtManager: React.FC<DebtManagerProps> = ({ debts, onAddDebt, onUpdateDeb
                 <div className="space-y-2">
                     {alerts.map((alert, i) => (
                         <div key={i} className="flex items-start gap-3 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl text-sm text-amber-800 dark:text-amber-200 font-medium">
-                            <AlertTriangle size={16} className="text-amber-500 mt-0.5 shrink-0" />
-                            {alert}
+                            <AlertTriangle size={16} className="text-amber-500 mt-0.5 shrink-0" /> {alert}
                         </div>
                     ))}
                 </div>
@@ -220,12 +285,10 @@ const DebtManager: React.FC<DebtManagerProps> = ({ debts, onAddDebt, onUpdateDeb
                     { label: 'Total Pago', value: fmt(summary.totalPaid), sub: 'valor quitado', icon: <CheckCircle size={18} />, color: 'emerald' },
                     { label: 'Juros Estimados', value: fmt(summary.estimatedInterest), sub: 'custo total', icon: <DollarSign size={18} />, color: 'amber' },
                     { label: 'Parcela Mensal', value: fmt(summary.monthlyCommitment), sub: 'impacto no fluxo', icon: <Calendar size={18} />, color: 'blue' },
-                    { label: 'Prazo Máximo', value: `${summary.maxMonths} meses`, sub: 'para quitar tudo', icon: <Clock size={18} />, color: 'violet' },
+                    { label: 'Prazo Máximo', value: `${summary.maxMonths}m`, sub: 'para quitar tudo', icon: <Clock size={18} />, color: 'violet' },
                 ].map(card => (
                     <div key={card.label} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-4 shadow-sm">
-                        <div className={`w-8 h-8 rounded-xl bg-${card.color}-50 dark:bg-${card.color}-900/20 flex items-center justify-center text-${card.color}-600 dark:text-${card.color}-400 mb-3`}>
-                            {card.icon}
-                        </div>
+                        <div className={`w-8 h-8 rounded-xl bg-${card.color}-50 dark:bg-${card.color}-900/20 flex items-center justify-center text-${card.color}-600 dark:text-${card.color}-400 mb-3`}>{card.icon}</div>
                         <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">{card.label}</p>
                         <p className="text-lg font-black text-slate-900 dark:text-white mt-1 leading-tight">{card.value}</p>
                         <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium mt-0.5">{card.sub}</p>
@@ -240,9 +303,7 @@ const DebtManager: React.FC<DebtManagerProps> = ({ debts, onAddDebt, onUpdateDeb
                         <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Comprometimento de Renda</p>
                         <p className="text-2xl font-black text-slate-900 dark:text-white">{summary.percentRenda.toFixed(1)}%</p>
                     </div>
-                    <span className={`px-3 py-1.5 rounded-xl text-xs font-black ${summary.percentRenda < 30 ? 'bg-emerald-50 text-emerald-700' : summary.percentRenda < 50 ? 'bg-amber-50 text-amber-700' : 'bg-rose-50 text-rose-700'}`}>
-                        {thermometerLabel}
-                    </span>
+                    <span className={`px-3 py-1.5 rounded-xl text-xs font-black ${summary.percentRenda < 30 ? 'bg-emerald-50 text-emerald-700' : summary.percentRenda < 50 ? 'bg-amber-50 text-amber-700' : 'bg-rose-50 text-rose-700'}`}>{thermometerLabel}</span>
                 </div>
                 <div className="relative h-4 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                     <div className={`absolute left-0 top-0 h-full rounded-full transition-all duration-700 ${thermometerColor}`} style={{ width: `${Math.min(100, summary.percentRenda)}%` }} />
@@ -256,130 +317,124 @@ const DebtManager: React.FC<DebtManagerProps> = ({ debts, onAddDebt, onUpdateDeb
 
             {/* Form */}
             {isFormOpen && (
-                <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-900 p-6 md:p-8 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-xl animate-in fade-in slide-in-from-top-4 duration-500">
+                <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-900 p-6 md:p-8 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-xl">
                     <h3 className="text-sm font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider flex items-center gap-2 mb-6">
                         {editingId ? <Edit2 size={14} /> : <Plus size={14} />}
                         {editingId ? 'Editar Dívida' : 'Cadastrar Nova Dívida'}
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {/* Nome */}
                         <div className="space-y-1">
-                            <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase ml-1">Nome da Dívida *</label>
-                            <input required type="text" placeholder="Ex: Empréstimo Caixa" value={form.name || ''} onChange={e => setForm({ ...form, name: e.target.value })}
-                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all font-medium text-slate-900 dark:text-white" />
+                            <label className={labelClass}>Nome da Dívida *</label>
+                            <input required type="text" placeholder="Ex: Empréstimo Caixa" value={form.name || ''} onChange={e => setForm({ ...form, name: e.target.value })} className={inputClass} />
                         </div>
-
-                        {/* Tipo */}
                         <div className="space-y-1">
-                            <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase ml-1">Tipo *</label>
-                            <select required value={form.type || 'personal_loan'} onChange={e => setForm({ ...form, type: e.target.value as DebtType })}
-                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-rose-500/20 transition-all font-medium text-slate-900 dark:text-white">
+                            <label className={labelClass}>Tipo *</label>
+                            <select required value={form.type || 'personal_loan'} onChange={e => setForm({ ...form, type: e.target.value as DebtType })} className={inputClass}>
                                 {Object.entries(DEBT_TYPE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                             </select>
                         </div>
-
-                        {/* Credor */}
                         <div className="space-y-1">
-                            <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase ml-1">Credor *</label>
-                            <input required type="text" placeholder="Ex: Banco do Brasil" value={form.creditor || ''} onChange={e => setForm({ ...form, creditor: e.target.value })}
-                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-rose-500/20 transition-all font-medium text-slate-900 dark:text-white" />
+                            <label className={labelClass}>Credor *</label>
+                            <input required type="text" placeholder="Ex: Banco do Brasil" value={form.creditor || ''} onChange={e => setForm({ ...form, creditor: e.target.value })} className={inputClass} />
                         </div>
 
-                        {/* Valor Total Contratado */}
+                        <MoneyInput label="Valor Total Contratado" required value={form.totalContracted} onChange={v => setForm({ ...form, totalContracted: v })} />
+                        <MoneyInput label="Saldo Atual" required value={form.currentBalance} onChange={v => setForm({ ...form, currentBalance: v })} />
+
                         <div className="space-y-1">
-                            <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase ml-1">Valor Total Contratado (R$) *</label>
-                            <input required type="number" min="0" step="0.01" placeholder="0,00" value={form.totalContracted || ''} onChange={e => setForm({ ...form, totalContracted: parseFloat(e.target.value) || 0 })}
-                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-rose-500/20 transition-all font-medium text-slate-900 dark:text-white" />
+                            <label className={labelClass}>Taxa Juros Mensal (%)</label>
+                            <div className="relative">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm pointer-events-none">%</span>
+                                <input type="number" min="0" step="0.01" placeholder="Ex: 2,5" value={form.interestRateMonthly || ''} onChange={e => setForm({ ...form, interestRateMonthly: parseFloat(e.target.value) || undefined })} className="w-full pl-8 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-rose-500/20 transition-all font-medium text-slate-900 dark:text-white" />
+                            </div>
                         </div>
 
-                        {/* Saldo Atual */}
                         <div className="space-y-1">
-                            <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase ml-1">Saldo Atual (R$) *</label>
-                            <input required type="number" min="0" step="0.01" placeholder="0,00" value={form.currentBalance || ''} onChange={e => setForm({ ...form, currentBalance: parseFloat(e.target.value) || 0 })}
-                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-rose-500/20 transition-all font-medium text-slate-900 dark:text-white" />
+                            <label className={labelClass}>Total de Parcelas *</label>
+                            <div className="relative">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm pointer-events-none">#</span>
+                                <input required type="number" min="1" placeholder="12" value={form.totalInstallments || ''} onChange={e => setForm({ ...form, totalInstallments: parseInt(e.target.value) || 1 })} className="w-full pl-8 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-rose-500/20 transition-all font-medium text-slate-900 dark:text-white" />
+                            </div>
                         </div>
 
-                        {/* Taxa Juros */}
                         <div className="space-y-1">
-                            <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase ml-1">Taxa Juros Mensal (%)</label>
-                            <input type="number" min="0" step="0.01" placeholder="Ex: 2.5" value={form.interestRateMonthly || ''} onChange={e => setForm({ ...form, interestRateMonthly: parseFloat(e.target.value) || undefined })}
-                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-rose-500/20 transition-all font-medium text-slate-900 dark:text-white" />
+                            <label className={labelClass}>Parcelas Restantes *</label>
+                            <div className="relative">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm pointer-events-none">#</span>
+                                <input required type="number" min="0" placeholder="6" value={form.remainingInstallments || ''} onChange={e => setForm({ ...form, remainingInstallments: parseInt(e.target.value) || 0 })} className="w-full pl-8 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-rose-500/20 transition-all font-medium text-slate-900 dark:text-white" />
+                            </div>
                         </div>
 
-                        {/* Total Parcelas */}
-                        <div className="space-y-1">
-                            <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase ml-1">Total de Parcelas *</label>
-                            <input required type="number" min="1" placeholder="12" value={form.totalInstallments || ''} onChange={e => setForm({ ...form, totalInstallments: parseInt(e.target.value) || 1 })}
-                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-rose-500/20 transition-all font-medium text-slate-900 dark:text-white" />
-                        </div>
+                        <MoneyInput label="Valor da Parcela" required value={form.installmentValue} onChange={v => setForm({ ...form, installmentValue: v })} />
 
-                        {/* Parcelas Restantes */}
                         <div className="space-y-1">
-                            <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase ml-1">Parcelas Restantes *</label>
-                            <input required type="number" min="0" placeholder="6" value={form.remainingInstallments || ''} onChange={e => setForm({ ...form, remainingInstallments: parseInt(e.target.value) || 0 })}
-                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-rose-500/20 transition-all font-medium text-slate-900 dark:text-white" />
+                            <label className={labelClass}>Data de Início *</label>
+                            <input required type="date" value={form.startDate || ''} onChange={e => setForm({ ...form, startDate: e.target.value })} className={inputClass} />
                         </div>
-
-                        {/* Valor Parcela */}
                         <div className="space-y-1">
-                            <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase ml-1">Valor da Parcela (R$) *</label>
-                            <input required type="number" min="0" step="0.01" placeholder="0,00" value={form.installmentValue || ''} onChange={e => setForm({ ...form, installmentValue: parseFloat(e.target.value) || 0 })}
-                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-rose-500/20 transition-all font-medium text-slate-900 dark:text-white" />
+                            <label className={labelClass}>Data Prevista de Término *</label>
+                            <input required type="date" value={form.endDate || ''} onChange={e => setForm({ ...form, endDate: e.target.value })} className={inputClass} />
                         </div>
-
-                        {/* Data Início */}
                         <div className="space-y-1">
-                            <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase ml-1">Data de Início *</label>
-                            <input required type="date" value={form.startDate || ''} onChange={e => setForm({ ...form, startDate: e.target.value })}
-                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-rose-500/20 transition-all font-medium text-slate-900 dark:text-white" />
-                        </div>
-
-                        {/* Data Término */}
-                        <div className="space-y-1">
-                            <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase ml-1">Data Prevista de Término *</label>
-                            <input required type="date" value={form.endDate || ''} onChange={e => setForm({ ...form, endDate: e.target.value })}
-                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-rose-500/20 transition-all font-medium text-slate-900 dark:text-white" />
-                        </div>
-
-                        {/* Amortização */}
-                        <div className="space-y-1">
-                            <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase ml-1">Tipo de Amortização</label>
-                            <select value={form.amortizationType || 'unknown'} onChange={e => setForm({ ...form, amortizationType: e.target.value as AmortizationType })}
-                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-rose-500/20 transition-all font-medium text-slate-900 dark:text-white">
+                            <label className={labelClass}>Tipo de Amortização</label>
+                            <select value={form.amortizationType || 'unknown'} onChange={e => setForm({ ...form, amortizationType: e.target.value as AmortizationType })} className={inputClass}>
                                 {Object.entries(AMORTIZATION_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                             </select>
                         </div>
-
-                        {/* Motivo */}
                         <div className="space-y-1">
-                            <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase ml-1">Motivo</label>
-                            <select value={form.reason || ''} onChange={e => setForm({ ...form, reason: (e.target.value || undefined) as DebtReason | undefined })}
-                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-rose-500/20 transition-all font-medium text-slate-900 dark:text-white">
+                            <label className={labelClass}>Motivo</label>
+                            <select value={form.reason || ''} onChange={e => setForm({ ...form, reason: (e.target.value || undefined) as DebtReason | undefined })} className={inputClass}>
                                 <option value="">Não informado</option>
                                 {Object.entries(REASON_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                             </select>
                         </div>
-
-                        {/* Classificação */}
                         <div className="space-y-1">
-                            <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase ml-1">Classificação</label>
-                            <select value={form.classification || ''} onChange={e => setForm({ ...form, classification: (e.target.value || undefined) as DebtClassification | undefined })}
-                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-rose-500/20 transition-all font-medium text-slate-900 dark:text-white">
+                            <label className={labelClass}>Classificação</label>
+                            <select value={form.classification || ''} onChange={e => setForm({ ...form, classification: (e.target.value || undefined) as DebtClassification | undefined })} className={inputClass}>
                                 <option value="">Não informada</option>
                                 <option value="productive">Produtiva</option>
                                 <option value="passive">Passiva</option>
                             </select>
                         </div>
                     </div>
+
+                    {/* Checkbox: Criar despesa recorrente */}
+                    {!editingId && (
+                        <div className="mt-6 p-4 bg-sky-50 dark:bg-sky-900/20 border border-sky-100 dark:border-sky-900 rounded-2xl">
+                            <label className="flex items-start gap-3 cursor-pointer group">
+                                <div className="relative mt-0.5">
+                                    <input
+                                        type="checkbox"
+                                        checked={!!form.createExpense}
+                                        onChange={e => setForm({ ...form, createExpense: e.target.checked })}
+                                        className="sr-only"
+                                    />
+                                    <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${form.createExpense ? 'bg-sky-600 border-sky-600' : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800'}`}>
+                                        {form.createExpense && <CheckCircle size={12} className="text-white" />}
+                                    </div>
+                                </div>
+                                <div>
+                                    <p className="text-sm font-black text-sky-800 dark:text-sky-200 flex items-center gap-1.5">
+                                        <Receipt size={14} /> Lançar parcela nas Despesas
+                                    </p>
+                                    <p className="text-[11px] text-sky-600 dark:text-sky-400 font-medium mt-0.5">
+                                        Ao salvar, você será direcionado para a aba de Despesas com os dados da parcela
+                                        {form.installmentValue ? ` (${fmt(form.installmentValue)})` : ''} pré-preenchidos.
+                                    </p>
+                                </div>
+                            </label>
+                        </div>
+                    )}
+
                     <div className="mt-6 flex justify-end">
                         <button type="submit" className="flex items-center gap-2 bg-rose-600 hover:bg-rose-500 text-white px-10 py-3 rounded-xl font-bold shadow-lg shadow-rose-100 transition-all uppercase tracking-widest text-xs">
-                            <Save size={18} /> {editingId ? 'Atualizar' : 'Salvar Dívida'}
+                            <Save size={18} /> {editingId ? 'Atualizar' : form.createExpense ? 'Salvar e Lançar Despesa →' : 'Salvar Dívida'}
                         </button>
                     </div>
                 </form>
             )}
 
-            {/* Debt List */}
+            {/* Empty State */}
             {debts.length === 0 && !isFormOpen && (
                 <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
                     <div className="w-20 h-20 bg-rose-50 dark:bg-rose-900/20 rounded-full flex items-center justify-center">
@@ -392,15 +447,20 @@ const DebtManager: React.FC<DebtManagerProps> = ({ debts, onAddDebt, onUpdateDeb
                 </div>
             )}
 
+            {/* Debt List */}
             {debts.length > 0 && (
                 <div className="space-y-4">
                     <h3 className="text-sm font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Suas Dívidas ({debts.length})</h3>
                     {debts.map(debt => {
                         const progress = getProgressPercent(debt);
-                        const isExpanded = expandedDebt === debt.id;
                         const isSimulating = simulateDebt === debt.id;
-                        const simResult = isSimulating ? getSimulationResult(debt) : null;
                         const monthsLeft = calcMonthsToQuit(debt.currentBalance, debt.interestRateMonthly || 0, debt.installmentValue);
+
+                        // Calc simulation result
+                        const simByInstallments = isSimulating ? calcAnticipationByInstallments(debt, simInstallments) : null;
+                        const simByValue = isSimulating ? calcAnticipationByValue(debt, simExtra) : null;
+                        const simResult = simMode === 'installments' ? simByInstallments : simByValue;
+
                         return (
                             <div key={debt.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
                                 <div className="p-5">
@@ -408,9 +468,7 @@ const DebtManager: React.FC<DebtManagerProps> = ({ debts, onAddDebt, onUpdateDeb
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2 flex-wrap">
                                                 <h4 className="font-black text-slate-900 dark:text-white text-base">{debt.name}</h4>
-                                                <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 uppercase">
-                                                    {DEBT_TYPE_LABELS[debt.type]}
-                                                </span>
+                                                <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 uppercase">{DEBT_TYPE_LABELS[debt.type]}</span>
                                                 {debt.classification && (
                                                     <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase ${debt.classification === 'productive' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-500'}`}>
                                                         {debt.classification === 'productive' ? 'Produtiva' : 'Passiva'}
@@ -425,10 +483,10 @@ const DebtManager: React.FC<DebtManagerProps> = ({ debts, onAddDebt, onUpdateDeb
                                         </div>
                                     </div>
 
-                                    {/* Progress Bar */}
+                                    {/* Progress */}
                                     <div className="mt-4">
                                         <div className="flex justify-between text-[10px] font-bold text-slate-400 dark:text-slate-500 mb-1.5">
-                                            <span>Progresso: {progress.toFixed(1)}% quitado</span>
+                                            <span>{progress.toFixed(1)}% quitado</span>
                                             <span>{debt.remainingInstallments}x de {fmt(debt.installmentValue)} restantes</span>
                                         </div>
                                         <div className="h-2.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
@@ -454,7 +512,7 @@ const DebtManager: React.FC<DebtManagerProps> = ({ debts, onAddDebt, onUpdateDeb
 
                                     {/* Actions */}
                                     <div className="flex items-center gap-2 mt-4 flex-wrap">
-                                        <button onClick={() => setSimulateDebt(isSimulating ? null : debt.id)}
+                                        <button onClick={() => { setSimulateDebt(isSimulating ? null : debt.id); setSimInstallments(1); setSimExtra(0); }}
                                             className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-lg bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400 hover:bg-sky-100 transition-colors">
                                             <Zap size={12} /> Simular Antecipação
                                         </button>
@@ -466,40 +524,118 @@ const DebtManager: React.FC<DebtManagerProps> = ({ debts, onAddDebt, onUpdateDeb
                                             className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-lg bg-rose-50 dark:bg-rose-900/20 text-rose-500 dark:text-rose-400 hover:bg-rose-100 transition-colors">
                                             <Trash2 size={12} /> Excluir
                                         </button>
+                                        {onNavigateToExpenses && (
+                                            <button onClick={() => onNavigateToExpenses({ description: `Parcela – ${debt.name}`, amount: debt.installmentValue, category: 'Outros' })}
+                                                className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 transition-colors">
+                                                <Receipt size={12} /> Lançar Despesa
+                                            </button>
+                                        )}
                                     </div>
 
                                     {/* Simulation Panel */}
                                     {isSimulating && (
-                                        <div className="mt-4 p-4 bg-sky-50 dark:bg-sky-900/20 rounded-xl border border-sky-100 dark:border-sky-900 animate-in fade-in slide-in-from-top-2 duration-300">
+                                        <div className="mt-4 p-5 bg-sky-50 dark:bg-sky-900/20 rounded-2xl border border-sky-100 dark:border-sky-900">
                                             <h5 className="text-xs font-black text-sky-700 dark:text-sky-300 uppercase tracking-wider mb-3 flex items-center gap-1.5">
                                                 <Zap size={12} /> Simulador de Antecipação
                                             </h5>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                                <div className="space-y-1">
-                                                    <label className="text-[10px] font-bold text-sky-600 dark:text-sky-400 uppercase">Valor Extra para Amortizar (R$)</label>
-                                                    <input type="number" min="0" step="100" value={simExtra} onChange={e => setSimExtra(parseFloat(e.target.value) || 0)}
-                                                        className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-sky-200 dark:border-sky-800 rounded-lg font-bold text-sky-700 dark:text-sky-300 text-sm outline-none focus:ring-2 focus:ring-sky-500" />
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <label className="text-[10px] font-bold text-sky-600 dark:text-sky-400 uppercase">Parcelas a Antecipar</label>
-                                                    <input type="number" min="0" max={debt.remainingInstallments} step="1" value={simInstallments} onChange={e => setSimInstallments(parseInt(e.target.value) || 0)}
-                                                        className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-sky-200 dark:border-sky-800 rounded-lg font-bold text-sky-700 dark:text-sky-300 text-sm outline-none focus:ring-2 focus:ring-sky-500" />
-                                                </div>
+
+                                            {/* Mode Tabs */}
+                                            <div className="flex gap-2 mb-4">
+                                                {(['installments', 'value'] as const).map(mode => (
+                                                    <button key={mode} onClick={() => setSimMode(mode)}
+                                                        className={`flex-1 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${simMode === mode ? 'bg-sky-600 text-white shadow' : 'bg-white dark:bg-slate-800 text-slate-400 dark:text-slate-500'}`}>
+                                                        {mode === 'installments' ? '# Antecipar Parcelas' : 'R$ Amortizar Valor'}
+                                                    </button>
+                                                ))}
                                             </div>
-                                            {simResult && (
-                                                <div className="grid grid-cols-3 gap-3 mt-3">
-                                                    <div className="bg-white dark:bg-slate-800 rounded-xl p-3 text-center">
-                                                        <p className="text-[9px] font-black text-slate-400 uppercase">Novo Saldo</p>
-                                                        <p className="text-sm font-black text-emerald-600">{fmt(simResult.newBalance)}</p>
+
+                                            {simMode === 'installments' ? (
+                                                <div className="space-y-3">
+                                                    <div className="space-y-1">
+                                                        <label className="text-[10px] font-bold text-sky-600 dark:text-sky-400 uppercase">Quantas parcelas deseja antecipar?</label>
+                                                        <p className="text-[9px] text-sky-500 dark:text-sky-400">Máximo: {debt.remainingInstallments} parcelas restantes × {fmt(debt.installmentValue)} = {fmt(debt.remainingInstallments * debt.installmentValue)}</p>
+                                                        <div className="relative">
+                                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sky-400 font-bold text-sm pointer-events-none">#</span>
+                                                            <input type="number" min="1" max={debt.remainingInstallments} step="1" value={simInstallments}
+                                                                onChange={e => setSimInstallments(Math.min(parseInt(e.target.value) || 1, debt.remainingInstallments))}
+                                                                className="w-full pl-8 pr-4 py-2.5 bg-white dark:bg-slate-800 border border-sky-200 dark:border-sky-800 rounded-xl font-bold text-sky-700 dark:text-sky-300 text-sm outline-none focus:ring-2 focus:ring-sky-500" />
+                                                        </div>
                                                     </div>
-                                                    <div className="bg-white dark:bg-slate-800 rounded-xl p-3 text-center">
-                                                        <p className="text-[9px] font-black text-slate-400 uppercase">Economia em Juros</p>
-                                                        <p className="text-sm font-black text-sky-600">{fmt(simResult.savedInterest)}</p>
+                                                    {simByInstallments && simInstallments > 0 && (
+                                                        <div className="p-3 bg-white/80 dark:bg-slate-800/80 rounded-xl border border-sky-100 dark:border-sky-900">
+                                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2">📊 Resultado da Simulação</p>
+                                                            <div className="space-y-2 text-sm">
+                                                                <div className="flex justify-between">
+                                                                    <span className="text-slate-500 font-medium">Valor a pagar agora:</span>
+                                                                    <span className="font-black text-rose-600">{fmt(simByInstallments.anticipationValue)}</span>
+                                                                </div>
+                                                                <div className="flex justify-between">
+                                                                    <span className="text-slate-500 font-medium">Novo saldo devedor:</span>
+                                                                    <span className="font-black text-slate-800 dark:text-slate-200">{fmt(simByInstallments.newBalance)}</span>
+                                                                </div>
+                                                                <div className="flex justify-between">
+                                                                    <span className="text-slate-500 font-medium">Parcelas restantes:</span>
+                                                                    <span className="font-black text-slate-800 dark:text-slate-200">{simByInstallments.newRemaining}x</span>
+                                                                </div>
+                                                                {(debt.interestRateMonthly || 0) > 0 && (
+                                                                    <div className="flex justify-between pt-2 border-t border-sky-100 dark:border-sky-900">
+                                                                        <span className="text-emerald-600 font-bold">✅ Economia em juros:</span>
+                                                                        <span className="font-black text-emerald-600">{fmt(simByInstallments.interestSaved)}</span>
+                                                                    </div>
+                                                                )}
+                                                                <div className="flex justify-between">
+                                                                    <span className="text-violet-600 font-bold">⚡ Prazo reduzido em:</span>
+                                                                    <span className="font-black text-violet-600">{simByInstallments.monthsReduced} meses</span>
+                                                                </div>
+                                                                <div className="flex justify-between">
+                                                                    <span className="text-slate-500 font-medium">Nova quitação estimada:</span>
+                                                                    <span className="font-black text-slate-700 dark:text-slate-300">{simByInstallments.newEndDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                <div className="space-y-3">
+                                                    <div className="space-y-1">
+                                                        <label className="text-[10px] font-bold text-sky-600 dark:text-sky-400 uppercase">Valor extra para amortizar o saldo</label>
+                                                        <p className="text-[9px] text-sky-500 dark:text-sky-400">Saldo atual: {fmt(debt.currentBalance)} — Esse valor será abatido diretamente do saldo devedor</p>
+                                                        <div className="relative">
+                                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sky-400 font-bold text-sm pointer-events-none">R$</span>
+                                                            <input type="number" min="0" max={debt.currentBalance} step="100" value={simExtra || ''}
+                                                                onChange={e => setSimExtra(parseFloat(e.target.value) || 0)}
+                                                                className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-800 border border-sky-200 dark:border-sky-800 rounded-xl font-bold text-sky-700 dark:text-sky-300 text-sm outline-none focus:ring-2 focus:ring-sky-500" />
+                                                        </div>
                                                     </div>
-                                                    <div className="bg-white dark:bg-slate-800 rounded-xl p-3 text-center">
-                                                        <p className="text-[9px] font-black text-slate-400 uppercase">Redução do Prazo</p>
-                                                        <p className="text-sm font-black text-violet-600">{simResult.monthsReduced} meses</p>
-                                                    </div>
+                                                    {simByValue && simExtra > 0 && (
+                                                        <div className="p-3 bg-white/80 dark:bg-slate-800/80 rounded-xl border border-sky-100 dark:border-sky-900">
+                                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2">📊 Resultado da Simulação</p>
+                                                            <div className="space-y-2 text-sm">
+                                                                <div className="flex justify-between">
+                                                                    <span className="text-slate-500 font-medium">Novo saldo devedor:</span>
+                                                                    <span className="font-black text-slate-800 dark:text-slate-200">{fmt(simByValue.newBalance)}</span>
+                                                                </div>
+                                                                <div className="flex justify-between">
+                                                                    <span className="text-slate-500 font-medium">Novo prazo estimado:</span>
+                                                                    <span className="font-black text-slate-800 dark:text-slate-200">{simByValue.newMonths} meses</span>
+                                                                </div>
+                                                                {(debt.interestRateMonthly || 0) > 0 && (
+                                                                    <div className="flex justify-between pt-2 border-t border-sky-100 dark:border-sky-900">
+                                                                        <span className="text-emerald-600 font-bold">✅ Economia em juros:</span>
+                                                                        <span className="font-black text-emerald-600">{fmt(simByValue.interestSaved)}</span>
+                                                                    </div>
+                                                                )}
+                                                                <div className="flex justify-between">
+                                                                    <span className="text-violet-600 font-bold">⚡ Prazo reduzido em:</span>
+                                                                    <span className="font-black text-violet-600">{simByValue.monthsReduced} meses</span>
+                                                                </div>
+                                                                <div className="flex justify-between">
+                                                                    <span className="text-slate-500 font-medium">Nova quitação estimada:</span>
+                                                                    <span className="font-black text-slate-700 dark:text-slate-300">{simByValue.newEndDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             )}
                                         </div>
@@ -514,11 +650,8 @@ const DebtManager: React.FC<DebtManagerProps> = ({ debts, onAddDebt, onUpdateDeb
             {/* Strategy Section */}
             {debts.length > 1 && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Avalanche */}
                     <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-5 shadow-sm">
-                        <h3 className="text-sm font-black text-slate-800 dark:text-white flex items-center gap-2 mb-1">
-                            <TrendingDown size={16} className="text-rose-600" /> Método Avalanche
-                        </h3>
+                        <h3 className="text-sm font-black text-slate-800 dark:text-white flex items-center gap-2 mb-1"><TrendingDown size={16} className="text-rose-600" /> Método Avalanche</h3>
                         <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium mb-3">Prioriza maior taxa de juros → menor custo total</p>
                         {sortedAvalanche.slice(0, 3).map((d, i) => (
                             <div key={d.id} className="flex items-center gap-3 py-2.5 border-b border-slate-50 dark:border-slate-800 last:border-0">
@@ -530,19 +663,10 @@ const DebtManager: React.FC<DebtManagerProps> = ({ debts, onAddDebt, onUpdateDeb
                                 <span className="text-xs font-black text-rose-600 dark:text-rose-400 shrink-0">{fmt(d.currentBalance)}</span>
                             </div>
                         ))}
-                        {sortedAvalanche[0] && (
-                            <div className="mt-3 p-3 bg-rose-50 dark:bg-rose-900/20 rounded-xl text-[11px] text-rose-700 dark:text-rose-300 font-medium flex items-start gap-2">
-                                <Info size={12} className="shrink-0 mt-0.5" />
-                                <span>Priorize <strong>{sortedAvalanche[0].name}</strong> — maiores juros. Você maximiza a economia com menor custo financeiro.</span>
-                            </div>
-                        )}
+                        {sortedAvalanche[0] && <div className="mt-3 p-3 bg-rose-50 dark:bg-rose-900/20 rounded-xl text-[11px] text-rose-700 dark:text-rose-300 font-medium flex items-start gap-2"><Info size={12} className="shrink-0 mt-0.5" /><span>Priorize <strong>{sortedAvalanche[0].name}</strong> — maiores juros. Maximize a economia com menor custo financeiro.</span></div>}
                     </div>
-
-                    {/* Snowball */}
                     <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-5 shadow-sm">
-                        <h3 className="text-sm font-black text-slate-800 dark:text-white flex items-center gap-2 mb-1">
-                            <Target size={16} className="text-sky-600" /> Bola de Neve
-                        </h3>
+                        <h3 className="text-sm font-black text-slate-800 dark:text-white flex items-center gap-2 mb-1"><Target size={16} className="text-sky-600" /> Bola de Neve</h3>
                         <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium mb-3">Prioriza menor saldo → motivação e velocidade</p>
                         {sortedSnowball.slice(0, 3).map((d, i) => (
                             <div key={d.id} className="flex items-center gap-3 py-2.5 border-b border-slate-50 dark:border-slate-800 last:border-0">
@@ -554,12 +678,7 @@ const DebtManager: React.FC<DebtManagerProps> = ({ debts, onAddDebt, onUpdateDeb
                                 <span className="text-xs font-black text-sky-600 dark:text-sky-400 shrink-0">{fmt(d.currentBalance)}</span>
                             </div>
                         ))}
-                        {sortedSnowball[0] && (
-                            <div className="mt-3 p-3 bg-sky-50 dark:bg-sky-900/20 rounded-xl text-[11px] text-sky-700 dark:text-sky-300 font-medium flex items-start gap-2">
-                                <Info size={12} className="shrink-0 mt-0.5" />
-                                <span>Quite <strong>{sortedSnowball[0].name}</strong> primeiro para liberar {fmt(sortedSnowball[0].installmentValue)}/mês de fluxo de caixa.</span>
-                            </div>
-                        )}
+                        {sortedSnowball[0] && <div className="mt-3 p-3 bg-sky-50 dark:bg-sky-900/20 rounded-xl text-[11px] text-sky-700 dark:text-sky-300 font-medium flex items-start gap-2"><Info size={12} className="shrink-0 mt-0.5" /><span>Quite <strong>{sortedSnowball[0].name}</strong> primeiro para liberar {fmt(sortedSnowball[0].installmentValue)}/mês no fluxo de caixa.</span></div>}
                     </div>
                 </div>
             )}
@@ -567,24 +686,22 @@ const DebtManager: React.FC<DebtManagerProps> = ({ debts, onAddDebt, onUpdateDeb
             {/* Timeline */}
             {debts.length > 0 && (
                 <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-5 shadow-sm">
-                    <h3 className="text-sm font-black text-slate-800 dark:text-white flex items-center gap-2 mb-4">
-                        <Calendar size={16} className="text-violet-600" /> Linha do Tempo das Quitações
-                    </h3>
+                    <h3 className="text-sm font-black text-slate-800 dark:text-white flex items-center gap-2 mb-4"><Calendar size={16} className="text-violet-600" /> Linha do Tempo das Quitações</h3>
                     <div className="overflow-x-auto">
-                        <div className="flex gap-3 min-w-max pb-2">
-                            {debts.sort((a, b) => new Date(a.endDate).getTime() - new Date(b.endDate).getTime()).map(d => {
+                        <div className="flex gap-6 min-w-max pb-2">
+                            {[...debts].sort((a, b) => new Date(a.endDate).getTime() - new Date(b.endDate).getTime()).map(d => {
                                 const end = new Date(d.endDate);
                                 const now = new Date();
                                 const diff = Math.round((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 30));
                                 return (
-                                    <div key={d.id} className="flex flex-col items-center gap-1.5 min-w-[100px]">
-                                        <div className="w-3 h-3 rounded-full bg-rose-400 shadow-sm" />
-                                        <div className="h-12 w-px bg-slate-100 dark:bg-slate-800" />
+                                    <div key={d.id} className="flex flex-col items-center gap-1.5 min-w-[110px]">
+                                        <div className={`w-3 h-3 rounded-full shadow-sm ${diff <= 0 ? 'bg-emerald-400' : diff <= 6 ? 'bg-amber-400' : 'bg-rose-400'}`} />
+                                        <div className="h-10 w-px bg-slate-100 dark:bg-slate-800" />
                                         <div className="text-center">
                                             <p className="text-[10px] font-black text-slate-700 dark:text-slate-300 leading-tight">{d.name}</p>
                                             <p className="text-[9px] text-slate-400 dark:text-slate-500">{end.toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' })}</p>
                                             <p className={`text-[9px] font-black ${diff <= 0 ? 'text-emerald-500' : diff <= 6 ? 'text-amber-500' : 'text-slate-400'}`}>
-                                                {diff <= 0 ? 'Vencida' : `em ${diff}m`}
+                                                {diff <= 0 ? '✅ Quitada' : `em ${diff} meses`}
                                             </p>
                                         </div>
                                     </div>

@@ -1420,6 +1420,11 @@ const App: React.FC = () => {
               onAddDebt={handleAddDebt}
               onUpdateDebt={handleUpdateDebt}
               onDeleteDebt={handleDeleteDebt}
+              onNavigateToExpenses={({ description, amount }) => {
+                // Navega para despesas e pré-preenche via localStorage temporário
+                localStorage.setItem('finai_expense_prefill', JSON.stringify({ description, amount, type: 'expense' }));
+                setCurrentView('expenses');
+              }}
               monthlyIncome={filteredTransactions
                 .filter(t => t.type === 'income' && t.date.startsWith(currentDate.toISOString().slice(0, 7)))
                 .reduce((sum, t) => sum + t.amount, 0)}
