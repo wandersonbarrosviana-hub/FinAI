@@ -1238,70 +1238,7 @@ const App: React.FC = () => {
             <span>Sincronizando dados com a nuvem...</span>
           </div>
         )}
-        {pendingCount > 0 && (
-          <div className="bg-amber-600 text-white text-[10px] font-black text-center py-1 uppercase tracking-widest flex items-center justify-center gap-4">
-            <div className="flex items-center gap-2">
-              <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></div>
-              <span>{pendingCount} ALTERAÇÕES PENDENTES NESTE DISPOSITIVO</span>
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={async () => {
-                  if (isOnline) {
-                    await processSyncQueue();
-                    fetchData(user?.id || '', true);
-                  } else {
-                    alert("Você precisa estar online para sincronizar.");
-                  }
-                }}
-                className="bg-white/20 px-2 py-0.5 rounded hover:bg-white/30 transition-colors"
-              >
-                TENTAR REENVIAR
-              </button>
-              <button
-                onClick={async () => {
-                  if (confirm("Isso apagará as alterações locais que não subiram. Use apenas se o saldo estiver incorreto. Continuar?")) {
-                    await db.syncQueue.clear();
-                    if (user?.id) fetchData(user.id, true);
-                  }
-                }}
-                className="bg-black/20 px-2 py-0.5 rounded hover:bg-black/30 transition-colors"
-              >
-                LIMPAR FILA (FORÇAR NUVEM)
-              </button>
-            </div>
-          </div>
-        )}
-        {!isOnline && (
-          <div className="bg-slate-800 text-slate-400 text-[10px] font-black text-center py-1 uppercase tracking-widest flex items-center justify-center gap-4">
-            <div className="flex items-center gap-2">
-              <div className="w-1.5 h-1.5 bg-sky-500 rounded-full animate-pulse"></div>
-              <span>MODO LOCAL (OFFLINE) - {APP_VERSION}</span>
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={handleReconcileBalances}
-                className="bg-sky-500/20 text-sky-400 px-2 py-0.5 rounded hover:bg-sky-500/30 transition-colors"
-                title="Recalcula saldos com base nas transações"
-              >
-                RECONCILIAR SALDOS
-              </button>
-              <button
-                onClick={() => {
-                  if (confirm("Deseja tentar reparar o cache? O app irá reiniciar.")) {
-                    navigator.serviceWorker.getRegistrations().then(regs => {
-                      for (let reg of regs) reg.unregister();
-                      window.location.reload();
-                    });
-                  }
-                }}
-                className="bg-white/10 px-2 py-0.5 rounded hover:bg-white/20 transition-colors"
-              >
-                REPARAR APP
-              </button>
-            </div>
-          </div>
-        )}
+
         <header className="h-20 bg-white/80 backdrop-blur-xl border-b border-slate-200 flex items-center justify-between px-4 md:px-8 sticky top-0 z-40">
           {/* Global Month Filter in Center */}
           <div className="flex-1 flex justify-center">
@@ -1329,12 +1266,6 @@ const App: React.FC = () => {
             </div>
           </div>
 
-          {/* Final diagnósticos em modo offline */}
-          {!isOnline && (
-            <div className="hidden lg:flex items-center gap-2 text-[10px] font-bold text-amber-600 ml-4">
-              <span>LOCAL: {transactions.length} TXs | {accounts.length} CONTAS</span>
-            </div>
-          )}
 
           <div className="flex items-center space-x-4">
             <NotificationCenter
