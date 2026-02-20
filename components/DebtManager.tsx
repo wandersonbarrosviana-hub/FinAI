@@ -11,7 +11,15 @@ interface DebtManagerProps {
     onAddDebt: (debt: Partial<Debt>) => void;
     onUpdateDebt: (id: string, updates: Partial<Debt>) => void;
     onDeleteDebt: (id: string) => void;
-    onCreateExpense?: (data: { description: string; amount: number }) => Promise<void> | void;
+    onCreateExpense?: (data: {
+        description: string;
+        amount: number;
+        remainingInstallments: number;
+        totalInstallments: number;
+        paidInstallments: number;
+        creditor: string;
+        debtName: string;
+    }) => Promise<void> | void;
     monthlyIncome?: number;
 }
 
@@ -228,8 +236,13 @@ const DebtManager: React.FC<DebtManagerProps> = ({ debts, onAddDebt, onUpdateDeb
             onAddDebt(debtData);
             if (createExpense && onCreateExpense) {
                 onCreateExpense({
-                    description: `Parcela – ${debtData.name || 'Dívida'}`,
+                    debtName: debtData.name || 'Dívida',
+                    description: `Parcela – ${debtData.name || 'Dívida'} / ${debtData.creditor || ''}`,
                     amount: debtData.installmentValue || 0,
+                    remainingInstallments: debtData.remainingInstallments || 1,
+                    totalInstallments: debtData.totalInstallments || 1,
+                    paidInstallments: (debtData.totalInstallments || 1) - (debtData.remainingInstallments || 1),
+                    creditor: debtData.creditor || '',
                 });
             }
         }
@@ -526,7 +539,16 @@ const DebtManager: React.FC<DebtManagerProps> = ({ debts, onAddDebt, onUpdateDeb
                                         </button>
                                         <button onClick={async () => {
                                             if (!onCreateExpense) return;
-                                            await onCreateExpense({ description: `Parcela – ${debt.name}`, amount: debt.installmentValue });
+                                            const paidCount = debt.totalInstallments - debt.remainingInstallments;
+                                            await onCreateExpense({
+                                                debtName: debt.name,
+                                                description: `Parcela – ${debt.name} / ${debt.creditor}`,
+                                                amount: debt.installmentValue,
+                                                remainingInstallments: debt.remainingInstallments,
+                                                totalInstallments: debt.totalInstallments,
+                                                paidInstallments: paidCount,
+                                                creditor: debt.creditor,
+                                            });
                                             setExpenseLaunched(debt.id);
                                             setTimeout(() => setExpenseLaunched(null), 3000);
                                         }}
@@ -535,7 +557,7 @@ const DebtManager: React.FC<DebtManagerProps> = ({ debts, onAddDebt, onUpdateDeb
                                                     : 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100'
                                                 }`}>
                                             {expenseLaunched === debt.id ? <CheckCircle size={12} /> : <Receipt size={12} />}
-                                            {expenseLaunched === debt.id ? 'Despesa Criada!' : 'Lançar Despesa'}
+                                            {expenseLaunched === debt.id ? 'Parcelas Importadas!' : `Lançar ${debt.remainingInstallments}x Parcelas`}
                                         </button>
                                     </div>
 

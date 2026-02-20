@@ -1420,10 +1420,11 @@ const App: React.FC = () => {
               onAddDebt={handleAddDebt}
               onUpdateDebt={handleUpdateDebt}
               onDeleteDebt={handleDeleteDebt}
-              onCreateExpense={async ({ description, amount }) => {
+              onCreateExpense={async ({ debtName, creditor, amount, remainingInstallments, totalInstallments, paidInstallments }) => {
                 const today = new Date().toISOString().split('T')[0];
+                // Gera uma transação parcelada para cada parcela restante
                 await handleAddTransaction({
-                  description,
+                  description: `${debtName} – ${creditor}`,
                   amount,
                   type: 'expense',
                   category: 'Dívidas',
@@ -1431,7 +1432,9 @@ const App: React.FC = () => {
                   date: today,
                   paymentMethod: 'Débito Automático',
                   isPaid: true,
-                  recurrence: 'one_time',
+                  recurrence: 'installment',
+                  installmentCount: remainingInstallments,
+                  installmentTotal: remainingInstallments,
                   account: accounts[0]?.id,
                   tags: [],
                 });
