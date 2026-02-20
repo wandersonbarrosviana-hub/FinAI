@@ -1437,15 +1437,7 @@ const App: React.FC = () => {
             <Settings user={user} onLogout={handleLogout} onExportData={handleExportData} onForceSync={() => user?.id && fetchData(user.id, true)} onResetData={handleResetData} />
           </div>
           <div className={currentView === 'investments' ? '' : 'hidden'}>
-            <div className="flex flex-col items-center justify-center h-full min-h-[60vh] gap-6">
-              <div className="w-24 h-24 bg-sky-50 dark:bg-sky-900/20 rounded-full flex items-center justify-center shadow-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-sky-400 opacity-60"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17" /><polyline points="16 7 22 7 22 13" /></svg>
-              </div>
-              <div className="text-center">
-                <h2 className="text-2xl font-black text-slate-800 dark:text-white tracking-tight">Em breve controle de investimentos</h2>
-                <p className="text-slate-400 dark:text-slate-500 font-medium mt-2 text-sm">Estamos trabalhando para trazer o melhor módulo de investimentos para você.</p>
-              </div>
-            </div>
+            <Investments />
           </div>
         </div>
 
