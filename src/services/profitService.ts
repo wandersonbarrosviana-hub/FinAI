@@ -1,6 +1,5 @@
 
-const API_KEY = import.meta.env.VITE_PROFIT_API_KEY;
-const BASE_URL = 'https://api.profit.com/v1';
+const PROXY_URL = 'https://ndsngskwlgqkbgejuyrv.supabase.co/functions/v1/profit-proxy';
 
 const getFormattedTicker = (ticker: string) => {
     const cleanTicker = ticker.toUpperCase().trim();
@@ -11,13 +10,9 @@ const getFormattedTicker = (ticker: string) => {
 export const searchAssets = async (query: string): Promise<any[]> => {
     if (!query || query.length < 2) return [];
     try {
-        // Aproveitando endpoint de busca da Profit (ou similar)
-        const response = await fetch(`${BASE_URL}/search?query=${query.toUpperCase()}&apikey=${API_KEY}`);
+        const response = await fetch(`${PROXY_URL}?endpoint=search&query=${query.toUpperCase()}`);
         const data = await response.json();
-
         if (data.error) return [];
-
-        // Mapear para um formato padrão se necessário
         return Array.isArray(data) ? data : (data.data || []);
     } catch (error) {
         console.error('Search Assets Error:', error);
@@ -28,7 +23,7 @@ export const searchAssets = async (query: string): Promise<any[]> => {
 export const getAssetData = async (ticker: string) => {
     try {
         const formattedTicker = getFormattedTicker(ticker);
-        const response = await fetch(`${BASE_URL}/quotes?symbol=${formattedTicker}&apikey=${API_KEY}`);
+        const response = await fetch(`${PROXY_URL}?endpoint=quotes&symbol=${formattedTicker}`);
         const data = await response.json();
 
         if (!data || data.error || (Array.isArray(data) && data.length === 0)) {
@@ -45,7 +40,7 @@ export const getAssetData = async (ticker: string) => {
 export const getFundamentalData = async (ticker: string) => {
     try {
         const formattedTicker = getFormattedTicker(ticker);
-        const response = await fetch(`${BASE_URL}/fundamentals?symbol=${formattedTicker}&apikey=${API_KEY}`);
+        const response = await fetch(`${PROXY_URL}?endpoint=fundamentals&symbol=${formattedTicker}`);
         const data = await response.json();
         return Array.isArray(data) ? data[0] : data;
     } catch (error) {
@@ -57,7 +52,7 @@ export const getFundamentalData = async (ticker: string) => {
 export const getHistoricalData = async (ticker: string, period: string = '1y') => {
     try {
         const formattedTicker = getFormattedTicker(ticker);
-        const response = await fetch(`${BASE_URL}/historical?symbol=${formattedTicker}&period=${period}&apikey=${API_KEY}`);
+        const response = await fetch(`${PROXY_URL}?endpoint=historical&symbol=${formattedTicker}&period=${period}`);
         return await response.json();
     } catch (error) {
         console.error('Profit Historical API Error:', error);
