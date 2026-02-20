@@ -14,9 +14,21 @@ interface ExpenseManagerProps {
   accounts: Account[];
   familyMembers?: Record<string, { name: string, avatar: string }>;
   allTransactions?: Transaction[];
+  onOpenAccountModal?: () => void;
 }
 
-const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTransaction, onUpdateTransaction, onDeleteTransaction, type, tags, accounts, familyMembers, allTransactions }) => {
+const ExpenseManager: React.FC<ExpenseManagerProps> = ({
+  transactions,
+  onAddTransaction,
+  onUpdateTransaction,
+  onDeleteTransaction,
+  type,
+  tags,
+  accounts,
+  familyMembers,
+  allTransactions,
+  onOpenAccountModal
+}) => {
   const filteredTransactions = transactions.filter(t => t.type === type);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
@@ -123,6 +135,20 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (accounts.length === 0) {
+      if (onOpenAccountModal) {
+        onOpenAccountModal();
+      } else {
+        alert("Você precisa cadastrar uma conta primeiro.");
+      }
+      return;
+    }
+
+    if (!accountId || accountId === '') {
+      alert("Selecione uma conta para continuar.");
+      return;
+    }
 
     let finalCategory = formData.category;
     let finalSubCategory = formData.subCategory;
@@ -510,7 +536,7 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({ transactions, onAddTran
                   {accounts.map(acc => (
                     <option key={acc.id} value={acc.id}>{acc.name}</option>
                   ))}
-                  {accounts.length === 0 && <option value="default">Conta Padrão</option>}
+                  {accounts.length === 0 && <option value="" disabled>Crie uma conta primeiro</option>}
                 </select>
                 <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 pointer-events-none">
                   <Wallet size={16} />

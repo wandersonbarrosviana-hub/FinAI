@@ -23,6 +23,7 @@ interface FinancialAssistantProps {
   goals: any[];
   budgets: any[];
   onAddTransaction: (t: any) => void;
+  onOpenAccountModal?: () => void;
   userPlan: 'free' | 'pro' | 'premium';
   userRole: string;
 }
@@ -40,6 +41,7 @@ const FinancialAssistant: React.FC<FinancialAssistantProps> = ({
   goals,
   budgets,
   onAddTransaction,
+  onOpenAccountModal,
   userPlan,
   userRole
 }) => {
@@ -201,10 +203,19 @@ const FinancialAssistant: React.FC<FinancialAssistantProps> = ({
 
   const confirmImport = () => {
     if (parsedData) {
+      if (accounts.length === 0) {
+        if (onOpenAccountModal) {
+          onOpenAccountModal();
+        } else {
+          alert("Você precisa cadastrar uma conta primeiro.");
+        }
+        return;
+      }
+
       onAddTransaction({
         ...parsedData,
         date: parsedData.date || new Date().toISOString().split('T')[0],
-        isPaid: true // Assume notifications are for completed transactions generally
+        isPaid: true
       });
       setShowImportModal(false);
       setNotificationText('');

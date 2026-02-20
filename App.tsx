@@ -23,6 +23,7 @@ import FinancialAssistant from './components/FinancialAssistant';
 import CustomBudgetManager from './components/CustomBudgetManager';
 import AdminPanel from './components/AdminPanel';
 import PlansPage from './components/PlansPage';
+import AccountModal from './components/AccountModal';
 import { canAddAccount, canAddCard, canUseAI, PLAN_LIMITS } from './planConstraints';
 import { Budget, CustomBudget } from './types';
 
@@ -59,6 +60,8 @@ const App: React.FC = () => {
   });
   const [lastSync, setLastSync] = useState<string | null>(() => localStorage.getItem('finai_last_sync'));
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
   const { isOnline, syncing, pendingCount, addToSyncQueue, clearSyncQueue, processSyncQueue } = useOfflineSync(user?.id);
 
@@ -1348,6 +1351,7 @@ const App: React.FC = () => {
               onUpdateTransaction={handleUpdateTransaction}
               onTransfer={handleTransfer}
               familyMembers={familyMembers}
+              onOpenAccountModal={() => setIsAccountModalOpen(true)}
             />
           </div>
           <div className={currentView === 'reports' ? '' : 'hidden'}>
@@ -1404,6 +1408,7 @@ const App: React.FC = () => {
                   goals={goals}
                   budgets={budgets}
                   onAddTransaction={handleAddTransaction}
+                  onOpenAccountModal={() => setIsAccountModalOpen(true)}
                   userPlan={userPlan}
                   userRole={userRole}
                 />
@@ -1411,10 +1416,10 @@ const App: React.FC = () => {
             </div>
           </div>
           <div className={currentView === 'expenses' ? '' : 'hidden'}>
-            <ExpenseManager type="expense" transactions={filteredTransactions} onAddTransaction={handleAddTransaction} onDeleteTransaction={handleDeleteTransaction} onUpdateTransaction={handleUpdateTransaction} tags={tags} accounts={accounts} familyMembers={familyMembers} />
+            <ExpenseManager type="expense" transactions={filteredTransactions} onAddTransaction={handleAddTransaction} onDeleteTransaction={handleDeleteTransaction} onUpdateTransaction={handleUpdateTransaction} tags={tags} accounts={accounts} familyMembers={familyMembers} onOpenAccountModal={() => setIsAccountModalOpen(true)} />
           </div>
           <div className={currentView === 'income' ? '' : 'hidden'}>
-            <ExpenseManager type="income" transactions={filteredTransactions} allTransactions={transactions} onAddTransaction={handleAddTransaction} onDeleteTransaction={handleDeleteTransaction} onUpdateTransaction={handleUpdateTransaction} tags={tags} accounts={accounts} familyMembers={familyMembers} />
+            <ExpenseManager type="income" transactions={filteredTransactions} allTransactions={transactions} onAddTransaction={handleAddTransaction} onDeleteTransaction={handleDeleteTransaction} onUpdateTransaction={handleUpdateTransaction} tags={tags} accounts={accounts} familyMembers={familyMembers} onOpenAccountModal={() => setIsAccountModalOpen(true)} />
           </div>
           <div className={currentView === 'plans' ? '' : 'hidden'}>
             <PlansPage userPlan={userPlan} onUpgradeSuccess={() => fetchData(user!.id)} />
@@ -1485,6 +1490,12 @@ const App: React.FC = () => {
           onUpdate={async () => { }}
           userPlan={userPlan}
           userRole={userRole}
+        />
+      )}
+      {isAccountModalOpen && (
+        <AccountModal
+          onClose={() => setIsAccountModalOpen(false)}
+          onAddAccount={handleAddAccount}
         />
       )}
     </div>

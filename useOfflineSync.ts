@@ -111,10 +111,16 @@ export const useOfflineSync = (userId: string | undefined) => {
             'creditLimit', 'closingDay', 'dueDay', 'userId'
         ];
 
+        const sanitizeUUID = (id: any) => {
+            if (id === 'default' || !id || typeof id !== 'string') return null;
+            // Simple check to see if it looks like a UUID or at least isn't a known placeholder
+            return id;
+        };
+
         if (table === 'transactions') {
             const mapped = {
                 ...payload,
-                account_id: data.account,
+                account_id: sanitizeUUID(data.account),
                 sub_category: data.subCategory,
                 payment_method: data.paymentMethod,
                 is_paid: data.isPaid,
@@ -135,7 +141,7 @@ export const useOfflineSync = (userId: string | undefined) => {
         if (table === 'accounts') {
             const mapped = {
                 ...payload,
-                bank_id: data.bankId,
+                bank_id: data.bankId === 'default' ? 'outro' : data.bankId,
                 is_credit: data.isCredit,
                 credit_limit: data.creditLimit,
                 closing_day: data.closingDay,

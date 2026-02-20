@@ -15,6 +15,7 @@ interface TransactionManagerProps {
     onDeleteTransaction: (id: string) => void;
     onTransfer: (data: any) => void;
     familyMembers?: Record<string, { name: string, avatar: string }>;
+    onOpenAccountModal?: () => void;
 }
 
 const TransactionManager: React.FC<TransactionManagerProps> = ({
@@ -25,7 +26,8 @@ const TransactionManager: React.FC<TransactionManagerProps> = ({
     onUpdateTransaction,
     onDeleteTransaction,
     onTransfer,
-    familyMembers
+    familyMembers,
+    onOpenAccountModal
 }) => {
     const [activeTab, setActiveTab] = useState<'income' | 'expense' | 'transfer' | 'statement'>('expense');
 
@@ -90,6 +92,7 @@ const TransactionManager: React.FC<TransactionManagerProps> = ({
                         onDeleteTransaction={onDeleteTransaction}
                         accounts={accounts}
                         familyMembers={familyMembers}
+                        onOpenAccountModal={onOpenAccountModal}
                     />
                 )}
 
@@ -103,6 +106,7 @@ const TransactionManager: React.FC<TransactionManagerProps> = ({
                         onDeleteTransaction={onDeleteTransaction}
                         accounts={accounts}
                         familyMembers={familyMembers}
+                        onOpenAccountModal={onOpenAccountModal}
                     />
                 )}
 
