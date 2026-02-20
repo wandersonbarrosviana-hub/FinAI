@@ -2,24 +2,18 @@ import React, { useState, useMemo } from 'react';
 import {
     Plus, X, Landmark, AlertTriangle, TrendingDown, Clock,
     DollarSign, Calendar, Target, Zap, Save,
-    Edit2, Trash2, Info, CheckCircle, ArrowRight, Receipt
+    Edit2, Trash2, Info, CheckCircle, ArrowRight, Receipt, CreditCard
 } from 'lucide-react';
-import { Debt, DebtType, AmortizationType, DebtReason, DebtClassification } from '../types';
+import { Debt, DebtType, AmortizationType, DebtReason, DebtClassification, Transaction, Account } from '../types';
+import { CATEGORIES_MAP } from '../constants';
 
 interface DebtManagerProps {
     debts: Debt[];
     onAddDebt: (debt: Partial<Debt>) => void;
     onUpdateDebt: (id: string, updates: Partial<Debt>) => void;
     onDeleteDebt: (id: string) => void;
-    onCreateExpense?: (data: {
-        description: string;
-        amount: number;
-        remainingInstallments: number;
-        totalInstallments: number;
-        paidInstallments: number;
-        creditor: string;
-        debtName: string;
-    }) => Promise<void> | void;
+    onCreateExpense?: (data: Partial<Transaction>) => Promise<void> | void;
+    accounts?: Account[];
     monthlyIncome?: number;
 }
 
@@ -177,7 +171,7 @@ const MoneyInput: React.FC<{ label: string; value: number | undefined; onChange:
     </div>
 );
 
-const DebtManager: React.FC<DebtManagerProps> = ({ debts, onAddDebt, onUpdateDebt, onDeleteDebt, onCreateExpense, monthlyIncome = 0 }) => {
+const DebtManager: React.FC<DebtManagerProps> = ({ debts, onAddDebt, onUpdateDebt, onDeleteDebt, onCreateExpense, accounts = [], monthlyIncome = 0 }) => {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [form, setForm] = useState<Partial<Debt> & { createExpense?: boolean }>(defaultForm());
@@ -186,6 +180,48 @@ const DebtManager: React.FC<DebtManagerProps> = ({ debts, onAddDebt, onUpdateDeb
     const [simInstallments, setSimInstallments] = useState<number>(1);
     const [simExtra, setSimExtra] = useState<number>(0);
     const [expenseLaunched, setExpenseLaunched] = useState<string | null>(null);
+
+    // Modal de lançamento de despesa
+    const categoriesList = Object.keys(CATEGORIES_MAP);
+    const [expenseModal, setExpenseModal] = useState<null | Partial<Transaction>>(null);
+    const [expenseInstallmentType, setExpenseInstallmentType] = useState<'total' | 'installment'>('installment');
+
+    const openExpenseModal = (debt: Debt) => {
+        setExpenseModal({
+            description: `Parcela – ${debt.name} / ${debt.creditor}`,
+            amount: debt.installmentValue,
+            type: 'expense',
+            category: 'Outros',
+            subCategory: 'Diversos',
+            date: new Date().toISOString().split('T')[0],
+            paymentMethod: 'Débito Automático',
+            isPaid: true,
+            recurrence: 'installment',
+            installmentCount: debt.remainingInstallments,
+            installmentTotal: debt.remainingInstallments,
+            account: accounts[0]?.id,
+            tags: [],
+        });
+        setExpenseInstallmentType('installment');
+    };
+
+    const handleLaunchExpense = async () => {
+        if (!expenseModal || !onCreateExpense) return;
+        let finalAmount = expenseModal.amount || 0;
+        let finalInstallmentTotal: number | undefined;
+        if (expenseModal.recurrence === 'installment' && (expenseModal.installmentCount || 0) > 1) {
+            if (expenseInstallmentType === 'total') {
+                finalInstallmentTotal = finalAmount;
+                finalAmount = finalAmount / (expenseModal.installmentCount || 1);
+            } else {
+                finalInstallmentTotal = finalAmount * (expenseModal.installmentCount || 1);
+            }
+        }
+        await onCreateExpense({ ...expenseModal, amount: finalAmount, installmentTotal: finalInstallmentTotal });
+        setExpenseModal(null);
+        setExpenseLaunched(expenseModal.description || '');
+        setTimeout(() => setExpenseLaunched(null), 3000);
+    };
 
     const summary = useMemo(() => {
         const total = debts.reduce((s, d) => s + d.currentBalance, 0);
@@ -234,16 +270,9 @@ const DebtManager: React.FC<DebtManagerProps> = ({ debts, onAddDebt, onUpdateDeb
             setEditingId(null);
         } else {
             onAddDebt(debtData);
-            if (createExpense && onCreateExpense) {
-                onCreateExpense({
-                    debtName: debtData.name || 'Dívida',
-                    description: `Parcela – ${debtData.name || 'Dívida'} / ${debtData.creditor || ''}`,
-                    amount: debtData.installmentValue || 0,
-                    remainingInstallments: debtData.remainingInstallments || 1,
-                    totalInstallments: debtData.totalInstallments || 1,
-                    paidInstallments: (debtData.totalInstallments || 1) - (debtData.remainingInstallments || 1),
-                    creditor: debtData.creditor || '',
-                });
+            // Se marcou a opção, abre o modal de despesa pré-preenchido
+            if (createExpense) {
+                openExpenseModal(debtData as Debt);
             }
         }
         setForm(defaultForm());
@@ -537,27 +566,9 @@ const DebtManager: React.FC<DebtManagerProps> = ({ debts, onAddDebt, onUpdateDeb
                                             className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-lg bg-rose-50 dark:bg-rose-900/20 text-rose-500 dark:text-rose-400 hover:bg-rose-100 transition-colors">
                                             <Trash2 size={12} /> Excluir
                                         </button>
-                                        <button onClick={async () => {
-                                            if (!onCreateExpense) return;
-                                            const paidCount = debt.totalInstallments - debt.remainingInstallments;
-                                            await onCreateExpense({
-                                                debtName: debt.name,
-                                                description: `Parcela – ${debt.name} / ${debt.creditor}`,
-                                                amount: debt.installmentValue,
-                                                remainingInstallments: debt.remainingInstallments,
-                                                totalInstallments: debt.totalInstallments,
-                                                paidInstallments: paidCount,
-                                                creditor: debt.creditor,
-                                            });
-                                            setExpenseLaunched(debt.id);
-                                            setTimeout(() => setExpenseLaunched(null), 3000);
-                                        }}
-                                            className={`flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all ${expenseLaunched === debt.id
-                                                    ? 'bg-emerald-600 text-white'
-                                                    : 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100'
-                                                }`}>
-                                            {expenseLaunched === debt.id ? <CheckCircle size={12} /> : <Receipt size={12} />}
-                                            {expenseLaunched === debt.id ? 'Parcelas Importadas!' : `Lançar ${debt.remainingInstallments}x Parcelas`}
+                                        <button onClick={() => openExpenseModal(debt)}
+                                            className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 transition-colors">
+                                            <Receipt size={12} /> Lançar Despesa
                                         </button>
                                     </div>
 
@@ -736,6 +747,156 @@ const DebtManager: React.FC<DebtManagerProps> = ({ debts, onAddDebt, onUpdateDeb
                                     </div>
                                 );
                             })}
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* ===== MODAL DE LANÇAMENTO DE DESPESA ===== */}
+            {expenseModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setExpenseModal(null)}>
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+                        {/* Header */}
+                        <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-slate-800">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl flex items-center justify-center">
+                                    <Receipt size={20} className="text-emerald-600 dark:text-emerald-400" />
+                                </div>
+                                <div>
+                                    <h3 className="font-black text-slate-900 dark:text-white">Lançar Despesa</h3>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400">Revise e confirme o lançamento</p>
+                                </div>
+                            </div>
+                            <button onClick={() => setExpenseModal(null)} className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                                <X size={18} className="text-slate-400" />
+                            </button>
+                        </div>
+
+                        <div className="p-6 space-y-4">
+                            {/* Descrição */}
+                            <div className="space-y-1">
+                                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase ml-1">Descrição *</label>
+                                <input type="text" value={expenseModal.description || ''}
+                                    onChange={e => setExpenseModal({ ...expenseModal, description: e.target.value })}
+                                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-medium text-slate-900 dark:text-white" />
+                            </div>
+
+                            {/* Valor */}
+                            <div className="space-y-1">
+                                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase ml-1">Valor da Parcela (R$) *</label>
+                                <div className="relative">
+                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">R$</span>
+                                    <input type="number" min="0" step="0.01" value={expenseModal.amount || ''}
+                                        onChange={e => setExpenseModal({ ...expenseModal, amount: parseFloat(e.target.value) || 0 })}
+                                        className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-bold text-slate-900 dark:text-white" />
+                                </div>
+                            </div>
+
+                            {/* Categoria e Subcategoria */}
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="space-y-1">
+                                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase ml-1">Categoria</label>
+                                    <select value={expenseModal.category || 'Outros'}
+                                        onChange={e => setExpenseModal({ ...expenseModal, category: e.target.value, subCategory: CATEGORIES_MAP[e.target.value]?.[0] || 'Diversos' })}
+                                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20 font-medium text-slate-900 dark:text-white">
+                                        {categoriesList.map(c => <option key={c} value={c}>{c}</option>)}
+                                    </select>
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase ml-1">Subcategoria</label>
+                                    <select value={expenseModal.subCategory || ''}
+                                        onChange={e => setExpenseModal({ ...expenseModal, subCategory: e.target.value })}
+                                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20 font-medium text-slate-900 dark:text-white">
+                                        {(CATEGORIES_MAP[expenseModal.category || 'Outros'] || ['Diversos']).map(s => <option key={s} value={s}>{s}</option>)}
+                                    </select>
+                                </div>
+                            </div>
+
+                            {/* Data e Conta */}
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="space-y-1">
+                                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase ml-1">Data *</label>
+                                    <input type="date" value={expenseModal.date || ''}
+                                        onChange={e => setExpenseModal({ ...expenseModal, date: e.target.value })}
+                                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20 font-medium text-slate-900 dark:text-white" />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase ml-1">Conta</label>
+                                    <select value={expenseModal.account || ''}
+                                        onChange={e => setExpenseModal({ ...expenseModal, account: e.target.value })}
+                                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20 font-medium text-slate-900 dark:text-white">
+                                        {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                                    </select>
+                                </div>
+                            </div>
+
+                            {/* Método e Status */}
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="space-y-1">
+                                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase ml-1">Método de Pagamento</label>
+                                    <select value={expenseModal.paymentMethod || 'Débito Automático'}
+                                        onChange={e => setExpenseModal({ ...expenseModal, paymentMethod: e.target.value })}
+                                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20 font-medium text-slate-900 dark:text-white">
+                                        {['Débito Automático', 'PIX', 'Débito', 'Boleto', 'Cartão de Crédito', 'Transferência', 'Dinheiro'].map(m => <option key={m} value={m}>{m}</option>)}
+                                    </select>
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase ml-1">Status</label>
+                                    <select value={expenseModal.isPaid ? 'paid' : 'pending'}
+                                        onChange={e => setExpenseModal({ ...expenseModal, isPaid: e.target.value === 'paid' })}
+                                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20 font-medium text-slate-900 dark:text-white">
+                                        <option value="paid">✅ Pago</option>
+                                        <option value="pending">🕐 Pendente</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            {/* Recorrência e Parcelas */}
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="space-y-1">
+                                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase ml-1">Recorrência</label>
+                                    <select value={expenseModal.recurrence || 'installment'}
+                                        onChange={e => setExpenseModal({ ...expenseModal, recurrence: e.target.value as any })}
+                                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20 font-medium text-slate-900 dark:text-white">
+                                        <option value="one_time">Única</option>
+                                        <option value="fixed">Mensal (Fixa)</option>
+                                        <option value="installment">Parcelada</option>
+                                    </select>
+                                </div>
+                                {expenseModal.recurrence === 'installment' && (
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase ml-1"># de Parcelas</label>
+                                        <div className="relative">
+                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">#</span>
+                                            <input type="number" min="1" value={expenseModal.installmentCount || 1}
+                                                onChange={e => setExpenseModal({ ...expenseModal, installmentCount: parseInt(e.target.value) || 1 })}
+                                                className="w-full pl-8 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20 font-bold text-slate-900 dark:text-white" />
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Resumo */}
+                            {expenseModal.recurrence === 'installment' && (expenseModal.installmentCount || 0) > 1 && (
+                                <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-3 text-sm">
+                                    <p className="text-emerald-700 dark:text-emerald-300 font-bold">
+                                        💳 <strong>{expenseModal.installmentCount}x</strong> de <strong>R$ {(expenseModal.amount || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong>
+                                        {' = '}Total: <strong>R$ {((expenseModal.amount || 0) * (expenseModal.installmentCount || 1)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong>
+                                    </p>
+                                    <p className="text-emerald-600 dark:text-emerald-400 text-xs mt-1">⚡ Serão criadas {expenseModal.installmentCount} transações mensais automáticas a partir de hoje.</p>
+                                </div>
+                            )}
+
+                            {/* Botões */}
+                            <div className="flex gap-3 pt-2">
+                                <button onClick={() => setExpenseModal(null)}
+                                    className="flex-1 px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-bold text-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                                    Cancelar
+                                </button>
+                                <button onClick={handleLaunchExpense}
+                                    className="flex-1 px-4 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm transition-all shadow-lg shadow-emerald-100 dark:shadow-none flex items-center justify-center gap-2">
+                                    <CheckCircle size={16} /> Confirmar Lançamento
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
