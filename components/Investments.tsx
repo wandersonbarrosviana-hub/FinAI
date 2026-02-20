@@ -3,31 +3,69 @@ import AssetCard from './AssetCard';
 import AssetDetail from './AssetDetail';
 import { InvestmentData } from '../types';
 import { Search } from 'lucide-react';
+import { getAssetData, getFundamentalData } from '../src/services/profitService';
 
 const Investments: React.FC = () => {
     const [investments, setInvestments] = useState<InvestmentData[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedAsset, setSelectedAsset] = useState<InvestmentData | null>(null);
 
-    useEffect(() => {
-        fetch('/data/investments.json')
-            .then(res => res.json())
-            .then(data => {
-                setInvestments(data);
-                setLoading(false);
-            })
-            .catch(err => {
-                console.error("Error loading investments:", err);
-                setLoading(false);
-            });
-    }, []);
+    const filteredInvestments = investments; // Exibe todos os buscados na sessão
 
-    // Filter logic
-    const filteredInvestments = investments.filter(inv =>
-        inv.ticker.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        inv.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const handleSearch = async (ticker: string) => {
+        if (!ticker) return;
+        setLoading(true);
+        try {
+            const quote = await getAssetData(ticker);
+            const fundamentals = await getFundamentalData(ticker);
+
+            const newAsset: InvestmentData = {
+                ticker: ticker.toUpperCase(),
+                name: quote.name || ticker.toUpperCase(),
+                price: quote.price,
+                type: ticker.length > 5 ? 'fii' : 'acao', // Heurística simples
+                segment: fundamentals.sector || 'N/A',
+                indicators: {
+                    dy: fundamentals.dividendYield * 100 || 0,
+                    pl: fundamentals.peRatio || 0,
+                    pvp: fundamentals.pbRatio || 0,
+                    roe: fundamentals.roe * 100 || 0,
+                    roic: fundamentals.roic * 100 || 0,
+                    cagr_lucros_5y: fundamentals.cagr5y || 0,
+                    payout: fundamentals.payoutRatio * 100 || 0,
+                    margem_liquida: fundamentals.netMargin * 100 || 0,
+                    margem_bruta: fundamentals.grossMargin * 100 || 0,
+                    margem_ebitda: fundamentals.ebitdaMargin * 100 || 0,
+                    p_ebitda: fundamentals.priceToEbitda || 0,
+                    divida_liquida_ebitda: fundamentals.netDebtToEbitda || 0,
+                    vpa: fundamentals.bookValuePerShare || 0,
+                    lpa: fundamentals.earningsPerShare || 0,
+                    divida_liquida: fundamentals.netDebt || 0,
+                    divida_bruta: fundamentals.grossDebt || 0,
+                    liquidez_media_diaria: fundamentals.avgDailyVolume || 0,
+                    free_float: fundamentals.freeFloat * 100 || 0,
+                    patrimonio_liquido: fundamentals.equity || 0,
+                    numero_papeis: fundamentals.sharesOutstanding || 0
+                },
+                chartData: [], // Será carregado no AssetDetail
+                dividends: [] // Será carregado no AssetDetail
+            };
+
+            setInvestments(prev => {
+                const filtered = prev.filter(a => a.ticker !== newAsset.ticker);
+                return [newAsset, ...filtered];
+            });
+        } catch (error) {
+            console.error("Erro ao buscar ativo:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        // Opcional: carregar favoritos/ativos padrões
+    }, []);
 
     const stocks = filteredInvestments.filter(i => i.type === 'acao');
     const fiis = filteredInvestments.filter(i => i.type === 'fii');
@@ -68,6 +106,7 @@ const Investments: React.FC = () => {
                         className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl pl-12 pr-6 py-4 text-slate-700 dark:text-slate-200 font-bold outline-none focus:ring-4 focus:ring-sky-500/5 focus:border-sky-500/50 transition-all shadow-sm placeholder:text-slate-300 dark:placeholder:text-slate-600"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleSearch(searchTerm)}
                     />
                 </div>
             </div>

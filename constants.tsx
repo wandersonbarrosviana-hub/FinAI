@@ -32,7 +32,7 @@ export const NAV_ITEMS = [
 
   { id: 'transactions' as ViewState, label: 'Transações', icon: <ArrowRightLeft size={20} /> },
   { id: 'debts' as ViewState, label: 'Dívidas', icon: <Landmark size={20} /> },
-  { id: 'investments' as ViewState, label: 'Investimentos', icon: <TrendingUp size={20} />, badge: 'Em breve' },
+  { id: 'investments' as ViewState, label: 'Investimentos', icon: <TrendingUp size={20} /> },
   // { id: 'transfers' as ViewState, label: 'Transferências', icon: <ArrowRightLeft size={20} /> }, // Removed
   { id: 'credit-cards' as ViewState, label: 'Cartões', icon: <CreditCard size={20} /> },
   { id: 'accounts' as ViewState, label: 'Contas', icon: <Wallet size={20} /> },
