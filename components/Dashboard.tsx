@@ -6,7 +6,7 @@ import {
   BarChart, Bar, Cell, PieChart, Pie, AreaChart, Area
 } from 'recharts';
 import { Transaction, Account, Goal, Budget } from '../types';
-import { TrendingUp, TrendingDown, Wallet, PlusCircle, ArrowUpRight, ArrowDownRight, Sparkles } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wallet, PlusCircle, ArrowUpRight, ArrowDownRight, Sparkles, X } from 'lucide-react';
 import ChartContainer from './ChartContainer';
 import AIInsightsWidget from './AIInsightsWidget';
 import AdvancedAIIntelligence from './AdvancedAIIntelligence';
