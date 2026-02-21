@@ -1383,7 +1383,7 @@ const App: React.FC = () => {
         </header>
 
         {/* Main Content Area - All views stay mounted, hidden via CSS to preserve state */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden p-6 relative scrollbar-hide">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-6 relative scrollbar-hide">
           {userRole === 'admin' && <div className={currentView === 'admin' ? '' : 'hidden'}><AdminPanel isOnline={isOnline} /></div>}
           <div className={currentView === 'dashboard' ? '' : 'hidden'}>
             <Dashboard

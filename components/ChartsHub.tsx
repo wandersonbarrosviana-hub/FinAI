@@ -313,21 +313,23 @@ const ChartsHub: React.FC<ChartsHubProps> = ({ transactions }) => {
                         </span>
                     }
                 >
-                    <div className="h-[350px] w-full overflow-hidden">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <ComposedChart data={paretoData} margin={{ top: 20, right: 30, bottom: 20, left: 20 }}>
-                                <CartesianGrid stroke="#f1f5f9" vertical={false} strokeDasharray="3 3" />
-                                <XAxis dataKey="name" scale="band" tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 'bold' }} axisLine={false} tickLine={false} />
-                                <YAxis yAxisId="left" orientation="left" stroke="#94a3b8" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(val) => `R$${val / 1000}k`} />
-                                <YAxis yAxisId="right" orientation="right" stroke="#f43f5e" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} unit="%" />
-                                <Tooltip content={<CustomTooltip />} />
-                                <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
-                                <Bar yAxisId="left" dataKey="value" name="Valor Gasto" barSize={30} fill="#6366f1" radius={[4, 4, 0, 0]}>
-                                    <LabelList dataKey="value" position="top" formatter={(val: number) => `R$${(val / 1000).toFixed(1)}k`} style={{ fill: '#1e293b', fontSize: '10px', fontWeight: '800' }} />
-                                </Bar>
-                                <Line yAxisId="right" type="monotone" dataKey="cumulativePercent" name="% Acumulado" stroke="#f43f5e" strokeWidth={3} dot={{ r: 4 }} />
-                            </ComposedChart>
-                        </ResponsiveContainer>
+                    <div className="h-[350px] w-full overflow-x-auto scrollbar-hide">
+                        <div className="h-full min-w-[600px]">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <ComposedChart data={paretoData} margin={{ top: 20, right: 30, bottom: 20, left: 20 }}>
+                                    <CartesianGrid stroke="#f1f5f9" vertical={false} strokeDasharray="3 3" />
+                                    <XAxis dataKey="name" scale="band" tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 'bold' }} axisLine={false} tickLine={false} />
+                                    <YAxis yAxisId="left" orientation="left" stroke="#94a3b8" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(val) => `R$${val / 1000}k`} />
+                                    <YAxis yAxisId="right" orientation="right" stroke="#f43f5e" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} unit="%" />
+                                    <Tooltip content={<CustomTooltip />} />
+                                    <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
+                                    <Bar yAxisId="left" dataKey="value" name="Valor Gasto" barSize={30} fill="#6366f1" radius={[4, 4, 0, 0]}>
+                                        <LabelList dataKey="value" position="top" formatter={(val: number) => `R$${(val / 1000).toFixed(1)}k`} style={{ fill: '#1e293b', fontSize: '10px', fontWeight: '800' }} />
+                                    </Bar>
+                                    <Line yAxisId="right" type="monotone" dataKey="cumulativePercent" name="% Acumulado" stroke="#f43f5e" strokeWidth={3} dot={{ r: 4 }} />
+                                </ComposedChart>
+                            </ResponsiveContainer>
+                        </div>
                     </div>
                 </ChartContainer>
             </div>
@@ -356,38 +358,40 @@ const ChartsHub: React.FC<ChartsHubProps> = ({ transactions }) => {
                     </div>
                 }
             >
-                <div className="h-[400px] w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={expenseByCategoryData} layout="vertical" margin={{ left: 10, right: 50 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
-                            <XAxis type="number" hide />
-                            <YAxis
-                                dataKey="name"
-                                type="category"
-                                width={120}
-                                tick={{ fill: '#64748b', fontSize: 11, fontWeight: 'bold' }}
-                                axisLine={false}
-                                tickLine={false}
-                            />
-                            <Tooltip content={<CustomTooltip />} />
-                            <Bar
-                                dataKey={expenseMode === 'value' ? 'value' : 'percent'}
-                                name={expenseMode === 'value' ? 'Valor' : 'Percentual'}
-                                radius={[0, 6, 6, 0]}
-                                barSize={24}
-                            >
-                                {expenseByCategoryData.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} style={{ outline: 'none' }} />
-                                ))}
-                                <LabelList
-                                    dataKey={expenseMode === 'value' ? 'value' : 'percent'}
-                                    position="right"
-                                    formatter={(val: number) => expenseMode === 'value' ? `R$ ${val.toLocaleString('pt-BR', { minimumFractionDigits: 0 })}` : `${val.toFixed(1)}%`}
-                                    style={{ fill: '#1e293b', fontSize: '11px', fontWeight: '800' }}
+                <div className="h-[400px] w-full overflow-x-auto scrollbar-hide">
+                    <div className="h-full min-w-[500px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={expenseByCategoryData} layout="vertical" margin={{ left: 10, right: 50 }}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
+                                <XAxis type="number" hide />
+                                <YAxis
+                                    dataKey="name"
+                                    type="category"
+                                    width={120}
+                                    tick={{ fill: '#64748b', fontSize: 11, fontWeight: 'bold' }}
+                                    axisLine={false}
+                                    tickLine={false}
                                 />
-                            </Bar>
-                        </BarChart>
-                    </ResponsiveContainer>
+                                <Tooltip content={<CustomTooltip />} />
+                                <Bar
+                                    dataKey={expenseMode === 'value' ? 'value' : 'percent'}
+                                    name={expenseMode === 'value' ? 'Valor' : 'Percentual'}
+                                    radius={[0, 6, 6, 0]}
+                                    barSize={24}
+                                >
+                                    {expenseByCategoryData.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} style={{ outline: 'none' }} />
+                                    ))}
+                                    <LabelList
+                                        dataKey={expenseMode === 'value' ? 'value' : 'percent'}
+                                        position="right"
+                                        formatter={(val: number) => expenseMode === 'value' ? `R$ ${val.toLocaleString('pt-BR', { minimumFractionDigits: 0 })}` : `${val.toFixed(1)}%`}
+                                        style={{ fill: '#1e293b', fontSize: '11px', fontWeight: '800' }}
+                                    />
+                                </Bar>
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
                 </div>
             </ChartContainer>
 
@@ -446,27 +450,29 @@ const ChartsHub: React.FC<ChartsHubProps> = ({ transactions }) => {
                         </span>
                     }
                 >
-                    <div className="h-[300px] w-full overflow-hidden">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={dailyTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                                <defs>
-                                    <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
-                                        <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                                    </linearGradient>
-                                    <linearGradient id="colorExpense" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.3} />
-                                        <stop offset="95%" stopColor="#f43f5e" stopOpacity={0} />
-                                    </linearGradient>
-                                </defs>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                                <XAxis dataKey="day" tick={{ fill: '#64748b', fontSize: 10, fontWeight: 'bold' }} axisLine={false} tickLine={false} interval={2} />
-                                <YAxis hide />
-                                <Tooltip content={<CustomTooltip />} />
-                                <Area type="monotone" dataKey="income" name="Receitas" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorIncome)" />
-                                <Area type="monotone" dataKey="expense" name="Despesas" stroke="#f43f5e" strokeWidth={2} fillOpacity={1} fill="url(#colorExpense)" />
-                            </AreaChart>
-                        </ResponsiveContainer>
+                    <div className="h-[300px] w-full overflow-x-auto scrollbar-hide">
+                        <div className="h-full min-w-[500px]">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <AreaChart data={dailyTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                    <defs>
+                                        <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                                            <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                                        </linearGradient>
+                                        <linearGradient id="colorExpense" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.3} />
+                                            <stop offset="95%" stopColor="#f43f5e" stopOpacity={0} />
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                                    <XAxis dataKey="day" tick={{ fill: '#64748b', fontSize: 10, fontWeight: 'bold' }} axisLine={false} tickLine={false} interval={2} />
+                                    <YAxis hide />
+                                    <Tooltip content={<CustomTooltip />} />
+                                    <Area type="monotone" dataKey="income" name="Receitas" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorIncome)" />
+                                    <Area type="monotone" dataKey="expense" name="Despesas" stroke="#f43f5e" strokeWidth={2} fillOpacity={1} fill="url(#colorExpense)" />
+                                </AreaChart>
+                            </ResponsiveContainer>
+                        </div>
                     </div>
                 </ChartContainer>
             </div>

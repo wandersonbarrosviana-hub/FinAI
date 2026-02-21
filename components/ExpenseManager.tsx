@@ -815,19 +815,20 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
       )}
 
       <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
-        {/* Desktop Table View */}
-        <div className="hidden md:block overflow-x-auto relative">
-          <table className="w-full text-left">
+        {/* Responsive Table View for All Viewports */}
+        <div className="overflow-x-auto relative scrollbar-hide">
+          <table className="w-full text-left border-collapse">
             <thead className="bg-slate-50/50 dark:bg-slate-800/50">
               <tr>
-                <th className="sticky left-0 z-20 bg-slate-50 dark:bg-slate-800 px-4 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] w-[80px]">Status</th>
-                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest whitespace-nowrap">Conta</th>
+                <th className="sticky left-0 z-20 bg-slate-50 dark:bg-slate-800 px-4 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] w-[80px] text-center">Status</th>
                 <th className="sticky left-[80px] z-20 bg-slate-50 dark:bg-slate-800 px-4 md:px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] min-w-[200px]">Descrição</th>
+                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest whitespace-nowrap">Conta</th>
+                <th className="px-4 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest whitespace-nowrap text-center">Data</th>
                 <th className="px-4 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest whitespace-nowrap text-center">Foto</th>
                 <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest whitespace-nowrap">Categoria</th>
                 <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest whitespace-nowrap">Recorrência</th>
                 <th className="px-4 md:px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest text-right whitespace-nowrap">Valor</th>
-                <th className="px-4 md:px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest text-right whitespace-nowrap">Ações</th>
+                <th className="px-4 md:px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest text-right whitespace-nowrap pr-8">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
@@ -849,29 +850,6 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
                         </div>
                       )}
                     </button>
-                    {/* Mobile text label below icon if needed, or just keep icon for compactness */}
-                  </td>
-                  {/* Account Column */}
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {(() => {
-                      const accInfo = getAccountInfo(t.account);
-                      return accInfo ? (
-                        <div className="flex items-center gap-2">
-                          <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center p-0.5 border border-slate-200 dark:border-slate-700 overflow-hidden">
-                            {accInfo.bankLogo ? (
-                              <img src={accInfo.bankLogo} alt={accInfo.name} className="w-full h-full object-contain" />
-                            ) : (
-                              <Wallet size={12} className="text-slate-400" />
-                            )}
-                          </div>
-                          <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300 truncate max-w-[100px]" title={accInfo.name}>
-                            {accInfo.name}
-                          </span>
-                        </div>
-                      ) : (
-                        <span className="text-[10px] text-slate-400 italic font-medium">-</span>
-                      );
-                    })()}
                   </td>
                   <td className="sticky left-[80px] z-10 bg-white dark:bg-slate-900 px-4 md:px-6 py-4 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] min-w-[200px]">
                     <div className="font-bold text-slate-900 dark:text-white text-sm truncate max-w-[180px]" title={t.description}>{t.description}</div>
@@ -893,22 +871,43 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
                       </span>
                     </div>
                   </td>
-                  {/* Foto / Comprovante */}
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {(() => {
+                      const accInfo = getAccountInfo(t.account);
+                      return accInfo ? (
+                        <div className="flex items-center gap-2">
+                          <div className="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center p-0.5 border border-slate-200 dark:border-slate-700 overflow-hidden">
+                            {accInfo.bankLogo ? (
+                              <img src={accInfo.bankLogo} alt={accInfo.name} className="w-full h-full object-contain" />
+                            ) : (
+                              <Wallet size={10} className="text-slate-400" />
+                            )}
+                          </div>
+                          <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300 truncate max-w-[100px]">
+                            {accInfo.name}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-[10px] text-slate-400 italic font-medium">-</span>
+                      );
+                    })()}
+                  </td>
+                  <td className="px-4 py-4 text-center whitespace-nowrap">
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">
+                      {new Date(t.date).toLocaleDateString('pt-BR')}
+                    </span>
+                  </td>
                   <td className="px-4 py-4 text-center whitespace-nowrap">
                     {t.attachment && t.attachment.startsWith('data:image') ? (
                       <button
                         onClick={() => setSelectedAttachment(t.attachment!)}
                         className="relative group/photo inline-block"
-                        title="Ver foto em tamanho completo"
                       >
                         <img
                           src={t.attachment}
                           alt="Comprovante"
-                          className="w-10 h-10 rounded-xl object-cover border-2 border-slate-200 dark:border-slate-700 shadow-sm group-hover/photo:border-sky-400 group-hover/photo:scale-110 transition-all duration-200"
+                          className="w-8 h-8 rounded-lg object-cover border border-slate-200 dark:border-slate-700 shadow-sm"
                         />
-                        <div className="absolute inset-0 rounded-xl bg-black/0 group-hover/photo:bg-black/20 transition-all duration-200 flex items-center justify-center">
-                          <Image size={12} className="text-white opacity-0 group-hover/photo:opacity-100 transition-opacity" />
-                        </div>
                       </button>
                     ) : (
                       <span className="text-slate-200 dark:text-slate-700">—</span>
@@ -917,183 +916,39 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex flex-col">
                       <span className="text-[10px] font-black text-sky-600 dark:text-sky-400 flex items-center uppercase tracking-widest px-2 py-1 bg-sky-50 dark:bg-sky-900/20 border border-sky-100 dark:border-sky-900/30 rounded-lg w-fit">
-                        <Tag size={10} className="mr-1" /> {t.category}
+                        {t.category}
                       </span>
-                      {t.subCategory && <span className="text-[10px] text-slate-400 dark:text-slate-500 mt-1 font-bold ml-1 uppercase">{t.subCategory}</span>}
-                      {t.tags && t.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mt-1 ml-1">
-                          {t.tags.map(tagId => {
-                            const tag = tags.find(tg => tg.id === tagId);
-                            if (!tag) return null;
-                            return (
-                              <span key={tagId} className="px-1.5 py-0.5 rounded text-[9px] font-bold text-white shadow-sm" style={{ backgroundColor: tag.color }}>
-                                {tag.name}
-                              </span>
-                            );
-                          })}
-                        </div>
-                      )}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    {t.recurrence === 'fixed' && (
-                      <div className="flex items-center text-[10px] font-black text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 px-2 py-1 rounded-lg w-fit border border-indigo-100 dark:border-indigo-900/30 uppercase tracking-widest">
-                        <Repeat size={12} className="mr-1" /> Mensal
-                      </div>
-                    )}
-                    {t.recurrence === 'installment' && (
-                      <div className="flex items-center text-[10px] font-black text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20 px-2 py-1 rounded-lg w-fit border border-orange-100 dark:border-orange-900/30 uppercase tracking-widest">
-                        <Divide size={12} className="mr-1" />
-                        {(() => {
-                          const m = t.description?.match(/\((\d+)\/(\d+)\)/);
-                          return m ? `${m[1]}/${m[2]}x` : `${t.installmentCount}x`;
-                        })()}
-                      </div>
-                    )}
-                    {(!t.recurrence || t.recurrence === 'one_time') && (
-                      <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest">Única</span>
+                    {t.recurrence === 'installment' ? (
+                      <span className="text-[10px] font-black text-orange-600 uppercase">
+                        {(() => { const m = t.description?.match(/\((\d+)\/(\d+)\)/); return m ? `${m[1]}/${m[2]}x` : `${t.installmentCount}x`; })()}
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-slate-400 uppercase font-bold">{t.recurrence === 'fixed' ? 'Mensal' : 'Única'}</span>
                     )}
                   </td>
                   <td className={`px-4 md:px-6 py-4 text-sm font-black text-right whitespace-nowrap ${t.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
-                    <div>R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+                    R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </td>
-                  <td className="px-4 md:px-6 py-4 text-right whitespace-nowrap">
-                    <div className="flex items-center justify-end gap-2">
-                      <button
-                        onClick={() => handleEdit(t)}
-                        className="p-2 text-slate-400 dark:text-slate-500 hover:text-sky-600 dark:hover:text-sky-400 transition-colors rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 border border-transparent hover:border-slate-100 dark:hover:border-slate-700"
-                        title="Editar"
-                      >
-                        <Edit2 size={16} />
-                      </button>
-                      <button
-                        onClick={() => onDeleteTransaction(t.id)}
-                        className="p-2 text-slate-400 dark:text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 transition-colors rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 border border-transparent hover:border-slate-100 dark:hover:border-slate-700"
-                        title="Excluir"
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                  <td className="px-4 md:px-6 py-4 text-right whitespace-nowrap pr-8">
+                    <div className="flex items-center justify-end gap-1">
+                      <button onClick={() => handleEdit(t)} className="p-2 text-slate-400 hover:text-sky-600 transition-colors"><Edit2 size={16} /></button>
+                      <button onClick={() => onDeleteTransaction(t.id)} className="p-2 text-slate-400 hover:text-rose-600 transition-colors"><Trash2 size={16} /></button>
                     </div>
                   </td>
                 </tr>
               ))}
               {filteredTransactions.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="px-6 py-12 text-center text-slate-600 dark:text-slate-400 italic">
-                    Nenhum registro encontrado para {type === 'income' ? 'receitas' : 'despesas'}.
+                  <td colSpan={9} className="px-6 py-12 text-center text-slate-400 italic text-sm">
+                    Nenhum registro encontrado.
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
-        </div>
-
-        {/* Mobile Card View */}
-        <div className="md:hidden flex flex-col divide-y divide-slate-100 dark:divide-slate-800">
-          {filteredTransactions.map((t) => (
-            <div key={t.id} className="p-3 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors border border-slate-100 dark:border-slate-800 rounded-xl mb-2 shadow-sm">
-              <div className="flex justify-between items-start mb-2">
-                <div className="flex-1 min-w-0 pr-2">
-                  <h4 className="text-sm font-bold text-slate-900 dark:text-white truncate">{t.description}</h4>
-                  <div className="flex flex-wrap items-center gap-2 mt-1">
-                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center">
-                      <CreditCard size={10} className="mr-1" /> {t.paymentMethod}
-                    </span>
-                    <span className="text-[10px] text-slate-400 dark:text-slate-600">|</span>
-                    <span className="text-[10px] text-slate-400 dark:text-slate-500">{new Date(t.date).toLocaleDateString('pt-BR')}</span>
-
-                    {t.created_by && familyMembers && familyMembers[t.created_by] && (
-                      <div className="flex items-center gap-1 bg-slate-50 dark:bg-slate-800 rounded-full pr-2 py-0.5 border border-slate-100 dark:border-slate-700 ml-1">
-                        <img
-                          src={familyMembers[t.created_by].avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(familyMembers[t.created_by].name)}&background=random`}
-                          alt={familyMembers[t.created_by].name}
-                          className="w-3 h-3 rounded-full"
-                        />
-                        <span className="text-[8px] font-bold text-slate-500 dark:text-slate-400 truncate max-w-[50px uppercase tracking-tighter">
-                          {familyMembers[t.created_by].name.split(' ')[0]}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Account Badge */}
-                  {(() => {
-                    const accInfo = getAccountInfo(t.account);
-                    return accInfo ? (
-                      <div className="flex items-center gap-1 mt-1.5 ml-0.5">
-                        <div className="w-4 h-4 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center p-0.5 border border-slate-100 dark:border-slate-700 overflow-hidden">
-                          {accInfo.bankLogo ? (
-                            <img src={accInfo.bankLogo} alt={accInfo.name} className="w-full h-full object-contain" />
-                          ) : (
-                            <Wallet size={8} className="text-slate-400" />
-                          )}
-                        </div>
-                        <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400 truncate max-w-[120px]">
-                          {accInfo.name}
-                        </span>
-                      </div>
-                    ) : null;
-                  })()}
-                </div>
-
-                <div className="flex flex-col items-end mr-2">
-                  <div className={`text-sm font-black whitespace-nowrap ${t.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
-                    R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                  </div>
-                  <div className="mt-1">
-                    <button
-                      onClick={() => toggleStatus(t.id, t.isPaid)}
-                      className={`flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border transition-all ${t.isPaid
-                        ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
-                        : 'bg-amber-50 text-amber-600 border-amber-100'
-                        }`}
-                    >
-                      {t.isPaid ? <CheckCircle size={10} /> : <Clock size={10} />}
-                      {t.isPaid ? 'Pago' : 'Pendente'}
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-50 dark:border-slate-800/50">
-                <div className="flex flex-col gap-1">
-                  <span className="text-[10px] font-black text-sky-600 dark:text-sky-400 flex items-center uppercase tracking-widest px-2 py-0.5 bg-sky-50 dark:bg-sky-900/20 border border-sky-100 dark:border-sky-900/30 rounded w-fit">
-                    <Tag size={10} className="mr-1" /> {t.category}
-                  </span>
-                  {t.recurrence && t.recurrence !== 'one_time' && (
-                    <span className="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase ml-1 flex items-center">
-                      {t.recurrence === 'installment' ? <Divide size={10} className="mr-1" /> : <Repeat size={10} className="mr-1" />}
-                      {t.recurrence === 'installment'
-                        ? (() => { const m = t.description?.match(/\((\d+)\/(\d+)\)/); return m ? `${m[1]}/${m[2]}x` : `${t.installmentCount}x`; })()
-                        : 'Mensal'}
-                    </span>
-                  )}
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => handleEdit(t)}
-                    className="p-2 bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-sky-50 dark:hover:bg-slate-700 rounded-xl border border-slate-100 dark:border-slate-700 transition-all active:scale-95"
-                    title="Editar"
-                  >
-                    <Edit2 size={16} />
-                  </button>
-                  <button
-                    onClick={() => onDeleteTransaction(t.id)}
-                    className="p-2 bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-slate-700 rounded-xl border border-slate-100 dark:border-slate-700 transition-all active:scale-95"
-                    title="Excluir"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-          {filteredTransactions.length === 0 && (
-            <div className="px-6 py-12 text-center text-slate-600 dark:text-slate-400 italic text-sm">
-              Nenhum registro encontrado.
-            </div>
-          )}
         </div>
       </div>
 

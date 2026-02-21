@@ -155,6 +155,26 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
   const BASE_COLORS = ['#0284c7', '#059669', '#db2777', '#7c3aed', '#d97706', '#dc2626'];
   const COLORS = pieData.length > 0 ? BASE_COLORS.slice(0, pieData.length) : BASE_COLORS;
 
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-4 rounded-2xl shadow-xl text-xs z-50">
+          <p className="font-black text-slate-900 dark:text-white mb-2 uppercase tracking-widest border-b border-slate-100 dark:border-slate-800 pb-2">{label}</p>
+          {payload.map((p: any, index: number) => (
+            <div key={index} className="flex items-center gap-2 mb-1 last:mb-0">
+              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: p.color }}></div>
+              <span className="font-bold text-slate-500 dark:text-slate-400 capitalize">{p.name}:</span>
+              <span className="font-black text-slate-800 dark:text-white ml-auto">
+                R$ {Number(p.value).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+              </span>
+            </div>
+          ))}
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center sm:flex-row flex-col gap-4 sm:gap-0">
@@ -201,7 +221,6 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
         />
       ) : (
         <>
-
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Main Stats Card (Clean White) */}
             <div className="lg:col-span-3 bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col md:flex-row gap-8 relative overflow-hidden group">
@@ -259,42 +278,58 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
                 </div>
               </div>
 
-              {/* Middle: Trend Chart (Last 7 Days) */}
+              {/* Middle: Trend Chart (Weekly) */}
               <div className="flex-1 border-t md:border-t-0 md:border-l border-slate-100 pt-6 md:pt-0 md:pl-8 relative z-10">
                 <div className="flex justify-between items-center mb-4">
                   <div>
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">Despesas Diárias</h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Últimos 7 dias</p>
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">Fluxo de Caixa</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Resumo mensal por semanas</p>
                   </div>
                   <div className="p-2 bg-slate-50 dark:bg-slate-800 rounded-lg">
                     <TrendingDown size={18} className="text-rose-500" />
                   </div>
                 </div>
-                <div className="h-40 w-full overflow-hidden pb-2">
-                  <div className="h-full w-full">
+                <div className="h-64 mt-4 overflow-x-auto scrollbar-hide">
+                  <div className="h-full min-w-[600px]">
                     <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={last7DaysData}>
+                      <AreaChart data={chartData}>
                         <defs>
+                          <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#10b981" stopOpacity={0.2} />
+                            <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                          </linearGradient>
                           <linearGradient id="colorExpense" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.4} />
+                            <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.2} />
                             <stop offset="95%" stopColor="#f43f5e" stopOpacity={0} />
                           </linearGradient>
                         </defs>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                         <XAxis
                           dataKey="name"
                           axisLine={false}
                           tickLine={false}
-                          tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 'bold' }}
-                          dy={5}
-                          interval={0}
+                          tick={{ fill: '#64748b', fontSize: 10, fontWeight: 'bold' }}
                         />
-                        <Tooltip
-                          contentStyle={{ backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #f1f5f9', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', color: '#0f172a' }}
-                          itemStyle={{ color: '#e11d48' }}
-                          labelStyle={{ color: '#64748b', fontWeight: 'bold' }}
-                          formatter={(value: number) => [`R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, 'Despesas']}
+                        <YAxis hide />
+                        <Tooltip content={<CustomTooltip />} />
+                        <Area
+                          type="monotone"
+                          dataKey="Receitas"
+                          stroke="#10b981"
+                          strokeWidth={3}
+                          fillOpacity={1}
+                          fill="url(#colorIncome)"
+                          animationDuration={1500}
                         />
-                        <Area type="monotone" dataKey="value" stroke="#e11d48" strokeWidth={4} fillOpacity={1} fill="url(#colorExpense)" />
+                        <Area
+                          type="monotone"
+                          dataKey="Despesas"
+                          stroke="#f43f5e"
+                          strokeWidth={3}
+                          fillOpacity={1}
+                          fill="url(#colorExpense)"
+                          animationDuration={1500}
+                        />
                       </AreaChart>
                     </ResponsiveContainer>
                   </div>
@@ -308,7 +343,7 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6">
             <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex items-center space-x-4 relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-r from-sky-500/5 to-transparent pointer-events-none"></div>
               <div className="p-3 bg-sky-50 dark:bg-sky-900/20 rounded-xl border border-sky-100 dark:border-sky-900/10 text-sky-600 dark:text-sky-400">
@@ -321,7 +356,7 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-6">
             <ChartContainer
               title={
                 <span className="flex items-center gap-2">
@@ -330,7 +365,7 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
                 </span>
               }
             >
-              <div className="h-full min-h-[300px] w-full overflow-x-auto pb-4">
+              <div className="h-full min-h-[300px] w-full overflow-x-auto pb-4 scrollbar-hide">
                 <div className="h-full min-w-[600px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={chartData}>
@@ -412,108 +447,68 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
             </ChartContainer>
           </div>
 
-          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden mt-6">
             <div className="p-6 border-b border-slate-50 dark:border-slate-800 flex justify-between items-center">
               <h3 className="text-lg font-bold text-slate-900 dark:text-white">Últimos Lançamentos</h3>
               <button onClick={() => setShowAllTransactions(true)} className="text-sky-600 dark:text-sky-400 text-sm font-bold hover:text-sky-700 dark:hover:text-sky-300 transition-colors">Ver todos</button>
             </div>
-            {/* Desktop View */}
-            <div className="hidden md:block overflow-x-auto">
+            {/* Responsive Table for All Viewports */}
+            <div className="overflow-x-auto relative scrollbar-hide">
               <table className="w-full text-left">
                 <thead className="bg-slate-50/50 dark:bg-slate-800/50">
                   <tr>
-                    <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Data</th>
-                    <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Descrição</th>
-                    <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Categoria</th>
-                    <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Status</th>
-                    <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest text-right">Valor</th>
+                    <th className="sticky left-0 z-20 bg-slate-50 dark:bg-slate-800 px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] min-w-[200px]">Descrição</th>
+                    <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest whitespace-nowrap">Data</th>
+                    <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest whitespace-nowrap">Categoria</th>
+                    <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest whitespace-nowrap">Status</th>
+                    <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest text-right whitespace-nowrap pr-8">Valor</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
                   {transactions.slice(0, 5).map((t) => (
                     <tr key={t.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
-                      <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-400 whitespace-nowrap">{new Date(t.date).toLocaleDateString('pt-BR')}</td>
-                      <td className="px-6 py-4 text-sm font-bold text-slate-900 dark:text-white whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          {t.description}
+                      <td className="sticky left-0 z-10 bg-white dark:bg-slate-900 px-6 py-4 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] min-w-[200px]">
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-sm font-bold text-slate-900 dark:text-white truncate max-w-[180px]">
+                            {t.description}
+                          </span>
                           {t.created_by && familyMembers && familyMembers[t.created_by] && (
-                            <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 rounded-full pr-2 border border-slate-200 dark:border-slate-700">
+                            <div className="flex items-center gap-1 mt-0.5">
                               <img
                                 src={familyMembers[t.created_by].avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(familyMembers[t.created_by].name)}&background=random`}
                                 alt={familyMembers[t.created_by].name}
-                                className="w-4 h-4 rounded-full"
+                                className="w-3.5 h-3.5 rounded-full"
                               />
-                              <span className="text-[9px] font-bold text-slate-600 dark:text-slate-400 max-w-[60px] truncate">
+                              <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400">
                                 {familyMembers[t.created_by].name.split(' ')[0]}
                               </span>
                             </div>
                           )}
                         </div>
                       </td>
+                      <td className="px-6 py-4 text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                        {new Date(t.date).toLocaleDateString('pt-BR')}
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="px-3 py-1 rounded-lg text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 uppercase tracking-wider transition-all">
+                        <span className="px-2.5 py-1 rounded-lg text-[9px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 uppercase tracking-wider">
                           {t.category}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest ${t.isPaid
-                            ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400'
-                            : 'bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400'
+                        <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest ${t.isPaid
+                          ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400'
+                          : 'bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400'
                           }`}>
                           {t.isPaid ? 'Pago' : 'Pendente'}
                         </span>
                       </td>
-                      <td className={`px-6 py-4 text-sm font-black text-right whitespace-nowrap ${t.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                      <td className={`px-6 py-4 text-sm font-black text-right whitespace-nowrap pr-8 ${t.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
                         {t.type === 'income' ? '+' : '-'} R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-            </div>
-
-            {/* Mobile View */}
-            <div className="md:hidden flex flex-col divide-y divide-slate-50 dark:divide-slate-800">
-              {transactions.slice(0, 5).map((t) => (
-                <div key={t.id} className="p-4 flex items-center justify-between">
-                  <div className="flex flex-col gap-1">
-                    <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-                      {new Date(t.date).toLocaleDateString('pt-BR')}
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold text-slate-900 dark:text-white truncate">
-                        {t.description}
-                      </span>
-                      {t.created_by && familyMembers && familyMembers[t.created_by] && (
-                        <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 rounded-full pr-2 border border-slate-200 dark:border-slate-700 min-w-fit h-fit">
-                          <img
-                            src={familyMembers[t.created_by].avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(familyMembers[t.created_by].name)}&background=random`}
-                            alt={familyMembers[t.created_by].name}
-                            className="w-3 h-3 rounded-full"
-                          />
-                          <span className="text-[8px] font-bold text-slate-500 dark:text-slate-400 truncate max-w-[40px]">
-                            {familyMembers[t.created_by].name.split(' ')[0]}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded w-fit uppercase tracking-wider">
-                        {t.category}
-                      </span>
-                      <span className={`text-[9px] font-black uppercase tracking-tighter ${t.isPaid
-                          ? 'text-emerald-600 dark:text-emerald-400'
-                          : 'text-amber-600 dark:text-amber-400'
-                        }`}>
-                        • {t.isPaid ? 'Pago' : 'Pendente'}
-                      </span>
-                    </div>
-                  </div>
-                  <div className={`text-sm font-black whitespace-nowrap ${t.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
-                    {t.type === 'income' ? '+' : '-'} R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                  </div>
-                </div>
-              ))}
             </div>
           </div>
         </>
