@@ -373,76 +373,64 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
 
             <div className="space-y-1">
               <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase ml-1">Periodicidade</label>
-              <div className="flex flex-col sm:flex-row bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 gap-1 sm:gap-0">
+              <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 gap-1 overflow-x-auto scrollbar-hide">
                 <button
                   type="button"
                   onClick={() => setFormData({ ...formData, recurrence: 'one_time' })}
-                  className={`flex-1 py-2 px-2 text-[10px] font-bold rounded-lg transition-all whitespace-nowrap uppercase tracking-widest ${formData.recurrence === 'one_time' ? 'bg-white dark:bg-slate-900 shadow-sm text-sky-600 dark:text-sky-400' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'}`}
+                  className={`flex-1 min-w-[70px] py-2.5 px-2 text-[10px] font-bold rounded-lg transition-all whitespace-nowrap uppercase tracking-widest ${formData.recurrence === 'one_time' ? 'bg-white dark:bg-slate-900 shadow-sm text-sky-600 dark:text-sky-400' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'}`}
                 >
                   Única
                 </button>
                 <button
                   type="button"
                   onClick={() => setFormData({ ...formData, recurrence: 'installment' })}
-                  className={`flex-1 py-2 px-2 text-[10px] font-bold rounded-lg transition-all whitespace-nowrap uppercase tracking-widest ${formData.recurrence === 'installment' ? 'bg-white dark:bg-slate-900 shadow-sm text-sky-600 dark:text-sky-400' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'}`}
+                  className={`flex-1 min-w-[70px] py-2.5 px-2 text-[10px] font-bold rounded-lg transition-all whitespace-nowrap uppercase tracking-widest ${formData.recurrence === 'installment' ? 'bg-white dark:bg-slate-900 shadow-sm text-sky-600 dark:text-sky-400' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'}`}
                 >
                   Parcelada
                 </button>
                 <button
                   type="button"
                   onClick={() => setFormData({ ...formData, recurrence: 'fixed' })}
-                  className={`flex-1 py-2 px-2 text-[10px] font-bold rounded-lg transition-all whitespace-nowrap uppercase tracking-widest ${formData.recurrence === 'fixed' ? 'bg-white dark:bg-slate-900 shadow-sm text-sky-600 dark:text-sky-400' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'}`}
+                  className={`flex-1 min-w-[70px] py-2.5 px-2 text-[10px] font-bold rounded-lg transition-all whitespace-nowrap uppercase tracking-widest ${formData.recurrence === 'fixed' ? 'bg-white dark:bg-slate-900 shadow-sm text-sky-600 dark:text-sky-400' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'}`}
                 >
-                  Fixa Mensal
+                  Fixa
                 </button>
               </div>
             </div>
 
             {formData.recurrence === 'installment' && (
-              <div className="space-y-4 md:col-span-2 lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-4 bg-sky-50/50 p-4 rounded-xl border border-sky-100 animate-in fade-in zoom-in duration-300">
+              <div className="space-y-4 md:col-span-2 lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-4 bg-sky-50/50 dark:bg-sky-900/10 p-4 rounded-2xl border border-sky-100 dark:border-sky-900/30 animate-in fade-in zoom-in duration-300">
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-sky-600 uppercase ml-1">
-                    {type === 'income' ? 'Nº de Meses/Vezes' : 'Nº Parcelas'}
+                  <label className="text-xs font-bold text-sky-600 dark:text-sky-400 uppercase ml-1">
+                    {type === 'income' ? 'Nº de Meses' : 'Parcelas'}
                   </label>
                   <input
                     type="number"
                     min="2"
                     max="999"
                     required
-                    className="w-full px-4 py-2.5 bg-white border border-sky-200 rounded-xl outline-none focus:ring-2 focus:ring-sky-500 transition-all font-bold text-sky-600 text-center"
+                    className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-sky-200 dark:border-sky-900 rounded-xl outline-none focus:ring-2 focus:ring-sky-500 transition-all font-bold text-sky-600 text-center"
                     value={formData.installmentCount}
                     onChange={e => setFormData({ ...formData, installmentCount: parseInt(e.target.value) })}
                   />
                 </div>
                 <div className="space-y-1 md:col-span-2">
-                  <label className="text-xs font-bold text-sky-600 uppercase ml-1">O valor informado é:</label>
-                  <div className="flex flex-col gap-2 mt-2">
-                    <label className="flex items-center gap-2 cursor-pointer bg-white p-2 rounded-lg border border-sky-100 hover:bg-sky-50 transition-colors shadow-sm">
-                      <input
-                        type="radio"
-                        name="valueType"
-                        checked={installmentValueType === 'installment'}
-                        onChange={() => setInstallmentValueType('installment')}
-                        className="text-sky-600 focus:ring-sky-500 bg-white border-slate-300"
-                        style={{ minWidth: '16px' }}
-                      />
-                      <span className="text-sm font-medium text-slate-700 break-words">
-                        {type === 'income' ? 'Valor Mensal' : 'Valor da Parcela'}
-                      </span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer bg-white p-2 rounded-lg border border-sky-100 hover:bg-sky-50 transition-colors shadow-sm">
-                      <input
-                        type="radio"
-                        name="valueType"
-                        checked={installmentValueType === 'total'}
-                        onChange={() => setInstallmentValueType('total')}
-                        className="text-sky-600 focus:ring-sky-500 bg-white border-slate-300"
-                        style={{ minWidth: '16px' }}
-                      />
-                      <span className="text-sm font-medium text-slate-700 break-words">
-                        {type === 'income' ? 'Valor Total' : 'Valor Total'}
-                      </span>
-                    </label>
+                  <label className="text-xs font-bold text-sky-600 dark:text-sky-400 uppercase ml-1">O valor informado é:</label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
+                    <button
+                      type="button"
+                      onClick={() => setInstallmentValueType('installment')}
+                      className={`flex items-center justify-center gap-2 p-3 rounded-xl border transition-all text-[10px] font-black uppercase tracking-widest ${installmentValueType === 'installment' ? 'bg-white dark:bg-slate-900 border-sky-200 dark:border-sky-500 text-sky-600 shadow-sm' : 'bg-transparent border-sky-100 dark:border-sky-900 text-sky-400'}`}
+                    >
+                      {type === 'income' ? 'Mensal' : 'Parcela'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setInstallmentValueType('total')}
+                      className={`flex items-center justify-center gap-2 p-3 rounded-xl border transition-all text-[10px] font-black uppercase tracking-widest ${installmentValueType === 'total' ? 'bg-white dark:bg-slate-900 border-sky-200 dark:border-sky-500 text-sky-600 shadow-sm' : 'bg-transparent border-sky-100 dark:border-sky-900 text-sky-400'}`}
+                    >
+                      Valor Total
+                    </button>
                   </div>
                 </div>
               </div>

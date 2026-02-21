@@ -1285,105 +1285,93 @@ const App: React.FC = () => {
 
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex overflow-hidden selection:bg-sky-500/30">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex overflow-hidden selection:bg-sky-500/30 no-horizontal-scroll">
       <Sidebar currentView={currentView} onViewChange={setCurrentView} isOpen={sidebarOpen} setIsOpen={setSidebarOpen} onLogout={handleLogout} userRole={userRole} />
       <main className={`flex-1 flex flex-col transition-all duration-300 ml-0 ${sidebarOpen ? 'md:ml-64' : 'md:ml-20'}`}>
         {/* Header - White Glassmorphism */}
         {isSyncing && (
-          <div className="bg-sky-600 text-white text-[9px] font-black text-center py-0.5 uppercase tracking-tighter flex items-center justify-center gap-2">
+          <div className="bg-sky-600 text-white text-[9px] font-black text-center py-0.5 uppercase tracking-tighter flex items-center justify-center gap-2 pt-safe">
             <Loader2 size={10} className="animate-spin" />
             <span>Sincronizando dados com a nuvem...</span>
           </div>
         )}
 
-        <header className="h-20 bg-white/80 backdrop-blur-xl border-b border-slate-200 flex items-center justify-between px-4 md:px-8 sticky top-0 z-40">
-          {/* Mobile Menu Button */}
+        <header className="h-20 bg-white/80 backdrop-blur-xl border-b border-slate-200 flex items-center justify-between px-3 md:px-8 sticky top-0 z-40 pt-safe">
+          {/* Mobile Menu Button - Compact on small screens */}
           <button
             onClick={() => setSidebarOpen(true)}
-            className="md:hidden p-2.5 bg-sky-50 text-sky-600 rounded-xl border border-sky-100 mr-2"
+            className="md:hidden p-2 bg-sky-50 text-sky-600 rounded-xl border border-sky-100 mr-2 flex-shrink-0"
           >
             <Menu size={20} />
           </button>
-          {/* Global Month Filter in Center */}
-          <div className="flex-1 flex justify-center">
-            <div className="flex items-center gap-6 bg-white p-2 rounded-2xl border border-slate-200 shadow-sm">
+
+          {/* Global Month Filter in Center - Fluid display */}
+          <div className="flex-1 flex justify-center max-w-[200px] sm:max-w-none px-1">
+            <div className="flex items-center gap-1 sm:gap-6 bg-white p-1.5 sm:p-2 rounded-2xl border border-slate-200 shadow-sm w-full sm:w-auto justify-between sm:justify-center">
               <button
                 onClick={handlePrevMonth}
-                className="p-2 hover:bg-slate-50 rounded-xl text-slate-400 hover:text-sky-600 transition-all active:scale-95"
+                className="p-1.5 sm:p-2 hover:bg-slate-50 rounded-xl text-slate-400 hover:text-sky-600 transition-all active:scale-95"
               >
-                <ChevronLeft size={20} />
+                <ChevronLeft size={16} className="sm:w-5 sm:h-5" />
               </button>
-              <div className="text-center min-w-[160px]">
-                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-1">
-                  {currentDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
+              <div className="text-center flex-1 sm:min-w-[160px]">
+                <div className="text-[8px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5 sm:mb-1 truncate">
+                  {currentDate.toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' })}
                 </div>
-                <div className={`text-xl font-black ${monthlyBalance >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                <div className={`text-sm sm:text-xl font-black ${monthlyBalance >= 0 ? 'text-emerald-600' : 'text-rose-600'} truncate`}>
                   R$ {monthlyBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </div>
               </div>
               <button
                 onClick={handleNextMonth}
-                className="p-2 hover:bg-slate-50 rounded-xl text-slate-400 hover:text-sky-600 transition-all active:scale-95"
+                className="p-1.5 sm:p-2 hover:bg-slate-50 rounded-xl text-slate-400 hover:text-sky-600 transition-all active:scale-95"
               >
-                <ChevronRight size={20} />
+                <ChevronRight size={16} className="sm:w-5 sm:h-5" />
               </button>
             </div>
           </div>
 
 
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
             <NotificationCenter
               onAddTransaction={(t) => handleAddTransaction({ ...t, type: t.type as any })}
               notifications={notifications}
               onRespondToInvite={handleRespondToInvite}
             />
 
-            <div className="h-8 w-[1px] bg-slate-200"></div>
+            <div className="h-6 sm:h-8 w-[1px] bg-slate-200 hidden xs:block"></div>
 
-            {/* User Profile & Logout - Clean Context */}
-            <div className="flex items-center gap-4 pl-2">
-              <div className="text-right hidden sm:block">
+            {/* User Profile - Compact on mobile */}
+            <div className="flex items-center gap-2 sm:gap-4 pl-1 sm:pl-2">
+              <div className="text-right hidden lg:block">
                 <p className="text-sm font-black text-slate-900 leading-none">{user.name}</p>
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1.5">{user.email}</p>
               </div>
 
-              <div className="relative group/user">
-                <button
-                  onClick={() => setIsProfileModalOpen(true)}
-                  className="flex items-center gap-2 group relative"
-                  title="Meu Perfil"
-                >
-                  <div
-                    className="w-10 h-10 bg-sky-50 rounded-2xl flex items-center justify-center text-sky-600 font-black text-sm shadow-sm border border-sky-100 hover:bg-sky-100 transition-all cursor-pointer group relative overflow-hidden"
-                  >
-                    {user.avatarUrl ? (
-                      <img src={user.avatarUrl} alt={user.name} className="w-full h-full object-cover" />
-                    ) : (
-                      user.name ? user.name.charAt(0).toUpperCase() : 'U'
-                    )}
-                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                      <UserIcon size={16} className="text-white" />
-                    </div>
-                  </div>
-                </button>
-              </div>
-
-              <div className="h-8 w-[1px] bg-slate-100 mx-1"></div>
+              <button
+                onClick={() => setIsProfileModalOpen(true)}
+                className="w-9 h-9 sm:w-10 sm:h-10 bg-sky-50 rounded-xl sm:rounded-2xl flex items-center justify-center text-sky-600 font-black text-xs sm:text-sm shadow-sm border border-sky-100 hover:bg-sky-100 transition-all relative overflow-hidden"
+              >
+                {user.avatarUrl ? (
+                  <img src={user.avatarUrl} alt={user.name} className="w-full h-full object-cover" />
+                ) : (
+                  user.name ? user.name.charAt(0).toUpperCase() : 'U'
+                )}
+              </button>
 
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-2 px-3 py-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 font-black text-[10px] uppercase tracking-widest transition-all border border-transparent hover:border-rose-100"
-                title="Sair da conta"
+                className="p-2 sm:px-3 sm:py-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all border border-transparent hover:border-rose-100"
+                title="Sair"
               >
-                <LogOut size={16} />
-                <span className="hidden lg:inline">Sair</span>
+                <LogOut size={18} />
               </button>
             </div>
           </div>
         </header>
 
-        {/* Main Content Area - All views stay mounted, hidden via CSS to preserve state */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-6 relative scrollbar-hide">
+        {/* Main Content Area - Safe Area Awareness */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden p-3 md:p-6 relative scrollbar-hide pb-safe px-safe">
           {userRole === 'admin' && <div className={currentView === 'admin' ? '' : 'hidden'}><AdminPanel isOnline={isOnline} /></div>}
           <div className={currentView === 'dashboard' ? '' : 'hidden'}>
             <Dashboard

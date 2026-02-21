@@ -178,44 +178,51 @@ const BudgetManager: React.FC<BudgetManagerProps> = ({ transactions, budgets: pe
 
             {/* Summary Cards */}
             {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-emerald-50 dark:bg-emerald-900/10 p-6 rounded-[2rem] border border-emerald-100 dark:border-emerald-900/20 flex flex-col justify-between relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <Wallet size={48} className="text-emerald-600 dark:text-emerald-400" />
+            {/* Summary Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+                <div className="bg-emerald-50 dark:bg-emerald-900/10 p-5 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] border border-emerald-100 dark:border-emerald-900/20 flex flex-row sm:flex-col justify-between items-center sm:items-start relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-4 opacity-5 sm:opacity-10 group-hover:opacity-20 transition-opacity">
+                        <Wallet size={32} className="text-emerald-600 dark:text-emerald-400 sm:w-12 sm:h-12" />
                     </div>
-                    <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest mb-2">Receita Total</p>
-                    <p className="text-2xl font-black text-emerald-800 dark:text-emerald-300">
-                        R$ {monthlyIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                    </p>
+                    <div className="flex flex-col">
+                        <p className="text-[10px] sm:text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest mb-1 sm:mb-2">Receita Total</p>
+                        <p className="text-lg sm:text-2xl font-black text-emerald-800 dark:text-emerald-300">
+                            R$ {monthlyIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </p>
+                    </div>
                 </div>
 
-                <div className="bg-sky-50 dark:bg-sky-900/10 p-6 rounded-[2rem] border border-sky-100 dark:border-sky-900/20 flex flex-col justify-between relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <TrendingUp size={48} className="text-sky-600 dark:text-sky-400" />
+                <div className="bg-sky-50 dark:bg-sky-900/10 p-5 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] border border-sky-100 dark:border-sky-900/20 flex flex-row sm:flex-col justify-between items-center sm:items-start relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-4 opacity-5 sm:opacity-10 group-hover:opacity-20 transition-opacity">
+                        <TrendingUp size={32} className="text-sky-600 dark:text-sky-400 sm:w-12 sm:h-12" />
                     </div>
-                    <p className="text-xs font-bold text-sky-600 dark:text-sky-400 uppercase tracking-widest mb-2">Total Orçado</p>
-                    <p className="text-2xl font-black text-sky-800 dark:text-sky-300">
-                        R$ {totalBudgeted.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                    </p>
-                    <p className="text-xs font-bold text-sky-400 dark:text-sky-500 mt-1">
-                        {(monthlyIncome > 0 ? (totalBudgeted / monthlyIncome) * 100 : 0).toFixed(1)}% da Receita
-                    </p>
+                    <div className="flex flex-col">
+                        <p className="text-[10px] sm:text-xs font-bold text-sky-600 dark:text-sky-400 uppercase tracking-widest mb-1 sm:mb-2">Total Orçado</p>
+                        <p className="text-lg sm:text-2xl font-black text-sky-800 dark:text-sky-300">
+                            R$ {totalBudgeted.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </p>
+                        <p className="text-[10px] font-bold text-sky-400 dark:text-sky-500 mt-0.5 sm:mt-1">
+                            {(monthlyIncome > 0 ? (totalBudgeted / monthlyIncome) * 100 : 0).toFixed(1)}% da Receita
+                        </p>
+                    </div>
                 </div>
 
-                <div className={`p-6 rounded-[2rem] border flex flex-col justify-between relative overflow-hidden group transition-colors duration-500 ${projectedBalance < 0 ? 'bg-rose-50 dark:bg-rose-900/10 border-rose-100 dark:border-rose-900/20' : 'bg-indigo-50 dark:bg-indigo-900/10 border-indigo-100 dark:border-indigo-900/20'
+                <div className={`p-5 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] border flex flex-row sm:flex-col justify-between items-center sm:items-start relative overflow-hidden group transition-colors duration-500 ${projectedBalance < 0 ? 'bg-rose-50 dark:bg-rose-900/10 border-rose-100 dark:border-rose-900/20' : 'bg-indigo-50 dark:bg-indigo-900/10 border-indigo-100 dark:border-indigo-900/20'
                     }`}>
-                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                        {projectedBalance < 0 ? <AlertTriangle size={48} className="text-rose-600 dark:text-rose-400" /> : <Sparkles size={48} className="text-indigo-600 dark:text-indigo-400" />}
+                    <div className="absolute top-0 right-0 p-4 opacity-5 sm:opacity-10 group-hover:opacity-20 transition-opacity">
+                        {projectedBalance < 0 ? <AlertTriangle size={32} className="text-rose-600 dark:text-rose-400 sm:w-12 sm:h-12" /> : <Sparkles size={32} className="text-indigo-600 dark:text-indigo-400 sm:w-12 sm:h-12" />}
                     </div>
-                    <p className={`text-xs font-bold uppercase tracking-widest mb-2 ${projectedBalance < 0 ? 'text-rose-600 dark:text-rose-400' : 'text-indigo-600 dark:text-indigo-400'}`}>
-                        Saldo Projetado
-                    </p>
-                    <p className={`text-2xl font-black ${projectedBalance < 0 ? 'text-rose-800 dark:text-rose-300' : 'text-indigo-800 dark:text-indigo-300'}`}>
-                        R$ {projectedBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                    </p>
-                    <p className={`text-xs font-bold mt-1 ${projectedBalance < 0 ? 'text-rose-400 dark:text-rose-500 text-xs' : 'text-indigo-400 dark:text-indigo-500'}`}>
-                        {projectedBalance < 0 ? '⚠️ Orçamento Estourado' : 'Disponível para Metas'}
-                    </p>
+                    <div className="flex flex-col">
+                        <p className={`text-[10px] sm:text-xs font-bold uppercase tracking-widest mb-1 sm:mb-2 ${projectedBalance < 0 ? 'text-rose-600 dark:text-rose-400' : 'text-indigo-600 dark:text-indigo-400'}`}>
+                            Saldo Projetado
+                        </p>
+                        <p className={`text-lg sm:text-2xl font-black ${projectedBalance < 0 ? 'text-rose-800 dark:text-rose-300' : 'text-indigo-800 dark:text-indigo-300'}`}>
+                            R$ {projectedBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </p>
+                        <p className={`text-[10px] font-bold mt-0.5 sm:mt-1 ${projectedBalance < 0 ? 'text-rose-400 dark:text-rose-500' : 'text-indigo-400 dark:text-indigo-500'}`}>
+                            {projectedBalance < 0 ? '⚠️ Orçamento Estourado' : 'Disponível para Metas'}
+                        </p>
+                    </div>
                 </div>
             </div>
 

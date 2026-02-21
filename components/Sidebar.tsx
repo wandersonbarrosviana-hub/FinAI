@@ -42,23 +42,23 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, isOpen, se
 
       {/* Sidebar (Responsive: Fixed on Desktop, Overlay on Mobile) */}
       <aside
-        className={`fixed top-0 left-0 h-full bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 shadow-2xl md:shadow-sm transition-all duration-300 z-[70] flex-col flex ${isOpen ? 'w-64 translate-x-0' : 'w-20 -translate-x-full md:translate-x-0'
+        className={`fixed top-0 left-0 h-full bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 shadow-2xl md:shadow-sm transition-all duration-300 z-[70] flex-col flex pt-safe pb-safe ${isOpen ? 'w-64 translate-x-0' : 'w-20 -translate-x-full md:translate-x-0'
           }`}
       >
         {/* Logo Area */}
-        <div className="p-6 flex items-center justify-between border-b border-slate-100 dark:border-slate-800">
+        <div className="p-4 sm:p-6 flex items-center justify-between border-b border-slate-100 dark:border-slate-800">
           <div className="flex items-center gap-2">
             {isOpen ? (
               <img
                 src="/logo.png?v=2"
                 alt="FinAI"
-                className="h-12 w-auto object-contain"
+                className="h-10 sm:h-12 w-auto object-contain"
                 onError={(e) => {
                   e.currentTarget.style.display = 'none';
                   const parent = e.currentTarget.parentElement;
                   if (parent && !parent.querySelector('h1')) {
                     const text = document.createElement('h1');
-                    text.className = "text-2xl font-black tracking-tighter bg-gradient-to-r from-sky-600 to-blue-600 bg-clip-text text-transparent";
+                    text.className = "text-xl sm:text-2xl font-black tracking-tighter bg-gradient-to-r from-sky-600 to-blue-600 bg-clip-text text-transparent";
                     text.innerHTML = 'FinAI<span class="text-sky-500">.</span>';
                     parent.appendChild(text);
                   }
@@ -78,14 +78,14 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, isOpen, se
           {/* Mobile Close Button */}
           <button
             onClick={() => setIsOpen(false)}
-            className="md:hidden p-2 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg text-slate-400 hover:text-rose-600 transition-colors"
+            className="md:hidden p-2.5 bg-slate-50 dark:bg-slate-800 rounded-xl text-slate-400 hover:text-rose-600 transition-colors"
           >
             <X size={20} />
           </button>
         </div>
 
         {/* Navigation Items */}
-        <nav className="flex-1 overflow-y-auto py-6 px-3 scrollbar-hide space-y-2">
+        <nav className="flex-1 overflow-y-auto py-4 sm:py-6 px-3 scrollbar-hide space-y-1 sm:space-y-2">
           {filteredNavItems.map((item) => {
             const isActive = currentView === item.id;
 
@@ -93,17 +93,17 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, isOpen, se
               <button
                 key={item.id}
                 onClick={() => handleNavClick(item.id)}
-                className={`w-full flex items-center p-3 rounded-xl transition-all duration-300 relative group overflow-hidden ${isActive
+                className={`w-full flex items-center p-3 sm:p-3.5 rounded-xl transition-all duration-300 relative group overflow-hidden ${isActive
                   ? 'bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400 shadow-[inset_4px_0_0_0_#0284c7]'
                   : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800'
                   }`}
               >
-                <div className={`flex items-center relative z-10 ${isOpen ? 'ml-2' : 'mx-auto md:mx-auto'}`}>
+                <div className={`flex items-center relative z-10 ${isOpen ? 'ml-1 sm:ml-2' : 'mx-auto md:mx-auto'}`}>
                   {React.cloneElement(item.icon as any, {
                     size: 20,
                     className: isActive ? 'text-sky-600 dark:text-sky-400' : 'transition-colors'
                   })}
-                  <span className={`ml-3 text-sm font-bold tracking-tight flex items-center gap-1.5 whitespace-nowrap transition-all duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 md:hidden pointer-events-none'
+                  <span className={`ml-3 text-sm font-bold tracking-tight flex items-center gap-1.5 whitespace-nowrap transition-all duration-300 ${isOpen ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 md:hidden pointer-events-none'
                     } ${isActive ? 'text-sky-900 dark:text-sky-100' : ''}`}>
                     {item.label}
                     {(item as any).badge && (
@@ -113,32 +113,23 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, isOpen, se
                     )}
                   </span>
                 </div>
-
-                {/* Tooltip for collapsed mode desktop */}
-                {!isOpen && (
-                  <div className="hidden md:block absolute left-full ml-4 px-3 py-1.5 bg-white dark:bg-slate-800 text-sky-600 dark:text-sky-400 text-xs font-bold rounded-lg border border-slate-200 dark:border-slate-700 shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-all translate-x-2 group-hover:translate-x-0 z-50 whitespace-nowrap">
-                    {item.label}
-                  </div>
-                )}
               </button>
             );
           })}
         </nav>
 
         {/* Settings & Logout */}
-        <div className="p-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
+        <div className="p-4 border-t border-slate-100 dark:border-slate-800 space-y-1 sm:space-y-2">
           <button
             onClick={() => handleNavClick('settings')}
-            className={`w-full flex items-center p-3 rounded-xl transition-all duration-300 relative group overflow-hidden ${currentView === 'settings'
+            className={`w-full flex items-center p-3 sm:p-3.5 rounded-xl transition-all duration-300 relative group overflow-hidden ${currentView === 'settings'
               ? 'bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400 shadow-[inset_4px_0_0_0_#0284c7]'
               : 'text-slate-400 dark:text-slate-500 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800'
               }`}
           >
-            <div className={`flex items-center relative z-10 ${isOpen ? 'ml-2' : 'mx-auto md:mx-auto'}`}>
-              <div className="text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors">
-                <SettingsIcon size={20} className={currentView === 'settings' ? 'text-sky-600 dark:text-sky-400' : ''} />
-              </div>
-              <span className={`ml-3 text-sm font-bold tracking-tight transition-all duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 md:hidden pointer-events-none'
+            <div className={`flex items-center relative z-10 ${isOpen ? 'ml-1 sm:ml-2' : 'mx-auto md:mx-auto'}`}>
+              <SettingsIcon size={20} className={currentView === 'settings' ? 'text-sky-600 dark:text-sky-400' : ''} />
+              <span className={`ml-3 text-sm font-bold tracking-tight transition-all duration-300 ${isOpen ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 md:hidden pointer-events-none'
                 } ${currentView === 'settings' ? 'text-sky-900 dark:text-sky-100' : ''}`}>
                 Configurações
               </span>
@@ -146,11 +137,11 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, isOpen, se
           </button>
           <button
             onClick={onLogout}
-            className="w-full flex items-center p-3 rounded-xl transition-all duration-300 relative group overflow-hidden text-rose-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20"
+            className="w-full flex items-center p-3 sm:p-3.5 rounded-xl transition-all duration-300 relative group overflow-hidden text-rose-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20"
           >
-            <div className={`flex items-center relative z-10 ${isOpen ? 'ml-2' : 'mx-auto md:mx-auto'}`}>
+            <div className={`flex items-center relative z-10 ${isOpen ? 'ml-1 sm:ml-2' : 'mx-auto md:mx-auto'}`}>
               <LogOut size={20} />
-              <span className={`ml-3 text-sm font-bold tracking-tight transition-all duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 md:hidden pointer-events-none'
+              <span className={`ml-3 text-sm font-bold tracking-tight transition-all duration-300 ${isOpen ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 md:hidden pointer-events-none'
                 }`}>
                 Sair
               </span>
