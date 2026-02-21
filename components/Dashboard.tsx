@@ -457,7 +457,7 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
               {/* Mobile View: Cards */}
               <div className="md:hidden divide-y divide-slate-50 dark:divide-slate-800">
                 {transactions.slice(0, 5).map((t) => (
-                  <div key={t.id} className="p-4 flex flex-col gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                  <div key={t.id} className="p-4 flex flex-col gap-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                     <div className="flex justify-between items-start">
                       <div className="flex flex-col gap-1">
                         <span className="text-sm font-bold text-slate-900 dark:text-white truncate max-w-[200px]">
@@ -484,18 +484,37 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
                         </span>
                       </div>
                     </div>
-                    {t.created_by && familyMembers && familyMembers[t.created_by] && (
-                      <div className="flex items-center gap-1.5 pt-1 border-t border-slate-50 dark:border-slate-800/50">
-                        <img
-                          src={familyMembers[t.created_by].avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(familyMembers[t.created_by].name)}&background=random`}
-                          alt={familyMembers[t.created_by].name}
-                          className="w-4 h-4 rounded-full"
-                        />
-                        <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
-                          Enviado por {familyMembers[t.created_by].name.split(' ')[0]}
+
+                    <div className="flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/30 p-2 rounded-xl border border-slate-100 dark:border-slate-800">
+                      <div className="flex items-center gap-2">
+                        {(() => {
+                          const acc = accounts.find(a => a.id === t.account);
+                          return acc?.bankLogo ? (
+                            <img src={acc.bankLogo} className="w-5 h-5 object-contain opacity-70" alt="Bank" />
+                          ) : (
+                            <div className="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center border border-slate-200 dark:border-slate-700">
+                              <Wallet size={10} className="text-slate-400" />
+                            </div>
+                          );
+                        })()}
+                        <span className="text-[10px] font-bold text-slate-500 truncate max-w-[120px]">
+                          {accounts.find(a => a.id === t.account)?.name || 'Sem conta'}
                         </span>
                       </div>
-                    )}
+
+                      {t.created_by && familyMembers && familyMembers[t.created_by] && (
+                        <div className="flex items-center gap-1.5">
+                          <img
+                            src={familyMembers[t.created_by].avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(familyMembers[t.created_by].name)}&background=random`}
+                            alt={familyMembers[t.created_by].name}
+                            className="w-4 h-4 rounded-full"
+                          />
+                          <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
+                            {familyMembers[t.created_by].name.split(' ')[0]}
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>

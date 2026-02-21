@@ -122,8 +122,8 @@ const AllTransactions: React.FC<AllTransactionsProps> = ({ transactions, familyM
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest ${t.isPaid
-                                                ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400'
-                                                : 'bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400'
+                                            ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400'
+                                            : 'bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400'
                                             }`}>
                                             {t.isPaid ? 'Pago' : 'Pendente'}
                                         </span>
@@ -147,44 +147,55 @@ const AllTransactions: React.FC<AllTransactionsProps> = ({ transactions, familyM
                 {/* Mobile View */}
                 <div className="md:hidden flex flex-col divide-y divide-slate-50 dark:divide-slate-800">
                     {filteredTransactions.map((t) => (
-                        <div key={t.id} className="p-4 flex items-center justify-between">
-                            <div className="flex flex-col gap-1">
-                                <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-                                    {new Date(t.date).toLocaleDateString('pt-BR')}
-                                </span>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-sm font-bold text-slate-900 dark:text-white truncate max-w-[150px]">
-                                        {t.description}
-                                    </span>
-                                    {t.created_by && familyMembers && familyMembers[t.created_by] && (
-                                        <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 rounded-full pr-2 border border-slate-200 dark:border-slate-700 min-w-fit">
-                                            <img
-                                                src={familyMembers[t.created_by].avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(familyMembers[t.created_by].name)}&background=random`}
-                                                alt={familyMembers[t.created_by].name}
-                                                className="w-3 h-3 rounded-full"
-                                            />
-                                        </div>
-                                    )}
+                        <div key={t.id} className="p-4 flex flex-col gap-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                            <div className="flex justify-between items-start">
+                                <div className="flex flex-col gap-1">
+                                    <span className="text-sm font-bold text-slate-800 dark:text-white truncate max-w-[220px]">{t.description}</span>
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        <span className="px-2 py-0.5 rounded-lg text-[9px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 uppercase tracking-wider">
+                                            {t.category}
+                                        </span>
+                                        <span className="text-[10px] text-slate-400 font-medium">
+                                            {new Date(t.date).toLocaleDateString('pt-BR')}
+                                        </span>
+                                    </div>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded w-fit uppercase tracking-wider">
-                                        {t.category}
+                                <div className="text-right flex flex-col items-end gap-1">
+                                    <span className={`text-sm font-black ${t.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                                        {t.type === 'income' ? '+' : '-'} R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                     </span>
-                                    <span className={`text-[9px] font-black uppercase tracking-tighter ${t.isPaid
-                                            ? 'text-emerald-600 dark:text-emerald-400'
-                                            : 'text-amber-600 dark:text-amber-400'
+                                    <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest ${t.isPaid
+                                        ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400'
+                                        : 'bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400'
                                         }`}>
-                                        • {t.isPaid ? 'Pago' : 'Pendente'}
+                                        {t.isPaid ? 'Pago' : 'Pendente'}
                                     </span>
                                 </div>
                             </div>
-                            <div className={`text-sm font-black whitespace-nowrap ${t.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
-                                {t.type === 'income' ? '+' : '-'} R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+
+                            <div className="flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/30 p-2 rounded-xl border border-slate-100 dark:border-slate-800">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[10px] font-bold text-slate-500 truncate max-w-[150px]">
+                                        Extrato Completo
+                                    </span>
+                                </div>
+                                {t.created_by && familyMembers && familyMembers[t.created_by] && (
+                                    <div className="flex items-center gap-1.5">
+                                        <img
+                                            src={familyMembers[t.created_by].avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(familyMembers[t.created_by].name)}&background=random`}
+                                            alt={familyMembers[t.created_by].name}
+                                            className="w-4 h-4 rounded-full"
+                                        />
+                                        <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
+                                            {familyMembers[t.created_by].name.split(' ')[0]}
+                                        </span>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     ))}
                     {filteredTransactions.length === 0 && (
-                        <div className="p-6 text-center text-slate-500 dark:text-slate-400 text-sm italic">
+                        <div className="p-12 text-center text-slate-500 dark:text-slate-400 text-sm italic">
                             Nenhum lançamento encontrado para este período.
                         </div>
                     )}
