@@ -240,7 +240,7 @@ const BudgetManager: React.FC<BudgetManagerProps> = ({ transactions, budgets: pe
                 <div className="mb-6 px-2">
                     <h3 className="text-lg font-black text-slate-900 dark:text-white">Comparativo: Planejado vs. Real</h3>
                 </div>
-                <div className="h-64 w-full overflow-x-auto pb-4">
+                <div className="h-64 w-full overflow-x-auto pb-4 scrollbar-hide">
                     <div className="h-full min-w-[600px]">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
