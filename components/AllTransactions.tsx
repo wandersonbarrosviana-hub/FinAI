@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Transaction } from '../types';
-import { ChevronLeft, Filter, Calendar } from 'lucide-react';
+import { ChevronLeft, Filter, Calendar, Wallet } from 'lucide-react';
 
 interface AllTransactionsProps {
     transactions: Transaction[];
@@ -133,78 +133,69 @@ const AllTransactions: React.FC<AllTransactionsProps> = ({ transactions, familyM
                                     </td>
                                 </tr>
                             ))}
-                            {filteredTransactions.length === 0 && (
-                                <tr>
-                                    <td colSpan={4} className="p-8 text-center text-slate-500 dark:text-slate-400 text-sm italic">
-                                        Nenhum lançamento encontrado para este período.
-                                    </td>
-                                </tr>
-                            )}
                         </tbody>
                     </table>
                 </div>
 
                 {/* Mobile View */}
-                <div className="md:hidden flex flex-col">
-                    <div className="flex-1 overflow-y-auto p-4 sm:p-6 scrollbar-hide pb-safe">
-                        <div className="space-y-3">
-                            {filteredTransactions.length === 0 ? (
-                                <div className="p-12 text-center text-slate-400 italic text-sm">
-                                    Nenhum lançamento encontrado neste período.
-                                </div>
-                            ) : (
-                                filteredTransactions.map((t) => (
-                                    <div key={t.id} className="bg-white dark:bg-slate-900 p-4 rounded-[1.5rem] border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col gap-3 group hover:shadow-md transition-all active:scale-[0.98]">
-                                        <div className="flex justify-between items-start">
-                                            <div className="flex flex-col gap-1 overflow-hidden">
-                                                <span className="text-sm font-bold text-slate-800 dark:text-white truncate" title={t.description}>{t.description}</span>
-                                                <div className="flex flex-wrap items-center gap-2">
-                                                    <span className="px-2 py-0.5 rounded-lg text-[9px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 uppercase tracking-wider">
-                                                        {t.category}
-                                                    </span>
-                                                    <span className="text-[10px] text-slate-400 font-medium">
-                                                        {new Date(t.date).toLocaleDateString('pt-BR')}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <div className="text-right flex flex-col items-end gap-1 shrink-0 ml-4">
-                                                <span className={`text-sm font-black ${t.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
-                                                    {t.type === 'income' ? '+' : '-'} R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                <div className="md:hidden flex flex-col p-4 sm:p-6 pb-safe">
+                    <div className="space-y-3">
+                        {filteredTransactions.length === 0 ? (
+                            <div className="p-12 text-center text-slate-400 italic text-sm">
+                                Nenhum lançamento encontrado neste período.
+                            </div>
+                        ) : (
+                            filteredTransactions.map((t) => (
+                                <div key={t.id} className="bg-white dark:bg-slate-900 p-4 rounded-[1.5rem] border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col gap-3 group hover:shadow-md transition-all active:scale-[0.98]">
+                                    <div className="flex justify-between items-start">
+                                        <div className="flex flex-col gap-1 overflow-hidden">
+                                            <span className="text-sm font-bold text-slate-800 dark:text-white truncate" title={t.description}>{t.description}</span>
+                                            <div className="flex flex-wrap items-center gap-2">
+                                                <span className="px-2 py-0.5 rounded-lg text-[9px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 uppercase tracking-wider">
+                                                    {t.category}
                                                 </span>
-                                                <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest ${t.isPaid
-                                                    ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400'
-                                                    : 'bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400'
-                                                    }`}>
-                                                    {t.isPaid ? 'Pago' : 'Pendente'}
+                                                <span className="text-[10px] text-slate-400 font-medium">
+                                                    {new Date(t.date).toLocaleDateString('pt-BR')}
                                                 </span>
                                             </div>
                                         </div>
-                                        <div className="flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/30 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800">
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-5 h-5 bg-white dark:bg-slate-700 rounded-lg border border-slate-100 dark:border-slate-600 flex items-center justify-center overflow-hidden">
-                                                    <Wallet size={10} className="text-slate-400" />
-                                                </div>
-                                                <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 truncate max-w-[100px]">
-                                                    Carteira principal
-                                                </span>
-                                            </div>
-                                            {familyMembers && t.created_by && familyMembers[t.created_by] && (
-                                                <div className="flex items-center gap-1.5 font-bold text-slate-400">
-                                                    <img
-                                                        src={familyMembers[t.created_by].avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(familyMembers[t.created_by].name)}&background=random`}
-                                                        alt={familyMembers[t.created_by].name}
-                                                        className="w-4 h-4 rounded-full border border-white dark:border-slate-700 shadow-sm"
-                                                    />
-                                                    <span className="text-[10px]">
-                                                        {familyMembers[t.created_by].name.split(' ')[0]}
-                                                    </span>
-                                                </div>
-                                            )}
+                                        <div className="text-right flex flex-col items-end gap-1 shrink-0 ml-4">
+                                            <span className={`text-sm font-black ${t.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                                                {t.type === 'income' ? '+' : '-'} R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                            </span>
+                                            <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest ${t.isPaid
+                                                ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400'
+                                                : 'bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400'
+                                                }`}>
+                                                {t.isPaid ? 'Pago' : 'Pendente'}
+                                            </span>
                                         </div>
                                     </div>
-                                ))
-                            )}
-                        </div>
+                                    <div className="flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/30 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-5 h-5 bg-white dark:bg-slate-700 rounded-lg border border-slate-100 dark:border-slate-600 flex items-center justify-center overflow-hidden">
+                                                <Wallet size={10} className="text-slate-400" />
+                                            </div>
+                                            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 truncate max-w-[100px]">
+                                                Carteira principal
+                                            </span>
+                                        </div>
+                                        {familyMembers && t.created_by && familyMembers[t.created_by] && (
+                                            <div className="flex items-center gap-1.5 font-bold text-slate-400">
+                                                <img
+                                                    src={familyMembers[t.created_by].avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(familyMembers[t.created_by].name)}&background=random`}
+                                                    alt={familyMembers[t.created_by].name}
+                                                    className="w-4 h-4 rounded-full border border-white dark:border-slate-700 shadow-sm"
+                                                />
+                                                <span className="text-[10px]">
+                                                    {familyMembers[t.created_by].name.split(' ')[0]}
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            ))
+                        )}
                     </div>
                 </div>
             </div>

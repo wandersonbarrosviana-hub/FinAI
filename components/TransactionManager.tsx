@@ -33,49 +33,28 @@ const TransactionManager: React.FC<TransactionManagerProps> = ({
 
     // Sub-navigation Tabs
     const tabs = [
-        { id: 'expense', label: 'Despesas', icon: <TrendingDown size={18} /> },
-        { id: 'income', label: 'Receitas', icon: <TrendingUp size={18} /> },
-        { id: 'transfer', label: 'Transferências', icon: <ArrowRightLeft size={18} /> },
-        { id: 'statement', label: 'Extrato', icon: <FileText size={18} /> },
+        { id: 'expense', label: 'Despesas', icon: TrendingDown },
+        { id: 'income', label: 'Receitas', icon: TrendingUp },
+        { id: 'transfer', label: 'Transferências', icon: ArrowRightLeft },
+        { id: 'statement', label: 'Extrato', icon: FileText },
     ];
 
     return (
         <div className="space-y-6">
-            {/* Tab Navigation */}
+            {/* Tab Navigation - Mobile Fluid & Tactile */}
             <div className="flex flex-col gap-2">
-                {/* Mobile Dropdown */}
-                <div className="md:hidden">
-                    <div className="relative">
-                        <select
-                            value={activeTab}
-                            onChange={(e) => setActiveTab(e.target.value as any)}
-                            className="w-full appearance-none bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 py-3 px-4 pr-8 rounded-xl leading-tight focus:outline-none focus:bg-white dark:focus:bg-slate-900 focus:border-sky-500 font-bold text-sm uppercase tracking-wide shadow-sm"
-                        >
-                            {tabs.map(tab => (
-                                <option key={tab.id} value={tab.id}>
-                                    {tab.label}
-                                </option>
-                            ))}
-                        </select>
-                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500 dark:text-slate-400">
-                            <TrendingDown size={16} className="transform rotate-0" />
-                        </div>
-                    </div>
-                </div>
-
-                {/* Desktop Tabs */}
-                <div className="hidden md:flex p-1 bg-white dark:bg-slate-900 rounded-2xl w-full max-w-full overflow-x-auto border border-slate-100 dark:border-slate-800 shadow-sm custom-scrollbar">
+                <div className="flex p-1 bg-white dark:bg-slate-900 rounded-[1.2rem] w-full overflow-x-auto border border-slate-100 dark:border-slate-800 shadow-sm scrollbar-hide">
                     {tabs.map(tab => (
                         <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id as any)}
-                            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-[10px] font-black transition-all whitespace-nowrap uppercase tracking-widest flex-shrink-0 ${activeTab === tab.id
-                                ? 'bg-slate-50 dark:bg-slate-800 text-sky-600 dark:text-sky-400 shadow-sm ring-1 ring-slate-100 dark:ring-slate-700'
-                                : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-50/50 dark:hover:bg-slate-800/50'
+                            className={`flex flex-1 items-center justify-center gap-2 px-4 py-3 rounded-xl text-[10px] font-black transition-all whitespace-nowrap uppercase tracking-widest ${activeTab === tab.id
+                                ? 'bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400 shadow-sm ring-1 ring-sky-100 dark:ring-sky-900/20'
+                                : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'
                                 }`}
                         >
-                            {tab.icon}
-                            {tab.label}
+                            <tab.icon size={16} />
+                            <span className="hidden xs:inline">{tab.label}</span>
                         </button>
                     ))}
                 </div>

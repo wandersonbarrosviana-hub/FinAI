@@ -333,7 +333,7 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
               if (isFormOpen && editingId) { setIsFormOpen(false); setEditingId(null); resetForm(); }
               else setIsFormOpen(!isFormOpen);
             }}
-            className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2 rounded-xl transition-all shadow-sm font-bold ${isFormOpen ? 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700' : 'bg-sky-600 text-white hover:bg-sky-500 shadow-sky-100'}`}
+            className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-2xl transition-all shadow-sm font-bold ${isFormOpen ? 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700' : 'bg-sky-600 text-white hover:bg-sky-500 shadow-sky-100'}`}
           >
             {isFormOpen ? <X size={20} /> : <Plus size={20} />}
             <span className="uppercase tracking-wider text-xs">{isFormOpen ? 'Cancelar' : 'Novo Lançamento'}</span>
@@ -372,26 +372,26 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase ml-1">Periodicidade</label>
-              <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 gap-1 overflow-x-auto scrollbar-hide">
+              <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Periodicidade</label>
+              <div className="flex bg-slate-100 dark:bg-slate-800/50 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-700/50 gap-1.5 overflow-x-auto scrollbar-hide">
                 <button
                   type="button"
                   onClick={() => setFormData({ ...formData, recurrence: 'one_time' })}
-                  className={`flex-1 min-w-[70px] py-2.5 px-2 text-[10px] font-bold rounded-lg transition-all whitespace-nowrap uppercase tracking-widest ${formData.recurrence === 'one_time' ? 'bg-white dark:bg-slate-900 shadow-sm text-sky-600 dark:text-sky-400' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'}`}
+                  className={`flex-1 min-w-[80px] py-3 px-3 text-[10px] font-black rounded-xl transition-all whitespace-nowrap uppercase tracking-widest ${formData.recurrence === 'one_time' ? 'bg-white dark:bg-slate-900 shadow-sm text-sky-600 dark:text-sky-400 ring-1 ring-slate-100 dark:ring-slate-800' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'}`}
                 >
                   Única
                 </button>
                 <button
                   type="button"
                   onClick={() => setFormData({ ...formData, recurrence: 'installment' })}
-                  className={`flex-1 min-w-[70px] py-2.5 px-2 text-[10px] font-bold rounded-lg transition-all whitespace-nowrap uppercase tracking-widest ${formData.recurrence === 'installment' ? 'bg-white dark:bg-slate-900 shadow-sm text-sky-600 dark:text-sky-400' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'}`}
+                  className={`flex-1 min-w-[80px] py-3 px-3 text-[10px] font-black rounded-xl transition-all whitespace-nowrap uppercase tracking-widest ${formData.recurrence === 'installment' ? 'bg-white dark:bg-slate-900 shadow-sm text-sky-600 dark:text-sky-400 ring-1 ring-slate-100 dark:ring-slate-800' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'}`}
                 >
                   Parcelada
                 </button>
                 <button
                   type="button"
                   onClick={() => setFormData({ ...formData, recurrence: 'fixed' })}
-                  className={`flex-1 min-w-[70px] py-2.5 px-2 text-[10px] font-bold rounded-lg transition-all whitespace-nowrap uppercase tracking-widest ${formData.recurrence === 'fixed' ? 'bg-white dark:bg-slate-900 shadow-sm text-sky-600 dark:text-sky-400' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'}`}
+                  className={`flex-1 min-w-[80px] py-3 px-3 text-[10px] font-black rounded-xl transition-all whitespace-nowrap uppercase tracking-widest ${formData.recurrence === 'fixed' ? 'bg-white dark:bg-slate-900 shadow-sm text-sky-600 dark:text-sky-400 ring-1 ring-slate-100 dark:ring-slate-800' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'}`}
                 >
                   Fixa
                 </button>
@@ -399,9 +399,9 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
             </div>
 
             {formData.recurrence === 'installment' && (
-              <div className="space-y-4 md:col-span-2 lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-4 bg-sky-50/50 dark:bg-sky-900/10 p-4 rounded-2xl border border-sky-100 dark:border-sky-900/30 animate-in fade-in zoom-in duration-300">
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-sky-600 dark:text-sky-400 uppercase ml-1">
+              <div className="space-y-4 md:col-span-2 lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-4 bg-sky-50/30 dark:bg-sky-900/10 p-5 rounded-[1.5rem] border border-sky-100/50 dark:border-sky-900/30 animate-in fade-in zoom-in duration-300">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-sky-600 dark:text-sky-400 uppercase tracking-widest ml-1">
                     {type === 'income' ? 'Nº de Meses' : 'Parcelas'}
                   </label>
                   <input
@@ -409,25 +409,25 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
                     min="2"
                     max="999"
                     required
-                    className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-sky-200 dark:border-sky-900 rounded-xl outline-none focus:ring-2 focus:ring-sky-500 transition-all font-bold text-sky-600 text-center"
+                    className="w-full px-4 py-3.5 bg-white dark:bg-slate-800 border border-sky-200 dark:border-sky-900 rounded-2xl outline-none focus:ring-2 focus:ring-sky-500 transition-all font-black text-sky-600 text-center"
                     value={formData.installmentCount}
                     onChange={e => setFormData({ ...formData, installmentCount: parseInt(e.target.value) })}
                   />
                 </div>
-                <div className="space-y-1 md:col-span-2">
-                  <label className="text-xs font-bold text-sky-600 dark:text-sky-400 uppercase ml-1">O valor informado é:</label>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
+                <div className="space-y-1.5 md:col-span-2">
+                  <label className="text-[10px] font-black text-sky-600 dark:text-sky-400 uppercase tracking-widest ml-1">O valor informado é:</label>
+                  <div className="grid grid-cols-2 gap-2 mt-1">
                     <button
                       type="button"
                       onClick={() => setInstallmentValueType('installment')}
-                      className={`flex items-center justify-center gap-2 p-3 rounded-xl border transition-all text-[10px] font-black uppercase tracking-widest ${installmentValueType === 'installment' ? 'bg-white dark:bg-slate-900 border-sky-200 dark:border-sky-500 text-sky-600 shadow-sm' : 'bg-transparent border-sky-100 dark:border-sky-900 text-sky-400'}`}
+                      className={`flex items-center justify-center gap-2 p-3.5 rounded-2xl border transition-all text-[10px] font-black uppercase tracking-widest ${installmentValueType === 'installment' ? 'bg-white dark:bg-slate-900 border-sky-200 dark:border-sky-500 text-sky-600 shadow-sm' : 'bg-transparent border-sky-100 dark:border-sky-900 text-sky-400'}`}
                     >
                       {type === 'income' ? 'Mensal' : 'Parcela'}
                     </button>
                     <button
                       type="button"
                       onClick={() => setInstallmentValueType('total')}
-                      className={`flex items-center justify-center gap-2 p-3 rounded-xl border transition-all text-[10px] font-black uppercase tracking-widest ${installmentValueType === 'total' ? 'bg-white dark:bg-slate-900 border-sky-200 dark:border-sky-500 text-sky-600 shadow-sm' : 'bg-transparent border-sky-100 dark:border-sky-900 text-sky-400'}`}
+                      className={`flex items-center justify-center gap-2 p-3.5 rounded-2xl border transition-all text-[10px] font-black uppercase tracking-widest ${installmentValueType === 'total' ? 'bg-white dark:bg-slate-900 border-sky-200 dark:border-sky-500 text-sky-600 shadow-sm' : 'bg-transparent border-sky-100 dark:border-sky-900 text-sky-400'}`}
                     >
                       Valor Total
                     </button>

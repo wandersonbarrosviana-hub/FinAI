@@ -582,15 +582,22 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
 
       {/* All Transactions Modal */}
       {showAllTransactions && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white dark:bg-slate-900 w-full max-w-5xl h-[90vh] rounded-3xl shadow-2xl overflow-hidden flex flex-col relative animate-in zoom-in-95 duration-200">
-            <div className="p-6 h-full overflow-y-auto custom-scrollbar">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-0 sm:p-4 transition-all duration-300">
+          <div className="bg-white dark:bg-slate-950 w-full h-full sm:h-[90vh] sm:max-w-5xl sm:rounded-3xl shadow-2xl overflow-y-auto relative animate-in zoom-in-95 slide-in-from-bottom-10 duration-300">
+            <div className="p-4 sm:p-8">
               <AllTransactions
                 transactions={transactions}
                 familyMembers={familyMembers}
                 onBack={() => setShowAllTransactions(false)}
               />
             </div>
+            {/* Mobile close helper */}
+            <button
+              onClick={() => setShowAllTransactions(false)}
+              className="sm:hidden fixed top-4 right-4 z-[110] p-2 bg-slate-100/50 dark:bg-slate-800/50 backdrop-blur-md rounded-full text-slate-600 dark:text-slate-300 shadow-sm"
+            >
+              <X size={20} />
+            </button>
           </div>
         </div>
       )}
