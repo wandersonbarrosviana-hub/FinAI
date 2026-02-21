@@ -78,7 +78,7 @@ const Reports: React.FC<ReportsProps> = ({ transactions, accounts, tags, current
                     </button>
                 </div>
 
-                <div className="p-6 space-y-8">
+                <div className="p-4 sm:p-6 space-y-8">
                     {/* General Filter Section */}
                     <div>
                         <h3 className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-4">Filtro Geral</h3>

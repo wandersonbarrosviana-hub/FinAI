@@ -38,7 +38,7 @@ import { db } from './db';
 import { useOfflineSync } from './useOfflineSync';
 import { useLiveQuery } from 'dexie-react-hooks';
 
-const APP_VERSION = "1.1.0-OFFLINE-FIX";
+const APP_VERSION = "1.2.0-PREMIUM-UI";
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(() => {

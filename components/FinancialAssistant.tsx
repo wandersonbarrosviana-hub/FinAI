@@ -260,7 +260,7 @@ const FinancialAssistant: React.FC<FinancialAssistantProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-[700px] bg-white rounded-[2.5rem] border border-slate-100 shadow-xl overflow-hidden relative">
+    <div className="flex flex-col flex-1 min-h-[500px] bg-white rounded-[2.5rem] border border-slate-100 shadow-xl overflow-hidden relative">
 
       {/* Header */}
       <div className="p-6 bg-white/80 backdrop-blur-xl border-b border-slate-100 flex items-center justify-between sticky top-0 z-10">

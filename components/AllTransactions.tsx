@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Transaction } from '../types';
-import { ChevronLeft, Filter, Calendar, Wallet } from 'lucide-react';
+import { ChevronLeft, Filter, Wallet, ArrowUpCircle, ArrowDownCircle, ArrowRightCircle, Calendar } from 'lucide-react';
 
 interface AllTransactionsProps {
     transactions: Transaction[];
@@ -8,9 +8,10 @@ interface AllTransactionsProps {
     onBack: () => void;
 }
 
-const AllTransactions: React.FC<AllTransactionsProps> = ({ transactions, familyMembers, onBack }) => {
-    const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
-    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+const AllTransactions: React.FC<AllTransactionsProps> = ({ transactions = [], familyMembers, onBack }) => {
+    const now = new Date();
+    const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
+    const [selectedYear, setSelectedYear] = useState(now.getFullYear());
 
     const months = [
         'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
@@ -18,178 +19,154 @@ const AllTransactions: React.FC<AllTransactionsProps> = ({ transactions, familyM
     ];
 
     const years = useMemo(() => {
-        const uniqueYears = Array.from(new Set(transactions.map(t => new Date(t.date).getFullYear())));
-        if (!uniqueYears.includes(new Date().getFullYear())) {
-            uniqueYears.push(new Date().getFullYear());
-        }
-        return uniqueYears.sort((a, b) => b - a);
-    }, [transactions]);
+        const yearSet = new Set<number>();
+        yearSet.add(now.getFullYear());
+
+        transactions.forEach(t => {
+            if (t.date) {
+                const year = new Date(t.date).getFullYear();
+                if (!isNaN(year)) yearSet.add(year);
+            }
+        });
+
+        return Array.from(yearSet).sort((a, b) => b - a);
+    }, [transactions, now]);
 
     const filteredTransactions = useMemo(() => {
         return transactions.filter(t => {
+            if (!t.date) return false;
             const d = new Date(t.date);
+            if (isNaN(d.getTime())) return false;
             return d.getMonth() === selectedMonth && d.getFullYear() === selectedYear;
         }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     }, [transactions, selectedMonth, selectedYear]);
 
     return (
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            {/* Header */}
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-                <div className="flex items-center gap-4 w-full md:w-auto">
+        <div className="flex flex-col h-full space-y-6 animate-in fade-in duration-500">
+            {/* Header Fixed Inside Modal */}
+            <div className="flex flex-col gap-6">
+                <div className="flex items-center gap-4">
                     <button
                         onClick={onBack}
-                        className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
+                        className="p-3 bg-slate-50 dark:bg-slate-800 hover:bg-sky-50 dark:hover:bg-sky-900/20 text-slate-500 dark:text-slate-400 hover:text-sky-600 rounded-2xl transition-all border border-slate-100 dark:border-slate-800"
                     >
-                        <ChevronLeft className="text-slate-600 dark:text-slate-400" />
+                        <ChevronLeft size={20} />
                     </button>
                     <div>
-                        <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Todos os Lançamentos</h2>
-                        <p className="text-slate-500 dark:text-slate-400 font-medium text-sm">Histórico completo de transações</p>
+                        <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Histórico Completo</h2>
+                        <p className="text-slate-500 dark:text-slate-400 font-medium text-xs">Explore todos os seus lançamentos</p>
                     </div>
                 </div>
 
-                {/* Filters */}
-                <div className="flex items-center gap-3 bg-white dark:bg-slate-900 p-2 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm w-full md:w-auto overflow-x-auto">
-                    <div className="flex items-center gap-2 px-3 border-r border-slate-100 dark:border-slate-800">
-                        <Filter size={16} className="text-slate-400" />
-                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Filtrar</span>
+                {/* Filters Row */}
+                <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex items-center gap-2 px-4 py-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm ring-1 ring-black/5">
+                        <Calendar size={16} className="text-sky-500" />
+                        <select
+                            value={selectedMonth}
+                            onChange={(e) => setSelectedMonth(Number(e.target.value))}
+                            className="bg-transparent text-xs font-black text-slate-700 dark:text-slate-200 outline-none uppercase tracking-widest cursor-pointer"
+                        >
+                            {months.map((m, i) => <option key={i} value={i} className="dark:bg-slate-950">{m}</option>)}
+                        </select>
                     </div>
 
-                    <select
-                        value={selectedMonth}
-                        onChange={(e) => setSelectedMonth(Number(e.target.value))}
-                        className="bg-transparent text-sm font-bold text-slate-700 dark:text-slate-300 outline-none cursor-pointer py-1"
-                    >
-                        {months.map((m, i) => (
-                            <option key={i} value={i}>{m}</option>
-                        ))}
-                    </select>
-
-                    <div className="w-px h-4 bg-slate-200 dark:bg-slate-700"></div>
-
-                    <select
-                        value={selectedYear}
-                        onChange={(e) => setSelectedYear(Number(e.target.value))}
-                        className="bg-transparent text-sm font-bold text-slate-700 dark:text-slate-300 outline-none cursor-pointer py-1"
-                    >
-                        {years.map(y => (
-                            <option key={y} value={y}>{y}</option>
-                        ))}
-                    </select>
+                    <div className="flex items-center gap-2 px-4 py-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm ring-1 ring-black/5">
+                        <Filter size={16} className="text-sky-500" />
+                        <select
+                            value={selectedYear}
+                            onChange={(e) => setSelectedYear(Number(e.target.value))}
+                            className="bg-transparent text-xs font-black text-slate-700 dark:text-slate-200 outline-none uppercase tracking-widest cursor-pointer"
+                        >
+                            {years.map(y => <option key={y} value={y} className="dark:bg-slate-950">{y}</option>)}
+                        </select>
+                    </div>
                 </div>
             </div>
 
-            {/* Content */}
-            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
-                {/* Desktop View */}
-                <div className="hidden md:block overflow-x-auto">
-                    <table className="w-full text-left">
-                        <thead className="bg-slate-50/50 dark:bg-slate-800/50">
+            {/* List Container */}
+            <div className="flex-1 bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-sm ring-1 ring-black/5 dark:ring-white/5 overflow-hidden flex flex-col">
+                <div className="overflow-y-auto scrollbar-hide flex-1">
+                    {/* Desktop Table */}
+                    <table className="hidden md:table w-full text-left border-collapse">
+                        <thead className="sticky top-0 bg-slate-50/90 dark:bg-slate-800/90 backdrop-blur-md z-10">
                             <tr>
-                                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Data</th>
-                                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Descrição</th>
-                                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Categoria</th>
-                                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Status</th>
-                                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest text-right">Valor</th>
+                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Data</th>
+                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Descrição</th>
+                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Categoria</th>
+                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</th>
+                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right pr-8">Valor</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
-                            {filteredTransactions.map((t) => (
-                                <tr key={t.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
-                                    <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-400 whitespace-nowrap">{new Date(t.date).toLocaleDateString('pt-BR')}</td>
-                                    <td className="px-6 py-4 text-sm font-bold text-slate-900 dark:text-white whitespace-nowrap">
+                            {filteredTransactions.map(t => (
+                                <tr key={t.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                                    <td className="px-6 py-4 text-xs font-bold text-slate-500">{new Date(t.date).toLocaleDateString('pt-BR')}</td>
+                                    <td className="px-6 py-4">
                                         <div className="flex items-center gap-2">
-                                            {t.description}
-                                            {t.created_by && familyMembers && familyMembers[t.created_by] && (
-                                                <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 rounded-full pr-2 border border-slate-200 dark:border-slate-700">
-                                                    <img
-                                                        src={familyMembers[t.created_by].avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(familyMembers[t.created_by].name)}&background=random`}
-                                                        alt={familyMembers[t.created_by].name}
-                                                        className="w-4 h-4 rounded-full"
-                                                    />
-                                                    <span className="text-[9px] font-bold text-slate-600 dark:text-slate-400 max-w-[60px] truncate">
-                                                        {familyMembers[t.created_by].name.split(' ')[0]}
-                                                    </span>
-                                                </div>
-                                            )}
+                                            <span className="text-sm font-black text-slate-800 dark:text-white">{t.description}</span>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className="px-3 py-1 rounded-lg text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 uppercase tracking-wider transition-all">
+                                    <td className="px-6 py-4">
+                                        <span className="px-2 py-1 rounded-lg text-[10px] font-black bg-slate-100 dark:bg-slate-800 text-slate-500 uppercase tracking-wider border border-slate-200 dark:border-slate-700">
                                             {t.category}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest ${t.isPaid
-                                            ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400'
-                                            : 'bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400'
-                                            }`}>
+                                    <td className="px-6 py-4">
+                                        <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest ${t.isPaid ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
                                             {t.isPaid ? 'Pago' : 'Pendente'}
                                         </span>
                                     </td>
-                                    <td className={`px-6 py-4 text-sm font-black text-right whitespace-nowrap ${t.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                                    <td className={`px-6 py-4 text-sm font-black text-right pr-8 ${t.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}`}>
                                         {t.type === 'income' ? '+' : '-'} R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                     </td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
-                </div>
 
-                {/* Mobile View */}
-                <div className="md:hidden flex flex-col p-4 sm:p-6 pb-safe">
-                    <div className="space-y-3">
+                    {/* Mobile Cards */}
+                    <div className="md:hidden divide-y divide-slate-50 dark:divide-slate-800 px-4">
                         {filteredTransactions.length === 0 ? (
-                            <div className="p-12 text-center text-slate-400 italic text-sm">
-                                Nenhum lançamento encontrado neste período.
+                            <div className="py-20 text-center flex flex-col items-center gap-4">
+                                <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-full text-slate-300">
+                                    <ArrowUpCircle size={40} className="rotate-45 opacity-20" />
+                                </div>
+                                <p className="text-sm font-bold text-slate-400 italic">Nenhum lançamento encontrado.</p>
                             </div>
                         ) : (
-                            filteredTransactions.map((t) => (
-                                <div key={t.id} className="bg-white dark:bg-slate-900 p-4 rounded-[1.5rem] border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col gap-3 group hover:shadow-md transition-all active:scale-[0.98]">
+                            filteredTransactions.map(t => (
+                                <div key={t.id} className="py-5 flex flex-col gap-3">
                                     <div className="flex justify-between items-start">
                                         <div className="flex flex-col gap-1 overflow-hidden">
-                                            <span className="text-sm font-bold text-slate-800 dark:text-white truncate" title={t.description}>{t.description}</span>
-                                            <div className="flex flex-wrap items-center gap-2">
-                                                <span className="px-2 py-0.5 rounded-lg text-[9px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 uppercase tracking-wider">
+                                            <span className="text-sm font-black text-slate-800 dark:text-white truncate">{t.description}</span>
+                                            <div className="flex items-center gap-2">
+                                                <span className="px-2 py-0.5 rounded-lg text-[9px] font-black bg-slate-50 dark:bg-slate-800 text-slate-500 uppercase tracking-widest border border-slate-100 dark:border-slate-800">
                                                     {t.category}
                                                 </span>
-                                                <span className="text-[10px] text-slate-400 font-medium">
-                                                    {new Date(t.date).toLocaleDateString('pt-BR')}
-                                                </span>
+                                                <span className="text-[10px] text-slate-400 font-bold">{new Date(t.date).toLocaleDateString('pt-BR')}</span>
                                             </div>
                                         </div>
-                                        <div className="text-right flex flex-col items-end gap-1 shrink-0 ml-4">
-                                            <span className={`text-sm font-black ${t.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                                        <div className="text-right flex flex-col items-end gap-1 shrink-0">
+                                            <span className={`text-sm font-black ${t.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}`}>
                                                 {t.type === 'income' ? '+' : '-'} R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                             </span>
-                                            <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest ${t.isPaid
-                                                ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400'
-                                                : 'bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400'
-                                                }`}>
+                                            <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest ${t.isPaid ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
                                                 {t.isPaid ? 'Pago' : 'Pendente'}
                                             </span>
                                         </div>
                                     </div>
                                     <div className="flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/30 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800">
                                         <div className="flex items-center gap-2">
-                                            <div className="w-5 h-5 bg-white dark:bg-slate-700 rounded-lg border border-slate-100 dark:border-slate-600 flex items-center justify-center overflow-hidden">
-                                                <Wallet size={10} className="text-slate-400" />
-                                            </div>
-                                            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 truncate max-w-[100px]">
-                                                Carteira principal
+                                            <Wallet size={12} className="text-sky-500" />
+                                            <span className="text-[10px] font-bold text-slate-500 truncate max-w-[120px]">
+                                                Carteira Principal
                                             </span>
                                         </div>
                                         {familyMembers && t.created_by && familyMembers[t.created_by] && (
-                                            <div className="flex items-center gap-1.5 font-bold text-slate-400">
-                                                <img
-                                                    src={familyMembers[t.created_by].avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(familyMembers[t.created_by].name)}&background=random`}
-                                                    alt={familyMembers[t.created_by].name}
-                                                    className="w-4 h-4 rounded-full border border-white dark:border-slate-700 shadow-sm"
-                                                />
-                                                <span className="text-[10px]">
-                                                    {familyMembers[t.created_by].name.split(' ')[0]}
-                                                </span>
+                                            <div className="flex items-center gap-1.5 bg-white/80 dark:bg-slate-900/80 px-2 py-1 rounded-full border border-slate-100 dark:border-slate-800 shadow-sm">
+                                                <img src={familyMembers[t.created_by].avatar} className="w-3.5 h-3.5 rounded-full" alt="Member" />
+                                                <span className="text-[9px] font-black text-slate-500 uppercase tracking-tighter">{familyMembers[t.created_by].name.split(' ')[0]}</span>
                                             </div>
                                         )}
                                     </div>

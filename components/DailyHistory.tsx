@@ -58,7 +58,7 @@ const DailyHistory: React.FC<DailyHistoryProps> = ({ transactions, accounts, onC
             <div className="bg-white dark:bg-slate-900 w-full max-w-2xl max-h-[90vh] rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
 
                 {/* Header */}
-                <div className="p-6 sm:p-8 border-b border-slate-50 dark:border-slate-800 flex items-center justify-between">
+                <div className="p-4 sm:p-8 border-b border-slate-50 dark:border-slate-800 flex items-center justify-between">
                     <div>
                         <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2 tracking-tight">
                             <Calendar className="text-sky-600" size={24} />
@@ -75,7 +75,7 @@ const DailyHistory: React.FC<DailyHistoryProps> = ({ transactions, accounts, onC
                 </div>
 
                 {/* Summary Cards */}
-                <div className="flex md:grid md:grid-cols-3 gap-4 p-6 bg-slate-50/50 dark:bg-slate-800/20 border-b border-slate-100 dark:border-slate-800 overflow-x-auto custom-scrollbar">
+                <div className="flex md:grid md:grid-cols-3 gap-3 p-4 sm:p-6 bg-slate-50/50 dark:bg-slate-800/20 border-b border-slate-100 dark:border-slate-800 overflow-x-auto custom-scrollbar">
                     <div className="bg-emerald-50 dark:bg-emerald-950/20 p-3 rounded-2xl border border-emerald-100 dark:border-emerald-900/30 text-center min-w-[120px] flex-1">
                         <p className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase mb-1 tracking-widest">Entradas</p>
                         <p className="text-lg font-black text-emerald-700 dark:text-emerald-300">
