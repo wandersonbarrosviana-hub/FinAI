@@ -28,7 +28,7 @@ import AccountModal from './components/AccountModal';
 import { canAddAccount, canAddCard, canUseAI, PLAN_LIMITS } from './planConstraints';
 import { Budget, CustomBudget } from './types';
 
-import { Bell, Search, User as UserIcon, Plus, Sparkles, AlertCircle, ChevronLeft, ChevronRight, Loader2, LogOut, Settings as SettingsIcon, MessageSquare } from 'lucide-react';
+import { Bell, Search, User as UserIcon, Plus, Sparkles, AlertCircle, ChevronLeft, ChevronRight, Loader2, LogOut, Settings as SettingsIcon, MessageSquare, Menu } from 'lucide-react';
 import { parseNotification } from './aiService';
 import { supabase } from './supabaseClient';
 import { Transaction, Account, Goal, User, ViewState, Tag, AppNotification, Debt } from './types';
@@ -54,7 +54,10 @@ const App: React.FC = () => {
   const [familyMembers, setFamilyMembers] = useState<Record<string, { name: string, avatar: string }>>(() => {
     try { return JSON.parse(localStorage.getItem('finai_family_members') || '{}'); } catch { return {}; }
   });
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(() => {
+    // Start closed on mobile, open on desktop
+    return window.innerWidth >= 768;
+  });
   const [userRole, setUserRole] = useState<string>(() => localStorage.getItem('finai_user_role') || 'user');
   const [userPlan, setUserPlan] = useState<'free' | 'pro' | 'premium'>(() => (localStorage.getItem('finai_user_plan') as any) || 'free');
   const [currentView, setCurrentView] = useState<ViewState | 'settings'>(() => {
@@ -1284,7 +1287,7 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex overflow-hidden selection:bg-sky-500/30">
       <Sidebar currentView={currentView} onViewChange={setCurrentView} isOpen={sidebarOpen} setIsOpen={setSidebarOpen} onLogout={handleLogout} userRole={userRole} />
-      <main className={`flex-1 flex flex-col transition-all duration-300 mb-[88px] md:mb-0 ml-0 ${sidebarOpen ? 'md:ml-64' : 'md:ml-20'}`}>
+      <main className={`flex-1 flex flex-col transition-all duration-300 ml-0 ${sidebarOpen ? 'md:ml-64' : 'md:ml-20'}`}>
         {/* Header - White Glassmorphism */}
         {isSyncing && (
           <div className="bg-sky-600 text-white text-[9px] font-black text-center py-0.5 uppercase tracking-tighter flex items-center justify-center gap-2">
@@ -1294,6 +1297,13 @@ const App: React.FC = () => {
         )}
 
         <header className="h-20 bg-white/80 backdrop-blur-xl border-b border-slate-200 flex items-center justify-between px-4 md:px-8 sticky top-0 z-40">
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="md:hidden p-2.5 bg-sky-50 text-sky-600 rounded-xl border border-sky-100 mr-2"
+          >
+            <Menu size={20} />
+          </button>
           {/* Global Month Filter in Center */}
           <div className="flex-1 flex justify-center">
             <div className="flex items-center gap-6 bg-white p-2 rounded-2xl border border-slate-200 shadow-sm">
