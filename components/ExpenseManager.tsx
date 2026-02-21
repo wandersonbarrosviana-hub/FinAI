@@ -305,20 +305,24 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-          Gerenciar {type === 'expense' ? 'Despesas' : 'Receitas'}
-        </h2>
-        <div className="flex gap-2 w-full sm:w-auto">
+    <div className="space-y-8 animate-in fade-in duration-500">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+        <div>
+          <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+            Gerenciar {type === 'expense' ? 'Despesas' : 'Receitas'}
+          </h2>
+          <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-1">Organize seu fluxo financeiro</p>
+        </div>
+
+        <div className="flex gap-3 w-full sm:w-auto">
           {type === 'income' && (
             <button
               onClick={() => setShowHistory(true)}
-              className="p-2 sm:px-4 sm:py-2 bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-sky-50 dark:hover:bg-slate-700 rounded-xl transition-all shadow-sm border border-slate-200 dark:border-slate-700 flex items-center justify-center gap-2"
+              className="flex-1 sm:flex-none p-3.5 bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-sky-50 dark:hover:bg-slate-700 rounded-2xl transition-all shadow-sm border border-slate-200 dark:border-slate-700 flex items-center justify-center gap-2"
               title="Ver Extrato Diário"
             >
               <FileText size={20} />
-              <span className="hidden sm:inline font-bold text-xs uppercase tracking-wider">Extrato</span>
+              <span className="font-black text-[10px] uppercase tracking-widest">Extrato</span>
             </button>
           )}
 
@@ -333,10 +337,10 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
               if (isFormOpen && editingId) { setIsFormOpen(false); setEditingId(null); resetForm(); }
               else setIsFormOpen(!isFormOpen);
             }}
-            className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-2xl transition-all shadow-sm font-bold ${isFormOpen ? 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700' : 'bg-sky-600 text-white hover:bg-sky-500 shadow-sky-100'}`}
+            className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-8 py-4 rounded-2xl transition-all shadow-xl font-black text-[10px] uppercase tracking-widest ${isFormOpen ? 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700' : 'bg-sky-600 text-white hover:bg-sky-500 shadow-sky-100 dark:shadow-sky-900/20'}`}
           >
             {isFormOpen ? <X size={20} /> : <Plus size={20} />}
-            <span className="uppercase tracking-wider text-xs">{isFormOpen ? 'Cancelar' : 'Novo Lançamento'}</span>
+            <span>{isFormOpen ? 'Fechar' : 'Novo Lançamento'}</span>
           </button>
         </div>
       </div>
@@ -350,22 +354,24 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
       )}
 
       {isFormOpen && (
-        <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-900 p-6 md:p-8 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-xl animate-in fade-in slide-in-from-top-4 duration-500">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-bold text-slate-400 dark:text-slate-500 uppercase flex items-center gap-2">
-              {editingId ? <Edit2 size={16} /> : <Plus size={16} />}
+        <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-900 p-[var(--fluid-space-md)] rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-xl animate-in fade-in slide-in-from-top-4 duration-500 ring-1 ring-black/5 dark:ring-white/5">
+          <div className="flex items-center justify-between mb-8">
+            <h3 className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase flex items-center gap-3 tracking-widest">
+              <div className="p-2.5 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700">
+                {editingId ? <Edit2 size={18} /> : <Plus size={18} />}
+              </div>
               {editingId ? 'Editar Lançamento' : 'Novo Lançamento'}
             </h3>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase ml-1">Descrição</label>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5">
+            <div className="space-y-1.5 focus-within:transform focus-within:scale-[1.01] transition-transform">
+              <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase ml-1 tracking-widest">Descrição</label>
               <input
                 type="text"
                 required
-                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all font-medium text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500"
-                placeholder={type === 'income' ? "Ex: Salário" : "Ex: Compra"}
+                className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl outline-none focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 transition-all font-bold text-slate-800 dark:text-white placeholder:text-slate-300 dark:placeholder:text-slate-600 text-sm"
+                placeholder={type === 'income' ? "Ex: Salário Mensal" : "Ex: Supermercado"}
                 value={formData.description}
                 onChange={e => setFormData({ ...formData, description: e.target.value })}
               />
@@ -462,41 +468,46 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
               )}
             </div>
 
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase ml-1">Categoria</label>
-              <select
-                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-sky-500/20 transition-all text-slate-900 dark:text-white font-medium"
-                value={formData.category}
-                onChange={e => {
-                  const cat = e.target.value;
-                  setFormData({ ...formData, category: cat, subCategory: targetMap[cat] ? targetMap[cat][0] : '' });
-                }}
-              >
-                {categoriesList.map(cat => (
-                  <option key={cat} value={cat}>{cat}</option>
-                ))}
-              </select>
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase ml-1 tracking-widest">Categoria</label>
+              <div className="relative">
+                <select
+                  className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl outline-none focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 transition-all text-slate-800 dark:text-white font-bold text-sm appearance-none cursor-pointer"
+                  value={formData.category}
+                  onChange={e => {
+                    const cat = e.target.value;
+                    setFormData({ ...formData, category: cat, subCategory: targetMap[cat] ? targetMap[cat][0] : '' });
+                  }}
+                >
+                  {categoriesList.map(cat => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                  <PieChart size={16} />
+                </div>
+              </div>
             </div>
 
             {formData.category === 'Outros' ? (
               <>
-                <div className="space-y-1 animate-in fade-in zoom-in duration-300">
-                  <label className="text-xs font-bold text-cyan-400 uppercase ml-1">Nome da Categoria</label>
+                <div className="space-y-1.5 animate-in fade-in zoom-in duration-300">
+                  <label className="text-[10px] font-black text-sky-600 dark:text-sky-400 uppercase ml-1 tracking-widest">Nome da Categoria</label>
                   <input
                     type="text"
                     required
-                    className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-sky-200 dark:border-sky-900 rounded-xl outline-none focus:ring-2 focus:ring-sky-500 transition-all font-medium text-slate-900 dark:text-white"
+                    className="w-full px-5 py-4 bg-white dark:bg-slate-800 border border-sky-200 dark:border-sky-900 rounded-2xl outline-none focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 transition-all font-bold text-slate-800 dark:text-white"
                     placeholder="Digite a categoria..."
                     value={customCategory}
                     onChange={e => setCustomCategory(e.target.value)}
                   />
                 </div>
-                <div className="space-y-1 animate-in fade-in zoom-in duration-300">
-                  <label className="text-xs font-bold text-cyan-400 uppercase ml-1">Nome da Subcategoria</label>
+                <div className="space-y-1.5 animate-in fade-in zoom-in duration-300">
+                  <label className="text-[10px] font-black text-sky-600 dark:text-sky-400 uppercase ml-1 tracking-widest">Nome da Subcategoria</label>
                   <input
                     type="text"
                     required
-                    className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-sky-200 dark:border-sky-900 rounded-xl outline-none focus:ring-2 focus:ring-sky-500 transition-all font-medium text-slate-900 dark:text-white"
+                    className="w-full px-5 py-4 bg-white dark:bg-slate-800 border border-sky-200 dark:border-sky-900 rounded-2xl outline-none focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 transition-all font-bold text-slate-800 dark:text-white"
                     placeholder="Digite a subcategoria..."
                     value={customSubCategory}
                     onChange={e => setCustomSubCategory(e.target.value)}
@@ -504,25 +515,30 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
                 </div>
               </>
             ) : (
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase ml-1">Subcategoria</label>
-                <select
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-sky-500/20 transition-all text-slate-900 dark:text-white font-medium"
-                  value={formData.subCategory}
-                  onChange={e => setFormData({ ...formData, subCategory: e.target.value })}
-                >
-                  {targetMap[formData.category as string]?.map(sub => (
-                    <option key={sub} value={sub}>{sub}</option>
-                  ))}
-                </select>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase ml-1 tracking-widest">Subcategoria</label>
+                <div className="relative">
+                  <select
+                    className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl outline-none focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 transition-all text-slate-800 dark:text-white font-bold text-sm appearance-none cursor-pointer"
+                    value={formData.subCategory}
+                    onChange={e => setFormData({ ...formData, subCategory: e.target.value })}
+                  >
+                    {targetMap[formData.category as string]?.map(sub => (
+                      <option key={sub} value={sub}>{sub}</option>
+                    ))}
+                  </select>
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                    <Tag size={16} />
+                  </div>
+                </div>
               </div>
             )}
 
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase ml-1">Conta / Carteira</label>
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase ml-1 tracking-widest">Conta / Carteira</label>
               <div className="relative">
                 <select
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-sky-500/20 transition-all text-slate-900 dark:text-white font-medium appearance-none"
+                  className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl outline-none focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 transition-all text-slate-800 dark:text-white font-bold text-sm appearance-none cursor-pointer"
                   value={accountId}
                   onChange={e => setAccountId(e.target.value)}
                 >
@@ -532,84 +548,107 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
                   ))}
                   {accounts.length === 0 && <option value="" disabled>Crie uma conta primeiro</option>}
                 </select>
-                <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 pointer-events-none">
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 pointer-events-none">
                   <Wallet size={16} />
                 </div>
               </div>
             </div>
 
             {/* Date Inputs */}
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase ml-1">Data Lançamento</label>
-              <input
-                type="date"
-                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-sky-500/20 transition-all text-slate-900 dark:text-white font-medium"
-                value={formData.date}
-                onChange={e => setFormData({ ...formData, date: e.target.value })}
-              />
+            <div className="space-y-1.5 focus-within:transform focus-within:scale-[1.01] transition-transform">
+              <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase ml-1 tracking-widest">Data Lançamento</label>
+              <div className="relative">
+                <input
+                  type="date"
+                  className="w-full pl-5 pr-10 py-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl outline-none focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 transition-all text-slate-800 dark:text-white font-bold text-sm appearance-none"
+                  value={formData.date}
+                  onChange={e => setFormData({ ...formData, date: e.target.value })}
+                />
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                  <Calendar size={16} />
+                </div>
+              </div>
             </div>
 
             {(type === 'income' || type === 'expense') && (
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase ml-1">
-                  {type === 'income' ? 'Data Vencimento (Prevista)' : 'Data Vencimento'}
+              <div className="space-y-1.5 focus-within:transform focus-within:scale-[1.01] transition-transform">
+                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase ml-1 tracking-widest">
+                  {type === 'income' ? 'Vencimento (Prevista)' : 'Data Vencimento'}
                 </label>
-                <input
-                  type="date"
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-sky-500/20 transition-all text-slate-900 dark:text-white font-medium"
-                  value={formData.dueDate}
-                  onChange={e => setFormData({ ...formData, dueDate: e.target.value })}
-                />
+                <div className="relative">
+                  <input
+                    type="date"
+                    className="w-full pl-5 pr-10 py-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl outline-none focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 transition-all text-slate-800 dark:text-white font-bold text-sm appearance-none"
+                    value={formData.dueDate}
+                    onChange={e => setFormData({ ...formData, dueDate: e.target.value })}
+                  />
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                    <Clock size={16} />
+                  </div>
+                </div>
               </div>
             )}
 
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-500 uppercase ml-1">Data Efetivação</label>
-              <input
-                type="date"
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-sky-500/20 transition-all text-slate-900 font-medium"
-                value={paymentDate}
-                onChange={e => setPaymentDate(e.target.value)}
-              />
+            <div className="space-y-1.5 focus-within:transform focus-within:scale-[1.01] transition-transform">
+              <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase ml-1 tracking-widest">Data Efetivação</label>
+              <div className="relative">
+                <input
+                  type="date"
+                  className="w-full pl-5 pr-10 py-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl outline-none focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 transition-all text-slate-800 dark:text-white font-bold text-sm appearance-none"
+                  value={paymentDate}
+                  onChange={e => setPaymentDate(e.target.value)}
+                />
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                  <CheckCircle size={16} />
+                </div>
+              </div>
             </div>
 
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-500 uppercase ml-1">Método</label>
-              <select
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-sky-500/20 transition-all text-slate-900 font-medium"
-                value={formData.paymentMethod}
-                onChange={e => setFormData({ ...formData, paymentMethod: e.target.value })}
-              >
-                {type === 'expense' ? (
-                  <>
-                    <option value="Cartão de Crédito">Cartão de Crédito</option>
-                    <option value="PIX">PIX</option>
-                    <option value="Dinheiro">Dinheiro</option>
-                    <option value="Boleto">Boleto</option>
-                    <option value="Débito">Débito</option>
-                    <option value="Transferência">Transferência</option>
-                  </>
-                ) : (
-                  <>
-                    <option value="PIX">PIX</option>
-                    <option value="Dinheiro">Dinheiro</option>
-                    <option value="Transferência">Transferência</option>
-                    <option value="Boleto">Boleto</option>
-                    <option value="Outros">Outros</option>
-                  </>
-                )}
-              </select>
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase ml-1 tracking-widest">Método</label>
+              <div className="relative">
+                <select
+                  className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl outline-none focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 transition-all text-slate-800 dark:text-white font-bold text-sm appearance-none cursor-pointer"
+                  value={formData.paymentMethod}
+                  onChange={e => setFormData({ ...formData, paymentMethod: e.target.value })}
+                >
+                  {type === 'expense' ? (
+                    <>
+                      <option value="Cartão de Crédito">Cartão de Crédito</option>
+                      <option value="PIX">PIX</option>
+                      <option value="Dinheiro">Dinheiro</option>
+                      <option value="Boleto">Boleto</option>
+                      <option value="Débito">Débito</option>
+                      <option value="Transferência">Transferência</option>
+                    </>
+                  ) : (
+                    <>
+                      <option value="PIX">PIX</option>
+                      <option value="Dinheiro">Dinheiro</option>
+                      <option value="Transferência">Transferência</option>
+                      <option value="Boleto">Boleto</option>
+                      <option value="Outros">Outros</option>
+                    </>
+                  )}
+                </select>
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                  <CreditCard size={16} />
+                </div>
+              </div>
             </div>
 
             <div className="flex items-end pb-1 md:col-span-2 lg:col-span-1">
-              <label className={`flex items-center space-x-3 cursor-pointer p-3 rounded-xl border transition-all w-full ${formData.isPaid ? 'bg-emerald-50 border-emerald-100' : 'bg-slate-50 border-slate-200'}`}>
-                <input
-                  type="checkbox"
-                  className="w-5 h-5 rounded-lg border-slate-300 bg-white text-sky-600 focus:ring-sky-500 scale-100 accent-emerald-600"
-                  checked={formData.isPaid}
-                  onChange={e => setFormData({ ...formData, isPaid: e.target.checked })}
-                />
-                <span className={`text-[10px] font-black uppercase tracking-widest ${formData.isPaid ? 'text-emerald-700' : 'text-slate-400'}`}>
+              <label className={`flex items-center space-x-4 cursor-pointer p-4 rounded-2xl border transition-all w-full ring-1 ${formData.isPaid ? 'bg-emerald-50/50 border-emerald-100 dark:bg-emerald-900/10 dark:border-emerald-900/30 ring-emerald-50 dark:ring-emerald-900/10' : 'bg-slate-50/50 border-slate-200 dark:bg-slate-800/50 dark:border-slate-700 ring-slate-100 dark:ring-slate-800/20'}`}>
+                <div className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="sr-only peer"
+                    checked={formData.isPaid}
+                    onChange={e => setFormData({ ...formData, isPaid: e.target.checked })}
+                  />
+                  <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-emerald-500"></div>
+                </div>
+                <span className={`text-[10px] font-black uppercase tracking-widest ${formData.isPaid ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}`}>
                   {formData.isPaid
                     ? (type === 'income' ? 'Recebido' : 'Pago')
                     : (type === 'income' ? 'Pendente' : 'Pendente')
@@ -790,13 +829,20 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
               </div>
             )}
           </div>
-          <div className="mt-6 flex justify-end">
+          <div className="mt-10 flex flex-col-reverse sm:flex-row justify-end gap-3 pt-6 border-t border-slate-100 dark:border-slate-800">
+            <button
+              type="button"
+              onClick={() => { setIsFormOpen(false); setEditingId(null); resetForm(); }}
+              className="w-full sm:w-auto px-8 py-4 border border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 font-black text-[10px] uppercase tracking-widest rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
+            >
+              Descartar
+            </button>
             <button
               type="submit"
-              className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-10 py-3 rounded-xl font-bold shadow-lg shadow-emerald-100 transition-all uppercase tracking-widest text-xs"
+              className="w-full sm:w-auto flex items-center justify-center gap-3 bg-emerald-600 hover:bg-emerald-500 text-white px-10 py-4 rounded-2xl font-black shadow-xl shadow-emerald-100 dark:shadow-emerald-900/40 transition-all uppercase tracking-widest text-[10px]"
             >
               <Save size={18} />
-              <span>{editingId ? 'Atualizar' : 'Salvar Registro'}</span>
+              <span>{editingId ? 'Atualizar Lançamento' : 'Salvar Registro'}</span>
             </button>
           </div>
         </form>

@@ -40,10 +40,10 @@ const TransactionManager: React.FC<TransactionManagerProps> = ({
     ];
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-[var(--fluid-space-md)] px-safe">
             {/* Tab Navigation - Mobile Fluid & Tactile */}
-            <div className="flex flex-col gap-2">
-                <div className="flex p-1 bg-white dark:bg-slate-900 rounded-[1.2rem] w-full overflow-x-auto border border-slate-100 dark:border-slate-800 shadow-sm scrollbar-hide">
+            <div className="flex flex-col gap-3">
+                <div className="flex p-1.5 bg-white dark:bg-slate-900 rounded-[2rem] w-full overflow-x-auto border border-slate-100 dark:border-slate-800 shadow-sm scrollbar-hide ring-1 ring-black/5 dark:ring-white/5">
                     {tabs.map(tab => (
                         <button
                             key={tab.id}
