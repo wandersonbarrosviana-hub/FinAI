@@ -43,7 +43,6 @@ const TransferForm: React.FC<TransferFormProps> = ({ accounts, onTransfer, onCan
     };
 
     return (
-    return (
         <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-900 p-[var(--fluid-space-md)] rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-xl animate-in fade-in slide-in-from-top-4 duration-300 max-w-2xl mx-auto ring-1 ring-black/5 dark:ring-white/5">
             <div className="flex items-center gap-3 mb-8 text-sky-600 dark:text-sky-400">
                 <div className="p-3 bg-sky-50 dark:bg-sky-900/20 rounded-2xl">
