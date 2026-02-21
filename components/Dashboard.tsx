@@ -223,12 +223,12 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
         <>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Main Stats Card (Clean White) */}
-            <div className="lg:col-span-3 bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col md:flex-row gap-8 relative overflow-hidden group">
+            <div className="lg:col-span-3 bg-white dark:bg-slate-900 p-4 sm:p-8 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col md:flex-row gap-8 relative overflow-hidden group">
               {/* Background Glow - Subtle */}
               <div className="absolute top-0 right-0 w-64 h-64 bg-sky-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-sky-500/10 transition-all duration-700"></div>
 
               {/* Vertical Flow */}
-              <div className="flex-1 max-w-xs flex flex-col justify-between py-2 relative z-10">
+              <div className="flex-1 w-full md:max-w-xs flex flex-col justify-between py-2 relative z-10">
                 <div className="absolute left-[19px] top-4 bottom-4 w-[2px] bg-gradient-to-b from-emerald-100 via-slate-100 to-rose-100 z-0"></div>
 
                 {/* Income */}
@@ -452,63 +452,112 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
               <h3 className="text-lg font-bold text-slate-900 dark:text-white">Últimos Lançamentos</h3>
               <button onClick={() => setShowAllTransactions(true)} className="text-sky-600 dark:text-sky-400 text-sm font-bold hover:text-sky-700 dark:hover:text-sky-300 transition-colors">Ver todos</button>
             </div>
-            {/* Responsive Table for All Viewports */}
-            <div className="overflow-x-auto relative scrollbar-hide">
-              <table className="w-full text-left">
-                <thead className="bg-slate-50/50 dark:bg-slate-800/50">
-                  <tr>
-                    <th className="sticky left-0 z-20 bg-slate-50 dark:bg-slate-800 px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] min-w-[200px]">Descrição</th>
-                    <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest whitespace-nowrap">Data</th>
-                    <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest whitespace-nowrap">Categoria</th>
-                    <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest whitespace-nowrap">Status</th>
-                    <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest text-right whitespace-nowrap pr-8">Valor</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
-                  {transactions.slice(0, 5).map((t) => (
-                    <tr key={t.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
-                      <td className="sticky left-0 z-10 bg-white dark:bg-slate-900 px-6 py-4 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] min-w-[200px]">
-                        <div className="flex flex-col gap-0.5">
-                          <span className="text-sm font-bold text-slate-900 dark:text-white truncate max-w-[180px]">
-                            {t.description}
-                          </span>
-                          {t.created_by && familyMembers && familyMembers[t.created_by] && (
-                            <div className="flex items-center gap-1 mt-0.5">
-                              <img
-                                src={familyMembers[t.created_by].avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(familyMembers[t.created_by].name)}&background=random`}
-                                alt={familyMembers[t.created_by].name}
-                                className="w-3.5 h-3.5 rounded-full"
-                              />
-                              <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400">
-                                {familyMembers[t.created_by].name.split(' ')[0]}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
-                        {new Date(t.date).toLocaleDateString('pt-BR')}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="px-2.5 py-1 rounded-lg text-[9px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 uppercase tracking-wider">
-                          {t.category}
+            {/* Responsive List/Table */}
+            <div className="relative">
+              {/* Mobile View: Cards */}
+              <div className="md:hidden divide-y divide-slate-50 dark:divide-slate-800">
+                {transactions.slice(0, 5).map((t) => (
+                  <div key={t.id} className="p-4 flex flex-col gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                    <div className="flex justify-between items-start">
+                      <div className="flex flex-col gap-1">
+                        <span className="text-sm font-bold text-slate-900 dark:text-white truncate max-w-[200px]">
+                          {t.description}
                         </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest ${t.isPaid
+                        <div className="flex items-center gap-2">
+                          <span className="px-2 py-0.5 rounded-lg text-[9px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 uppercase tracking-wider">
+                            {t.category}
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-medium">
+                            {new Date(t.date).toLocaleDateString('pt-BR')}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end gap-1">
+                        <span className={`text-sm font-black ${t.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                          {t.type === 'income' ? '+' : '-'} R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </span>
+                        <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest ${t.isPaid
                           ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400'
                           : 'bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400'
                           }`}>
                           {t.isPaid ? 'Pago' : 'Pendente'}
                         </span>
-                      </td>
-                      <td className={`px-6 py-4 text-sm font-black text-right whitespace-nowrap pr-8 ${t.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
-                        {t.type === 'income' ? '+' : '-'} R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                      </td>
+                      </div>
+                    </div>
+                    {t.created_by && familyMembers && familyMembers[t.created_by] && (
+                      <div className="flex items-center gap-1.5 pt-1 border-t border-slate-50 dark:border-slate-800/50">
+                        <img
+                          src={familyMembers[t.created_by].avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(familyMembers[t.created_by].name)}&background=random`}
+                          alt={familyMembers[t.created_by].name}
+                          className="w-4 h-4 rounded-full"
+                        />
+                        <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
+                          Enviado por {familyMembers[t.created_by].name.split(' ')[0]}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop View: Table */}
+              <div className="hidden md:block overflow-x-auto scrollbar-hide">
+                <table className="w-full text-left">
+                  <thead className="bg-slate-50/50 dark:bg-slate-800/50">
+                    <tr>
+                      <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Descrição</th>
+                      <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest whitespace-nowrap">Data</th>
+                      <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest whitespace-nowrap">Categoria</th>
+                      <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest whitespace-nowrap">Status</th>
+                      <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest text-right whitespace-nowrap pr-8">Valor</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
+                    {transactions.slice(0, 5).map((t) => (
+                      <tr key={t.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
+                        <td className="px-6 py-4">
+                          <div className="flex flex-col gap-0.5">
+                            <span className="text-sm font-bold text-slate-900 dark:text-white truncate max-w-[180px]">
+                              {t.description}
+                            </span>
+                            {t.created_by && familyMembers && familyMembers[t.created_by] && (
+                              <div className="flex items-center gap-1 mt-0.5">
+                                <img
+                                  src={familyMembers[t.created_by].avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(familyMembers[t.created_by].name)}&background=random`}
+                                  alt={familyMembers[t.created_by].name}
+                                  className="w-3.5 h-3.5 rounded-full"
+                                />
+                                <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400">
+                                  {familyMembers[t.created_by].name.split(' ')[0]}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                          {new Date(t.date).toLocaleDateString('pt-BR')}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="px-2.5 py-1 rounded-lg text-[9px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 uppercase tracking-wider">
+                            {t.category}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest ${t.isPaid
+                            ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400'
+                            : 'bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400'
+                            }`}>
+                            {t.isPaid ? 'Pago' : 'Pendente'}
+                          </span>
+                        </td>
+                        <td className={`px-6 py-4 text-sm font-black text-right whitespace-nowrap pr-8 ${t.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                          {t.type === 'income' ? '+' : '-'} R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </>

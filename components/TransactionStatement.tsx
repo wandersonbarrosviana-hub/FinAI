@@ -107,13 +107,71 @@ const TransactionStatement: React.FC<TransactionStatementProps> = ({ transaction
             </div>
 
             <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
-                <div className="overflow-x-auto relative scrollbar-hide">
+                {/* Mobile View: Cards */}
+                <div className="md:hidden divide-y divide-slate-50 dark:divide-slate-800">
+                    {filtered.length === 0 ? (
+                        <div className="p-12 text-center text-slate-400 italic text-sm">
+                            Nenhum lançamento encontrado.
+                        </div>
+                    ) : (
+                        filtered.map((t) => (
+                            <div key={t.id} className="p-4 flex flex-col gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                                <div className="flex justify-between items-start">
+                                    <div className="flex flex-col gap-1">
+                                        <span className="text-sm font-bold text-slate-800 dark:text-white truncate max-w-[200px]">{t.description}</span>
+                                        <div className="flex items-center gap-2">
+                                            <span className="px-2 py-0.5 rounded-lg text-[9px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 uppercase tracking-wider">
+                                                {t.category}
+                                            </span>
+                                            <span className="text-[10px] text-slate-400 font-medium">
+                                                {new Date(t.date).toLocaleDateString('pt-BR')}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className="text-right flex flex-col items-end gap-1">
+                                        <span className={`text-sm font-black ${t.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                                            {t.type === 'income' ? '+' : '-'} R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                        </span>
+                                        <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest ${t.isPaid
+                                            ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400'
+                                            : 'bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400'
+                                            }`}>
+                                            {t.isPaid ? 'Pago' : 'Pendente'}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/30 p-2 rounded-xl border border-slate-100 dark:border-slate-800">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[10px] font-bold text-slate-500">
+                                            {accounts.find(a => a.id === t.account)?.name || 'Sem conta'}
+                                        </span>
+                                    </div>
+                                    {familyMembers && t.created_by && familyMembers[t.created_by] && (
+                                        <div className="flex items-center gap-1.5">
+                                            <img
+                                                src={familyMembers[t.created_by].avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(familyMembers[t.created_by].name)}&background=random`}
+                                                alt={familyMembers[t.created_by].name}
+                                                className="w-4 h-4 rounded-full"
+                                            />
+                                            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
+                                                {familyMembers[t.created_by].name.split(' ')[0]}
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </div>
+
+                {/* Desktop View: Table */}
+                <div className="hidden md:block overflow-x-auto scrollbar-hide">
                     <table className="w-full text-left border-collapse">
                         <thead className="bg-slate-50/50 dark:bg-slate-800/50">
                             <tr>
-                                <th className="sticky left-0 z-20 bg-slate-50 dark:bg-slate-800 px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] w-[100px]">Status</th>
-                                <th className="sticky left-[100px] z-20 bg-slate-50 dark:bg-slate-800 px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] min-w-[200px]">Descrição</th>
-                                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest whitespace-nowrap">Data</th>
+                                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center">Status</th>
+                                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest min-w-[200px]">Descrição</th>
+                                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest whitespace-nowrap text-center">Data</th>
                                 <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest whitespace-nowrap">Categoria/Conta</th>
                                 <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest text-right whitespace-nowrap pr-8">Valor</th>
                             </tr>
@@ -121,7 +179,7 @@ const TransactionStatement: React.FC<TransactionStatementProps> = ({ transaction
                         <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
                             {filtered.map((t) => (
                                 <tr key={t.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
-                                    <td className="sticky left-0 z-10 bg-white dark:bg-slate-900 px-6 py-4 text-center shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] w-[100px]">
+                                    <td className="px-6 py-4 text-center">
                                         <span className={`px-2 py-1 rounded-lg text-[9px] font-black border uppercase tracking-widest whitespace-nowrap ${t.isPaid
                                             ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900/30'
                                             : 'bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 border-amber-100 dark:border-amber-900/30'
@@ -129,7 +187,7 @@ const TransactionStatement: React.FC<TransactionStatementProps> = ({ transaction
                                             {t.isPaid ? 'PAGO' : 'PENDENTE'}
                                         </span>
                                     </td>
-                                    <td className="sticky left-[100px] z-10 bg-white dark:bg-slate-900 px-6 py-4 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] min-w-[200px]">
+                                    <td className="px-6 py-4 min-w-[200px]">
                                         <div className="text-sm font-bold text-slate-700 dark:text-slate-200 whitespace-normal" title={t.description}>{t.description}</div>
                                         {t.created_by && familyMembers && familyMembers[t.created_by] && (
                                             <div className="flex items-center gap-1 mt-1">
@@ -144,7 +202,7 @@ const TransactionStatement: React.FC<TransactionStatementProps> = ({ transaction
                                             </div>
                                         )}
                                     </td>
-                                    <td className="px-6 py-4 text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                                    <td className="px-6 py-4 text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap text-center">
                                         {new Date(t.date).toLocaleDateString('pt-BR')}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
@@ -160,13 +218,6 @@ const TransactionStatement: React.FC<TransactionStatementProps> = ({ transaction
                                     </td>
                                 </tr>
                             ))}
-                            {filtered.length === 0 && (
-                                <tr>
-                                    <td colSpan={5} className="px-6 py-12 text-center text-slate-600 dark:text-slate-400 italic">
-                                        Nenhum lançamento encontrado.
-                                    </td>
-                                </tr>
-                            )}
                         </tbody>
                     </table>
                 </div>
