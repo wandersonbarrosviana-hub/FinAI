@@ -1,3 +1,5 @@
 yfinance
 requests
+yahoo_fin
+pandas
 

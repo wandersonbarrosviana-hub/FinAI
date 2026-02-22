@@ -10,20 +10,23 @@ import { TrendingUp, TrendingDown, Wallet, PlusCircle, ArrowUpRight, ArrowDownRi
 import ChartContainer from './ChartContainer';
 import AIInsightsWidget from './AIInsightsWidget';
 import AdvancedAIIntelligence from './AdvancedAIIntelligence';
-import { AdvancedAIInsights } from '../types';
+import ChartTransactionModal from './ChartTransactionModal';
+import { AdvancedAIInsights, Transaction as TransactionType } from '../types';
 import { getAdvancedAIInsights } from '../aiService';
+import { Sector } from 'recharts';
 
 interface DashboardProps {
   transactions: Transaction[];
   accounts: Account[];
   goals: Goal[];
   budgets: Budget[];
+  customBudgets?: any[];
   onAddClick: () => void;
   tags: any[];
   familyMembers?: Record<string, { name: string, avatar: string }>;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, budgets, onAddClick, familyMembers }) => {
+const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, budgets, customBudgets = [], onAddClick, familyMembers }) => {
   const [showAllTransactions, setShowAllTransactions] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'intelligence'>('overview');
 
@@ -31,6 +34,21 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
   const [aiInsights, setAiInsights] = useState<AdvancedAIInsights | null>(null);
   const [isAILoading, setIsAILoading] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
+
+  // Chart Interaction State
+  const [selectedChartData, setSelectedChartData] = useState<{
+    isOpen: boolean;
+    title: string;
+    transactions: TransactionType[];
+    color: string;
+  }>({
+    isOpen: false,
+    title: '',
+    transactions: [],
+    color: '#0284c7'
+  });
+
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
   const fetchAIInsights = async (force = false) => {
     if (isAILoading) return;
@@ -132,7 +150,6 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
     }));
   }, [transactions]);
 
-  // Process Category Data (Memoized)
   const pieData = useMemo(() => {
     const expenses = transactions.filter(t => t.type === 'expense' && t.isPaid);
     const categoryMap: { [key: string]: number } = {};
@@ -151,6 +168,22 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
     })).sort((a, b) => b.value - a.value).slice(0, 5);
   }, [transactions]);
 
+  // Custom Budgets Data (Memoized)
+  const customBudgetsData = useMemo(() => {
+    return customBudgets.map(cb => {
+      const spent = transactions
+        .filter(t => t.type === 'expense' && t.isPaid && cb.categories.includes(t.category))
+        .reduce((sum, t) => sum + t.amount, 0);
+
+      return {
+        name: cb.name,
+        limit: cb.limitValue,
+        spent: spent,
+        percent: cb.limitValue > 0 ? (spent / cb.limitValue) * 100 : 0
+      };
+    });
+  }, [transactions, customBudgets]);
+
   // Clean Palette
   const BASE_COLORS = ['#0284c7', '#059669', '#db2777', '#7c3aed', '#d97706', '#dc2626'];
   const COLORS = pieData.length > 0 ? BASE_COLORS.slice(0, pieData.length) : BASE_COLORS;
@@ -158,21 +191,62 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-4 rounded-2xl shadow-xl text-xs z-50">
-          <p className="font-black text-slate-900 dark:text-white mb-2 uppercase tracking-widest border-b border-slate-100 dark:border-slate-800 pb-2">{label}</p>
+        <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-4 rounded-2xl shadow-xl text-xs z-50 animate-in zoom-in-95 duration-200">
+          <p className="font-black text-slate-900 dark:text-white mb-2 uppercase tracking-widest border-b border-slate-100 dark:border-slate-800 pb-2">{label || payload[0].name}</p>
           {payload.map((p: any, index: number) => (
             <div key={index} className="flex items-center gap-2 mb-1 last:mb-0">
-              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: p.color }}></div>
+              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: p.color || p.payload.fill }}></div>
               <span className="font-bold text-slate-500 dark:text-slate-400 capitalize">{p.name}:</span>
               <span className="font-black text-slate-800 dark:text-white ml-auto">
                 R$ {Number(p.value).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </span>
             </div>
           ))}
+          <p className="text-[8px] font-black text-sky-500 mt-2 uppercase tracking-tighter">Clique para ver detalhes</p>
         </div>
       );
     }
     return null;
+  };
+
+  const renderActiveShape = (props: any) => {
+    const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
+    return (
+      <g>
+        <Sector
+          cx={cx}
+          cy={cy}
+          innerRadius={innerRadius}
+          outerRadius={outerRadius + 8}
+          startAngle={startAngle}
+          endAngle={endAngle}
+          fill={fill}
+          className="filter drop-shadow-md transition-all duration-300"
+        />
+        <Sector
+          cx={cx}
+          cy={cy}
+          startAngle={startAngle}
+          endAngle={endAngle}
+          innerRadius={outerRadius + 12}
+          outerRadius={outerRadius + 15}
+          fill={fill}
+          className="opacity-20"
+        />
+      </g>
+    );
+  };
+
+  const onPieClick = (data: any, index: number) => {
+    const categoryTransactions = transactions.filter(t =>
+      t.category === data.name && t.type === 'expense' && t.isPaid
+    );
+    setSelectedChartData({
+      isOpen: true,
+      title: `Gastos: ${data.name}`,
+      transactions: categoryTransactions,
+      color: COLORS[index % COLORS.length]
+    });
   };
 
   return (
@@ -358,38 +432,54 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
             <ChartContainer
               title={
                 <span className="flex items-center gap-2">
-                  <span className="w-1 h-6 bg-cyan-500 rounded-full"></span>
-                  Fluxo de Caixa
+                  <span className="w-1 h-6 bg-emerald-500 rounded-full"></span>
+                  Meus Orçamentos
                 </span>
               }
             >
               <div className="h-full min-h-[300px] w-full overflow-x-auto pb-4 scrollbar-hide">
-                <div className="h-full min-w-[600px]">
+                <div className="h-full min-w-[500px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={chartData}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                      <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 'bold' }} dy={10} />
-                      <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 'bold' }} />
+                    <BarChart data={customBudgetsData} layout="vertical" margin={{ left: 20, right: 40, top: 10, bottom: 10 }}>
+                      <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f1f5f9" />
+                      <XAxis type="number" hide />
+                      <YAxis
+                        dataKey="name"
+                        type="category"
+                        axisLine={false}
+                        tickLine={false}
+                        width={100}
+                        tick={{ fill: '#64748b', fontSize: 10, fontWeight: 'black' }}
+                      />
                       <Tooltip
-                        contentStyle={{ backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #f1f5f9', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', color: '#0f172a' }}
+                        cursor={{ fill: 'transparent' }}
+                        content={({ active, payload }: any) => {
+                          if (active && payload && payload.length) {
+                            const data = payload[0].payload;
+                            return (
+                              <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-3 rounded-2xl shadow-xl z-50">
+                                <p className="font-black text-[10px] uppercase text-slate-400 mb-1">{data.name}</p>
+                                <p className="text-sm font-black text-slate-900 dark:text-white">R$ {data.spent.toLocaleString('pt-BR')} / R$ {data.limit.toLocaleString('pt-BR')}</p>
+                                <p className="text-[10px] font-bold text-sky-500 mt-1">{data.percent.toFixed(1)}% utilizado</p>
+                              </div>
+                            );
+                          }
+                          return null;
+                        }}
                       />
-                      <Line
-                        type="monotone"
-                        dataKey="Receitas"
-                        stroke="#10b981"
-                        strokeWidth={4}
-                        dot={{ r: 4, fill: '#fff', strokeWidth: 3 }}
-                        activeDot={{ r: 6, fill: '#10b981' }}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="Despesas"
-                        stroke="#f43f5e"
-                        strokeWidth={4}
-                        dot={{ r: 4, fill: '#fff', strokeWidth: 3 }}
-                        activeDot={{ r: 6, fill: '#f43f5e' }}
-                      />
-                    </LineChart>
+                      <Bar
+                        dataKey="spent"
+                        radius={[0, 10, 10, 0]}
+                        barSize={16}
+                      >
+                        {customBudgetsData.map((entry, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={entry.percent >= 100 ? '#f43f5e' : entry.percent > 80 ? '#f59e0b' : '#10b981'}
+                          />
+                        ))}
+                      </Bar>
+                    </BarChart>
                   </ResponsiveContainer>
                 </div>
               </div>
@@ -416,28 +506,63 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
                         paddingAngle={5}
                         dataKey="value"
                         stroke="none"
+                        activeIndex={activeIndex !== null ? activeIndex : undefined}
+                        activeShape={renderActiveShape}
+                        onMouseEnter={(_, index) => setActiveIndex(index)}
+                        onMouseLeave={() => setActiveIndex(null)}
+                        onClick={onPieClick}
+                        className="cursor-pointer"
                         label={({ x, y, cx, name, percent }) => (
-                          <text x={x} y={y} fill="#1e293b" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" style={{ fontSize: '10px', fontWeight: '800' }}>
-                            {`${name} ${(percent * 100).toFixed(0)}%`}
-                          </text>
+                          <g>
+                            <defs>
+                              <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                                <feGaussianBlur in="SourceAlpha" stdDeviation="2" />
+                                <feOffset dx="0" dy="1" result="offsetblur" />
+                                <feComponentTransfer>
+                                  <feFuncA type="linear" slope="0.5" />
+                                </feComponentTransfer>
+                                <feMerge>
+                                  <feMergeNode />
+                                  <feMergeNode in="SourceGraphic" />
+                                </feMerge>
+                              </filter>
+                            </defs>
+                            <text
+                              x={x}
+                              y={y}
+                              fill="white"
+                              textAnchor={x > cx ? 'start' : 'end'}
+                              dominantBaseline="central"
+                              className="font-black"
+                              style={{
+                                fontSize: '10px',
+                                filter: 'drop-shadow(0px 1px 2px rgba(0,0,0,0.8))'
+                              }}
+                            >
+                              {`${(percent * 100).toFixed(0)}%`}
+                            </text>
+                          </g>
                         )}
-                        labelLine={{ stroke: '#64748b', strokeWidth: 1, strokeDasharray: '3 3' }}
+                        labelLine={{ stroke: '#64748b', strokeWidth: 1, strokeDasharray: '2 2' }}
                       >
                         {pieData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} style={{ outline: 'none' }} />
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} className="hover:opacity-80 transition-opacity outline-none" />
                         ))}
                       </Pie>
-                      <Tooltip
-                        contentStyle={{ backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #f1f5f9', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', color: '#0f172a' }}
-                      />
+                      <Tooltip content={<CustomTooltip />} />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
-                <div className="space-y-3 pr-4 w-full md:w-auto mt-4 md:mt-0">
+                <div className="space-y-4 pr-4 w-full md:w-auto mt-4 md:mt-0">
                   {pieData.map((entry, index) => (
-                    <div key={entry.name} className="flex items-center text-sm group">
-                      <div className="w-2.5 h-2.5 rounded-full mr-3" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
-                      <span className="text-slate-500 dark:text-slate-400 font-bold group-hover:text-slate-900 dark:group-hover:text-white transition-colors uppercase text-[10px] tracking-tight">{entry.name}</span>
+                    <div key={entry.name} className="flex flex-col group">
+                      <div className="flex items-center">
+                        <div className="w-2.5 h-2.5 rounded-full mr-3 shadow-sm" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
+                        <span className="text-slate-700 dark:text-slate-300 font-black group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors uppercase text-[10px] tracking-tight">{entry.name}</span>
+                      </div>
+                      <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 ml-5">
+                        R$ {entry.value.toLocaleString('pt-BR', { minimumFractionDigits: 0 })}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -579,6 +704,16 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
           </div>
         </>
       )}
+
+      {/* Chart Detail Modal */}
+      <ChartTransactionModal
+        isOpen={selectedChartData.isOpen}
+        onClose={() => setSelectedChartData({ ...selectedChartData, isOpen: false })}
+        title={selectedChartData.title}
+        transactions={selectedChartData.transactions}
+        color={selectedChartData.color}
+        familyMembers={familyMembers}
+      />
 
       {/* All Transactions Modal */}
       {showAllTransactions && (

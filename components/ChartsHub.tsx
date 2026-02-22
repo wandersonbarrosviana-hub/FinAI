@@ -33,9 +33,11 @@ import {
     AreaChart,
     Area,
     ComposedChart,
-    LabelList
+    LabelList,
+    Sector
 } from 'recharts';
-import { Transaction } from '../types';
+import { Transaction as TransactionType } from '../types';
+import ChartTransactionModal from './ChartTransactionModal';
 
 interface ChartsHubProps {
     transactions: Transaction[];
@@ -45,6 +47,21 @@ const COLORS = ['#06b6d4', '#3b82f6', '#8b5cf6', '#d946ef', '#f43f5e', '#f97316'
 
 const ChartsHub: React.FC<ChartsHubProps> = ({ transactions }) => {
     const [expenseMode, setExpenseMode] = useState<'value' | 'percent'>('value');
+
+    // Chart Interaction State
+    const [selectedChartData, setSelectedChartData] = useState<{
+        isOpen: boolean;
+        title: string;
+        transactions: TransactionType[];
+        color: string;
+    }>({
+        isOpen: false,
+        title: '',
+        transactions: [],
+        color: '#06b6d4'
+    });
+
+    const [activePieIndex, setActivePieIndex] = useState<Record<string, number | null>>({});
 
     // --- Data Processing & Logic ---
 
@@ -187,11 +204,11 @@ const ChartsHub: React.FC<ChartsHubProps> = ({ transactions }) => {
     const CustomTooltip = ({ active, payload, label }: any) => {
         if (active && payload && payload.length) {
             return (
-                <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-4 rounded-2xl shadow-xl text-xs z-50">
-                    <p className="font-black text-slate-900 dark:text-white mb-2 uppercase tracking-widest border-b border-slate-100 dark:border-slate-800 pb-2">{label}</p>
+                <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-4 rounded-2xl shadow-xl text-xs z-50 animate-in zoom-in-95 duration-200">
+                    <p className="font-black text-slate-900 dark:text-white mb-2 uppercase tracking-widest border-b border-slate-100 dark:border-slate-800 pb-2">{label || payload[0].name}</p>
                     {payload.map((p: any, index: number) => (
                         <div key={index} className="flex items-center gap-2 mb-1 last:mb-0">
-                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: p.color }}></div>
+                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: p.color || p.payload.fill || p.payload.color }}></div>
                             <span className="font-bold text-slate-500 dark:text-slate-400 capitalize">{p.name}:</span>
                             <span className="font-black text-slate-800 dark:text-white ml-auto">
                                 {p.dataKey === 'percent' || p.dataKey === 'cumulativePercent' || p.name === 'A'
@@ -200,10 +217,39 @@ const ChartsHub: React.FC<ChartsHubProps> = ({ transactions }) => {
                             </span>
                         </div>
                     ))}
+                    <p className="text-[8px] font-black text-sky-500 mt-2 uppercase tracking-tighter">Clique para ver detalhes</p>
                 </div>
             );
         }
         return null;
+    };
+
+    const renderActiveShape = (props: any) => {
+        const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
+        return (
+            <g>
+                <Sector
+                    cx={cx}
+                    cy={cy}
+                    innerRadius={innerRadius}
+                    outerRadius={outerRadius + 8}
+                    startAngle={startAngle}
+                    endAngle={endAngle}
+                    fill={fill}
+                    className="filter drop-shadow-md transition-all duration-300"
+                />
+            </g>
+        );
+    };
+
+    const handleChartClick = (data: any, titlePrefix: string, filterFn: (t: TransactionType) => boolean, color: string) => {
+        const filtered = transactions.filter(filterFn);
+        setSelectedChartData({
+            isOpen: true,
+            title: `${titlePrefix}: ${data.name}`,
+            transactions: filtered,
+            color
+        });
     };
 
     if (transactions.length === 0) {
@@ -270,15 +316,26 @@ const ChartsHub: React.FC<ChartsHubProps> = ({ transactions }) => {
                                     paddingAngle={5}
                                     dataKey="value"
                                     stroke="none"
+                                    activeIndex={activePieIndex['structure'] !== null ? activePieIndex['structure'] : undefined}
+                                    activeShape={renderActiveShape}
+                                    onMouseEnter={(_, index) => setActivePieIndex({ ...activePieIndex, structure: index })}
+                                    onMouseLeave={() => setActivePieIndex({ ...activePieIndex, structure: null })}
+                                    onClick={(data) => handleChartClick(
+                                        data,
+                                        'Estrutura',
+                                        (t) => (t.recurrence || 'one_time') === (data.name === 'Fixas' ? 'fixed' : data.name === 'Parceladas' ? 'installment' : 'one_time') && t.type === 'expense',
+                                        data.color
+                                    )}
+                                    className="cursor-pointer"
                                     label={({ x, y, cx, percent }) => (
-                                        <text x={x} y={y} fill="#1e293b" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" style={{ fontSize: '10px', fontWeight: '800' }}>
+                                        <text x={x} y={y} fill="currentColor" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" className="text-slate-900 dark:text-white" style={{ fontSize: '9px', fontWeight: '900' }}>
                                             {`${(percent * 100).toFixed(0)}%`}
                                         </text>
                                     )}
                                     labelLine={{ stroke: '#64748b', strokeWidth: 1, strokeDasharray: '3 3' }}
                                 >
                                     {expenseStructureData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={entry.color} style={{ outline: 'none' }} />
+                                        <Cell key={`cell-${index}`} fill={entry.color} className="hover:opacity-80 transition-opacity outline-none" />
                                     ))}
                                 </Pie>
                                 <Tooltip content={<CustomTooltip />} />
@@ -323,8 +380,22 @@ const ChartsHub: React.FC<ChartsHubProps> = ({ transactions }) => {
                                     <YAxis yAxisId="right" orientation="right" stroke="#f43f5e" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} unit="%" />
                                     <Tooltip content={<CustomTooltip />} />
                                     <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
-                                    <Bar yAxisId="left" dataKey="value" name="Valor Gasto" barSize={30} fill="#6366f1" radius={[4, 4, 0, 0]}>
-                                        <LabelList dataKey="value" position="top" formatter={(val: number) => `R$${(val / 1000).toFixed(1)}k`} style={{ fill: '#1e293b', fontSize: '10px', fontWeight: '800' }} />
+                                    <Bar
+                                        yAxisId="left"
+                                        dataKey="value"
+                                        name="Valor Gasto"
+                                        barSize={30}
+                                        fill="#6366f1"
+                                        radius={[4, 4, 0, 0]}
+                                        className="cursor-pointer"
+                                        onClick={(data) => handleChartClick(
+                                            data,
+                                            'Pareto',
+                                            (t) => t.category === data.name && t.type === 'expense',
+                                            '#6366f1'
+                                        )}
+                                    >
+                                        <LabelList dataKey="value" position="top" formatter={(val: number) => `R$${(val / 1000).toFixed(1)}k`} style={{ fill: 'currentColor', fontSize: '9px', fontWeight: '900' }} className="text-slate-900 dark:text-white" />
                                     </Bar>
                                     <Line yAxisId="right" type="monotone" dataKey="cumulativePercent" name="% Acumulado" stroke="#f43f5e" strokeWidth={3} dot={{ r: 4 }} />
                                 </ComposedChart>
@@ -378,15 +449,23 @@ const ChartsHub: React.FC<ChartsHubProps> = ({ transactions }) => {
                                     name={expenseMode === 'value' ? 'Valor' : 'Percentual'}
                                     radius={[0, 6, 6, 0]}
                                     barSize={24}
+                                    className="cursor-pointer"
+                                    onClick={(data, index) => handleChartClick(
+                                        data,
+                                        'Categoria',
+                                        (t) => t.category === data.name && t.type === 'expense',
+                                        COLORS[index % COLORS.length]
+                                    )}
                                 >
                                     {expenseByCategoryData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} style={{ outline: 'none' }} />
+                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} className="hover:opacity-80 transition-opacity outline-none" />
                                     ))}
                                     <LabelList
                                         dataKey={expenseMode === 'value' ? 'value' : 'percent'}
                                         position="right"
                                         formatter={(val: number) => expenseMode === 'value' ? `R$ ${val.toLocaleString('pt-BR', { minimumFractionDigits: 0 })}` : `${val.toFixed(1)}%`}
-                                        style={{ fill: '#1e293b', fontSize: '11px', fontWeight: '800' }}
+                                        style={{ fill: 'currentColor', fontSize: '10px', fontWeight: '900' }}
+                                        className="text-slate-900 dark:text-white"
                                     />
                                 </Bar>
                             </BarChart>
@@ -414,15 +493,26 @@ const ChartsHub: React.FC<ChartsHubProps> = ({ transactions }) => {
                                     paddingAngle={5}
                                     dataKey="value"
                                     stroke="none"
+                                    activeIndex={activePieIndex['payment'] !== null ? activePieIndex['payment'] : undefined}
+                                    activeShape={renderActiveShape}
+                                    onMouseEnter={(_, index) => setActivePieIndex({ ...activePieIndex, payment: index })}
+                                    onMouseLeave={() => setActivePieIndex({ ...activePieIndex, payment: null })}
+                                    onClick={(data, index) => handleChartClick(
+                                        data,
+                                        'Pagamento',
+                                        (t) => (t.paymentMethod || 'Outros') === data.name && t.type === 'expense',
+                                        COLORS[index % COLORS.length]
+                                    )}
+                                    className="cursor-pointer"
                                     label={({ x, y, cx, percent }) => (
-                                        <text x={x} y={y} fill="#1e293b" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" style={{ fontSize: '10px', fontWeight: '800' }}>
+                                        <text x={x} y={y} fill="currentColor" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" className="text-slate-900 dark:text-white" style={{ fontSize: '9px', fontWeight: '900' }}>
                                             {`${(percent * 100).toFixed(0)}%`}
                                         </text>
                                     )}
                                     labelLine={{ stroke: '#64748b', strokeWidth: 1, strokeDasharray: '3 3' }}
                                 >
                                     {paymentMethodData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} style={{ outline: 'none' }} />
+                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} className="hover:opacity-80 transition-opacity outline-none" />
                                     ))}
                                 </Pie>
                                 <Tooltip content={<CustomTooltip />} />
@@ -477,6 +567,14 @@ const ChartsHub: React.FC<ChartsHubProps> = ({ transactions }) => {
                 </ChartContainer>
             </div>
 
+            {/* Chart Detail Modal */}
+            <ChartTransactionModal
+                isOpen={selectedChartData.isOpen}
+                onClose={() => setSelectedChartData({ ...selectedChartData, isOpen: false })}
+                title={selectedChartData.title}
+                transactions={selectedChartData.transactions}
+                color={selectedChartData.color}
+            />
 
         </div>
     );

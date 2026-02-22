@@ -138,20 +138,20 @@ const AllTransactions: React.FC<AllTransactionsProps> = ({ transactions = [], fa
                             filteredTransactions.map(t => (
                                 <div key={t.id} className="py-5 flex flex-col gap-3">
                                     <div className="flex justify-between items-start">
-                                        <div className="flex flex-col gap-1 overflow-hidden">
-                                            <span className="text-sm font-black text-slate-800 dark:text-white truncate">{t.description}</span>
-                                            <div className="flex items-center gap-2">
-                                                <span className="px-2 py-0.5 rounded-lg text-[9px] font-black bg-slate-50 dark:bg-slate-800 text-slate-500 uppercase tracking-widest border border-slate-100 dark:border-slate-800">
+                                        <div className="flex flex-col gap-0.5 overflow-hidden">
+                                            <span className="text-sm font-black text-slate-800 dark:text-white truncate max-w-[180px]">{t.description}</span>
+                                            <div className="flex items-center gap-1.5">
+                                                <span className="px-1.5 py-0.5 rounded-lg text-[8px] font-black bg-slate-50 dark:bg-slate-800 text-slate-500 uppercase tracking-tighter border border-slate-100 dark:border-slate-800 truncate max-w-[80px]">
                                                     {t.category}
                                                 </span>
-                                                <span className="text-[10px] text-slate-400 font-bold">{new Date(t.date).toLocaleDateString('pt-BR')}</span>
+                                                <span className="text-[9px] text-slate-400 font-bold whitespace-nowrap">{new Date(t.date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}</span>
                                             </div>
                                         </div>
-                                        <div className="text-right flex flex-col items-end gap-1 shrink-0">
+                                        <div className="text-right flex flex-col items-end gap-0.5 shrink-0 ml-2">
                                             <span className={`text-sm font-black ${t.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}`}>
                                                 {t.type === 'income' ? '+' : '-'} R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                             </span>
-                                            <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest ${t.isPaid ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
+                                            <span className={`px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-tighter ${t.isPaid ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
                                                 {t.isPaid ? 'Pago' : 'Pendente'}
                                             </span>
                                         </div>

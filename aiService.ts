@@ -443,6 +443,64 @@ export const parseInvoice = async (invoiceText: string): Promise<any> => {
     }
 };
 
+// --- IMAGE OCR ANALYSIS (Recibo/Comprovante) ---
+export const analyzeExpenseImage = async (base64Image: string): Promise<any> => {
+    if (!GEMINI_API_KEY) {
+        console.warn("Gemini API Key missing for image analysis.");
+        return { error: "Chave de API não configurada." };
+    }
+
+    // Extract base64 data from the data URL
+    const base64Data = base64Image.split(',')[1] || base64Image;
+
+    const systemPrompt = `
+    AJA COMO UM ESPECIALISTA EM OCR FINANCEIRO.
+    Sua tarefa é ler a foto desse comprovante, recibo ou cupom fiscal e extrair os dados para preencher um formulário de despesa.
+    
+    REGRAS DE EXTRAÇÃO:
+    1. Descrição: Nome do estabelecimento ou produto principal.
+    2. Valor: Valor total pago.
+    3. Categoria: Selecione a melhor categoria baseada no nome (ex: Alimentação, Transporte, Saúde, Lazer, Moradia, Educação).
+    4. Subcategoria: Uma subcategoria específica dentro da categoria.
+    5. Data: Tente encontrar a data da compra no formato YYYY-MM-DD. Use a data atual se não encontrar.
+    6. Forma de Pagamento: (Cartão de Crédito, PIX, Dinheiro, Débito).
+    
+    RETORNE APENAS JSON:
+    {
+      "description": string,
+      "amount": number,
+      "category": string,
+      "subCategory": string,
+      "date": "YYYY-MM-DD",
+      "paymentMethod": string,
+      "confidence": number (0-100)
+    }
+    `;
+
+    try {
+        if (!genAI) throw new Error("GenAI não inicializado");
+
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+        const result = await model.generateContent([
+            systemPrompt,
+            {
+                inlineData: {
+                    data: base64Data,
+                    mimeType: "image/jpeg"
+                }
+            }
+        ]);
+
+        const content = result.response.text();
+        console.log("Gemini Vision Response:", content);
+        return JSON.parse(cleanJSON(content));
+    } catch (error: any) {
+        console.error("Gemini Vision Error:", error);
+        return { error: `Erro na análise da imagem: ${error.message}` };
+    }
+};
+
 // --- OPENAI FALLBACK HELPER ---
 
 const callOpenAI = async (systemPrompt: string, userPrompt: string): Promise<string | null> => {
@@ -592,5 +650,54 @@ export const getAdvancedAIInsights = async (
         }
 
         throw new Error(error.message || "Erro na análise de IA.");
+    }
+};
+
+// --- INVESTMENT ANALYSIS ---
+
+export const getInvestmentAnalysis = async (investment: any): Promise<any> => {
+    if (!GEMINI_API_KEY) return null;
+
+    const systemPrompt = `
+      Você é um Analista de Investimentos Sênior especializado no mercado brasileiro (B3).
+      Sua tarefa é analisar os indicadores fundamentais de um ativo e fornecer uma visão consolidada e estruturada.
+      
+      ESTRUTURA DE RETORNO (JSON APENAS):
+      {
+        "score": number (0-10),
+        "recommendation": "string (Compre, Neutro, Venda)",
+        "strengths": ["string"],
+        "weaknesses": ["string"],
+        "fairValue": "string",
+        "iaInsight": "string (Análise curta e profissional)",
+        "indicatorsVisual": {
+          "valuation": { "status": "good"|"neutral"|"bad", "message": "string" },
+          "efficiency": { "status": "good"|"neutral"|"bad", "message": "string" },
+          "dividend": { "status": "good"|"neutral"|"bad", "message": "string" },
+          "debt": { "status": "good"|"neutral"|"bad", "message": "string" }
+        }
+      }
+
+      REGRAS:
+      1. Se for FII, foque em P/VP, Dividend Yield e Vacância (se disponível).
+      2. Se for Ação, avalie P/L, ROE, Margem EBITDA e Dívida Líquida/EBITDA.
+      3. Seja conservador e profissional.
+    `;
+
+    try {
+        return await retryOperation(async () => {
+            if (genAI) {
+                const model = genAI.getGenerativeModel({
+                    model: GEMINI_MODEL,
+                    generationConfig: { responseMimeType: "application/json" }
+                });
+                const result = await model.generateContent([systemPrompt, `DADOS DO ATIVO: ${JSON.stringify(investment)}`]);
+                return JSON.parse(cleanJSON(result.response.text()));
+            }
+            throw new Error("Gemini não inicializado.");
+        });
+    } catch (error: any) {
+        console.error("Investment Analysis Error:", error);
+        return null;
     }
 };

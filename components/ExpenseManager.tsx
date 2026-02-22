@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import DailyHistory from './DailyHistory';
 import { Transaction, TransactionType, Tag as TagType, Account } from '../types';
 import { CATEGORIES_MAP, INCOME_CATEGORIES_MAP, BANKS } from '../constants';
-import { Calendar, CreditCard, Tag, Plus, Trash2, CheckCircle, Clock, Edit2, Save, X, Repeat, Divide, ChevronDown, ChevronUp, Paperclip, FileText, PieChart, Wallet, Calculator, Camera, Image, XCircle } from 'lucide-react';
+import { Calendar, CreditCard, Tag, Plus, Trash2, CheckCircle, Clock, Edit2, Save, X, Repeat, Divide, ChevronDown, ChevronUp, Paperclip, FileText, PieChart, Wallet, Calculator, Camera, Image, XCircle, Sparkles, Loader2 } from 'lucide-react';
+import { analyzeExpenseImage } from '../aiService';
 
 interface ExpenseManagerProps {
   transactions: Transaction[];
@@ -70,6 +71,7 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
 
   // UI State
   const [showMoreInfo, setShowMoreInfo] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
 
   // Installment Logic State
   const [installmentValueType, setInstallmentValueType] = useState<'total' | 'installment'>('total');
@@ -271,10 +273,9 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
     });
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, isForScan = false) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Check initial size (warn if > 10MB, but try to compress anyway)
       if (file.size > 10 * 1024 * 1024) {
         alert("O arquivo é muito grande (acima de 10MB). Tente uma foto menor.");
         return;
@@ -283,13 +284,57 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
       try {
         const compressedBase64 = await compressImage(file);
         setAttachment(compressedBase64);
+
+        if (isForScan) {
+          handleScanReceipt(compressedBase64);
+        }
       } catch (error) {
         console.error("Erro ao comprimir imagem:", error);
         alert("Erro ao processar a imagem. Tente novamente.");
       } finally {
-        // Reset input so user can select same file again if needed
         e.target.value = '';
       }
+    }
+  };
+
+  const handleScanReceipt = async (base64Image: string) => {
+    setIsScanning(true);
+    try {
+      const result = await analyzeExpenseImage(base64Image);
+      if (result && !result.error) {
+        // Update form with AI data
+        setFormData(prev => ({
+          ...prev,
+          description: result.description || prev.description,
+          amount: result.amount || prev.amount,
+          category: result.category || prev.category,
+          subCategory: result.subCategory || prev.subCategory,
+          date: result.date || prev.date,
+          paymentMethod: result.paymentMethod || prev.paymentMethod
+        }));
+
+        if (result.amount) {
+          setInputValue(result.amount.toString());
+        }
+
+        // Se a categoria retornada não estiver no nosso mapa, a lógica de handleSubmit já lida com 'Outros'
+        // Mas vamos tentar bater a categoria se possível
+        const targetMap = type === 'income' ? INCOME_CATEGORIES_MAP : CATEGORIES_MAP;
+        if (!Object.keys(targetMap).includes(result.category)) {
+          setFormData(prev => ({ ...prev, category: 'Outros' }));
+          setCustomCategory(result.category);
+          setCustomSubCategory(result.subCategory || '');
+        }
+
+        alert(`FinAI: Identifiquei "${result.description}" no valor de R$ ${result.amount}.`);
+      } else {
+        alert("FinAI: Não consegui ler os dados deste comprovante. Tente uma foto mais nítida.");
+      }
+    } catch (error) {
+      console.error("Erro no OCR:", error);
+      alert("Erro ao processar imagem com IA.");
+    } finally {
+      setIsScanning(false);
     }
   };
 
@@ -353,7 +398,7 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
         />
       )}
 
-      {isFormOpen && (
+      {isFormOpen ? (
         <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-900 p-[var(--fluid-space-md)] rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-xl animate-in fade-in slide-in-from-top-4 duration-500 ring-1 ring-black/5 dark:ring-white/5">
           <div className="flex items-center justify-between mb-8">
             <h3 className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase flex items-center gap-3 tracking-widest">
@@ -692,14 +737,48 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
               </div>
             </div>
 
-            <div className="md:col-span-2 lg:col-span-3 pt-2">
+            <div className="md:col-span-2 lg:col-span-3 pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-wrap gap-2">
+              <input
+                type="file"
+                id="cameraInput"
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+                onChange={handleFileUpload}
+              />
+              <button
+                type="button"
+                onClick={() => document.getElementById('cameraInput')?.click()}
+                disabled={isScanning}
+                className="flex items-center gap-2 px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-[10px] font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all uppercase tracking-widest disabled:opacity-50 shadow-sm"
+              >
+                {isScanning ? <Loader2 size={14} className="animate-spin text-sky-600" /> : <Camera size={14} className="text-sky-600" />}
+                {isScanning ? 'Lendo...' : 'Bater Foto'}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  const input = document.createElement('input');
+                  input.type = 'file';
+                  input.accept = 'image/*';
+                  input.onchange = (e) => handleFileUpload(e as any, true);
+                  input.click();
+                }}
+                disabled={isScanning}
+                className="flex items-center gap-2 px-4 py-3 bg-sky-600 text-white rounded-xl text-[10px] font-black hover:bg-sky-500 transition-all uppercase tracking-widest shadow-lg shadow-sky-100 dark:shadow-sky-900/20 disabled:opacity-50"
+              >
+                {isScanning ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                {isScanning ? 'Processando...' : 'Escanear com IA'}
+              </button>
+
               <button
                 type="button"
                 onClick={() => setShowMoreInfo(!showMoreInfo)}
-                className="flex items-center gap-2 text-[10px] font-bold text-sky-600 hover:text-sky-700 transition-colors uppercase tracking-widest"
+                className="flex items-center gap-2 ml-auto px-4 py-3 text-[10px] font-bold text-slate-400 hover:text-sky-600 transition-colors uppercase tracking-widest"
               >
                 {showMoreInfo ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                Mais Informações
+                Detalhes
               </button>
             </div>
 
@@ -709,74 +788,58 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
                   <label className="text-xs font-bold text-slate-500 uppercase ml-1 flex items-center gap-1">
                     <Paperclip size={12} /> Anexo / Comprovante
                   </label>
-                  <div className="flex flex-col gap-3">
-                    <input
-                      type="text"
-                      placeholder="Cole o link do documento ou foto aqui..."
-                      className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-sky-500/20 transition-all text-slate-900 text-sm font-medium"
-                      value={attachment.startsWith('data:image') ? 'Imagem anexada' : attachment}
-                      onChange={e => setAttachment(e.target.value)}
-                      readOnly={attachment.startsWith('data:image')}
-                    />
-
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-col gap-3">
                       <input
-                        type="file"
-                        id="cameraInput"
-                        accept="image/*"
-                        capture="environment"
-                        className="hidden"
-                        onChange={handleFileUpload}
+                        type="text"
+                        placeholder="Cole o link do documento ou foto aqui..."
+                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-sky-500/20 transition-all text-slate-900 text-sm font-medium"
+                        value={attachment.startsWith('data:image') ? 'Imagem anexada' : attachment}
+                        onChange={e => setAttachment(e.target.value)}
+                        readOnly={attachment.startsWith('data:image')}
                       />
-                      <button
-                        type="button"
-                        onClick={() => document.getElementById('cameraInput')?.click()}
-                        className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-[10px] font-bold text-slate-600 hover:bg-slate-50 transition-all uppercase tracking-widest"
-                      >
-                        <Camera size={14} className="text-sky-600" />
-                        Bater Foto
-                      </button>
 
-                      <input
-                        type="file"
-                        id="fileInput"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={handleFileUpload}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => document.getElementById('fileInput')?.click()}
-                        className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-[10px] font-bold text-slate-600 hover:bg-slate-50 transition-all uppercase tracking-widest"
-                      >
-                        <Image size={14} className="text-emerald-600" />
-                        Importar
-                      </button>
-
-                      {attachment && (
+                      <div className="flex flex-wrap gap-2">
+                        <input
+                          type="file"
+                          id="fileInput"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={handleFileUpload}
+                        />
                         <button
                           type="button"
-                          onClick={() => setAttachment('')}
-                          className="flex items-center gap-2 px-4 py-2 bg-rose-50 border border-rose-100 rounded-xl text-[10px] font-bold text-rose-600 hover:bg-rose-100 transition-all uppercase tracking-widest"
+                          onClick={() => document.getElementById('fileInput')?.click()}
+                          className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-[10px] font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all uppercase tracking-widest shadow-sm"
                         >
-                          <Trash2 size={14} />
-                          Remover Anexo
+                          <Image size={14} className="text-emerald-600" />
+                          Importar Galeria
                         </button>
+
+                        {attachment && (
+                          <button
+                            type="button"
+                            onClick={() => setAttachment('')}
+                            className="flex items-center gap-2 px-4 py-2 bg-rose-50 border border-rose-100 rounded-xl text-[10px] font-bold text-rose-600 hover:bg-rose-100 transition-all uppercase tracking-widest shadow-sm"
+                          >
+                            <Trash2 size={14} />
+                            Limpar
+                          </button>
+                        )}
+                      </div>
+
+                      {attachment && attachment.startsWith('data:image') && (
+                        <div className="relative w-full max-w-[200px] h-[200px] rounded-2xl overflow-hidden border-4 border-white shadow-lg animate-in fade-in zoom-in duration-300 mt-2">
+                          <img src={attachment} alt="Preview" className="w-full h-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => setAttachment('')}
+                            className="absolute top-2 right-2 p-1 bg-rose-500 text-white rounded-full shadow-lg hover:bg-rose-600 transition-colors"
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
                       )}
                     </div>
-
-                    {attachment && attachment.startsWith('data:image') && (
-                      <div className="relative w-full max-w-[200px] h-[200px] rounded-2xl overflow-hidden border-4 border-white shadow-lg animate-in fade-in zoom-in duration-300">
-                        <img src={attachment} alt="Preview" className="w-full h-full object-cover" />
-                        <button
-                          type="button"
-                          onClick={() => setAttachment('')}
-                          className="absolute top-2 right-2 p-1 bg-rose-500 text-white rounded-full shadow-lg hover:bg-rose-600 transition-colors"
-                        >
-                          <X size={14} />
-                        </button>
-                      </div>
-                    )}
                   </div>
                   <p className="text-[10px] text-slate-600 italic px-1 mt-1">
                     * As fotos são salvas em formato otimizado para não pesar no sistema.
@@ -846,192 +909,193 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
             </button>
           </div>
         </form>
-      )}
+  ) : (
 
-      <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
-        {/* Responsive Table View for All Viewports */}
-        <div className="overflow-x-auto relative scrollbar-hide">
-          <table className="w-full text-left border-collapse">
-            <thead className="bg-slate-50/50 dark:bg-slate-800/50">
-              <tr>
-                <th className="sticky left-0 z-20 bg-slate-50 dark:bg-slate-800 px-4 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] w-[80px] text-center">Status</th>
-                <th className="sticky left-[80px] z-20 bg-slate-50 dark:bg-slate-800 px-4 md:px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] min-w-[200px]">Descrição</th>
-                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest whitespace-nowrap">Conta</th>
-                <th className="px-4 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest whitespace-nowrap text-center">Data</th>
-                <th className="px-4 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest whitespace-nowrap text-center">Foto</th>
-                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest whitespace-nowrap">Categoria</th>
-                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest whitespace-nowrap">Recorrência</th>
-                <th className="px-4 md:px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest text-right whitespace-nowrap">Valor</th>
-                <th className="px-4 md:px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest text-right whitespace-nowrap pr-8">Ações</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
-              {filteredTransactions.map((t) => (
-                <tr key={t.id} className="hover:bg-cyan-500/5 dark:hover:bg-cyan-500/10 transition-colors group">
-                  <td className="sticky left-0 z-10 bg-white dark:bg-slate-900 px-4 py-4 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] w-[80px]">
-                    <button
-                      onClick={() => toggleStatus(t.id, t.isPaid)}
-                      className="transition-transform active:scale-95 focus:outline-none w-full flex justify-center"
-                      title="Clique para alterar status"
-                    >
-                      {t.isPaid ? (
-                        <div className="flex items-center justify-center text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 w-8 h-8 rounded-full border border-emerald-100 dark:border-emerald-900/30">
-                          <CheckCircle size={16} />
-                        </div>
-                      ) : (
-                        <div className="flex items-center justify-center text-amber-600 bg-amber-50 dark:bg-amber-900/20 w-8 h-8 rounded-full border border-amber-100 dark:border-amber-900/30">
-                          <Clock size={16} />
-                        </div>
-                      )}
-                    </button>
-                  </td>
-                  <td className="sticky left-[80px] z-10 bg-white dark:bg-slate-900 px-4 md:px-6 py-4 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] min-w-[200px]">
-                    <div className="font-bold text-slate-900 dark:text-white text-sm truncate max-w-[180px]" title={t.description}>{t.description}</div>
-                    <div className="flex flex-wrap items-center gap-1 mt-1">
-                      {t.created_by && familyMembers && familyMembers[t.created_by] && (
-                        <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 rounded-full pr-2 border border-slate-200 dark:border-slate-700">
-                          <img
-                            src={familyMembers[t.created_by].avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(familyMembers[t.created_by].name)}&background=random`}
-                            alt={familyMembers[t.created_by].name}
-                            className="w-4 h-4 rounded-full"
-                          />
-                          <span className="text-[9px] font-bold text-slate-600 dark:text-slate-400 max-w-[60px] truncate">
-                            {familyMembers[t.created_by].name.split(' ')[0]}
-                          </span>
-                        </div>
-                      )}
-                      <span className="flex items-center whitespace-nowrap text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold tracking-tighter">
-                        <CreditCard size={10} className="mr-1" /> {t.paymentMethod}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {(() => {
-                      const accInfo = getAccountInfo(t.account);
-                      return accInfo ? (
-                        <div className="flex items-center gap-2">
-                          <div className="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center p-0.5 border border-slate-200 dark:border-slate-700 overflow-hidden">
-                            {accInfo.bankLogo ? (
-                              <img src={accInfo.bankLogo} alt={accInfo.name} className="w-full h-full object-contain" />
-                            ) : (
-                              <Wallet size={10} className="text-slate-400" />
-                            )}
-                          </div>
-                          <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300 truncate max-w-[100px]">
-                            {accInfo.name}
-                          </span>
-                        </div>
-                      ) : (
-                        <span className="text-[10px] text-slate-400 italic font-medium">-</span>
-                      );
-                    })()}
-                  </td>
-                  <td className="px-4 py-4 text-center whitespace-nowrap">
-                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">
-                      {new Date(t.date).toLocaleDateString('pt-BR')}
-                    </span>
-                  </td>
-                  <td className="px-4 py-4 text-center whitespace-nowrap">
-                    {t.attachment && t.attachment.startsWith('data:image') ? (
-                      <button
-                        onClick={() => setSelectedAttachment(t.attachment!)}
-                        className="relative group/photo inline-block"
-                      >
-                        <img
-                          src={t.attachment}
-                          alt="Comprovante"
-                          className="w-8 h-8 rounded-lg object-cover border border-slate-200 dark:border-slate-700 shadow-sm"
-                        />
-                      </button>
-                    ) : (
-                      <span className="text-slate-200 dark:text-slate-700">—</span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex flex-col">
-                      <span className="text-[10px] font-black text-sky-600 dark:text-sky-400 flex items-center uppercase tracking-widest px-2 py-1 bg-sky-50 dark:bg-sky-900/20 border border-sky-100 dark:border-sky-900/30 rounded-lg w-fit">
-                        {t.category}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {t.recurrence === 'installment' ? (
-                      <span className="text-[10px] font-black text-orange-600 uppercase">
-                        {(() => { const m = t.description?.match(/\((\d+)\/(\d+)\)/); return m ? `${m[1]}/${m[2]}x` : `${t.installmentCount}x`; })()}
-                      </span>
-                    ) : (
-                      <span className="text-[10px] text-slate-400 uppercase font-bold">{t.recurrence === 'fixed' ? 'Mensal' : 'Única'}</span>
-                    )}
-                  </td>
-                  <td className={`px-4 md:px-6 py-4 text-sm font-black text-right whitespace-nowrap ${t.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
-                    R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                  </td>
-                  <td className="px-4 md:px-6 py-4 text-right whitespace-nowrap pr-8">
-                    <div className="flex items-center justify-end gap-1">
-                      <button onClick={() => handleEdit(t)} className="p-2 text-slate-400 hover:text-sky-600 transition-colors"><Edit2 size={16} /></button>
-                      <button onClick={() => onDeleteTransaction(t.id)} className="p-2 text-slate-400 hover:text-rose-600 transition-colors"><Trash2 size={16} /></button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {filteredTransactions.length === 0 && (
-                <tr>
-                  <td colSpan={9} className="px-6 py-12 text-center text-slate-400 italic text-sm">
-                    Nenhum registro encontrado.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Attachment Modal Viewer */}
-      {selectedAttachment && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="relative bg-white rounded-3xl overflow-hidden shadow-2xl max-w-2xl w-full animate-in zoom-in-95 duration-300">
-            <div className="p-4 border-b border-slate-100 flex justify-between items-center">
-              <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest">Visualizar Anexo</h3>
-              <button
-                onClick={() => setSelectedAttachment(null)}
-                className="p-2 hover:bg-slate-100 rounded-xl transition-colors text-slate-400 hover:text-slate-600"
-              >
-                <X size={20} />
-              </button>
-            </div>
-            <div className="p-4 flex justify-center bg-slate-50 min-h-[300px] max-h-[70vh] overflow-y-auto">
-              {selectedAttachment.startsWith('data:image') ? (
-                <img src={selectedAttachment} alt="Anexo" className="max-w-full h-auto rounded-xl shadow-sm" />
-              ) : (
-                <div className="flex flex-col items-center justify-center gap-4 py-12">
-                  <div className="p-6 bg-white rounded-3xl shadow-sm border border-slate-100">
-                    <FileText size={48} className="text-sky-500" />
-                  </div>
-                  <p className="text-slate-500 font-medium text-center">Este anexo é um link externo.</p>
-                  <a
-                    href={selectedAttachment}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-6 py-3 bg-sky-600 text-white rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-sky-500 transition-all shadow-lg shadow-sky-100"
+    <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
+      {/* Responsive Table View for All Viewports */}
+      <div className="overflow-x-auto relative scrollbar-hide">
+        <table className="w-full text-left border-collapse">
+          <thead className="bg-slate-50/50 dark:bg-slate-800/50">
+            <tr>
+              <th className="sticky left-0 z-20 bg-slate-50 dark:bg-slate-800 px-4 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] w-[80px] text-center">Status</th>
+              <th className="sticky left-[80px] z-20 bg-slate-50 dark:bg-slate-800 px-4 md:px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] min-w-[200px]">Descrição</th>
+              <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest whitespace-nowrap">Conta</th>
+              <th className="px-4 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest whitespace-nowrap text-center">Data</th>
+              <th className="px-4 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest whitespace-nowrap text-center">Foto</th>
+              <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest whitespace-nowrap">Categoria</th>
+              <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest whitespace-nowrap">Recorrência</th>
+              <th className="px-4 md:px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest text-right whitespace-nowrap">Valor</th>
+              <th className="px-4 md:px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest text-right whitespace-nowrap pr-8">Ações</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
+            {filteredTransactions.map((t) => (
+              <tr key={t.id} className="hover:bg-cyan-500/5 dark:hover:bg-cyan-500/10 transition-colors group">
+                <td className="sticky left-0 z-10 bg-white dark:bg-slate-900 px-4 py-4 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] w-[80px]">
+                  <button
+                    onClick={() => toggleStatus(t.id, t.isPaid)}
+                    className="transition-transform active:scale-95 focus:outline-none w-full flex justify-center"
+                    title="Clique para alterar status"
                   >
-                    Abrir Link Externo
-                  </a>
-                </div>
-              )}
-            </div>
-            <div className="p-4 border-t border-slate-100 flex justify-end">
-              <button
-                onClick={() => setSelectedAttachment(null)}
-                className="px-6 py-2 bg-slate-100 text-slate-600 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-slate-200 transition-all"
+                    {t.isPaid ? (
+                      <div className="flex items-center justify-center text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 w-8 h-8 rounded-full border border-emerald-100 dark:border-emerald-900/30">
+                        <CheckCircle size={16} />
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center text-amber-600 bg-amber-50 dark:bg-amber-900/20 w-8 h-8 rounded-full border border-amber-100 dark:border-amber-900/30">
+                        <Clock size={16} />
+                      </div>
+                    )}
+                  </button>
+                </td>
+                <td className="sticky left-[80px] z-10 bg-white dark:bg-slate-900 px-4 md:px-6 py-4 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] min-w-[200px]">
+                  <div className="font-bold text-slate-900 dark:text-white text-sm truncate max-w-[180px]" title={t.description}>{t.description}</div>
+                  <div className="flex flex-wrap items-center gap-1 mt-1">
+                    {t.created_by && familyMembers && familyMembers[t.created_by] && (
+                      <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 rounded-full pr-2 border border-slate-200 dark:border-slate-700">
+                        <img
+                          src={familyMembers[t.created_by].avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(familyMembers[t.created_by].name)}&background=random`}
+                          alt={familyMembers[t.created_by].name}
+                          className="w-4 h-4 rounded-full"
+                        />
+                        <span className="text-[9px] font-bold text-slate-600 dark:text-slate-400 max-w-[60px] truncate">
+                          {familyMembers[t.created_by].name.split(' ')[0]}
+                        </span>
+                      </div>
+                    )}
+                    <span className="flex items-center whitespace-nowrap text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold tracking-tighter">
+                      <CreditCard size={10} className="mr-1" /> {t.paymentMethod}
+                    </span>
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {(() => {
+                    const accInfo = getAccountInfo(t.account);
+                    return accInfo ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center p-0.5 border border-slate-200 dark:border-slate-700 overflow-hidden">
+                          {accInfo.bankLogo ? (
+                            <img src={accInfo.bankLogo} alt={accInfo.name} className="w-full h-full object-contain" />
+                          ) : (
+                            <Wallet size={10} className="text-slate-400" />
+                          )}
+                        </div>
+                        <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300 truncate max-w-[100px]">
+                          {accInfo.name}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-[10px] text-slate-400 italic font-medium">-</span>
+                    );
+                  })()}
+                </td>
+                <td className="px-4 py-4 text-center whitespace-nowrap">
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">
+                    {new Date(t.date).toLocaleDateString('pt-BR')}
+                  </span>
+                </td>
+                <td className="px-4 py-4 text-center whitespace-nowrap">
+                  {t.attachment && t.attachment.startsWith('data:image') ? (
+                    <button
+                      onClick={() => setSelectedAttachment(t.attachment!)}
+                      className="relative group/photo inline-block"
+                    >
+                      <img
+                        src={t.attachment}
+                        alt="Comprovante"
+                        className="w-8 h-8 rounded-lg object-cover border border-slate-200 dark:border-slate-700 shadow-sm"
+                      />
+                    </button>
+                  ) : (
+                    <span className="text-slate-200 dark:text-slate-700">—</span>
+                  )}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-black text-sky-600 dark:text-sky-400 flex items-center uppercase tracking-widest px-2 py-1 bg-sky-50 dark:bg-sky-900/20 border border-sky-100 dark:border-sky-900/30 rounded-lg w-fit">
+                      {t.category}
+                    </span>
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {t.recurrence === 'installment' ? (
+                    <span className="text-[10px] font-black text-orange-600 uppercase">
+                      {(() => { const m = t.description?.match(/\((\d+)\/(\d+)\)/); return m ? `${m[1]}/${m[2]}x` : `${t.installmentCount}x`; })()}
+                    </span>
+                  ) : (
+                    <span className="text-[10px] text-slate-400 uppercase font-bold">{t.recurrence === 'fixed' ? 'Mensal' : 'Única'}</span>
+                  )}
+                </td>
+                <td className={`px-4 md:px-6 py-4 text-sm font-black text-right whitespace-nowrap ${t.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                  R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </td>
+                <td className="px-4 md:px-6 py-4 text-right whitespace-nowrap pr-8">
+                  <div className="flex items-center justify-end gap-1">
+                    <button onClick={() => handleEdit(t)} className="p-2 text-slate-400 hover:text-sky-600 transition-colors"><Edit2 size={16} /></button>
+                    <button onClick={() => onDeleteTransaction(t.id)} className="p-2 text-slate-400 hover:text-rose-600 transition-colors"><Trash2 size={16} /></button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+            {filteredTransactions.length === 0 && (
+              <tr>
+                <td colSpan={9} className="px-6 py-12 text-center text-slate-400 italic text-sm">
+                  Nenhum registro encontrado.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+}
+
+{/* Attachment Modal Viewer */ }
+{
+  selectedAttachment && (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+      <div className="relative bg-white rounded-3xl overflow-hidden shadow-2xl max-w-2xl w-full animate-in zoom-in-95 duration-300">
+        <div className="p-4 border-b border-slate-100 flex justify-between items-center">
+          <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest">Visualizar Anexo</h3>
+          <button
+            onClick={() => setSelectedAttachment(null)}
+            className="p-2 hover:bg-slate-100 rounded-xl transition-colors text-slate-400 hover:text-slate-600"
+          >
+            <X size={20} />
+          </button>
+        </div>
+        <div className="p-4 flex justify-center bg-slate-50 min-h-[300px] max-h-[70vh] overflow-y-auto">
+          {selectedAttachment.startsWith('data:image') ? (
+            <img src={selectedAttachment} alt="Anexo" className="max-w-full h-auto rounded-xl shadow-sm" />
+          ) : (
+            <div className="flex flex-col items-center justify-center gap-4 py-12">
+              <div className="p-6 bg-white rounded-3xl shadow-sm border border-slate-100">
+                <FileText size={48} className="text-sky-500" />
+              </div>
+              <p className="text-slate-500 font-medium text-center">Este anexo é um link externo.</p>
+              <a
+                href={selectedAttachment}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 px-6 py-3 bg-sky-600 text-white rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-sky-500 transition-all shadow-lg shadow-sky-100"
               >
-                Fechar
-              </button>
+                Abrir Link Externo
+              </a>
             </div>
-          </div>
+          )}
+        </div>
+        <div className="p-4 border-t border-slate-100 flex justify-end">
+          <button
+            onClick={() => setSelectedAttachment(null)}
+            className="px-6 py-2 bg-slate-100 text-slate-600 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-slate-200 transition-all"
+          >
+            Fechar
+          </button>
         </div>
       )}
-    </div>
-  );
+      </div>
+      );
 };
 
-export default ExpenseManager;
+      export default ExpenseManager;

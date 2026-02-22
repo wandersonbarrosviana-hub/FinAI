@@ -13,9 +13,12 @@ import {
     CreditCard,
     HelpCircle,
     Info,
-    Smartphone
+    Smartphone,
+    Palette,
+    Sparkles
 } from 'lucide-react';
 import { Account, Transaction, Budget, Goal } from '../types';
+import { THEMES } from '../constants';
 
 import ResetDataModal from './ResetDataModal';
 
@@ -32,10 +35,26 @@ interface SettingsProps {
     }) => Promise<void>;
 }
 
+
 const Settings: React.FC<SettingsProps> = ({ user, onLogout, onExportData, onForceSync, onResetData }) => {
-    // Theme state is now managed by parent (App.tsx)
     const [notifications, setNotifications] = useState(true);
     const [isResetModalOpen, setIsResetModalOpen] = useState(false);
+    const [currentTheme, setCurrentTheme] = useState(() => localStorage.getItem('finai-theme') || 'ocean');
+
+    const applyTheme = (themeId: string) => {
+        const theme = THEMES.find(t => t.id === themeId) || THEMES[0];
+        const root = document.documentElement;
+        root.style.setProperty('--color-primary', theme.primary);
+        root.style.setProperty('--color-primary-soft', theme.soft);
+        root.style.setProperty('--color-primary-glow', theme.glow);
+        root.style.setProperty('--color-primary-dark', theme.dark);
+        localStorage.setItem('finai-theme', themeId);
+        setCurrentTheme(themeId);
+    };
+
+    React.useEffect(() => {
+        applyTheme(currentTheme);
+    }, []);
 
     return (
         <div className="max-w-4xl mx-auto space-y-8 pb-24 animate-in fade-in duration-500">
@@ -103,6 +122,53 @@ const Settings: React.FC<SettingsProps> = ({ user, onLogout, onExportData, onFor
                                 </div>
                             </div>
                             <span className="text-xs font-black bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-2 py-1 rounded-md">FIXO</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Appearance Settings */}
+                <div className="space-y-6">
+                    <h3 className="text-lg font-black text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                        <Palette size={20} className="text-sky-600 dark:text-sky-400" />
+                        Aparência
+                    </h3>
+
+                    <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-sm p-6 space-y-6">
+                        <div>
+                            <p className="font-bold text-slate-800 dark:text-slate-200 mb-1 flex items-center gap-2">
+                                Tema de Cores
+                                <Sparkles size={14} className="text-amber-500 animate-pulse" />
+                            </p>
+                            <p className="text-xs text-slate-400 dark:text-slate-500 font-medium mb-4">Escolha a tonalidade que combina com você</p>
+
+                            <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
+                                {THEMES.map(theme => (
+                                    <button
+                                        key={theme.id}
+                                        onClick={() => applyTheme(theme.id)}
+                                        className={`group relative flex flex-col items-center gap-2 p-2 rounded-2xl transition-all border-2 ${currentTheme === theme.id ? 'border-sky-500 bg-sky-50 dark:bg-sky-900/20' : 'border-transparent hover:border-slate-100 dark:hover:border-slate-800'}`}
+                                    >
+                                        <div
+                                            className="w-10 h-10 rounded-full shadow-lg transition-transform group-hover:scale-110"
+                                            style={{ backgroundColor: theme.primary }}
+                                        />
+                                        <span className={`text-[10px] font-black uppercase tracking-tight ${currentTheme === theme.id ? 'text-sky-600 dark:text-sky-400' : 'text-slate-400'}`}>
+                                            {theme.name}
+                                        </span>
+                                        {currentTheme === theme.id && (
+                                            <div className="absolute -top-1 -right-1">
+                                                <div className="bg-sky-500 text-white rounded-full p-0.5 shadow-sm">
+                                                    <Sparkles size={10} />
+                                                </div>
+                                            </div>
+                                        )}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="pt-4 border-t border-slate-50 dark:border-slate-800">
+                            <p className="text-xs font-bold text-slate-500 italic">Os ícones e cards agora possuem animações premium baseadas no seu tema!</p>
                         </div>
                     </div>
                 </div>

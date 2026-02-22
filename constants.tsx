@@ -1,52 +1,33 @@
 
 import React from 'react';
 import {
-  LayoutDashboard,
-  TrendingUp,
-  TrendingDown,
-  ArrowRightLeft,
-  Wallet,
-  PieChart,
-  Target,
-  Flag,
-  Calculator,
-  Sunrise,
-  Settings,
-  ShieldCheck,
-  FileText,
-  Bot,
-  CreditCard,
-  BarChart2,
-  Tags,
   LogOut,
   Bell,
-  Grid,
-  Shield,
-  Landmark
+  Settings,
+  X
 } from 'lucide-react';
+import * as Icons from './components/icons/ColorfulIcons';
 import { ViewState } from './types';
 
 export const NAV_ITEMS = [
-  { id: 'admin' as ViewState, label: 'Administrador', icon: <Shield size={20} /> },
-  { id: 'dashboard' as ViewState, label: 'Dashboard', icon: <LayoutDashboard size={20} /> },
+  { id: 'admin' as ViewState, label: 'Administrador', icon: <Icons.AdminIcon size={20} /> },
+  { id: 'dashboard' as ViewState, label: 'Dashboard', icon: <Icons.DashboardIcon size={20} /> },
 
-  { id: 'transactions' as ViewState, label: 'Transações', icon: <ArrowRightLeft size={20} /> },
-  { id: 'debts' as ViewState, label: 'Dívidas', icon: <Landmark size={20} /> },
-  { id: 'investments' as ViewState, label: 'Investimentos', icon: <TrendingUp size={20} />, badge: 'Em breve' },
-  // { id: 'transfers' as ViewState, label: 'Transferências', icon: <ArrowRightLeft size={20} /> }, // Removed
-  { id: 'credit-cards' as ViewState, label: 'Cartões', icon: <CreditCard size={20} /> },
-  { id: 'accounts' as ViewState, label: 'Contas', icon: <Wallet size={20} /> },
-  { id: 'budgets' as ViewState, label: 'Orçamento', icon: <PieChart size={20} /> },
-  { id: 'custom-budgets' as ViewState, label: 'Orç. Personalizado', icon: <Calculator size={20} /> },
-  { id: 'charts' as ViewState, label: 'Gráficos', icon: <BarChart2 size={20} /> },
-  { id: 'categories' as ViewState, label: 'Categorias', icon: <Tags size={20} /> },
-  { id: 'goals' as ViewState, label: 'Metas', icon: <Target size={20} /> },
-  // { id: 'objectives' as ViewState, label: 'Objetivos', icon: <Flag size={20} /> },
+  { id: 'transactions' as ViewState, label: 'Transações', icon: <Icons.TransactionsIcon size={20} /> },
+  { id: 'debts' as ViewState, label: 'Dívidas', icon: <Icons.DebtsIcon size={20} /> },
+  { id: 'investments' as ViewState, label: 'Investimentos', icon: <Icons.InvestmentsIcon size={20} />, badge: 'Em breve' },
+  { id: 'credit-cards' as ViewState, label: 'Cartões', icon: <Icons.CreditCardIcon size={20} /> },
+  { id: 'accounts' as ViewState, label: 'Contas', icon: <Icons.WalletIcon size={20} /> },
+  { id: 'budgets' as ViewState, label: 'Orçamento', icon: <Icons.BudgetIcon size={20} /> },
+  { id: 'custom-budgets' as ViewState, label: 'Orç. Personalizado', icon: <Icons.BudgetIcon size={20} /> },
+  { id: 'charts' as ViewState, label: 'Gráficos', icon: <Icons.ChartsIcon size={20} /> },
+  { id: 'categories' as ViewState, label: 'Categorias', icon: <Icons.CategoriesIcon size={20} /> },
+  { id: 'goals' as ViewState, label: 'Metas', icon: <Icons.GoalsIcon size={20} /> },
 
-  { id: 'ai-assistant' as ViewState, label: 'Assistente Virtual', icon: <Bot size={20} /> },
-  { id: 'retirement' as ViewState, label: 'Aposentadoria', icon: <Sunrise size={20} /> },
-  { id: 'reports' as ViewState, label: 'Relatórios', icon: <FileText size={20} /> },
-  { id: 'plans' as ViewState, label: 'Planos', icon: <ShieldCheck size={20} /> },
+  { id: 'ai-assistant' as ViewState, label: 'Assistente Virtual', icon: <Icons.AIAssistantIcon size={20} /> },
+  { id: 'retirement' as ViewState, label: 'Aposentadoria', icon: <Icons.RetirementIcon size={20} /> },
+  { id: 'reports' as ViewState, label: 'Relatórios', icon: <Icons.ReportsIcon size={20} /> },
+  { id: 'plans' as ViewState, label: 'Planos', icon: <Icons.PlansIcon size={20} /> },
 ];
 
 export const CATEGORIES_MAP: Record<string, string[]> = {
@@ -129,4 +110,12 @@ export const BANKS: BankInfo[] = [
 
 export const CARD_NETWORKS = BANKS.filter(b => ['visa', 'mastercard', 'elo', 'amex', 'hipercard', 'ticket', 'alelo', 'sodexo', 'vr'].includes(b.id));
 
-// Automatic deployment trigger: 2026-02-09 21:14:14
+
+export const THEMES = [
+  { id: 'ocean', name: 'Oceano', primary: '#0284c7', soft: '#e0f2fe', glow: 'rgba(2, 132, 199, 0.15)', dark: '#0369a1' },
+  { id: 'emerald', name: 'Esmeralda', primary: '#10b981', soft: '#ecfdf5', glow: 'rgba(16, 185, 129, 0.15)', dark: '#059669' },
+  { id: 'ruby', name: 'Rubi', primary: '#e11d48', soft: '#fff1f2', glow: 'rgba(225, 29, 72, 0.15)', dark: '#be123c' },
+  { id: 'sunset', name: 'Sunset', primary: '#f59e0b', soft: '#fffbeb', glow: 'rgba(245, 158, 11, 0.15)', dark: '#d97706' },
+  { id: 'obsidian', name: 'Obsidiana', primary: '#1e293b', soft: '#f1f5f9', glow: 'rgba(30, 41, 59, 0.15)', dark: '#0f172a' },
+  { id: 'violet', name: 'Violeta', primary: '#7c3aed', soft: '#f5f3ff', glow: 'rgba(124, 58, 237, 0.15)', dark: '#6d28d9' }
+];

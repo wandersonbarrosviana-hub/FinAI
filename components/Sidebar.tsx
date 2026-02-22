@@ -94,20 +94,20 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, isOpen, se
                 key={item.id}
                 onClick={() => handleNavClick(item.id)}
                 className={`w-full flex items-center p-3 sm:p-3.5 rounded-xl transition-all duration-300 relative group overflow-hidden ${isActive
-                  ? 'bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400 shadow-[inset_4px_0_0_0_#0284c7]'
+                  ? 'bg-sky-50/50 dark:bg-sky-900/10 text-sky-600 dark:text-sky-400 shadow-[inset_4px_0_0_0_#0284c7]'
                   : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800'
                   }`}
               >
                 <div className={`flex items-center relative z-10 ${isOpen ? 'ml-1 sm:ml-2' : 'mx-auto md:mx-auto'}`}>
                   {React.cloneElement(item.icon as any, {
                     size: 20,
-                    className: isActive ? 'text-sky-600 dark:text-sky-400' : 'transition-colors'
+                    className: `transition-all duration-300 ${isActive ? 'scale-110 filter drop-shadow-[0_0_8px_rgba(0,0,0,0.1)]' : 'opacity-80 group-hover:opacity-100 group-hover:scale-110'}`
                   })}
                   <span className={`ml-3 text-sm font-bold tracking-tight flex items-center gap-1.5 whitespace-nowrap transition-all duration-300 ${isOpen ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 md:hidden pointer-events-none'
                     } ${isActive ? 'text-sky-900 dark:text-sky-100' : ''}`}>
                     {item.label}
                     {(item as any).badge && (
-                      <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 uppercase tracking-wide leading-none">
+                      <span className="text-[8px] font-black px-2 py-0.5 rounded-full bg-gradient-to-r from-sky-500 to-indigo-500 text-white uppercase tracking-[0.1em] leading-none shadow-sm shadow-sky-500/20 animate-pulse-slow">
                         {(item as any).badge}
                       </span>
                     )}
@@ -128,7 +128,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, isOpen, se
               }`}
           >
             <div className={`flex items-center relative z-10 ${isOpen ? 'ml-1 sm:ml-2' : 'mx-auto md:mx-auto'}`}>
-              <SettingsIcon size={20} className={currentView === 'settings' ? 'text-sky-600 dark:text-sky-400' : ''} />
+              <SettingsIcon size={20} className={currentView === 'settings' ? 'text-sky-600 dark:text-sky-400 icon-filled' : 'opacity-70 hover:opacity-100'} />
               <span className={`ml-3 text-sm font-bold tracking-tight transition-all duration-300 ${isOpen ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 md:hidden pointer-events-none'
                 } ${currentView === 'settings' ? 'text-sky-900 dark:text-sky-100' : ''}`}>
                 Configurações

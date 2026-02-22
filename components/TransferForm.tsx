@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Account, Transaction } from '../types';
-import { ArrowRightLeft, Calendar, DollarSign, Wallet } from 'lucide-react';
+import { ArrowRightLeft, Calendar, DollarSign, Wallet, ArrowDownCircle } from 'lucide-react';
 
 interface TransferFormProps {
     accounts: Account[];

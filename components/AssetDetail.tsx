@@ -2,7 +2,8 @@ import React from 'react';
 import { InvestmentData } from '../types';
 import DividendChart from './DividendChart';
 import DividendTable from './DividendTable';
-import { ArrowLeft, Activity, PieChart, TrendingUp, DollarSign, Percent, BarChart3, Shield } from 'lucide-react';
+import InvestmentInsights from './InvestmentInsights';
+import { ArrowLeft, Activity, PieChart, TrendingUp, DollarSign, Percent, BarChart3, Shield, BarChart } from 'lucide-react';
 
 interface AssetDetailProps {
     asset: InvestmentData;
@@ -59,6 +60,11 @@ const AssetDetail: React.FC<AssetDetailProps> = ({ asset, onBack }) => {
                 </div>
             </div>
 
+            {/* AI Insights Section */}
+            <div className="mb-12">
+                <InvestmentInsights investment={asset} />
+            </div>
+
             {/* Main Indicators Grid */}
             <div className="mb-12">
                 <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-3">
@@ -75,6 +81,7 @@ const AssetDetail: React.FC<AssetDetailProps> = ({ asset, onBack }) => {
                         <>
                             <IndicatorCard label="ROE" value={i.roe} suffix="%" color="text-emerald-500" icon={Percent} />
                             <IndicatorCard label="ROIC" value={i.roic} suffix="%" color="text-sky-500" icon={Activity} />
+                            <IndicatorCard label="EBITDA" value={i.ebitda} prefix="R$ " icon={BarChart} />
                             <IndicatorCard label="M. Líquida" value={i.margem_liquida} suffix="%" icon={Activity} />
                             <IndicatorCard label="M. Bruta" value={i.margem_bruta} suffix="%" icon={Activity} />
                             <IndicatorCard label="M. EBITDA" value={i.margem_ebitda} suffix="%" icon={Activity} />
@@ -83,6 +90,7 @@ const AssetDetail: React.FC<AssetDetailProps> = ({ asset, onBack }) => {
                             <IndicatorCard label="CAGR Lucro" value={i.cagr_lucros_5y} suffix="%" icon={TrendingUp} />
                         </>
                     )}
+                    <IndicatorCard label="Mkt Cap" value={i.market_cap} prefix="R$ " icon={DollarSign} />
                     <IndicatorCard label="Free Float" value={i.free_float} suffix="%" icon={Shield} />
                     <IndicatorCard label="Liq. Diária" value={i.liquidez_media_diaria} prefix="R$ " icon={Activity} />
                 </div>

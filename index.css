@@ -1,15 +1,118 @@
 @import "tailwindcss";
 
 :root {
-  /* Fluid Spacing Scale: 1rem at 320px -> 2rem at 1200px */
+  /* Fluid Spacing Scale */
   --fluid-space-md: clamp(1rem, 0.8rem + 1vw, 2rem);
   --fluid-space-sm: clamp(0.75rem, 0.65rem + 0.5vw, 1rem);
 
-  /* Fluid Typography: 14px at 320px -> 16px at 1200px */
+  /* Fluid Typography */
   --fluid-text-base: clamp(0.875rem, 0.825rem + 0.25vw, 1rem);
   --fluid-text-sm: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
   --fluid-text-xs: clamp(0.625rem, 0.6rem + 0.125vw, 0.75rem);
+
+  /* Theme Colors (Default: Ocean) */
+  --color-primary: #0284c7;
+  --color-primary-soft: #e0f2fe;
+  --color-primary-glow: rgba(2, 132, 199, 0.15);
+  --color-primary-dark: #0369a1;
+
+  /*
+     Tailwind v4 Variable Overrides
+     We only override the variables, letting Tailwind handle the application.
+  */
+  --color-sky-50: var(--color-primary-soft);
+  --color-sky-100: var(--color-primary-soft);
+  --color-sky-200: var(--color-primary-soft);
+  --color-sky-300: var(--color-primary);
+  --color-sky-400: var(--color-primary);
+  --color-sky-500: var(--color-primary);
+  --color-sky-600: var(--color-primary);
+  --color-sky-700: var(--color-primary-dark);
+  --color-sky-800: var(--color-primary-dark);
+  --color-sky-900: var(--color-primary-dark);
 }
+
+/* Luxury Icon Behavior */
+svg.lucide {
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
+  fill-opacity: 0;
+}
+
+/* Active/Filled State for Icons - "Vivid and Animated" */
+.icon-filled {
+  fill: currentColor !important;
+  fill-opacity: 0.15 !important;
+  stroke-width: 2.2 !important;
+  filter: drop-shadow(0 0 12px var(--color-primary-glow)) !important;
+  transform: scale(1.1) rotate(3deg);
+  animation: icon-pulse 2s infinite ease-in-out;
+}
+
+@keyframes icon-pulse {
+
+  0%,
+  100% {
+    transform: scale(1.1) rotate(3deg);
+    filter: drop-shadow(0 0 12px var(--color-primary-glow));
+  }
+
+  50% {
+    transform: scale(1.15) rotate(-1deg);
+    filter: drop-shadow(0 0 18px var(--color-primary-glow));
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse-slow {
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.8;
+    transform: scale(0.95);
+  }
+}
+
+/* Hover States */
+button:hover svg.lucide,
+.group:hover svg.lucide {
+  transform: scale(1.1);
+  filter: drop-shadow(0 0 8px var(--color-primary-glow));
+}
+
+.icon-vibrant {
+  color: var(--color-primary) !important;
+  filter: drop-shadow(0 0 8px var(--color-primary-glow)) !important;
+}
+
+/* Selective Class Overrides - Minimal & Targeted */
+html .text-sky-600,
+html .text-sky-500,
+html .dark .text-sky-400 {
+  color: var(--color-primary) !important;
+}
+
+html .bg-sky-600,
+html .bg-sky-500 {
+  background-color: var(--color-primary) !important;
+}
+
+/* Sidebar Active Indicator Refinement */
+[class*="shadow-[inset_4px_0_0_0_#0284c7]"],
+[class*="shadow-[inset_4px_0_0_0_var(--color-primary)]"] {
+  box-shadow: inset 4px 0 0 0 var(--color-primary) !important;
+}
+
 
 @layer utilities {
   .pb-safe {

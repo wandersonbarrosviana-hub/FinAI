@@ -3,6 +3,7 @@ import { BudgetWithSpending, Transaction, Budget } from '../types';
 import { CATEGORIES } from '../constants';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, LabelList } from 'recharts';
 import { Sparkles, TrendingUp, AlertTriangle, CheckCircle, Wallet } from 'lucide-react';
+import ChartTransactionModal from './ChartTransactionModal';
 
 interface BudgetManagerProps {
     transactions: Transaction[];
@@ -15,6 +16,19 @@ const BudgetManager: React.FC<BudgetManagerProps> = ({ transactions, budgets: pe
     const [budgets, setBudgets] = useState<BudgetWithSpending[]>([]);
     const [currentMonth] = useState(new Date().toISOString().slice(0, 7));
     const [monthlyIncome, setMonthlyIncome] = useState(0);
+
+    // Chart Interaction State
+    const [selectedChartData, setSelectedChartData] = useState<{
+        isOpen: boolean;
+        title: string;
+        transactions: Transaction[];
+        color: string;
+    }>({
+        isOpen: false,
+        title: '',
+        transactions: [],
+        color: '#0ea5e9'
+    });
 
     useEffect(() => {
         // Filter transactions for current month
@@ -133,19 +147,34 @@ const BudgetManager: React.FC<BudgetManagerProps> = ({ transactions, budgets: pe
     const CustomTooltip = ({ active, payload, label }: any) => {
         if (active && payload && payload.length) {
             return (
-                <div className="bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 p-4 rounded-2xl shadow-xl text-xs">
-                    <p className="font-black text-slate-900 dark:text-white mb-2 uppercase tracking-widest">{label}</p>
+                <div className="bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 p-4 rounded-2xl shadow-xl text-xs z-50 animate-in zoom-in-95 duration-200">
+                    <p className="font-black text-slate-900 dark:text-white mb-2 uppercase tracking-widest border-b border-slate-100 dark:border-slate-800 pb-2">{label}</p>
                     {payload.map((p: any, index: number) => (
-                        <p key={index} style={{ color: p.fill }} className="flex items-center gap-2 font-bold">
-                            {p.name}: <span className="font-black text-slate-600 dark:text-slate-300">
+                        <p key={index} style={{ color: p.fill }} className="flex items-center gap-2 font-bold mb-1 last:mb-0">
+                            {p.name}: <span className="font-black text-slate-600 dark:text-slate-300 ml-auto">
                                 R$ {Number(p.value).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                             </span>
                         </p>
                     ))}
+                    <p className="text-[8px] font-black text-sky-500 mt-2 uppercase tracking-tighter">Clique para ver detalhes</p>
                 </div>
             );
         }
         return null;
+    };
+
+    const handleBarClick = (data: any) => {
+        const categoryTransactions = transactions.filter(t =>
+            t.category === data.name &&
+            t.date.startsWith(currentMonth) &&
+            t.type === 'expense'
+        );
+        setSelectedChartData({
+            isOpen: true,
+            title: `Gasto Realizado: ${data.name}`,
+            transactions: categoryTransactions,
+            color: '#0ea5e9'
+        });
     };
 
     const renderCustomBarLabel = (props: any) => {
@@ -257,7 +286,14 @@ const BudgetManager: React.FC<BudgetManagerProps> = ({ transactions, budgets: pe
                                 <Tooltip content={<CustomTooltip />} cursor={{ fill: 'transparent' }} />
                                 <Legend wrapperStyle={{ paddingTop: '20px' }} />
                                 <Bar dataKey="Orçado" fill="#0ea5e9" radius={[4, 4, 0, 0]} name="Meta Orçamentária" />
-                                <Bar dataKey="Realizado" fill="#e2e8f0" radius={[4, 4, 0, 0]} name="Gasto Realizado">
+                                <Bar
+                                    dataKey="Realizado"
+                                    fill="#e2e8f0"
+                                    radius={[4, 4, 0, 0]}
+                                    name="Gasto Realizado"
+                                    className="cursor-pointer"
+                                    onClick={(data) => handleBarClick(data)}
+                                >
                                     <LabelList dataKey="Realizado" content={renderCustomBarLabel} />
                                 </Bar>
                             </BarChart>
@@ -343,6 +379,14 @@ const BudgetManager: React.FC<BudgetManagerProps> = ({ transactions, budgets: pe
                     );
                 })}
             </div>
+            {/* Chart Detail Modal */}
+            <ChartTransactionModal
+                isOpen={selectedChartData.isOpen}
+                onClose={() => setSelectedChartData({ ...selectedChartData, isOpen: false })}
+                title={selectedChartData.title}
+                transactions={selectedChartData.transactions}
+                color={selectedChartData.color}
+            />
         </div >
     );
 };

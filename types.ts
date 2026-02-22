@@ -150,6 +150,8 @@ export interface InvestmentIndicator {
   free_float: number;
   patrimonio_liquido: number;
   numero_papeis: number;
+  market_cap: number;
+  ebitda: number;
 }
 
 export interface DividendChartItem {
@@ -233,4 +235,10 @@ export interface AdvancedAIInsights {
   projections: ProjectionPoint[];
   healthScore: HealthScoreDetail;
   updatedAt: string;
+}
+
+export interface SearchSuggestion {
+  ticker: string;
+  name: string;
+  exchange?: string;
 }

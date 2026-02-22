@@ -4,14 +4,18 @@ import os
 import time
 import pandas as pd
 import numpy as np
+import yahoo_fin.stock_info as si
 from datetime import datetime
 
 # List of assets to track
 ASSETS = [
     'PETR4.SA', 'VALE3.SA', 'ITUB4.SA', 'BBAS3.SA', 'WEGE3.SA', 
     'ABEV3.SA', 'B3SA3.SA', 'EGIE3.SA', 'SANB11.SA', 'FLRY3.SA',
+    'BBDC4.SA', 'BBDC3.SA', 'VIVT3.SA', 'GGBR4.SA', 'CPLE6.SA',
+    'JBSS3.SA', 'RAIL3.SA', 'SUZB3.SA', 'RENT3.SA', 'LREN3.SA',
     'MXRF11.SA', 'HGLG11.SA', 'KNCR11.SA', 'XPML11.SA', 'VISC11.SA',
-    'KNIP11.SA', 'GGRC11.SA', 'HGBS11.SA', 'KNCA11.SA', 'KNSC11.SA'
+    'KNIP11.SA', 'GGRC11.SA', 'HGBS11.SA', 'KNCA11.SA', 'KNSC11.SA',
+    'ALZR11.SA', 'HGRU11.SA', 'BTLG11.SA', 'TRXF11.SA', 'CPTS11.SA'
 ]
 
 def get_asset_details(ticker):
@@ -67,6 +71,34 @@ def get_asset_details(ticker):
 
         p_ebitda = safe_get('enterpriseToEbitda')
         
+        # --- Missing Indicators with yahoo_fin ---
+        market_cap = safe_get('marketCap')
+        ebitda_val = safe_get('ebitda')
+        
+        try:
+            # Complement with yahoo_fin if values are missing
+            if market_cap == 0 or ebitda_val == 0:
+                quote = si.get_quote_table(ticker)
+                if market_cap == 0:
+                    mc_str = quote.get('Market Cap', '0')
+                    # Convert '1.2B' or '500M' to numbers if needed
+                    if isinstance(mc_str, str):
+                        if 'T' in mc_str: market_cap = float(mc_str.replace('T', '')) * 1e12
+                        elif 'B' in mc_str: market_cap = float(mc_str.replace('B', '')) * 1e9
+                        elif 'M' in mc_str: market_cap = float(mc_str.replace('M', '')) * 1e6
+                
+                stats = si.get_stats(ticker)
+                if ebitda_val == 0:
+                    ebitda_row = stats[stats['Attribute'].str.contains('EBITDA', na=False)]
+                    if not ebitda_row.empty:
+                        ebitda_val = ebitda_row.iloc[0]['Value']
+                        # Handle strings like '1.2B'
+                        if isinstance(ebitda_val, str):
+                            if 'B' in ebitda_val: ebitda_val = float(ebitda_val.replace('B', '')) * 1e9
+                            elif 'M' in ebitda_val: ebitda_val = float(ebitda_val.replace('M', '')) * 1e6
+        except:
+            pass
+
         # CAGR Lucros 5 Anos (Manual calc from Financials if possible, else Proxy)
         cagr_5y = 0.0
         try:
@@ -109,8 +141,8 @@ def get_asset_details(ticker):
                     y_yield = (div_sum / row['Close']) * 100 if row['Close'] else 0
                     chart_data.append({
                         'year': int(year),
-                        'value': round(float(div_sum), 2),
-                        'yield': round(float(y_yield), 2)
+                        'value': round(float(div_sum), 2) if div_sum else 0.0,
+                        'yield': round(float(y_yield), 2) if y_yield else 0.0
                     })
             
             # Detailed Dividends for Table (Last 10 years events)
@@ -120,36 +152,45 @@ def get_asset_details(ticker):
                     'type': 'Dividendo', # Simplified
                     'dateCom': date.strftime('%d/%m/%Y'),
                     'paymentDate': date.strftime('%d/%m/%Y'),
-                    'value': round(float(row['Dividends']), 2)
+                    'value': round(float(row['Dividends']), 2) if row['Dividends'] else 0.0
                 })
+
+        def safe_round(val, digits=2):
+            try:
+                if val is None or val == 0: return 0.0
+                return round(float(val), digits)
+            except:
+                return 0.0
 
         data = {
             'ticker': ticker.replace('.SA', ''),
             'type': asset_type,
-            'price': round(price, 2),
+            'price': safe_round(price),
             'name': info.get('longName') or info.get('shortName') or ticker,
             'segment': info.get('sector') or info.get('industry') or "N/A",
             'indicators': {
-                'dy': round(dy, 2),
-                'pl': round(p_l, 2),
-                'pvp': round(p_vp, 2),
-                'roe': round(roe, 2),
-                'roic': round(roic, 2),
-                'cagr_lucros_5y': round(cagr_5y, 2),
-                'payout': round(payout, 2),
-                'margem_liquida': round(margem_liquida, 2),
-                'margem_bruta': round(margem_bruta, 2),
-                'margem_ebitda': round(margem_ebitda, 2),
-                'p_ebitda': round(p_ebitda, 2),
-                'divida_liquida_ebitda': round(divida_liquida_ebitda, 2),
-                'vpa': round(vpa, 2),
-                'lpa': round(lpa, 2),
-                'divida_liquida': divida_liquida,
-                'divida_bruta': total_debt,
-                'liquidez_media_diaria': liquidez,
-                'free_float': free_float,
-                'patrimonio_liquido': equity,
-                'numero_papeis': papers
+                'dy': safe_round(dy),
+                'pl': safe_round(p_l),
+                'pvp': safe_round(p_vp),
+                'roe': safe_round(roe),
+                'roic': safe_round(roic),
+                'cagr_lucros_5y': safe_round(cagr_5y),
+                'payout': safe_round(payout),
+                'margem_liquida': safe_round(margem_liquida),
+                'margem_bruta': safe_round(margem_bruta),
+                'margem_ebitda': safe_round(margem_ebitda),
+                'p_ebitda': safe_round(p_ebitda),
+                'divida_liquida_ebitda': safe_round(divida_liquida_ebitda),
+                'vpa': safe_round(vpa),
+                'lpa': safe_round(lpa),
+                'divida_liquida': safe_round(divida_liquida),
+                'divida_bruta': safe_round(total_debt),
+                'liquidez_media_diaria': safe_round(liquidez),
+                'free_float': safe_round(free_float),
+                'patrimonio_liquido': safe_round(equity),
+                'numero_papeis': safe_round(papers),
+                'market_cap': safe_round(market_cap),
+                'ebitda': safe_round(ebitda_val)
             },
             'chartData': chart_data,
             'dividends': dividends_list

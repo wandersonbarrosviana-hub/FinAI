@@ -2,30 +2,32 @@
   {
     "ticker": "PETR4",
     "type": "acao",
-    "price": 38.08,
+    "price": 37.97,
     "name": "Petróleo Brasileiro S.A. - Petrobras",
     "segment": "Energy",
     "indicators": {
-      "dy": 12.14,
-      "pl": 6.78,
+      "dy": 12.22,
+      "pl": 6.71,
       "pvp": 1.16,
       "roe": 19.02,
       "roic": 7.92,
       "cagr_lucros_5y": -27.65,
-      "payout": 58.94,
+      "payout": 59.03,
       "margem_liquida": 15.77,
       "margem_bruta": 48.15,
       "margem_ebitda": 38.87,
       "p_ebitda": 4.22,
       "divida_liquida_ebitda": 1.64,
       "vpa": 32.81,
-      "lpa": 5.62,
+      "lpa": 5.66,
       "divida_liquida": 314081988608.0,
       "divida_bruta": 376082989056.0,
-      "liquidez_media_diaria": 1521203465.6,
-      "free_float": 8112812836.0,
-      "patrimonio_liquido": 178721496250.506,
-      "numero_papeis": 5446501379.0
+      "liquidez_media_diaria": 1407525535.67,
+      "free_float": 8112555062.0,
+      "patrimonio_liquido": 178721496250.51,
+      "numero_papeis": 5446501379.0,
+      "market_cap": 510224007168.0,
+      "ebitda": 191036997632.0
     },
     "chartData": [
       {
@@ -36,7 +38,7 @@
       {
         "year": 2019,
         "value": 0.94,
-        "yield": 12.35
+        "yield": 12.36
       },
       {
         "year": 2020,
@@ -46,27 +48,27 @@
       {
         "year": 2021,
         "value": 5.65,
-        "yield": 69.09
+        "yield": 69.12
       },
       {
         "year": 2022,
         "value": 15.17,
-        "yield": 111.78
+        "yield": 111.82
       },
       {
         "year": 2023,
         "value": 7.34,
-        "yield": 37.58
+        "yield": 37.59
       },
       {
         "year": 2024,
         "value": 7.93,
-        "yield": 26.26
+        "yield": 26.27
       },
       {
         "year": 2025,
-        "value": 3.27,
-        "yield": 10.68
+        "value": 3.28,
+        "yield": 10.72
       }
     ],
     "dividends": [
@@ -74,7 +76,7 @@
         "type": "Dividendo",
         "dateCom": "23/12/2025",
         "paymentDate": "23/12/2025",
-        "value": 0.94
+        "value": 0.95
       },
       {
         "type": "Dividendo",
@@ -261,36 +263,38 @@
   {
     "ticker": "VALE3",
     "type": "acao",
-    "price": 90.09,
+    "price": 86.81,
     "name": "Vale S.A.",
     "segment": "Basic Materials",
     "indicators": {
-      "dy": 7.65,
-      "pl": 13.43,
-      "pvp": 1.76,
+      "dy": 7.94,
+      "pl": 30.14,
+      "pvp": 1.7,
       "roe": 13.27,
       "roic": 7.58,
       "cagr_lucros_5y": -34.99,
-      "payout": 62.37,
+      "payout": 2.09,
       "margem_liquida": 14.15,
       "margem_bruta": 34.81,
       "margem_ebitda": 35.14,
-      "p_ebitda": 6.29,
-      "divida_liquida_ebitda": 1.07,
+      "p_ebitda": 5.09,
+      "divida_liquida_ebitda": 0.15,
       "vpa": 51.1,
-      "lpa": 6.71,
-      "divida_liquida": 80425003008.0,
-      "divida_bruta": 112818003968.0,
-      "liquidez_media_diaria": 3158184229.2000003,
+      "lpa": 2.88,
+      "divida_liquida": 11235999744.0,
+      "divida_bruta": 18801999872.0,
+      "liquidez_media_diaria": 3131075580.64,
       "free_float": 3967916517.0,
-      "patrimonio_liquido": 218126127644.818,
-      "numero_papeis": 4268780141.0
+      "patrimonio_liquido": 218126127644.82,
+      "numero_papeis": 4268780141.0,
+      "market_cap": 370572787712.0,
+      "ebitda": 74967998464.0
     },
     "chartData": [
       {
         "year": 2016,
         "value": 0.17,
-        "yield": 1.82
+        "yield": 1.79
       },
       {
         "year": 2017,
@@ -476,13 +480,13 @@
   {
     "ticker": "ITUB4",
     "type": "acao",
-    "price": 49.37,
+    "price": 49.23,
     "name": "Itaú Unibanco Holding S.A.",
     "segment": "Financial Services",
     "indicators": {
       "dy": 44.0,
-      "pl": 12.31,
-      "pvp": 2.66,
+      "pl": 12.28,
+      "pvp": 2.65,
       "roe": 21.01,
       "roic": 1.55,
       "cagr_lucros_5y": 15.38,
@@ -494,18 +498,20 @@
       "divida_liquida_ebitda": 0.0,
       "vpa": 18.55,
       "lpa": 4.01,
-      "divida_liquida": 578432008192.0,
-      "divida_bruta": 1060821008384.0,
-      "liquidez_media_diaria": 1954277878.3999999,
+      "divida_liquida": 585442983936.0,
+      "divida_bruta": 1068043993088.0,
+      "liquidez_media_diaria": 2063486920.59,
       "free_float": 5918817837.0,
-      "patrimonio_liquido": 100312333212.696,
-      "numero_papeis": 5408839276.0
+      "patrimonio_liquido": 100312333212.7,
+      "numero_papeis": 5408839276.0,
+      "market_cap": 542838652928.0,
+      "ebitda": 0.0
     },
     "chartData": [
       {
         "year": 2016,
-        "value": 0.92,
-        "yield": 9.01
+        "value": 0.57,
+        "yield": 5.54
       },
       {
         "year": 2017,
@@ -1500,48 +1506,44 @@
         "dateCom": "01/03/2016",
         "paymentDate": "01/03/2016",
         "value": 0.01
-      },
-      {
-        "type": "Dividendo",
-        "dateCom": "19/02/2016",
-        "paymentDate": "19/02/2016",
-        "value": 0.35
       }
     ]
   },
   {
     "ticker": "BBAS3",
     "type": "acao",
-    "price": 24.91,
+    "price": 26.99,
     "name": "Banco do Brasil S.A.",
     "segment": "Financial Services",
     "indicators": {
-      "dy": 74.0,
-      "pl": 11.07,
-      "pvp": 0.79,
-      "roe": 14.12,
-      "roic": 1.05,
-      "cagr_lucros_5y": 10.17,
-      "payout": 24.7,
-      "margem_liquida": 30.42,
+      "dy": 68.0,
+      "pl": 11.25,
+      "pvp": 0.83,
+      "roe": 8.88,
+      "roic": 0.69,
+      "cagr_lucros_5y": -23.92,
+      "payout": 20.71,
+      "margem_liquida": 15.55,
       "margem_bruta": 0.0,
       "margem_ebitda": 0.0,
       "p_ebitda": 0.0,
       "divida_liquida_ebitda": 0.0,
-      "vpa": 31.62,
-      "lpa": 2.25,
-      "divida_liquida": 1148300453888.0,
-      "divida_bruta": 1172033110016.0,
-      "liquidez_media_diaria": 796983244.1,
-      "free_float": 2584848783.0,
-      "patrimonio_liquido": 180487881059.038,
-      "numero_papeis": 5708390191.0
+      "vpa": 32.43,
+      "lpa": 2.4,
+      "divida_liquida": 836973658112.0,
+      "divida_bruta": 1035243945984.0,
+      "liquidez_media_diaria": 1145644530.0,
+      "free_float": 2586922848.0,
+      "patrimonio_liquido": 185105580993.92,
+      "numero_papeis": 5708378234.0,
+      "market_cap": 154069123072.0,
+      "ebitda": 0.0
     },
     "chartData": [
       {
         "year": 2016,
         "value": 0.46,
-        "yield": 7.71
+        "yield": 7.61
       },
       {
         "year": 2017,
@@ -2027,13 +2029,13 @@
   {
     "ticker": "WEGE3",
     "type": "acao",
-    "price": 53.59,
+    "price": 51.99,
     "name": "WEG S.A.",
     "segment": "Industrials",
     "indicators": {
-      "dy": 3.04,
-      "pl": 34.8,
-      "pvp": 10.03,
+      "dy": 3.14,
+      "pl": 33.76,
+      "pvp": 9.73,
       "roe": 31.19,
       "roic": 13.02,
       "cagr_lucros_5y": 19.0,
@@ -2041,16 +2043,18 @@
       "margem_liquida": 15.67,
       "margem_bruta": 33.39,
       "margem_ebitda": 21.18,
-      "p_ebitda": 25.46,
+      "p_ebitda": 24.7,
       "divida_liquida_ebitda": -0.31,
       "vpa": 5.34,
       "lpa": 1.54,
       "divida_liquida": -2718201856.0,
       "divida_bruta": 4617108992.0,
-      "liquidez_media_diaria": 439970684.6,
+      "liquidez_media_diaria": 381612370.89,
       "free_float": 1485947686.0,
       "patrimonio_liquido": 22409294854.45,
-      "numero_papeis": 4195711450.0
+      "numero_papeis": 4195711450.0,
+      "market_cap": 218135052288.0,
+      "ebitda": 8762923008.0
     },
     "chartData": [
       {
@@ -2476,81 +2480,83 @@
   {
     "ticker": "ABEV3",
     "type": "acao",
-    "price": 15.77,
+    "price": 16.03,
     "name": "Ambev S.A.",
     "segment": "Consumer Defensive",
     "indicators": {
-      "dy": 10.57,
-      "pl": 13.83,
-      "pvp": 2.67,
-      "roe": 17.21,
-      "roic": 9.98,
+      "dy": 14.89,
+      "pl": 17.24,
+      "pvp": 2.85,
+      "roe": 16.98,
+      "roic": 9.14,
       "cagr_lucros_5y": 4.45,
-      "payout": 1.03,
-      "margem_liquida": 17.73,
-      "margem_bruta": 51.77,
-      "margem_ebitda": 29.69,
-      "p_ebitda": 8.55,
-      "divida_liquida_ebitda": -0.63,
-      "vpa": 5.9,
-      "lpa": 1.14,
-      "divida_liquida": -16944855552.0,
-      "divida_bruta": 2896066048.0,
-      "liquidez_media_diaria": 447959781.4,
-      "free_float": 4253148045.0,
-      "patrimonio_liquido": 92168732438.64,
-      "numero_papeis": 15616525320.0
+      "payout": 1.85,
+      "margem_liquida": 17.57,
+      "margem_bruta": 51.42,
+      "margem_ebitda": 30.84,
+      "p_ebitda": 8.61,
+      "divida_liquida_ebitda": -0.62,
+      "vpa": 5.63,
+      "lpa": 0.93,
+      "divida_liquida": -16932996096.0,
+      "divida_bruta": 3386924032.0,
+      "liquidez_media_diaria": 484823246.32,
+      "free_float": 4277210306.0,
+      "patrimonio_liquido": 87921037551.6,
+      "numero_papeis": 15616525320.0,
+      "market_cap": 250332905472.0,
+      "ebitda": 27218567168.0
     },
     "chartData": [
       {
         "year": 2016,
         "value": 0.51,
-        "yield": 4.1
+        "yield": 4.33
       },
       {
         "year": 2017,
         "value": 0.54,
-        "yield": 4.1
+        "yield": 4.34
       },
       {
         "year": 2018,
         "value": 0.55,
-        "yield": 3.95
+        "yield": 4.17
       },
       {
         "year": 2019,
         "value": 0.49,
-        "yield": 3.74
+        "yield": 3.96
       },
       {
         "year": 2020,
         "value": 0.41,
-        "yield": 3.95
+        "yield": 4.18
       },
       {
         "year": 2021,
         "value": 0.68,
-        "yield": 5.43
+        "yield": 5.74
       },
       {
         "year": 2022,
         "value": 0.76,
-        "yield": 6.45
+        "yield": 6.82
       },
       {
         "year": 2023,
         "value": 0.73,
-        "yield": 6.2
+        "yield": 6.56
       },
       {
         "year": 2024,
         "value": 0.67,
-        "yield": 6.03
+        "yield": 6.38
       },
       {
         "year": 2025,
-        "value": 0.99,
-        "yield": 8.11
+        "value": 1.71,
+        "yield": 14.82
       }
     ],
     "dividends": [
@@ -2558,7 +2564,7 @@
         "type": "Dividendo",
         "dateCom": "19/12/2025",
         "paymentDate": "19/12/2025",
-        "value": 0.73
+        "value": 1.45
       },
       {
         "type": "Dividendo",
@@ -2673,13 +2679,13 @@
   {
     "ticker": "B3SA3",
     "type": "acao",
-    "price": 17.29,
+    "price": 18.08,
     "name": "B3 S.A. - Brasil, Bolsa, Balcão",
     "segment": "Financial Services",
     "indicators": {
-      "dy": 3.44,
-      "pl": 18.79,
-      "pvp": 4.48,
+      "dy": 3.29,
+      "pl": 19.65,
+      "pvp": 4.69,
       "roe": 24.94,
       "roic": 8.57,
       "cagr_lucros_5y": -1.0,
@@ -2687,22 +2693,24 @@
       "margem_liquida": 49.48,
       "margem_bruta": 95.61,
       "margem_ebitda": 66.82,
-      "p_ebitda": 13.62,
+      "p_ebitda": 14.24,
       "divida_liquida_ebitda": 0.1,
       "vpa": 3.86,
       "lpa": 0.92,
       "divida_liquida": 635254784.0,
       "divida_bruta": 15036344320.0,
-      "liquidez_media_diaria": 921452049.6999999,
+      "liquidez_media_diaria": 802268251.52,
       "free_float": 0.0,
-      "patrimonio_liquido": 19329369975.952,
-      "numero_papeis": 5012803417.0
+      "patrimonio_liquido": 19329369975.95,
+      "numero_papeis": 5012803417.0,
+      "market_cap": 90631487488.0,
+      "ebitda": 6558511104.0
     },
     "chartData": [
       {
         "year": 2016,
         "value": 0.17,
-        "yield": 4.26
+        "yield": 4.21
       },
       {
         "year": 2017,
@@ -2752,7 +2760,7 @@
       {
         "year": 2026,
         "value": 0.38,
-        "yield": 2.45
+        "yield": 2.4
       }
     ],
     "dividends": [
@@ -3031,13 +3039,13 @@
   {
     "ticker": "EGIE3",
     "type": "acao",
-    "price": 34.97,
+    "price": 33.64,
     "name": "Engie Brasil Energia S.A.",
     "segment": "Utilities",
     "indicators": {
-      "dy": 4.47,
-      "pl": 13.15,
-      "pvp": 3.25,
+      "dy": 4.64,
+      "pl": 12.65,
+      "pvp": 3.12,
       "roe": 25.5,
       "roic": 6.7,
       "cagr_lucros_5y": 39.87,
@@ -3045,22 +3053,24 @@
       "margem_liquida": 23.87,
       "margem_bruta": 48.47,
       "margem_ebitda": 54.19,
-      "p_ebitda": 9.65,
+      "p_ebitda": 9.43,
       "divida_liquida_ebitda": 3.69,
       "vpa": 10.77,
       "lpa": 2.66,
       "divida_liquida": 25406182912.0,
       "divida_bruta": 30114555904.0,
-      "liquidez_media_diaria": 62179807.3,
+      "liquidez_media_diaria": 62019713.2,
       "free_float": 357311076.0,
-      "patrimonio_liquido": 12304481476.949001,
-      "numero_papeis": 1142371319.0
+      "patrimonio_liquido": 12304481476.95,
+      "numero_papeis": 1142371319.0,
+      "market_cap": 38429372416.0,
+      "ebitda": 6889060864.0
     },
     "chartData": [
       {
         "year": 2016,
         "value": 1.13,
-        "yield": 9.96
+        "yield": 9.92
       },
       {
         "year": 2017,
@@ -3300,13 +3310,13 @@
   {
     "ticker": "SANB11",
     "type": "fii",
-    "price": 37.07,
+    "price": 36.7,
     "name": "Banco Santander (Brasil) S.A.",
     "segment": "Financial Services",
     "indicators": {
-      "dy": 4.81,
-      "pl": 18.12,
-      "pvp": 1.12,
+      "dy": 4.83,
+      "pl": 17.94,
+      "pvp": 1.43,
       "roe": 9.93,
       "roic": 0.97,
       "cagr_lucros_5y": -4.88,
@@ -3316,20 +3326,22 @@
       "margem_ebitda": 0.0,
       "p_ebitda": 0.0,
       "divida_liquida_ebitda": 0.0,
-      "vpa": 33.16,
+      "vpa": 25.61,
       "lpa": 2.05,
-      "divida_liquida": 155046641664.0,
-      "divida_bruta": 340089143296.0,
-      "liquidez_media_diaria": 247692843.2,
+      "divida_liquida": -10313007104.0,
+      "divida_bruta": 315805007872.0,
+      "liquidez_media_diaria": 246019551.0,
       "free_float": 3735530500.0,
-      "patrimonio_liquido": 123848364831.375,
-      "numero_papeis": 3735435525.0
+      "patrimonio_liquido": 95645826617.62,
+      "numero_papeis": 3735435525.0,
+      "market_cap": 173239468032.0,
+      "ebitda": 0.0
     },
     "chartData": [
       {
         "year": 2016,
         "value": 0.13,
-        "yield": 1.21
+        "yield": 1.19
       },
       {
         "year": 2017,
@@ -3379,7 +3391,7 @@
       {
         "year": 2026,
         "value": 0.7,
-        "yield": 2.03
+        "yield": 2.02
       }
     ],
     "dividends": [
@@ -3634,13 +3646,13 @@
   {
     "ticker": "FLRY3",
     "type": "acao",
-    "price": 17.15,
+    "price": 17.87,
     "name": "Fleury S.A.",
     "segment": "Healthcare",
     "indicators": {
-      "dy": 11.02,
-      "pl": 15.59,
-      "pvp": 1.73,
+      "dy": 10.57,
+      "pl": 16.25,
+      "pvp": 1.81,
       "roe": 10.62,
       "roic": 5.8,
       "cagr_lucros_5y": 20.76,
@@ -3648,22 +3660,24 @@
       "margem_liquida": 7.44,
       "margem_bruta": 26.88,
       "margem_ebitda": 22.25,
-      "p_ebitda": 6.92,
+      "p_ebitda": 7.14,
       "divida_liquida_ebitda": 1.67,
       "vpa": 9.9,
       "lpa": 1.1,
       "divida_liquida": 2993221120.0,
       "divida_bruta": 5505859072.0,
-      "liquidez_media_diaria": 58920025.49999999,
+      "liquidez_media_diaria": 67540254.71,
       "free_float": 210948238.0,
-      "patrimonio_liquido": 5395108147.429,
-      "numero_papeis": 545015471.0
+      "patrimonio_liquido": 5395108147.43,
+      "numero_papeis": 545015471.0,
+      "market_cap": 9739426816.0,
+      "ebitda": 1795975040.0
     },
     "chartData": [
       {
         "year": 2016,
         "value": 1.15,
-        "yield": 12.98
+        "yield": 12.77
       },
       {
         "year": 2017,
@@ -3877,15 +3891,3737 @@
     ]
   },
   {
+    "ticker": "BBDC4",
+    "type": "acao",
+    "price": 21.76,
+    "name": "Banco Bradesco S.A.",
+    "segment": "Financial Services",
+    "indicators": {
+      "dy": 1.05,
+      "pl": 10.22,
+      "pvp": 1.29,
+      "roe": 13.75,
+      "roic": 1.09,
+      "cagr_lucros_5y": -9.36,
+      "payout": 67.43,
+      "margem_liquida": 26.52,
+      "margem_bruta": 0.0,
+      "margem_ebitda": 0.0,
+      "p_ebitda": 0.0,
+      "divida_liquida_ebitda": 0.0,
+      "vpa": 16.87,
+      "lpa": 2.13,
+      "divida_liquida": 545811021824.0,
+      "divida_bruta": 816656875520.0,
+      "liquidez_media_diaria": 1018006283.52,
+      "free_float": 7558861646.0,
+      "patrimonio_liquido": 89073856554.4,
+      "numero_papeis": 5280641247.0,
+      "market_cap": 230155780096.0,
+      "ebitda": 0.0
+    },
+    "chartData": [
+      {
+        "year": 2016,
+        "value": 0.67,
+        "yield": 8.06
+      },
+      {
+        "year": 2017,
+        "value": 0.71,
+        "yield": 6.53
+      },
+      {
+        "year": 2018,
+        "value": 0.6,
+        "yield": 4.63
+      },
+      {
+        "year": 2019,
+        "value": 1.51,
+        "yield": 8.67
+      },
+      {
+        "year": 2020,
+        "value": 0.57,
+        "yield": 4.36
+      },
+      {
+        "year": 2021,
+        "value": 0.93,
+        "yield": 6.19
+      },
+      {
+        "year": 2022,
+        "value": 0.42,
+        "yield": 3.03
+      },
+      {
+        "year": 2023,
+        "value": 1.7,
+        "yield": 14.26
+      },
+      {
+        "year": 2024,
+        "value": 0.82,
+        "yield": 6.81
+      },
+      {
+        "year": 2025,
+        "value": 1.73,
+        "yield": 11.83
+      },
+      {
+        "year": 2026,
+        "value": 0.04,
+        "yield": 0.19
+      }
+    ],
+    "dividends": [
+      {
+        "type": "Dividendo",
+        "dateCom": "03/02/2026",
+        "paymentDate": "03/02/2026",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "05/01/2026",
+        "paymentDate": "05/01/2026",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "30/12/2025",
+        "paymentDate": "30/12/2025",
+        "value": 0.39
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/12/2025",
+        "paymentDate": "02/12/2025",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/11/2025",
+        "paymentDate": "04/11/2025",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/10/2025",
+        "paymentDate": "02/10/2025",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "30/09/2025",
+        "paymentDate": "30/09/2025",
+        "value": 0.3
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/09/2025",
+        "paymentDate": "02/09/2025",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/08/2025",
+        "paymentDate": "04/08/2025",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/07/2025",
+        "paymentDate": "02/07/2025",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/07/2025",
+        "paymentDate": "01/07/2025",
+        "value": 0.3
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/06/2025",
+        "paymentDate": "03/06/2025",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "05/05/2025",
+        "paymentDate": "05/05/2025",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/04/2025",
+        "paymentDate": "02/04/2025",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/04/2025",
+        "paymentDate": "01/04/2025",
+        "value": 0.23
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "06/03/2025",
+        "paymentDate": "06/03/2025",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/02/2025",
+        "paymentDate": "04/02/2025",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/01/2025",
+        "paymentDate": "03/01/2025",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/01/2025",
+        "paymentDate": "02/01/2025",
+        "value": 0.29
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/12/2024",
+        "paymentDate": "03/12/2024",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/11/2024",
+        "paymentDate": "04/11/2024",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/10/2024",
+        "paymentDate": "02/10/2024",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/10/2024",
+        "paymentDate": "01/10/2024",
+        "value": 0.2
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/09/2024",
+        "paymentDate": "03/09/2024",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/08/2024",
+        "paymentDate": "02/08/2024",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/07/2024",
+        "paymentDate": "02/07/2024",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "18/06/2024",
+        "paymentDate": "18/06/2024",
+        "value": 0.4
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/06/2024",
+        "paymentDate": "04/06/2024",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/05/2024",
+        "paymentDate": "03/05/2024",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/04/2024",
+        "paymentDate": "02/04/2024",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/03/2024",
+        "paymentDate": "04/03/2024",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/02/2024",
+        "paymentDate": "02/02/2024",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/01/2024",
+        "paymentDate": "03/01/2024",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "22/12/2023",
+        "paymentDate": "22/12/2023",
+        "value": 0.69
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/12/2023",
+        "paymentDate": "04/12/2023",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/11/2023",
+        "paymentDate": "03/11/2023",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/10/2023",
+        "paymentDate": "03/10/2023",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/09/2023",
+        "paymentDate": "04/09/2023",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/08/2023",
+        "paymentDate": "02/08/2023",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/07/2023",
+        "paymentDate": "04/07/2023",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "27/06/2023",
+        "paymentDate": "27/06/2023",
+        "value": 0.2
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/06/2023",
+        "paymentDate": "02/06/2023",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/05/2023",
+        "paymentDate": "03/05/2023",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/04/2023",
+        "paymentDate": "04/04/2023",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/03/2023",
+        "paymentDate": "02/03/2023",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/02/2023",
+        "paymentDate": "02/02/2023",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "09/01/2023",
+        "paymentDate": "09/01/2023",
+        "value": 0.58
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/01/2023",
+        "paymentDate": "03/01/2023",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/12/2022",
+        "paymentDate": "02/12/2022",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/11/2022",
+        "paymentDate": "03/11/2022",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/10/2022",
+        "paymentDate": "04/10/2022",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/09/2022",
+        "paymentDate": "02/09/2022",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/08/2022",
+        "paymentDate": "02/08/2022",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/07/2022",
+        "paymentDate": "04/07/2022",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "21/06/2022",
+        "paymentDate": "21/06/2022",
+        "value": 0.2
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/06/2022",
+        "paymentDate": "02/06/2022",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/05/2022",
+        "paymentDate": "03/05/2022",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/04/2022",
+        "paymentDate": "04/04/2022",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/03/2022",
+        "paymentDate": "03/03/2022",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/02/2022",
+        "paymentDate": "02/02/2022",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/01/2022",
+        "paymentDate": "04/01/2022",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "21/12/2021",
+        "paymentDate": "21/12/2021",
+        "value": 0.22
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/12/2021",
+        "paymentDate": "02/12/2021",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/11/2021",
+        "paymentDate": "03/11/2021",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/10/2021",
+        "paymentDate": "04/10/2021",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/09/2021",
+        "paymentDate": "02/09/2021",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/08/2021",
+        "paymentDate": "03/08/2021",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "05/07/2021",
+        "paymentDate": "05/07/2021",
+        "value": 0.49
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/07/2021",
+        "paymentDate": "02/07/2021",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/06/2021",
+        "paymentDate": "02/06/2021",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/05/2021",
+        "paymentDate": "04/05/2021",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "05/04/2021",
+        "paymentDate": "05/04/2021",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/03/2021",
+        "paymentDate": "02/03/2021",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "18/02/2021",
+        "paymentDate": "18/02/2021",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/02/2021",
+        "paymentDate": "02/02/2021",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "05/01/2021",
+        "paymentDate": "05/01/2021",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "29/12/2020",
+        "paymentDate": "29/12/2020",
+        "value": 0.34
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/12/2020",
+        "paymentDate": "02/12/2020",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/11/2020",
+        "paymentDate": "04/11/2020",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/10/2020",
+        "paymentDate": "02/10/2020",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/09/2020",
+        "paymentDate": "02/09/2020",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/08/2020",
+        "paymentDate": "04/08/2020",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/07/2020",
+        "paymentDate": "02/07/2020",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/06/2020",
+        "paymentDate": "02/06/2020",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "05/05/2020",
+        "paymentDate": "05/05/2020",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/04/2020",
+        "paymentDate": "02/04/2020",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/03/2020",
+        "paymentDate": "03/03/2020",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "18/02/2020",
+        "paymentDate": "18/02/2020",
+        "value": 0.05
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/02/2020",
+        "paymentDate": "04/02/2020",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/01/2020",
+        "paymentDate": "03/01/2020",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "20/12/2019",
+        "paymentDate": "20/12/2019",
+        "value": 0.42
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/12/2019",
+        "paymentDate": "03/12/2019",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/11/2019",
+        "paymentDate": "04/11/2019",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "18/10/2019",
+        "paymentDate": "18/10/2019",
+        "value": 0.78
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/10/2019",
+        "paymentDate": "02/10/2019",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/09/2019",
+        "paymentDate": "03/09/2019",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/08/2019",
+        "paymentDate": "02/08/2019",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/07/2019",
+        "paymentDate": "02/07/2019",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/07/2019",
+        "paymentDate": "01/07/2019",
+        "value": 0.14
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/06/2019",
+        "paymentDate": "04/06/2019",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/05/2019",
+        "paymentDate": "03/05/2019",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/04/2019",
+        "paymentDate": "02/04/2019",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "06/03/2019",
+        "paymentDate": "06/03/2019",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/02/2019",
+        "paymentDate": "04/02/2019",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/01/2019",
+        "paymentDate": "03/01/2019",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "26/12/2018",
+        "paymentDate": "26/12/2018",
+        "value": 0.46
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/12/2018",
+        "paymentDate": "04/12/2018",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "05/11/2018",
+        "paymentDate": "05/11/2018",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/10/2018",
+        "paymentDate": "02/10/2018",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/09/2018",
+        "paymentDate": "04/09/2018",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/08/2018",
+        "paymentDate": "02/08/2018",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/07/2018",
+        "paymentDate": "03/07/2018",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/06/2018",
+        "paymentDate": "04/06/2018",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/05/2018",
+        "paymentDate": "03/05/2018",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/04/2018",
+        "paymentDate": "03/04/2018",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/03/2018",
+        "paymentDate": "02/03/2018",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/02/2018",
+        "paymentDate": "02/02/2018",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/01/2018",
+        "paymentDate": "03/01/2018",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "26/12/2017",
+        "paymentDate": "26/12/2017",
+        "value": 0.47
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/12/2017",
+        "paymentDate": "04/12/2017",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/11/2017",
+        "paymentDate": "03/11/2017",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/10/2017",
+        "paymentDate": "03/10/2017",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/09/2017",
+        "paymentDate": "04/09/2017",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/08/2017",
+        "paymentDate": "02/08/2017",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/07/2017",
+        "paymentDate": "04/07/2017",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/07/2017",
+        "paymentDate": "03/07/2017",
+        "value": 0.11
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/06/2017",
+        "paymentDate": "02/06/2017",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/05/2017",
+        "paymentDate": "03/05/2017",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/04/2017",
+        "paymentDate": "04/04/2017",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/03/2017",
+        "paymentDate": "02/03/2017",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/02/2017",
+        "paymentDate": "02/02/2017",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/01/2017",
+        "paymentDate": "03/01/2017",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "22/12/2016",
+        "paymentDate": "22/12/2016",
+        "value": 0.15
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/12/2016",
+        "paymentDate": "02/12/2016",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/11/2016",
+        "paymentDate": "03/11/2016",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/10/2016",
+        "paymentDate": "04/10/2016",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/10/2016",
+        "paymentDate": "03/10/2016",
+        "value": 0.33
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/09/2016",
+        "paymentDate": "02/09/2016",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/08/2016",
+        "paymentDate": "02/08/2016",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/07/2016",
+        "paymentDate": "04/07/2016",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "23/06/2016",
+        "paymentDate": "23/06/2016",
+        "value": 0.1
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/06/2016",
+        "paymentDate": "02/06/2016",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/05/2016",
+        "paymentDate": "03/05/2016",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/04/2016",
+        "paymentDate": "04/04/2016",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/03/2016",
+        "paymentDate": "02/03/2016",
+        "value": 0.01
+      }
+    ]
+  },
+  {
+    "ticker": "BBDC3",
+    "type": "acao",
+    "price": 18.74,
+    "name": "Banco Bradesco S.A.",
+    "segment": "Financial Services",
+    "indicators": {
+      "dy": 1.1,
+      "pl": 8.8,
+      "pvp": 1.11,
+      "roe": 13.75,
+      "roic": 1.09,
+      "cagr_lucros_5y": -9.36,
+      "payout": 61.3,
+      "margem_liquida": 26.52,
+      "margem_bruta": 0.0,
+      "margem_ebitda": 0.0,
+      "p_ebitda": 0.0,
+      "divida_liquida_ebitda": 0.0,
+      "vpa": 16.87,
+      "lpa": 2.13,
+      "divida_liquida": 545811021824.0,
+      "divida_bruta": 816656875520.0,
+      "liquidez_media_diaria": 141508850.84,
+      "free_float": 7558861646.0,
+      "patrimonio_liquido": 89339182333.91,
+      "numero_papeis": 5296370781.0,
+      "market_cap": 213771075584.0,
+      "ebitda": 0.0
+    },
+    "chartData": [
+      {
+        "year": 2016,
+        "value": 0.61,
+        "yield": 7.25
+      },
+      {
+        "year": 2017,
+        "value": 0.64,
+        "yield": 6.23
+      },
+      {
+        "year": 2018,
+        "value": 0.65,
+        "yield": 5.61
+      },
+      {
+        "year": 2019,
+        "value": 1.37,
+        "yield": 8.86
+      },
+      {
+        "year": 2020,
+        "value": 0.52,
+        "yield": 4.37
+      },
+      {
+        "year": 2021,
+        "value": 0.84,
+        "yield": 6.58
+      },
+      {
+        "year": 2022,
+        "value": 0.38,
+        "yield": 3.34
+      },
+      {
+        "year": 2023,
+        "value": 1.54,
+        "yield": 14.78
+      },
+      {
+        "year": 2024,
+        "value": 0.75,
+        "yield": 6.95
+      },
+      {
+        "year": 2025,
+        "value": 1.57,
+        "yield": 12.37
+      },
+      {
+        "year": 2026,
+        "value": 0.03,
+        "yield": 0.2
+      }
+    ],
+    "dividends": [
+      {
+        "type": "Dividendo",
+        "dateCom": "03/02/2026",
+        "paymentDate": "03/02/2026",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "05/01/2026",
+        "paymentDate": "05/01/2026",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "30/12/2025",
+        "paymentDate": "30/12/2025",
+        "value": 0.35
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/12/2025",
+        "paymentDate": "02/12/2025",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/11/2025",
+        "paymentDate": "04/11/2025",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/10/2025",
+        "paymentDate": "02/10/2025",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "30/09/2025",
+        "paymentDate": "30/09/2025",
+        "value": 0.27
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/09/2025",
+        "paymentDate": "02/09/2025",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/08/2025",
+        "paymentDate": "04/08/2025",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/07/2025",
+        "paymentDate": "02/07/2025",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/07/2025",
+        "paymentDate": "01/07/2025",
+        "value": 0.27
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/06/2025",
+        "paymentDate": "03/06/2025",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "05/05/2025",
+        "paymentDate": "05/05/2025",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/04/2025",
+        "paymentDate": "02/04/2025",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/04/2025",
+        "paymentDate": "01/04/2025",
+        "value": 0.21
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "06/03/2025",
+        "paymentDate": "06/03/2025",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/02/2025",
+        "paymentDate": "04/02/2025",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/01/2025",
+        "paymentDate": "03/01/2025",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/01/2025",
+        "paymentDate": "02/01/2025",
+        "value": 0.27
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/12/2024",
+        "paymentDate": "03/12/2024",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/11/2024",
+        "paymentDate": "04/11/2024",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/10/2024",
+        "paymentDate": "02/10/2024",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/10/2024",
+        "paymentDate": "01/10/2024",
+        "value": 0.18
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/09/2024",
+        "paymentDate": "03/09/2024",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/08/2024",
+        "paymentDate": "02/08/2024",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/07/2024",
+        "paymentDate": "02/07/2024",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "18/06/2024",
+        "paymentDate": "18/06/2024",
+        "value": 0.36
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/06/2024",
+        "paymentDate": "04/06/2024",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/05/2024",
+        "paymentDate": "03/05/2024",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/04/2024",
+        "paymentDate": "02/04/2024",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/03/2024",
+        "paymentDate": "04/03/2024",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/02/2024",
+        "paymentDate": "02/02/2024",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/01/2024",
+        "paymentDate": "03/01/2024",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "22/12/2023",
+        "paymentDate": "22/12/2023",
+        "value": 0.63
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/12/2023",
+        "paymentDate": "04/12/2023",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/11/2023",
+        "paymentDate": "03/11/2023",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/10/2023",
+        "paymentDate": "03/10/2023",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/09/2023",
+        "paymentDate": "04/09/2023",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/08/2023",
+        "paymentDate": "02/08/2023",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/07/2023",
+        "paymentDate": "04/07/2023",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "27/06/2023",
+        "paymentDate": "27/06/2023",
+        "value": 0.18
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/06/2023",
+        "paymentDate": "02/06/2023",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/05/2023",
+        "paymentDate": "03/05/2023",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/04/2023",
+        "paymentDate": "04/04/2023",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/03/2023",
+        "paymentDate": "02/03/2023",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/02/2023",
+        "paymentDate": "02/02/2023",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "09/01/2023",
+        "paymentDate": "09/01/2023",
+        "value": 0.53
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/01/2023",
+        "paymentDate": "03/01/2023",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/12/2022",
+        "paymentDate": "02/12/2022",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/11/2022",
+        "paymentDate": "03/11/2022",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/10/2022",
+        "paymentDate": "04/10/2022",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/09/2022",
+        "paymentDate": "02/09/2022",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/08/2022",
+        "paymentDate": "02/08/2022",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/07/2022",
+        "paymentDate": "04/07/2022",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "21/06/2022",
+        "paymentDate": "21/06/2022",
+        "value": 0.18
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/06/2022",
+        "paymentDate": "02/06/2022",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/05/2022",
+        "paymentDate": "03/05/2022",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/04/2022",
+        "paymentDate": "04/04/2022",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/03/2022",
+        "paymentDate": "03/03/2022",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/02/2022",
+        "paymentDate": "02/02/2022",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/01/2022",
+        "paymentDate": "04/01/2022",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "21/12/2021",
+        "paymentDate": "21/12/2021",
+        "value": 0.2
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/12/2021",
+        "paymentDate": "02/12/2021",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/11/2021",
+        "paymentDate": "03/11/2021",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/10/2021",
+        "paymentDate": "04/10/2021",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/09/2021",
+        "paymentDate": "02/09/2021",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/08/2021",
+        "paymentDate": "03/08/2021",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "05/07/2021",
+        "paymentDate": "05/07/2021",
+        "value": 0.45
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/07/2021",
+        "paymentDate": "02/07/2021",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/06/2021",
+        "paymentDate": "02/06/2021",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/05/2021",
+        "paymentDate": "04/05/2021",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "05/04/2021",
+        "paymentDate": "05/04/2021",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/03/2021",
+        "paymentDate": "02/03/2021",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "18/02/2021",
+        "paymentDate": "18/02/2021",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/02/2021",
+        "paymentDate": "02/02/2021",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "05/01/2021",
+        "paymentDate": "05/01/2021",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "29/12/2020",
+        "paymentDate": "29/12/2020",
+        "value": 0.31
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/12/2020",
+        "paymentDate": "02/12/2020",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/11/2020",
+        "paymentDate": "04/11/2020",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/10/2020",
+        "paymentDate": "02/10/2020",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/09/2020",
+        "paymentDate": "02/09/2020",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/08/2020",
+        "paymentDate": "04/08/2020",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/07/2020",
+        "paymentDate": "02/07/2020",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/06/2020",
+        "paymentDate": "02/06/2020",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "05/05/2020",
+        "paymentDate": "05/05/2020",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/04/2020",
+        "paymentDate": "02/04/2020",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/03/2020",
+        "paymentDate": "03/03/2020",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "18/02/2020",
+        "paymentDate": "18/02/2020",
+        "value": 0.04
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/02/2020",
+        "paymentDate": "04/02/2020",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/01/2020",
+        "paymentDate": "03/01/2020",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "20/12/2019",
+        "paymentDate": "20/12/2019",
+        "value": 0.38
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/12/2019",
+        "paymentDate": "03/12/2019",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/11/2019",
+        "paymentDate": "04/11/2019",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "18/10/2019",
+        "paymentDate": "18/10/2019",
+        "value": 0.71
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/10/2019",
+        "paymentDate": "02/10/2019",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/09/2019",
+        "paymentDate": "03/09/2019",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/08/2019",
+        "paymentDate": "02/08/2019",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/07/2019",
+        "paymentDate": "02/07/2019",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/07/2019",
+        "paymentDate": "01/07/2019",
+        "value": 0.13
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/06/2019",
+        "paymentDate": "04/06/2019",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/05/2019",
+        "paymentDate": "03/05/2019",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/04/2019",
+        "paymentDate": "02/04/2019",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "06/03/2019",
+        "paymentDate": "06/03/2019",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/02/2019",
+        "paymentDate": "04/02/2019",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/01/2019",
+        "paymentDate": "03/01/2019",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "26/12/2018",
+        "paymentDate": "26/12/2018",
+        "value": 0.42
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/12/2018",
+        "paymentDate": "04/12/2018",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "05/11/2018",
+        "paymentDate": "05/11/2018",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/10/2018",
+        "paymentDate": "02/10/2018",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/09/2018",
+        "paymentDate": "04/09/2018",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/08/2018",
+        "paymentDate": "02/08/2018",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/07/2018",
+        "paymentDate": "03/07/2018",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/07/2018",
+        "paymentDate": "02/07/2018",
+        "value": 0.11
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/06/2018",
+        "paymentDate": "04/06/2018",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/05/2018",
+        "paymentDate": "03/05/2018",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/04/2018",
+        "paymentDate": "03/04/2018",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/03/2018",
+        "paymentDate": "02/03/2018",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/02/2018",
+        "paymentDate": "02/02/2018",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/01/2018",
+        "paymentDate": "03/01/2018",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "26/12/2017",
+        "paymentDate": "26/12/2017",
+        "value": 0.43
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/12/2017",
+        "paymentDate": "04/12/2017",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/11/2017",
+        "paymentDate": "03/11/2017",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/10/2017",
+        "paymentDate": "03/10/2017",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/09/2017",
+        "paymentDate": "04/09/2017",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/08/2017",
+        "paymentDate": "02/08/2017",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/07/2017",
+        "paymentDate": "04/07/2017",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/07/2017",
+        "paymentDate": "03/07/2017",
+        "value": 0.1
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/06/2017",
+        "paymentDate": "02/06/2017",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/05/2017",
+        "paymentDate": "03/05/2017",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/04/2017",
+        "paymentDate": "04/04/2017",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/03/2017",
+        "paymentDate": "02/03/2017",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/02/2017",
+        "paymentDate": "02/02/2017",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/01/2017",
+        "paymentDate": "03/01/2017",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "22/12/2016",
+        "paymentDate": "22/12/2016",
+        "value": 0.13
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/12/2016",
+        "paymentDate": "02/12/2016",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/11/2016",
+        "paymentDate": "03/11/2016",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/10/2016",
+        "paymentDate": "04/10/2016",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/10/2016",
+        "paymentDate": "03/10/2016",
+        "value": 0.3
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/09/2016",
+        "paymentDate": "02/09/2016",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/08/2016",
+        "paymentDate": "02/08/2016",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/07/2016",
+        "paymentDate": "04/07/2016",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "23/06/2016",
+        "paymentDate": "23/06/2016",
+        "value": 0.09
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/06/2016",
+        "paymentDate": "02/06/2016",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/05/2016",
+        "paymentDate": "03/05/2016",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/04/2016",
+        "paymentDate": "04/04/2016",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/03/2016",
+        "paymentDate": "02/03/2016",
+        "value": 0.01
+      }
+    ]
+  },
+  {
+    "ticker": "VIVT3",
+    "type": "acao",
+    "price": 40.7,
+    "name": "Telefônica Brasil S.A.",
+    "segment": "Communication Services",
+    "indicators": {
+      "dy": 2.53,
+      "pl": 21.76,
+      "pvp": 1.91,
+      "roe": 8.79,
+      "roic": 4.98,
+      "cagr_lucros_5y": -3.84,
+      "payout": 57.85,
+      "margem_liquida": 10.34,
+      "margem_bruta": 47.66,
+      "margem_ebitda": 31.8,
+      "p_ebitda": 7.62,
+      "divida_liquida_ebitda": 0.61,
+      "vpa": 21.35,
+      "lpa": 1.87,
+      "divida_liquida": 11315066368.0,
+      "divida_bruta": 18111627264.0,
+      "liquidez_media_diaria": 258428720.0,
+      "free_float": 716469848.0,
+      "patrimonio_liquido": 68238978040.61,
+      "numero_papeis": 3195606352.0,
+      "market_cap": 130061180928.0,
+      "ebitda": 18623313920.0
+    },
+    "chartData": [
+      {
+        "year": 2016,
+        "value": 0.79,
+        "yield": 8.31
+      },
+      {
+        "year": 2017,
+        "value": 1.37,
+        "yield": 12.85
+      },
+      {
+        "year": 2018,
+        "value": 2.33,
+        "yield": 19.11
+      },
+      {
+        "year": 2019,
+        "value": 1.31,
+        "yield": 9.01
+      },
+      {
+        "year": 2020,
+        "value": 2.08,
+        "yield": 12.19
+      },
+      {
+        "year": 2021,
+        "value": 1.73,
+        "yield": 10.14
+      },
+      {
+        "year": 2022,
+        "value": 1.01,
+        "yield": 5.41
+      },
+      {
+        "year": 2023,
+        "value": 1.54,
+        "yield": 8.23
+      },
+      {
+        "year": 2024,
+        "value": 1.4,
+        "yield": 6.04
+      },
+      {
+        "year": 2025,
+        "value": 1.55,
+        "yield": 5.26
+      }
+    ],
+    "dividends": [
+      {
+        "type": "Dividendo",
+        "dateCom": "30/12/2025",
+        "paymentDate": "30/12/2025",
+        "value": 0.11
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "25/11/2025",
+        "paymentDate": "25/11/2025",
+        "value": 0.11
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "23/09/2025",
+        "paymentDate": "23/09/2025",
+        "value": 0.12
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "26/08/2025",
+        "paymentDate": "26/08/2025",
+        "value": 0.08
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "28/07/2025",
+        "paymentDate": "28/07/2025",
+        "value": 0.1
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "24/06/2025",
+        "paymentDate": "24/06/2025",
+        "value": 0.06
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "23/05/2025",
+        "paymentDate": "23/05/2025",
+        "value": 0.15
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "14/04/2025",
+        "paymentDate": "14/04/2025",
+        "value": 0.07
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "25/03/2025",
+        "paymentDate": "25/03/2025",
+        "value": 0.06
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "28/02/2025",
+        "paymentDate": "28/02/2025",
+        "value": 0.62
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "25/02/2025",
+        "paymentDate": "25/02/2025",
+        "value": 0.06
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "27/12/2024",
+        "paymentDate": "27/12/2024",
+        "value": 0.37
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "27/08/2024",
+        "paymentDate": "27/08/2024",
+        "value": 0.12
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "29/07/2024",
+        "paymentDate": "29/07/2024",
+        "value": 0.2
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "27/06/2024",
+        "paymentDate": "27/06/2024",
+        "value": 0.05
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "30/04/2024",
+        "paymentDate": "30/04/2024",
+        "value": 0.12
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "11/04/2024",
+        "paymentDate": "11/04/2024",
+        "value": 0.45
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/04/2024",
+        "paymentDate": "01/04/2024",
+        "value": 0.09
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "27/12/2023",
+        "paymentDate": "27/12/2023",
+        "value": 0.26
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "24/10/2023",
+        "paymentDate": "24/10/2023",
+        "value": 0.05
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "25/09/2023",
+        "paymentDate": "25/09/2023",
+        "value": 0.06
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/09/2023",
+        "paymentDate": "01/09/2023",
+        "value": 0.08
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/08/2023",
+        "paymentDate": "01/08/2023",
+        "value": 0.12
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/06/2023",
+        "paymentDate": "01/06/2023",
+        "value": 0.1
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "14/04/2023",
+        "paymentDate": "14/04/2023",
+        "value": 0.25
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/04/2023",
+        "paymentDate": "03/04/2023",
+        "value": 0.09
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/03/2023",
+        "paymentDate": "01/03/2023",
+        "value": 0.03
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/01/2023",
+        "paymentDate": "02/01/2023",
+        "value": 0.52
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/09/2022",
+        "paymentDate": "01/09/2022",
+        "value": 0.09
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/07/2022",
+        "paymentDate": "01/07/2022",
+        "value": 0.14
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/05/2022",
+        "paymentDate": "02/05/2022",
+        "value": 0.04
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "27/04/2022",
+        "paymentDate": "27/04/2022",
+        "value": 0.61
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/04/2022",
+        "paymentDate": "01/04/2022",
+        "value": 0.07
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/03/2022",
+        "paymentDate": "02/03/2022",
+        "value": 0.05
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "28/12/2021",
+        "paymentDate": "28/12/2021",
+        "value": 0.69
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/10/2021",
+        "paymentDate": "01/10/2021",
+        "value": 0.18
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/07/2021",
+        "paymentDate": "01/07/2021",
+        "value": 0.19
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/05/2021",
+        "paymentDate": "03/05/2021",
+        "value": 0.08
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "16/04/2021",
+        "paymentDate": "16/04/2021",
+        "value": 0.47
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/04/2021",
+        "paymentDate": "01/04/2021",
+        "value": 0.08
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/03/2021",
+        "paymentDate": "01/03/2021",
+        "value": 0.04
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "29/12/2020",
+        "paymentDate": "29/12/2020",
+        "value": 0.43
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "30/11/2020",
+        "paymentDate": "30/11/2020",
+        "value": 0.12
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "29/09/2020",
+        "paymentDate": "29/09/2020",
+        "value": 0.18
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/07/2020",
+        "paymentDate": "01/07/2020",
+        "value": 0.25
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "29/05/2020",
+        "paymentDate": "29/05/2020",
+        "value": 0.61
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/04/2020",
+        "paymentDate": "01/04/2020",
+        "value": 0.04
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/03/2020",
+        "paymentDate": "02/03/2020",
+        "value": 0.07
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/01/2020",
+        "paymentDate": "02/01/2020",
+        "value": 0.37
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/07/2019",
+        "paymentDate": "01/07/2019",
+        "value": 0.27
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/05/2019",
+        "paymentDate": "02/05/2019",
+        "value": 0.16
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "12/04/2019",
+        "paymentDate": "12/04/2019",
+        "value": 0.69
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/03/2019",
+        "paymentDate": "01/03/2019",
+        "value": 0.19
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "18/12/2018",
+        "paymentDate": "18/12/2018",
+        "value": 0.37
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "18/09/2018",
+        "paymentDate": "18/09/2018",
+        "value": 0.78
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/07/2018",
+        "paymentDate": "02/07/2018",
+        "value": 0.11
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "13/04/2018",
+        "paymentDate": "13/04/2018",
+        "value": 1.06
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "27/12/2017",
+        "paymentDate": "27/12/2017",
+        "value": 0.41
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/10/2017",
+        "paymentDate": "02/10/2017",
+        "value": 0.08
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/07/2017",
+        "paymentDate": "03/07/2017",
+        "value": 0.03
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "27/04/2017",
+        "paymentDate": "27/04/2017",
+        "value": 0.53
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/04/2017",
+        "paymentDate": "03/04/2017",
+        "value": 0.1
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/03/2017",
+        "paymentDate": "01/03/2017",
+        "value": 0.05
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/01/2017",
+        "paymentDate": "02/01/2017",
+        "value": 0.17
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/10/2016",
+        "paymentDate": "03/10/2016",
+        "value": 0.18
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/07/2016",
+        "paymentDate": "01/07/2016",
+        "value": 0.04
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/05/2016",
+        "paymentDate": "02/05/2016",
+        "value": 0.06
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "29/04/2016",
+        "paymentDate": "29/04/2016",
+        "value": 0.36
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/04/2016",
+        "paymentDate": "01/04/2016",
+        "value": 0.09
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/03/2016",
+        "paymentDate": "01/03/2016",
+        "value": 0.06
+      }
+    ]
+  },
+  {
+    "ticker": "GGBR4",
+    "type": "acao",
+    "price": 21.64,
+    "name": "Gerdau S.A.",
+    "segment": "Basic Materials",
+    "indicators": {
+      "dy": 2.87,
+      "pl": 14.52,
+      "pvp": 0.79,
+      "roe": 5.51,
+      "roic": 3.92,
+      "cagr_lucros_5y": -33.45,
+      "payout": 42.95,
+      "margem_liquida": 4.3,
+      "margem_bruta": 11.68,
+      "margem_ebitda": 12.08,
+      "p_ebitda": 6.33,
+      "divida_liquida_ebitda": 1.2,
+      "vpa": 27.48,
+      "lpa": 1.49,
+      "divida_liquida": 10115706880.0,
+      "divida_bruta": 19989288960.0,
+      "liquidez_media_diaria": 355408608.32,
+      "free_float": 1279612302.0,
+      "patrimonio_liquido": 34560520040.49,
+      "numero_papeis": 1257843938.0,
+      "market_cap": 42743496704.0,
+      "ebitda": 8418734080.0
+    },
+    "chartData": [
+      {
+        "year": 2016,
+        "value": 0.04,
+        "yield": 0.95
+      },
+      {
+        "year": 2017,
+        "value": 0.04,
+        "yield": 0.7
+      },
+      {
+        "year": 2018,
+        "value": 0.3,
+        "yield": 3.75
+      },
+      {
+        "year": 2019,
+        "value": 0.22,
+        "yield": 2.87
+      },
+      {
+        "year": 2020,
+        "value": 0.25,
+        "yield": 2.67
+      },
+      {
+        "year": 2021,
+        "value": 2.44,
+        "yield": 15.27
+      },
+      {
+        "year": 2022,
+        "value": 2.88,
+        "yield": 16.94
+      },
+      {
+        "year": 2023,
+        "value": 1.33,
+        "yield": 7.05
+      },
+      {
+        "year": 2024,
+        "value": 0.78,
+        "yield": 4.49
+      },
+      {
+        "year": 2025,
+        "value": 0.62,
+        "yield": 3.7
+      }
+    ],
+    "dividends": [
+      {
+        "type": "Dividendo",
+        "dateCom": "11/11/2025",
+        "paymentDate": "11/11/2025",
+        "value": 0.28
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "12/08/2025",
+        "paymentDate": "12/08/2025",
+        "value": 0.12
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "09/05/2025",
+        "paymentDate": "09/05/2025",
+        "value": 0.12
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "06/03/2025",
+        "paymentDate": "06/03/2025",
+        "value": 0.1
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "19/11/2024",
+        "paymentDate": "19/11/2024",
+        "value": 0.3
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "12/08/2024",
+        "paymentDate": "12/08/2024",
+        "value": 0.12
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "16/05/2024",
+        "paymentDate": "16/05/2024",
+        "value": 0.28
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "04/03/2024",
+        "paymentDate": "04/03/2024",
+        "value": 0.08
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "20/11/2023",
+        "paymentDate": "20/11/2023",
+        "value": 0.39
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "21/08/2023",
+        "paymentDate": "21/08/2023",
+        "value": 0.36
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "16/05/2023",
+        "paymentDate": "16/05/2023",
+        "value": 0.42
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "15/03/2023",
+        "paymentDate": "15/03/2023",
+        "value": 0.16
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "22/11/2022",
+        "paymentDate": "22/11/2022",
+        "value": 1.71
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "16/08/2022",
+        "paymentDate": "16/08/2022",
+        "value": 0.56
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "17/05/2022",
+        "paymentDate": "17/05/2022",
+        "value": 0.45
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "08/03/2022",
+        "paymentDate": "08/03/2022",
+        "value": 0.16
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "08/11/2021",
+        "paymentDate": "08/11/2021",
+        "value": 1.29
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "28/09/2021",
+        "paymentDate": "28/09/2021",
+        "value": 0.3
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "17/08/2021",
+        "paymentDate": "17/08/2021",
+        "value": 0.43
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "17/05/2021",
+        "paymentDate": "17/05/2021",
+        "value": 0.32
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "12/03/2021",
+        "paymentDate": "12/03/2021",
+        "value": 0.1
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "22/12/2020",
+        "paymentDate": "22/12/2020",
+        "value": 0.13
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "09/11/2020",
+        "paymentDate": "09/11/2020",
+        "value": 0.1
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/03/2020",
+        "paymentDate": "02/03/2020",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "12/11/2019",
+        "paymentDate": "12/11/2019",
+        "value": 0.03
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "19/08/2019",
+        "paymentDate": "19/08/2019",
+        "value": 0.06
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "20/05/2019",
+        "paymentDate": "20/05/2019",
+        "value": 0.06
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "07/03/2019",
+        "paymentDate": "07/03/2019",
+        "value": 0.08
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "22/11/2018",
+        "paymentDate": "22/11/2018",
+        "value": 0.1
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "22/08/2018",
+        "paymentDate": "22/08/2018",
+        "value": 0.11
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "22/05/2018",
+        "paymentDate": "22/05/2018",
+        "value": 0.06
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "12/03/2018",
+        "paymentDate": "12/03/2018",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "22/11/2017",
+        "paymentDate": "22/11/2017",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "22/08/2017",
+        "paymentDate": "22/08/2017",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "22/11/2016",
+        "paymentDate": "22/11/2016",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "23/08/2016",
+        "paymentDate": "23/08/2016",
+        "value": 0.02
+      }
+    ]
+  },
+  {
+    "ticker": "CPLE6",
+    "type": "acao",
+    "price": 0.0,
+    "name": "CPLE6.SA",
+    "segment": "N/A",
+    "indicators": {
+      "dy": 0.0,
+      "pl": 0.0,
+      "pvp": 0.0,
+      "roe": 0.0,
+      "roic": 0.0,
+      "cagr_lucros_5y": 0.0,
+      "payout": 0.0,
+      "margem_liquida": 0.0,
+      "margem_bruta": 0.0,
+      "margem_ebitda": 0.0,
+      "p_ebitda": 0.0,
+      "divida_liquida_ebitda": 0.0,
+      "vpa": 0.0,
+      "lpa": 0.0,
+      "divida_liquida": 0.0,
+      "divida_bruta": 0.0,
+      "liquidez_media_diaria": 0.0,
+      "free_float": 0.0,
+      "patrimonio_liquido": 0.0,
+      "numero_papeis": 0.0,
+      "market_cap": 0.0,
+      "ebitda": 0.0
+    },
+    "chartData": [],
+    "dividends": []
+  },
+  {
+    "ticker": "JBSS3",
+    "type": "acao",
+    "price": 0.0,
+    "name": "JBSS3.SA",
+    "segment": "N/A",
+    "indicators": {
+      "dy": 0.0,
+      "pl": 0.0,
+      "pvp": 0.0,
+      "roe": 0.0,
+      "roic": 0.0,
+      "cagr_lucros_5y": 0.0,
+      "payout": 0.0,
+      "margem_liquida": 0.0,
+      "margem_bruta": 0.0,
+      "margem_ebitda": 0.0,
+      "p_ebitda": 0.0,
+      "divida_liquida_ebitda": 0.0,
+      "vpa": 0.0,
+      "lpa": 0.0,
+      "divida_liquida": 0.0,
+      "divida_bruta": 0.0,
+      "liquidez_media_diaria": 0.0,
+      "free_float": 0.0,
+      "patrimonio_liquido": 0.0,
+      "numero_papeis": 0.0,
+      "market_cap": 0.0,
+      "ebitda": 0.0
+    },
+    "chartData": [],
+    "dividends": []
+  },
+  {
+    "ticker": "RAIL3",
+    "type": "acao",
+    "price": 16.51,
+    "name": "Rumo S.A.",
+    "segment": "Industrials",
+    "indicators": {
+      "dy": 4.91,
+      "pl": 82.55,
+      "pvp": 2.22,
+      "roe": 2.69,
+      "roic": 6.91,
+      "cagr_lucros_5y": 0.0,
+      "payout": 4.04,
+      "margem_liquida": 2.68,
+      "margem_bruta": 45.83,
+      "margem_ebitda": 51.2,
+      "p_ebitda": 7.21,
+      "divida_liquida_ebitda": 2.9,
+      "vpa": 7.44,
+      "lpa": 0.2,
+      "divida_liquida": 20727567360.0,
+      "divida_bruta": 27840350208.0,
+      "liquidez_media_diaria": 204730273.8,
+      "free_float": 1313553721.0,
+      "patrimonio_liquido": 13805275668.36,
+      "numero_papeis": 1855797240.0,
+      "market_cap": 30639212544.0,
+      "ebitda": 7147191808.0
+    },
+    "chartData": [
+      {
+        "year": 2022,
+        "value": 0.02,
+        "yield": 0.11
+      },
+      {
+        "year": 2023,
+        "value": 0.07,
+        "yield": 0.33
+      },
+      {
+        "year": 2024,
+        "value": 0.09,
+        "yield": 0.45
+      },
+      {
+        "year": 2025,
+        "value": 0.81,
+        "yield": 4.88
+      }
+    ],
+    "dividends": [
+      {
+        "type": "Dividendo",
+        "dateCom": "17/06/2025",
+        "paymentDate": "17/06/2025",
+        "value": 0.81
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/05/2024",
+        "paymentDate": "02/05/2024",
+        "value": 0.09
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "20/04/2023",
+        "paymentDate": "20/04/2023",
+        "value": 0.07
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "28/04/2022",
+        "paymentDate": "28/04/2022",
+        "value": 0.02
+      }
+    ]
+  },
+  {
+    "ticker": "SUZB3",
+    "type": "acao",
+    "price": 56.86,
+    "name": "Suzano S.A.",
+    "segment": "Basic Materials",
+    "indicators": {
+      "dy": 1.96,
+      "pl": 5.26,
+      "pvp": 1.6,
+      "roe": 35.19,
+      "roic": 3.78,
+      "cagr_lucros_5y": 0.0,
+      "payout": 10.32,
+      "margem_liquida": 26.75,
+      "margem_bruta": 32.38,
+      "margem_ebitda": 41.89,
+      "p_ebitda": 7.0,
+      "divida_liquida_ebitda": 3.65,
+      "vpa": 35.45,
+      "lpa": 10.81,
+      "divida_liquida": 76618620928.0,
+      "divida_bruta": 101731147776.0,
+      "liquidez_media_diaria": 575566600.92,
+      "free_float": 672322022.0,
+      "patrimonio_liquido": 43818397235.65,
+      "numero_papeis": 1236096850.0,
+      "market_cap": 70284468224.0,
+      "ebitda": 20995436544.0
+    },
+    "chartData": [
+      {
+        "year": 2016,
+        "value": 0.26,
+        "yield": 1.52
+      },
+      {
+        "year": 2017,
+        "value": 0.18,
+        "yield": 1.08
+      },
+      {
+        "year": 2018,
+        "value": 0.19,
+        "yield": 0.59
+      },
+      {
+        "year": 2019,
+        "value": 0.44,
+        "yield": 1.36
+      },
+      {
+        "year": 2022,
+        "value": 3.13,
+        "yield": 6.74
+      },
+      {
+        "year": 2023,
+        "value": 1.16,
+        "yield": 2.6
+      },
+      {
+        "year": 2024,
+        "value": 2.02,
+        "yield": 3.8
+      },
+      {
+        "year": 2025,
+        "value": 1.12,
+        "yield": 2.16
+      }
+    ],
+    "dividends": [
+      {
+        "type": "Dividendo",
+        "dateCom": "19/12/2025",
+        "paymentDate": "19/12/2025",
+        "value": 1.12
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "17/12/2024",
+        "paymentDate": "17/12/2024",
+        "value": 2.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "08/12/2023",
+        "paymentDate": "08/12/2023",
+        "value": 1.16
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "19/12/2022",
+        "paymentDate": "19/12/2022",
+        "value": 1.79
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "05/05/2022",
+        "paymentDate": "05/05/2022",
+        "value": 0.59
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "19/01/2022",
+        "paymentDate": "19/01/2022",
+        "value": 0.74
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "22/04/2019",
+        "paymentDate": "22/04/2019",
+        "value": 0.44
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "27/04/2018",
+        "paymentDate": "27/04/2018",
+        "value": 0.19
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "30/11/2017",
+        "paymentDate": "30/11/2017",
+        "value": 0.18
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "26/04/2016",
+        "paymentDate": "26/04/2016",
+        "value": 0.26
+      }
+    ]
+  },
+  {
+    "ticker": "RENT3",
+    "type": "acao",
+    "price": 52.83,
+    "name": "Localiza Rent a Car S.A.",
+    "segment": "Industrials",
+    "indicators": {
+      "dy": 3.9,
+      "pl": 31.83,
+      "pvp": 2.22,
+      "roe": 6.97,
+      "roic": 5.72,
+      "cagr_lucros_5y": -3.9,
+      "payout": 1.13,
+      "margem_liquida": 4.37,
+      "margem_bruta": 21.67,
+      "margem_ebitda": 19.09,
+      "p_ebitda": 11.66,
+      "divida_liquida_ebitda": 4.48,
+      "vpa": 23.84,
+      "lpa": 1.66,
+      "divida_liquida": 34716080128.0,
+      "divida_bruta": 45785436160.0,
+      "liquidez_media_diaria": 503927724.78,
+      "free_float": 816177122.0,
+      "patrimonio_liquido": 25136799008.01,
+      "numero_papeis": 1054484395.0,
+      "market_cap": 55708413952.0,
+      "ebitda": 7756841984.0
+    },
+    "chartData": [
+      {
+        "year": 2016,
+        "value": 0.22,
+        "yield": 2.53
+      },
+      {
+        "year": 2017,
+        "value": 0.23,
+        "yield": 1.8
+      },
+      {
+        "year": 2018,
+        "value": 0.26,
+        "yield": 1.26
+      },
+      {
+        "year": 2019,
+        "value": 0.39,
+        "yield": 1.23
+      },
+      {
+        "year": 2020,
+        "value": 0.35,
+        "yield": 0.83
+      },
+      {
+        "year": 2021,
+        "value": 0.44,
+        "yield": 0.85
+      },
+      {
+        "year": 2022,
+        "value": 1.31,
+        "yield": 2.59
+      },
+      {
+        "year": 2023,
+        "value": 1.5,
+        "yield": 2.8
+      },
+      {
+        "year": 2024,
+        "value": 1.58,
+        "yield": 3.7
+      },
+      {
+        "year": 2025,
+        "value": 1.99,
+        "yield": 5.44
+      }
+    ],
+    "dividends": [
+      {
+        "type": "Dividendo",
+        "dateCom": "18/12/2025",
+        "paymentDate": "18/12/2025",
+        "value": 0.52
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "26/09/2025",
+        "paymentDate": "26/09/2025",
+        "value": 0.52
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "30/06/2025",
+        "paymentDate": "30/06/2025",
+        "value": 0.51
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "27/03/2025",
+        "paymentDate": "27/03/2025",
+        "value": 0.46
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "18/12/2024",
+        "paymentDate": "18/12/2024",
+        "value": 0.4
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "26/09/2024",
+        "paymentDate": "26/09/2024",
+        "value": 0.4
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "27/06/2024",
+        "paymentDate": "27/06/2024",
+        "value": 0.4
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/04/2024",
+        "paymentDate": "02/04/2024",
+        "value": 0.38
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "27/12/2023",
+        "paymentDate": "27/12/2023",
+        "value": 0.38
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "28/09/2023",
+        "paymentDate": "28/09/2023",
+        "value": 0.41
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/07/2023",
+        "paymentDate": "03/07/2023",
+        "value": 0.35
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "29/03/2023",
+        "paymentDate": "29/03/2023",
+        "value": 0.37
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "22/12/2022",
+        "paymentDate": "22/12/2022",
+        "value": 0.36
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "29/09/2022",
+        "paymentDate": "29/09/2022",
+        "value": 0.35
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/07/2022",
+        "paymentDate": "01/07/2022",
+        "value": 0.17
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/05/2022",
+        "paymentDate": "02/05/2022",
+        "value": 0.27
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "30/03/2022",
+        "paymentDate": "30/03/2022",
+        "value": 0.15
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "20/12/2021",
+        "paymentDate": "20/12/2021",
+        "value": 0.13
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "30/09/2021",
+        "paymentDate": "30/09/2021",
+        "value": 0.11
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "30/06/2021",
+        "paymentDate": "30/06/2021",
+        "value": 0.1
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/05/2021",
+        "paymentDate": "03/05/2021",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "30/03/2021",
+        "paymentDate": "30/03/2021",
+        "value": 0.08
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "16/12/2020",
+        "paymentDate": "16/12/2020",
+        "value": 0.08
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "11/09/2020",
+        "paymentDate": "11/09/2020",
+        "value": 0.09
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "24/06/2020",
+        "paymentDate": "24/06/2020",
+        "value": 0.09
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "16/03/2020",
+        "paymentDate": "16/03/2020",
+        "value": 0.09
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "18/12/2019",
+        "paymentDate": "18/12/2019",
+        "value": 0.09
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "10/09/2019",
+        "paymentDate": "10/09/2019",
+        "value": 0.1
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "25/06/2019",
+        "paymentDate": "25/06/2019",
+        "value": 0.1
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "06/05/2019",
+        "paymentDate": "06/05/2019",
+        "value": 0.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "27/03/2019",
+        "paymentDate": "27/03/2019",
+        "value": 0.09
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "20/12/2018",
+        "paymentDate": "20/12/2018",
+        "value": 0.07
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "28/09/2018",
+        "paymentDate": "28/09/2018",
+        "value": 0.06
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "29/06/2018",
+        "paymentDate": "29/06/2018",
+        "value": 0.06
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "29/03/2018",
+        "paymentDate": "29/03/2018",
+        "value": 0.06
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "15/12/2017",
+        "paymentDate": "15/12/2017",
+        "value": 0.06
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "25/09/2017",
+        "paymentDate": "25/09/2017",
+        "value": 0.06
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "07/07/2017",
+        "paymentDate": "07/07/2017",
+        "value": 0.06
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "16/03/2017",
+        "paymentDate": "16/03/2017",
+        "value": 0.06
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "23/12/2016",
+        "paymentDate": "23/12/2016",
+        "value": 0.07
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/10/2016",
+        "paymentDate": "03/10/2016",
+        "value": 0.05
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/07/2016",
+        "paymentDate": "01/07/2016",
+        "value": 0.05
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/05/2016",
+        "paymentDate": "02/05/2016",
+        "value": 0.0
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/04/2016",
+        "paymentDate": "01/04/2016",
+        "value": 0.05
+      }
+    ]
+  },
+  {
+    "ticker": "LREN3",
+    "type": "acao",
+    "price": 15.6,
+    "name": "Lojas Renner S.A.",
+    "segment": "Consumer Cyclical",
+    "indicators": {
+      "dy": 5.84,
+      "pl": 11.64,
+      "pvp": 1.52,
+      "roe": 13.56,
+      "roic": 6.02,
+      "cagr_lucros_5y": 23.64,
+      "payout": 58.15,
+      "margem_liquida": 8.92,
+      "margem_bruta": 61.41,
+      "margem_ebitda": 14.64,
+      "p_ebitda": 7.29,
+      "divida_liquida_ebitda": 0.54,
+      "vpa": 10.27,
+      "lpa": 1.34,
+      "divida_liquida": 1234982016.0,
+      "divida_bruta": 2869152000.0,
+      "liquidez_media_diaria": 190958898.0,
+      "free_float": 987767000.0,
+      "patrimonio_liquido": 10086204159.86,
+      "numero_papeis": 982199256.0,
+      "market_cap": 15322308608.0,
+      "ebitda": 2283912960.0
+    },
+    "chartData": [
+      {
+        "year": 2016,
+        "value": 0.31,
+        "yield": 2.49
+      },
+      {
+        "year": 2017,
+        "value": 0.29,
+        "yield": 1.66
+      },
+      {
+        "year": 2018,
+        "value": 0.34,
+        "yield": 1.67
+      },
+      {
+        "year": 2019,
+        "value": 0.45,
+        "yield": 1.47
+      },
+      {
+        "year": 2020,
+        "value": 0.27,
+        "yield": 0.89
+      },
+      {
+        "year": 2021,
+        "value": 0.4,
+        "yield": 1.46
+      },
+      {
+        "year": 2022,
+        "value": 0.61,
+        "yield": 3.07
+      },
+      {
+        "year": 2023,
+        "value": 0.65,
+        "yield": 4.67
+      },
+      {
+        "year": 2024,
+        "value": 0.6,
+        "yield": 4.58
+      },
+      {
+        "year": 2025,
+        "value": 0.84,
+        "yield": 5.74
+      }
+    ],
+    "dividends": [
+      {
+        "type": "Dividendo",
+        "dateCom": "12/12/2025",
+        "paymentDate": "12/12/2025",
+        "value": 0.23
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "24/09/2025",
+        "paymentDate": "24/09/2025",
+        "value": 0.22
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/07/2025",
+        "paymentDate": "03/07/2025",
+        "value": 0.2
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "26/03/2025",
+        "paymentDate": "26/03/2025",
+        "value": 0.19
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "27/12/2024",
+        "paymentDate": "27/12/2024",
+        "value": 0.17
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "25/09/2024",
+        "paymentDate": "25/09/2024",
+        "value": 0.15
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "26/06/2024",
+        "paymentDate": "26/06/2024",
+        "value": 0.14
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "20/03/2024",
+        "paymentDate": "20/03/2024",
+        "value": 0.14
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "21/12/2023",
+        "paymentDate": "21/12/2023",
+        "value": 0.16
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "27/09/2023",
+        "paymentDate": "27/09/2023",
+        "value": 0.16
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "28/06/2023",
+        "paymentDate": "28/06/2023",
+        "value": 0.16
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "22/03/2023",
+        "paymentDate": "22/03/2023",
+        "value": 0.17
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "23/12/2022",
+        "paymentDate": "23/12/2022",
+        "value": 0.17
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "28/09/2022",
+        "paymentDate": "28/09/2022",
+        "value": 0.16
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "29/06/2022",
+        "paymentDate": "29/06/2022",
+        "value": 0.15
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "23/03/2022",
+        "paymentDate": "23/03/2022",
+        "value": 0.13
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "22/12/2021",
+        "paymentDate": "22/12/2021",
+        "value": 0.12
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "22/09/2021",
+        "paymentDate": "22/09/2021",
+        "value": 0.11
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "28/06/2021",
+        "paymentDate": "28/06/2021",
+        "value": 0.08
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "26/04/2021",
+        "paymentDate": "26/04/2021",
+        "value": 0.03
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "19/03/2021",
+        "paymentDate": "19/03/2021",
+        "value": 0.06
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "21/12/2020",
+        "paymentDate": "21/12/2020",
+        "value": 0.06
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "23/09/2020",
+        "paymentDate": "23/09/2020",
+        "value": 0.07
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "24/06/2020",
+        "paymentDate": "24/06/2020",
+        "value": 0.06
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "30/04/2020",
+        "paymentDate": "30/04/2020",
+        "value": 0.02
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "20/03/2020",
+        "paymentDate": "20/03/2020",
+        "value": 0.06
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "26/12/2019",
+        "paymentDate": "26/12/2019",
+        "value": 0.06
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "25/09/2019",
+        "paymentDate": "25/09/2019",
+        "value": 0.06
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "26/06/2019",
+        "paymentDate": "26/06/2019",
+        "value": 0.06
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "22/04/2019",
+        "paymentDate": "22/04/2019",
+        "value": 0.19
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "22/03/2019",
+        "paymentDate": "22/03/2019",
+        "value": 0.07
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "27/12/2018",
+        "paymentDate": "27/12/2018",
+        "value": 0.07
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "25/09/2018",
+        "paymentDate": "25/09/2018",
+        "value": 0.06
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "25/06/2018",
+        "paymentDate": "25/06/2018",
+        "value": 0.05
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "20/04/2018",
+        "paymentDate": "20/04/2018",
+        "value": 0.1
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "21/03/2018",
+        "paymentDate": "21/03/2018",
+        "value": 0.05
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "20/12/2017",
+        "paymentDate": "20/12/2017",
+        "value": 0.06
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "25/09/2017",
+        "paymentDate": "25/09/2017",
+        "value": 0.05
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "26/06/2017",
+        "paymentDate": "26/06/2017",
+        "value": 0.05
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "20/04/2017",
+        "paymentDate": "20/04/2017",
+        "value": 0.08
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "22/03/2017",
+        "paymentDate": "22/03/2017",
+        "value": 0.05
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "16/12/2016",
+        "paymentDate": "16/12/2016",
+        "value": 0.05
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "27/09/2016",
+        "paymentDate": "27/09/2016",
+        "value": 0.05
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "23/06/2016",
+        "paymentDate": "23/06/2016",
+        "value": 0.04
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "22/04/2016",
+        "paymentDate": "22/04/2016",
+        "value": 0.13
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "16/03/2016",
+        "paymentDate": "16/03/2016",
+        "value": 0.04
+      }
+    ]
+  },
+  {
     "ticker": "MXRF11",
     "type": "fii",
-    "price": 9.67,
+    "price": 9.79,
     "name": "Maxi Renda Fundo De Investimento Imobiliaro - FII",
     "segment": "Real Estate",
     "indicators": {
-      "dy": 12.41,
-      "pl": 13.81,
-      "pvp": 0.97,
+      "dy": 12.26,
+      "pl": 13.99,
+      "pvp": 0.99,
       "roe": 10.7,
       "roic": 10.37,
       "cagr_lucros_5y": 0.0,
@@ -3899,10 +7635,12 @@
       "lpa": 0.7,
       "divida_liquida": 0.0,
       "divida_bruta": 0.0,
-      "liquidez_media_diaria": 17390131.53,
+      "liquidez_media_diaria": 14939158.19,
       "free_float": 0.0,
-      "patrimonio_liquido": 4340890898.022,
-      "numero_papeis": 437325297.0
+      "patrimonio_liquido": 4340890898.02,
+      "numero_papeis": 437325297.0,
+      "market_cap": 4281414912.0,
+      "ebitda": 0.0
     },
     "chartData": [
       {
@@ -3933,7 +7671,7 @@
       {
         "year": 2026,
         "value": 0.2,
-        "yield": 2.12
+        "yield": 2.11
       }
     ],
     "dividends": [
@@ -4230,12 +7968,12 @@
   {
     "ticker": "HGLG11",
     "type": "fii",
-    "price": 156.78,
+    "price": 157.3,
     "name": "Cshg Logistica - Fundo De Investimento Imobiliario",
     "segment": "Real Estate",
     "indicators": {
-      "dy": 8.42,
-      "pl": 9.66,
+      "dy": 8.39,
+      "pl": 9.7,
       "pvp": 0.99,
       "roe": 12.24,
       "roic": 4.94,
@@ -4247,13 +7985,15 @@
       "p_ebitda": 0.0,
       "divida_liquida_ebitda": 0.0,
       "vpa": 158.24,
-      "lpa": 16.23,
+      "lpa": 16.22,
       "divida_liquida": -2542000.0,
       "divida_bruta": 0.0,
-      "liquidez_media_diaria": 16303552.2,
+      "liquidez_media_diaria": 15308593.3,
       "free_float": 0.0,
-      "patrimonio_liquido": 5346512080.425,
-      "numero_papeis": 33787575.0
+      "patrimonio_liquido": 5346512080.43,
+      "numero_papeis": 33787575.0,
+      "market_cap": 5314785792.0,
+      "ebitda": 0.0
     },
     "chartData": [
       {
@@ -4587,13 +8327,13 @@
   {
     "ticker": "KNCR11",
     "type": "fii",
-    "price": 105.3,
+    "price": 106.24,
     "name": "Kinea Rendimentos Imobiliários Fundo de Investimento Imobiliário - FII",
     "segment": "Real Estate",
     "indicators": {
-      "dy": 13.68,
-      "pl": 8.7,
-      "pvp": 1.04,
+      "dy": 13.55,
+      "pl": 8.78,
+      "pvp": 1.05,
       "roe": 15.48,
       "roic": 14.13,
       "cagr_lucros_5y": 37.01,
@@ -4607,10 +8347,12 @@
       "lpa": 12.1,
       "divida_liquida": 0.0,
       "divida_bruta": 0.0,
-      "liquidez_media_diaria": 20604156.3,
+      "liquidez_media_diaria": 19212760.32,
       "free_float": 0.0,
-      "patrimonio_liquido": 7739992604.368,
-      "numero_papeis": 76733876.0
+      "patrimonio_liquido": 7739992604.37,
+      "numero_papeis": 76733876.0,
+      "market_cap": 8152206336.0,
+      "ebitda": 0.0
     },
     "chartData": [
       {
@@ -4944,11 +8686,11 @@
   {
     "ticker": "XPML11",
     "type": "fii",
-    "price": 110.32,
+    "price": 111.71,
     "name": "Xp Malls Fundo Investimentos Imobiliarios",
     "segment": "Real Estate",
     "indicators": {
-      "dy": 10.01,
+      "dy": 9.88,
       "pl": 0.0,
       "pvp": 0.0,
       "roe": 0.0,
@@ -4964,10 +8706,12 @@
       "lpa": -0.36,
       "divida_liquida": 0.0,
       "divida_bruta": 0.0,
-      "liquidez_media_diaria": 23221477.439999998,
+      "liquidez_media_diaria": 25926103.64,
       "free_float": 0.0,
       "patrimonio_liquido": 0.0,
-      "numero_papeis": 56730662.0
+      "numero_papeis": 56730662.0,
+      "market_cap": 6337382400.0,
+      "ebitda": 0.0
     },
     "chartData": [
       {
@@ -4993,7 +8737,7 @@
       {
         "year": 2026,
         "value": 0.92,
-        "yield": 1.27
+        "yield": 1.18
       }
     ],
     "dividends": [
@@ -5284,12 +9028,12 @@
   {
     "ticker": "VISC11",
     "type": "fii",
-    "price": 107.9,
+    "price": 110.0,
     "name": "Vinci Shopping Centers Fundo Investimento Imobiliario - Fii",
     "segment": "Real Estate",
     "indicators": {
-      "dy": 9.34,
-      "pl": 16.32,
+      "dy": 9.16,
+      "pl": 16.64,
       "pvp": 0.0,
       "roe": 0.0,
       "roic": 0.0,
@@ -5304,10 +9048,12 @@
       "lpa": 6.61,
       "divida_liquida": 0.0,
       "divida_bruta": 0.0,
-      "liquidez_media_diaria": 6436990.300000001,
+      "liquidez_media_diaria": 6155160.0,
       "free_float": 0.0,
       "patrimonio_liquido": 0.0,
-      "numero_papeis": 28828640.0
+      "numero_papeis": 28828640.0,
+      "market_cap": 3171150336.0,
+      "ebitda": 0.0
     },
     "chartData": [
       {
@@ -5629,12 +9375,12 @@
   {
     "ticker": "KNIP11",
     "type": "fii",
-    "price": 90.11,
+    "price": 91.73,
     "name": "Kinea Indices Precos Fundo Investimento Imobiliario - FII",
     "segment": "Real Estate",
     "indicators": {
-      "dy": 9.32,
-      "pl": 8.1,
+      "dy": 9.16,
+      "pl": 8.24,
       "pvp": 0.0,
       "roe": 0.0,
       "roic": 0.0,
@@ -5649,10 +9395,12 @@
       "lpa": 11.13,
       "divida_liquida": 0.0,
       "divida_bruta": 0.0,
-      "liquidez_media_diaria": 8329498.07,
+      "liquidez_media_diaria": 7941249.56,
       "free_float": 0.0,
       "patrimonio_liquido": 0.0,
-      "numero_papeis": 80078186.0
+      "numero_papeis": 80078186.0,
+      "market_cap": 7345571840.0,
+      "ebitda": 0.0
     },
     "chartData": [
       {
@@ -5683,7 +9431,7 @@
       {
         "year": 2026,
         "value": 1.4,
-        "yield": 1.55
+        "yield": 1.54
       }
     ],
     "dividends": [
@@ -5986,11 +9734,11 @@
   {
     "ticker": "GGRC11",
     "type": "fii",
-    "price": 10.0,
+    "price": 10.1,
     "name": "Ggr Covipe Renda Fundo Investimento Imobiliario",
     "segment": "Real Estate",
     "indicators": {
-      "dy": 12.0,
+      "dy": 11.88,
       "pl": 0.0,
       "pvp": 0.0,
       "roe": 0.0,
@@ -6006,10 +9754,12 @@
       "lpa": 0.0,
       "divida_liquida": 0.0,
       "divida_bruta": 0.0,
-      "liquidez_media_diaria": 11105700.0,
+      "liquidez_media_diaria": 10776467.7,
       "free_float": 0.0,
       "patrimonio_liquido": 0.0,
-      "numero_papeis": 152455666.0
+      "numero_papeis": 152455666.0,
+      "market_cap": 1539802240.0,
+      "ebitda": 0.0
     },
     "chartData": [
       {
@@ -6331,13 +10081,13 @@
   {
     "ticker": "HGBS11",
     "type": "fii",
-    "price": 20.04,
+    "price": 20.31,
     "name": "HEDGE Brasil Shopping Fundo de Investimento Imobiliário",
     "segment": "Real Estate",
     "indicators": {
-      "dy": 9.58,
-      "pl": 55.67,
-      "pvp": 0.87,
+      "dy": 9.45,
+      "pl": 56.42,
+      "pvp": 0.88,
       "roe": 13.07,
       "roic": 5.69,
       "cagr_lucros_5y": 35.16,
@@ -6351,10 +10101,12 @@
       "lpa": 0.36,
       "divida_liquida": 38143000.0,
       "divida_bruta": 38145000.0,
-      "liquidez_media_diaria": 4106536.6799999997,
+      "liquidez_media_diaria": 2835011.97,
       "free_float": 0.0,
       "patrimonio_liquido": 2989687447.52,
-      "numero_papeis": 129133010.0
+      "numero_papeis": 129133010.0,
+      "market_cap": 2622691328.0,
+      "ebitda": 0.0
     },
     "chartData": [
       {
@@ -6682,7 +10434,7 @@
   {
     "ticker": "KNCA11",
     "type": "fii",
-    "price": 96.64,
+    "price": 97.25,
     "name": "Kinea Credito Agro Fiagro-Imobiliario",
     "segment": "N/A",
     "indicators": {
@@ -6702,10 +10454,12 @@
       "lpa": 0.0,
       "divida_liquida": 0.0,
       "divida_bruta": 0.0,
-      "liquidez_media_diaria": 3429850.24,
+      "liquidez_media_diaria": 3404528.0,
       "free_float": 0.0,
       "patrimonio_liquido": 0.0,
-      "numero_papeis": 0.0
+      "numero_papeis": 0.0,
+      "market_cap": 0.0,
+      "ebitda": 0.0
     },
     "chartData": [
       {
@@ -7028,12 +10782,12 @@
   {
     "ticker": "KNSC11",
     "type": "fii",
-    "price": 8.92,
+    "price": 9.07,
     "name": "Kinea Securities Fundo De Investimento Imobiliario – Fii",
     "segment": "Real Estate",
     "indicators": {
-      "dy": 12.11,
-      "pl": 8.58,
+      "dy": 11.91,
+      "pl": 8.72,
       "pvp": 0.0,
       "roe": 0.0,
       "roic": 0.0,
@@ -7048,10 +10802,12 @@
       "lpa": 1.04,
       "divida_liquida": 0.0,
       "divida_bruta": 0.0,
-      "liquidez_media_diaria": 6132963.84,
+      "liquidez_media_diaria": 5699597.07,
       "free_float": 0.0,
       "patrimonio_liquido": 0.0,
-      "numero_papeis": 202202385.0
+      "numero_papeis": 202202385.0,
+      "market_cap": 1833975552.0,
+      "ebitda": 0.0
     },
     "chartData": [
       {
@@ -7077,7 +10833,7 @@
       {
         "year": 2026,
         "value": 0.18,
-        "yield": 2.04
+        "yield": 2.03
       }
     ],
     "dividends": [
@@ -7362,6 +11118,2183 @@
         "dateCom": "01/04/2022",
         "paymentDate": "01/04/2022",
         "value": 0.11
+      }
+    ]
+  },
+  {
+    "ticker": "ALZR11",
+    "type": "fii",
+    "price": 10.75,
+    "name": "Alianza Trust Renda Imobiliaria Fundo Investimento Imobiliario",
+    "segment": "Real Estate",
+    "indicators": {
+      "dy": 9.33,
+      "pl": 9.86,
+      "pvp": 0.0,
+      "roe": 0.0,
+      "roic": 0.0,
+      "cagr_lucros_5y": 23.82,
+      "payout": 86.14,
+      "margem_liquida": 0.0,
+      "margem_bruta": 0.0,
+      "margem_ebitda": 0.0,
+      "p_ebitda": 0.0,
+      "divida_liquida_ebitda": 0.0,
+      "vpa": 0.0,
+      "lpa": 1.09,
+      "divida_liquida": 0.0,
+      "divida_bruta": 0.0,
+      "liquidez_media_diaria": 2726952.5,
+      "free_float": 0.0,
+      "patrimonio_liquido": 0.0,
+      "numero_papeis": 122695771.0,
+      "market_cap": 1318979456.0,
+      "ebitda": 0.0
+    },
+    "chartData": [
+      {
+        "year": 2022,
+        "value": 1.13,
+        "yield": 14.33
+      },
+      {
+        "year": 2023,
+        "value": 0.88,
+        "yield": 9.86
+      },
+      {
+        "year": 2024,
+        "value": 0.91,
+        "yield": 9.68
+      },
+      {
+        "year": 2025,
+        "value": 0.99,
+        "yield": 10.32
+      },
+      {
+        "year": 2026,
+        "value": 0.09,
+        "yield": 0.79
+      }
+    ],
+    "dividends": [
+      {
+        "type": "Dividendo",
+        "dateCom": "19/01/2026",
+        "paymentDate": "19/01/2026",
+        "value": 0.09
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "17/12/2025",
+        "paymentDate": "17/12/2025",
+        "value": 0.08
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "18/11/2025",
+        "paymentDate": "18/11/2025",
+        "value": 0.08
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "20/10/2025",
+        "paymentDate": "20/10/2025",
+        "value": 0.08
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "19/09/2025",
+        "paymentDate": "19/09/2025",
+        "value": 0.08
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "19/08/2025",
+        "paymentDate": "19/08/2025",
+        "value": 0.08
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "21/07/2025",
+        "paymentDate": "21/07/2025",
+        "value": 0.09
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "18/06/2025",
+        "paymentDate": "18/06/2025",
+        "value": 0.08
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "19/05/2025",
+        "paymentDate": "19/05/2025",
+        "value": 0.08
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "17/04/2025",
+        "paymentDate": "17/04/2025",
+        "value": 0.08
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "19/03/2025",
+        "paymentDate": "19/03/2025",
+        "value": 0.08
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "19/02/2025",
+        "paymentDate": "19/02/2025",
+        "value": 0.08
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "20/01/2025",
+        "paymentDate": "20/01/2025",
+        "value": 0.08
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "17/12/2024",
+        "paymentDate": "17/12/2024",
+        "value": 0.08
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "18/11/2024",
+        "paymentDate": "18/11/2024",
+        "value": 0.08
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "21/10/2024",
+        "paymentDate": "21/10/2024",
+        "value": 0.07
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "19/09/2024",
+        "paymentDate": "19/09/2024",
+        "value": 0.07
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "19/08/2024",
+        "paymentDate": "19/08/2024",
+        "value": 0.08
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "19/07/2024",
+        "paymentDate": "19/07/2024",
+        "value": 0.07
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "19/06/2024",
+        "paymentDate": "19/06/2024",
+        "value": 0.07
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "20/05/2024",
+        "paymentDate": "20/05/2024",
+        "value": 0.07
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "19/04/2024",
+        "paymentDate": "19/04/2024",
+        "value": 0.08
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "19/03/2024",
+        "paymentDate": "19/03/2024",
+        "value": 0.08
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "19/02/2024",
+        "paymentDate": "19/02/2024",
+        "value": 0.08
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "19/01/2024",
+        "paymentDate": "19/01/2024",
+        "value": 0.08
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "18/12/2023",
+        "paymentDate": "18/12/2023",
+        "value": 0.08
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "20/11/2023",
+        "paymentDate": "20/11/2023",
+        "value": 0.08
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "19/10/2023",
+        "paymentDate": "19/10/2023",
+        "value": 0.08
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "19/09/2023",
+        "paymentDate": "19/09/2023",
+        "value": 0.08
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "21/08/2023",
+        "paymentDate": "21/08/2023",
+        "value": 0.08
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "19/07/2023",
+        "paymentDate": "19/07/2023",
+        "value": 0.08
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "19/05/2023",
+        "paymentDate": "19/05/2023",
+        "value": 0.08
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "18/04/2023",
+        "paymentDate": "18/04/2023",
+        "value": 0.08
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "20/03/2023",
+        "paymentDate": "20/03/2023",
+        "value": 0.08
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "16/02/2023",
+        "paymentDate": "16/02/2023",
+        "value": 0.08
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "19/01/2023",
+        "paymentDate": "19/01/2023",
+        "value": 0.08
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "19/12/2022",
+        "paymentDate": "19/12/2022",
+        "value": 0.07
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "21/11/2022",
+        "paymentDate": "21/11/2022",
+        "value": 0.07
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "19/10/2022",
+        "paymentDate": "19/10/2022",
+        "value": 0.08
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "19/09/2022",
+        "paymentDate": "19/09/2022",
+        "value": 0.54
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "19/08/2022",
+        "paymentDate": "19/08/2022",
+        "value": 0.08
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "20/06/2022",
+        "paymentDate": "20/06/2022",
+        "value": 0.07
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "19/05/2022",
+        "paymentDate": "19/05/2022",
+        "value": 0.07
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "18/04/2022",
+        "paymentDate": "18/04/2022",
+        "value": 0.07
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "21/03/2022",
+        "paymentDate": "21/03/2022",
+        "value": 0.07
+      }
+    ]
+  },
+  {
+    "ticker": "HGRU11",
+    "type": "fii",
+    "price": 126.5,
+    "name": "Patria Renda Urbana - Fundo De Investimento Imobiliario",
+    "segment": "Real Estate",
+    "indicators": {
+      "dy": 9.68,
+      "pl": 12650.0,
+      "pvp": 0.0,
+      "roe": 0.0,
+      "roic": 0.0,
+      "cagr_lucros_5y": 13.05,
+      "payout": 74.94,
+      "margem_liquida": 0.0,
+      "margem_bruta": 0.0,
+      "margem_ebitda": 0.0,
+      "p_ebitda": 0.0,
+      "divida_liquida_ebitda": 0.0,
+      "vpa": 0.0,
+      "lpa": 0.01,
+      "divida_liquida": 0.0,
+      "divida_bruta": 0.0,
+      "liquidez_media_diaria": 6594445.0,
+      "free_float": 0.0,
+      "patrimonio_liquido": 0.0,
+      "numero_papeis": 23238024.0,
+      "market_cap": 2939610112.0,
+      "ebitda": 0.0
+    },
+    "chartData": [
+      {
+        "year": 2022,
+        "value": 7.69,
+        "yield": 9.12
+      },
+      {
+        "year": 2023,
+        "value": 11.76,
+        "yield": 11.94
+      },
+      {
+        "year": 2024,
+        "value": 12.08,
+        "yield": 11.05
+      },
+      {
+        "year": 2025,
+        "value": 11.75,
+        "yield": 10.18
+      },
+      {
+        "year": 2026,
+        "value": 2.4,
+        "yield": 1.9
+      }
+    ],
+    "dividends": [
+      {
+        "type": "Dividendo",
+        "dateCom": "02/02/2026",
+        "paymentDate": "02/02/2026",
+        "value": 0.95
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/01/2026",
+        "paymentDate": "02/01/2026",
+        "value": 1.45
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/11/2025",
+        "paymentDate": "03/11/2025",
+        "value": 0.95
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/10/2025",
+        "paymentDate": "01/10/2025",
+        "value": 0.95
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/09/2025",
+        "paymentDate": "01/09/2025",
+        "value": 0.95
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/08/2025",
+        "paymentDate": "01/08/2025",
+        "value": 0.95
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/07/2025",
+        "paymentDate": "01/07/2025",
+        "value": 1.55
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/06/2025",
+        "paymentDate": "02/06/2025",
+        "value": 0.9
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/05/2025",
+        "paymentDate": "02/05/2025",
+        "value": 0.9
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/04/2025",
+        "paymentDate": "01/04/2025",
+        "value": 0.9
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "05/03/2025",
+        "paymentDate": "05/03/2025",
+        "value": 0.9
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/02/2025",
+        "paymentDate": "03/02/2025",
+        "value": 0.9
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/01/2025",
+        "paymentDate": "02/01/2025",
+        "value": 1.9
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/12/2024",
+        "paymentDate": "02/12/2024",
+        "value": 0.9
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/11/2024",
+        "paymentDate": "01/11/2024",
+        "value": 0.9
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/10/2024",
+        "paymentDate": "01/10/2024",
+        "value": 0.85
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/09/2024",
+        "paymentDate": "02/09/2024",
+        "value": 0.85
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/08/2024",
+        "paymentDate": "01/08/2024",
+        "value": 0.85
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/07/2024",
+        "paymentDate": "01/07/2024",
+        "value": 1.24
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/06/2024",
+        "paymentDate": "03/06/2024",
+        "value": 0.84
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/05/2024",
+        "paymentDate": "02/05/2024",
+        "value": 0.84
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/04/2024",
+        "paymentDate": "01/04/2024",
+        "value": 0.84
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/03/2024",
+        "paymentDate": "01/03/2024",
+        "value": 0.84
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/02/2024",
+        "paymentDate": "01/02/2024",
+        "value": 0.84
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/01/2024",
+        "paymentDate": "02/01/2024",
+        "value": 2.28
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/12/2023",
+        "paymentDate": "01/12/2023",
+        "value": 0.84
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/11/2023",
+        "paymentDate": "01/11/2023",
+        "value": 0.84
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/10/2023",
+        "paymentDate": "02/10/2023",
+        "value": 0.84
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/09/2023",
+        "paymentDate": "01/09/2023",
+        "value": 0.84
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/08/2023",
+        "paymentDate": "01/08/2023",
+        "value": 0.84
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/07/2023",
+        "paymentDate": "03/07/2023",
+        "value": 1.39
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/06/2023",
+        "paymentDate": "01/06/2023",
+        "value": 0.84
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/05/2023",
+        "paymentDate": "02/05/2023",
+        "value": 0.84
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/04/2023",
+        "paymentDate": "03/04/2023",
+        "value": 0.84
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/03/2023",
+        "paymentDate": "01/03/2023",
+        "value": 0.84
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/02/2023",
+        "paymentDate": "01/02/2023",
+        "value": 0.81
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/01/2023",
+        "paymentDate": "02/01/2023",
+        "value": 1.98
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/12/2022",
+        "paymentDate": "01/12/2022",
+        "value": 0.81
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/11/2022",
+        "paymentDate": "01/11/2022",
+        "value": 0.81
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/10/2022",
+        "paymentDate": "03/10/2022",
+        "value": 0.81
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/09/2022",
+        "paymentDate": "01/09/2022",
+        "value": 0.81
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/08/2022",
+        "paymentDate": "01/08/2022",
+        "value": 0.81
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/07/2022",
+        "paymentDate": "01/07/2022",
+        "value": 1.19
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/06/2022",
+        "paymentDate": "01/06/2022",
+        "value": 0.81
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/05/2022",
+        "paymentDate": "02/05/2022",
+        "value": 0.81
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/04/2022",
+        "paymentDate": "01/04/2022",
+        "value": 0.81
+      }
+    ]
+  },
+  {
+    "ticker": "BTLG11",
+    "type": "fii",
+    "price": 102.69,
+    "name": "BTG Pactual Logística Fundo de Investimento Imobiliário",
+    "segment": "Real Estate",
+    "indicators": {
+      "dy": 9.12,
+      "pl": 94.82,
+      "pvp": 0.99,
+      "roe": 1.13,
+      "roic": 2.33,
+      "cagr_lucros_5y": 0.0,
+      "payout": 0.0,
+      "margem_liquida": 18.96,
+      "margem_bruta": 77.37,
+      "margem_ebitda": 0.0,
+      "p_ebitda": 0.0,
+      "divida_liquida_ebitda": 0.0,
+      "vpa": 103.43,
+      "lpa": 1.08,
+      "divida_liquida": 0.0,
+      "divida_bruta": 0.0,
+      "liquidez_media_diaria": 19225827.18,
+      "free_float": 0.0,
+      "patrimonio_liquido": 4473216438.78,
+      "numero_papeis": 43249151.0,
+      "market_cap": 4441255424.0,
+      "ebitda": 0.0
+    },
+    "chartData": [
+      {
+        "year": 2017,
+        "value": 0.65,
+        "yield": 1.37
+      },
+      {
+        "year": 2022,
+        "value": 6.61,
+        "yield": 9.17
+      },
+      {
+        "year": 2023,
+        "value": 8.93,
+        "yield": 11.63
+      },
+      {
+        "year": 2024,
+        "value": 9.27,
+        "yield": 10.82
+      },
+      {
+        "year": 2025,
+        "value": 9.49,
+        "yield": 10.13
+      },
+      {
+        "year": 2026,
+        "value": 1.59,
+        "yield": 1.56
+      }
+    ],
+    "dividends": [
+      {
+        "type": "Dividendo",
+        "dateCom": "18/02/2026",
+        "paymentDate": "18/02/2026",
+        "value": 0.8
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "16/01/2026",
+        "paymentDate": "16/01/2026",
+        "value": 0.79
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "16/12/2025",
+        "paymentDate": "16/12/2025",
+        "value": 0.79
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "17/11/2025",
+        "paymentDate": "17/11/2025",
+        "value": 0.79
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "16/10/2025",
+        "paymentDate": "16/10/2025",
+        "value": 0.79
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "16/09/2025",
+        "paymentDate": "16/09/2025",
+        "value": 0.79
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "18/08/2025",
+        "paymentDate": "18/08/2025",
+        "value": 0.78
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "16/07/2025",
+        "paymentDate": "16/07/2025",
+        "value": 0.78
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "16/06/2025",
+        "paymentDate": "16/06/2025",
+        "value": 0.78
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "16/05/2025",
+        "paymentDate": "16/05/2025",
+        "value": 0.78
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "16/04/2025",
+        "paymentDate": "16/04/2025",
+        "value": 0.78
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "17/03/2025",
+        "paymentDate": "17/03/2025",
+        "value": 0.78
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "17/02/2025",
+        "paymentDate": "17/02/2025",
+        "value": 0.78
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "16/01/2025",
+        "paymentDate": "16/01/2025",
+        "value": 0.87
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "16/12/2024",
+        "paymentDate": "16/12/2024",
+        "value": 0.78
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "18/11/2024",
+        "paymentDate": "18/11/2024",
+        "value": 0.78
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "16/10/2024",
+        "paymentDate": "16/10/2024",
+        "value": 0.78
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "16/09/2024",
+        "paymentDate": "16/09/2024",
+        "value": 0.78
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "16/08/2024",
+        "paymentDate": "16/08/2024",
+        "value": 0.76
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "16/07/2024",
+        "paymentDate": "16/07/2024",
+        "value": 0.76
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "17/06/2024",
+        "paymentDate": "17/06/2024",
+        "value": 0.76
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "16/05/2024",
+        "paymentDate": "16/05/2024",
+        "value": 0.76
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "16/04/2024",
+        "paymentDate": "16/04/2024",
+        "value": 0.76
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "18/03/2024",
+        "paymentDate": "18/03/2024",
+        "value": 0.76
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "16/02/2024",
+        "paymentDate": "16/02/2024",
+        "value": 0.78
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "16/01/2024",
+        "paymentDate": "16/01/2024",
+        "value": 0.81
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "18/12/2023",
+        "paymentDate": "18/12/2023",
+        "value": 0.76
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "16/11/2023",
+        "paymentDate": "16/11/2023",
+        "value": 0.76
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "16/10/2023",
+        "paymentDate": "16/10/2023",
+        "value": 0.76
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "18/09/2023",
+        "paymentDate": "18/09/2023",
+        "value": 0.76
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "16/08/2023",
+        "paymentDate": "16/08/2023",
+        "value": 0.76
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "17/07/2023",
+        "paymentDate": "17/07/2023",
+        "value": 0.75
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "16/06/2023",
+        "paymentDate": "16/06/2023",
+        "value": 0.73
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "16/05/2023",
+        "paymentDate": "16/05/2023",
+        "value": 0.73
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "17/04/2023",
+        "paymentDate": "17/04/2023",
+        "value": 0.73
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "16/03/2023",
+        "paymentDate": "16/03/2023",
+        "value": 0.73
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "16/02/2023",
+        "paymentDate": "16/02/2023",
+        "value": 0.73
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "16/01/2023",
+        "paymentDate": "16/01/2023",
+        "value": 0.73
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "16/12/2022",
+        "paymentDate": "16/12/2022",
+        "value": 0.73
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "16/11/2022",
+        "paymentDate": "16/11/2022",
+        "value": 0.73
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "17/10/2022",
+        "paymentDate": "17/10/2022",
+        "value": 0.73
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "16/09/2022",
+        "paymentDate": "16/09/2022",
+        "value": 0.73
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "16/08/2022",
+        "paymentDate": "16/08/2022",
+        "value": 0.73
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "18/07/2022",
+        "paymentDate": "18/07/2022",
+        "value": 0.81
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "17/06/2022",
+        "paymentDate": "17/06/2022",
+        "value": 0.71
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "16/05/2022",
+        "paymentDate": "16/05/2022",
+        "value": 0.71
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "18/04/2022",
+        "paymentDate": "18/04/2022",
+        "value": 0.71
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "17/11/2017",
+        "paymentDate": "17/11/2017",
+        "value": 0.32
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "17/10/2017",
+        "paymentDate": "17/10/2017",
+        "value": 0.33
+      }
+    ]
+  },
+  {
+    "ticker": "TRXF11",
+    "type": "fii",
+    "price": 93.05,
+    "name": "TRX REAL ESTATE FUNDO DE INVESTIMENTO IMOBILIÁRIO - FII",
+    "segment": "Real Estate",
+    "indicators": {
+      "dy": 11.99,
+      "pl": 15.66,
+      "pvp": 0.0,
+      "roe": 0.0,
+      "roic": 0.0,
+      "cagr_lucros_5y": 86.64,
+      "payout": 2.13,
+      "margem_liquida": 0.0,
+      "margem_bruta": 0.0,
+      "margem_ebitda": 0.0,
+      "p_ebitda": 0.0,
+      "divida_liquida_ebitda": 0.0,
+      "vpa": 0.0,
+      "lpa": 5.94,
+      "divida_liquida": 0.0,
+      "divida_bruta": 0.0,
+      "liquidez_media_diaria": 20202178.55,
+      "free_float": 0.0,
+      "patrimonio_liquido": 0.0,
+      "numero_papeis": 20135237.0,
+      "market_cap": 1873583744.0,
+      "ebitda": 0.0
+    },
+    "chartData": [
+      {
+        "year": 2022,
+        "value": 7.59,
+        "yield": 11.06
+      },
+      {
+        "year": 2023,
+        "value": 10.74,
+        "yield": 13.54
+      },
+      {
+        "year": 2024,
+        "value": 11.83,
+        "yield": 13.43
+      },
+      {
+        "year": 2025,
+        "value": 12.35,
+        "yield": 13.17
+      },
+      {
+        "year": 2026,
+        "value": 1.93,
+        "yield": 2.04
+      }
+    ],
+    "dividends": [
+      {
+        "type": "Dividendo",
+        "dateCom": "02/02/2026",
+        "paymentDate": "02/02/2026",
+        "value": 0.93
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/01/2026",
+        "paymentDate": "02/01/2026",
+        "value": 1.0
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/11/2025",
+        "paymentDate": "03/11/2025",
+        "value": 0.93
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/10/2025",
+        "paymentDate": "01/10/2025",
+        "value": 0.93
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/09/2025",
+        "paymentDate": "01/09/2025",
+        "value": 0.93
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/08/2025",
+        "paymentDate": "01/08/2025",
+        "value": 0.93
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/07/2025",
+        "paymentDate": "01/07/2025",
+        "value": 1.51
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/06/2025",
+        "paymentDate": "02/06/2025",
+        "value": 0.93
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/05/2025",
+        "paymentDate": "02/05/2025",
+        "value": 0.93
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/04/2025",
+        "paymentDate": "01/04/2025",
+        "value": 0.93
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "05/03/2025",
+        "paymentDate": "05/03/2025",
+        "value": 0.93
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/02/2025",
+        "paymentDate": "03/02/2025",
+        "value": 0.93
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/01/2025",
+        "paymentDate": "02/01/2025",
+        "value": 2.49
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/12/2024",
+        "paymentDate": "02/12/2024",
+        "value": 0.93
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/11/2024",
+        "paymentDate": "01/11/2024",
+        "value": 0.93
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/10/2024",
+        "paymentDate": "01/10/2024",
+        "value": 0.93
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/09/2024",
+        "paymentDate": "02/09/2024",
+        "value": 0.93
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/08/2024",
+        "paymentDate": "01/08/2024",
+        "value": 0.93
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/07/2024",
+        "paymentDate": "01/07/2024",
+        "value": 1.04
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/06/2024",
+        "paymentDate": "03/06/2024",
+        "value": 0.9
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/05/2024",
+        "paymentDate": "02/05/2024",
+        "value": 0.9
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/04/2024",
+        "paymentDate": "01/04/2024",
+        "value": 0.9
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/03/2024",
+        "paymentDate": "01/03/2024",
+        "value": 0.89
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/02/2024",
+        "paymentDate": "01/02/2024",
+        "value": 0.89
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/01/2024",
+        "paymentDate": "02/01/2024",
+        "value": 1.69
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/12/2023",
+        "paymentDate": "01/12/2023",
+        "value": 0.89
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/11/2023",
+        "paymentDate": "01/11/2023",
+        "value": 0.89
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/10/2023",
+        "paymentDate": "02/10/2023",
+        "value": 0.89
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/09/2023",
+        "paymentDate": "01/09/2023",
+        "value": 0.89
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/08/2023",
+        "paymentDate": "01/08/2023",
+        "value": 0.89
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/07/2023",
+        "paymentDate": "03/07/2023",
+        "value": 0.89
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/06/2023",
+        "paymentDate": "01/06/2023",
+        "value": 0.84
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/05/2023",
+        "paymentDate": "02/05/2023",
+        "value": 0.84
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/04/2023",
+        "paymentDate": "03/04/2023",
+        "value": 0.84
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/03/2023",
+        "paymentDate": "01/03/2023",
+        "value": 0.84
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/02/2023",
+        "paymentDate": "01/02/2023",
+        "value": 0.84
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/01/2023",
+        "paymentDate": "02/01/2023",
+        "value": 1.19
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/12/2022",
+        "paymentDate": "01/12/2022",
+        "value": 0.84
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/11/2022",
+        "paymentDate": "01/11/2022",
+        "value": 0.84
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/10/2022",
+        "paymentDate": "03/10/2022",
+        "value": 0.81
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/09/2022",
+        "paymentDate": "01/09/2022",
+        "value": 0.83
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/08/2022",
+        "paymentDate": "01/08/2022",
+        "value": 0.83
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/07/2022",
+        "paymentDate": "01/07/2022",
+        "value": 1.03
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/06/2022",
+        "paymentDate": "01/06/2022",
+        "value": 0.83
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/05/2022",
+        "paymentDate": "02/05/2022",
+        "value": 0.79
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/04/2022",
+        "paymentDate": "01/04/2022",
+        "value": 0.79
+      }
+    ]
+  },
+  {
+    "ticker": "CPTS11",
+    "type": "fii",
+    "price": 8.01,
+    "name": "Capitania Securities II Fundo Investimento Imobiliario FII",
+    "segment": "Real Estate",
+    "indicators": {
+      "dy": 13.48,
+      "pl": 0.0,
+      "pvp": 0.0,
+      "roe": 0.0,
+      "roic": 0.0,
+      "cagr_lucros_5y": 0.0,
+      "payout": 0.0,
+      "margem_liquida": 0.0,
+      "margem_bruta": 0.0,
+      "margem_ebitda": 0.0,
+      "p_ebitda": 0.0,
+      "divida_liquida_ebitda": 0.0,
+      "vpa": 0.0,
+      "lpa": 0.0,
+      "divida_liquida": 0.0,
+      "divida_bruta": 0.0,
+      "liquidez_media_diaria": 8892838.17,
+      "free_float": 0.0,
+      "patrimonio_liquido": 0.0,
+      "numero_papeis": 328558329.0,
+      "market_cap": 2631752448.0,
+      "ebitda": 0.0
+    },
+    "chartData": [
+      {
+        "year": 2016,
+        "value": 12.06,
+        "yield": 432399.28
+      },
+      {
+        "year": 2017,
+        "value": 10.39,
+        "yield": 123750.76
+      },
+      {
+        "year": 2018,
+        "value": 9.22,
+        "yield": 44460.38
+      },
+      {
+        "year": 2019,
+        "value": 8.82,
+        "yield": 15622.27
+      },
+      {
+        "year": 2020,
+        "value": 8.69,
+        "yield": 7332.22
+      },
+      {
+        "year": 2021,
+        "value": 12.18,
+        "yield": 3155.57
+      },
+      {
+        "year": 2022,
+        "value": 12.17,
+        "yield": 863.57
+      },
+      {
+        "year": 2023,
+        "value": 8.08,
+        "yield": 184.28
+      },
+      {
+        "year": 2024,
+        "value": 0.9,
+        "yield": 13.87
+      },
+      {
+        "year": 2025,
+        "value": 1.01,
+        "yield": 15.36
+      },
+      {
+        "year": 2026,
+        "value": 0.18,
+        "yield": 2.29
+      }
+    ],
+    "dividends": [
+      {
+        "type": "Dividendo",
+        "dateCom": "12/02/2026",
+        "paymentDate": "12/02/2026",
+        "value": 0.09
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "14/01/2026",
+        "paymentDate": "14/01/2026",
+        "value": 0.09
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "11/12/2025",
+        "paymentDate": "11/12/2025",
+        "value": 0.09
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "13/11/2025",
+        "paymentDate": "13/11/2025",
+        "value": 0.09
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "13/10/2025",
+        "paymentDate": "13/10/2025",
+        "value": 0.09
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "11/09/2025",
+        "paymentDate": "11/09/2025",
+        "value": 0.09
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "13/08/2025",
+        "paymentDate": "13/08/2025",
+        "value": 0.09
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "11/07/2025",
+        "paymentDate": "11/07/2025",
+        "value": 0.09
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "12/06/2025",
+        "paymentDate": "12/06/2025",
+        "value": 0.09
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "14/05/2025",
+        "paymentDate": "14/05/2025",
+        "value": 0.09
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "11/04/2025",
+        "paymentDate": "11/04/2025",
+        "value": 0.08
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "17/03/2025",
+        "paymentDate": "17/03/2025",
+        "value": 0.08
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "13/02/2025",
+        "paymentDate": "13/02/2025",
+        "value": 0.07
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "14/01/2025",
+        "paymentDate": "14/01/2025",
+        "value": 0.07
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "12/12/2024",
+        "paymentDate": "12/12/2024",
+        "value": 0.07
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "13/11/2024",
+        "paymentDate": "13/11/2024",
+        "value": 0.06
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "11/10/2024",
+        "paymentDate": "11/10/2024",
+        "value": 0.07
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "12/09/2024",
+        "paymentDate": "12/09/2024",
+        "value": 0.08
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "13/08/2024",
+        "paymentDate": "13/08/2024",
+        "value": 0.08
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "11/07/2024",
+        "paymentDate": "11/07/2024",
+        "value": 0.08
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "13/06/2024",
+        "paymentDate": "13/06/2024",
+        "value": 0.08
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "14/05/2024",
+        "paymentDate": "14/05/2024",
+        "value": 0.08
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "11/04/2024",
+        "paymentDate": "11/04/2024",
+        "value": 0.08
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "13/03/2024",
+        "paymentDate": "13/03/2024",
+        "value": 0.08
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "15/02/2024",
+        "paymentDate": "15/02/2024",
+        "value": 0.07
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "12/01/2024",
+        "paymentDate": "12/01/2024",
+        "value": 0.07
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "13/12/2023",
+        "paymentDate": "13/12/2023",
+        "value": 0.06
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "14/11/2023",
+        "paymentDate": "14/11/2023",
+        "value": 0.06
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "13/10/2023",
+        "paymentDate": "13/10/2023",
+        "value": 0.05
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "14/09/2023",
+        "paymentDate": "14/09/2023",
+        "value": 0.79
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "11/08/2023",
+        "paymentDate": "11/08/2023",
+        "value": 0.89
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "14/07/2023",
+        "paymentDate": "14/07/2023",
+        "value": 0.88
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "13/07/2023",
+        "paymentDate": "13/07/2023",
+        "value": 0.88
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "14/06/2023",
+        "paymentDate": "14/06/2023",
+        "value": 0.85
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "12/05/2023",
+        "paymentDate": "12/05/2023",
+        "value": 0.81
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "14/04/2023",
+        "paymentDate": "14/04/2023",
+        "value": 0.71
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "13/03/2023",
+        "paymentDate": "13/03/2023",
+        "value": 0.76
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "13/02/2023",
+        "paymentDate": "13/02/2023",
+        "value": 0.75
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "12/01/2023",
+        "paymentDate": "12/01/2023",
+        "value": 0.58
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "13/12/2022",
+        "paymentDate": "13/12/2022",
+        "value": 0.37
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "14/11/2022",
+        "paymentDate": "14/11/2022",
+        "value": 0.85
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "14/10/2022",
+        "paymentDate": "14/10/2022",
+        "value": 1.05
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "14/09/2022",
+        "paymentDate": "14/09/2022",
+        "value": 1.1
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "11/08/2022",
+        "paymentDate": "11/08/2022",
+        "value": 1.1
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "13/07/2022",
+        "paymentDate": "13/07/2022",
+        "value": 1.1
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "13/06/2022",
+        "paymentDate": "13/06/2022",
+        "value": 1.12
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "12/05/2022",
+        "paymentDate": "12/05/2022",
+        "value": 1.08
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "13/04/2022",
+        "paymentDate": "13/04/2022",
+        "value": 1.1
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "14/03/2022",
+        "paymentDate": "14/03/2022",
+        "value": 1.1
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "11/02/2022",
+        "paymentDate": "11/02/2022",
+        "value": 1.1
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "13/01/2022",
+        "paymentDate": "13/01/2022",
+        "value": 1.1
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "13/12/2021",
+        "paymentDate": "13/12/2021",
+        "value": 1.0
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "12/11/2021",
+        "paymentDate": "12/11/2021",
+        "value": 1.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "14/10/2021",
+        "paymentDate": "14/10/2021",
+        "value": 1.0
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "14/09/2021",
+        "paymentDate": "14/09/2021",
+        "value": 1.0
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "12/08/2021",
+        "paymentDate": "12/08/2021",
+        "value": 1.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "14/07/2021",
+        "paymentDate": "14/07/2021",
+        "value": 1.0
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "14/06/2021",
+        "paymentDate": "14/06/2021",
+        "value": 1.0
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "13/05/2021",
+        "paymentDate": "13/05/2021",
+        "value": 1.05
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "14/04/2021",
+        "paymentDate": "14/04/2021",
+        "value": 1.01
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "11/03/2021",
+        "paymentDate": "11/03/2021",
+        "value": 1.05
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "11/02/2021",
+        "paymentDate": "11/02/2021",
+        "value": 1.05
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "14/01/2021",
+        "paymentDate": "14/01/2021",
+        "value": 1.0
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "11/12/2020",
+        "paymentDate": "11/12/2020",
+        "value": 1.05
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "11/11/2020",
+        "paymentDate": "11/11/2020",
+        "value": 0.9
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "14/10/2020",
+        "paymentDate": "14/10/2020",
+        "value": 0.72
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "14/09/2020",
+        "paymentDate": "14/09/2020",
+        "value": 0.75
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "13/08/2020",
+        "paymentDate": "13/08/2020",
+        "value": 0.72
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "15/07/2020",
+        "paymentDate": "15/07/2020",
+        "value": 0.67
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "16/06/2020",
+        "paymentDate": "16/06/2020",
+        "value": 0.65
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "18/05/2020",
+        "paymentDate": "18/05/2020",
+        "value": 0.65
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "16/04/2020",
+        "paymentDate": "16/04/2020",
+        "value": 0.65
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "16/03/2020",
+        "paymentDate": "16/03/2020",
+        "value": 0.65
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/02/2020",
+        "paymentDate": "03/02/2020",
+        "value": 0.65
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/01/2020",
+        "paymentDate": "02/01/2020",
+        "value": 0.63
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/12/2019",
+        "paymentDate": "02/12/2019",
+        "value": 0.65
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/11/2019",
+        "paymentDate": "01/11/2019",
+        "value": 0.65
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/10/2019",
+        "paymentDate": "01/10/2019",
+        "value": 0.7
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/09/2019",
+        "paymentDate": "02/09/2019",
+        "value": 0.75
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/08/2019",
+        "paymentDate": "01/08/2019",
+        "value": 0.75
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/07/2019",
+        "paymentDate": "01/07/2019",
+        "value": 0.8
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/06/2019",
+        "paymentDate": "03/06/2019",
+        "value": 0.75
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/05/2019",
+        "paymentDate": "02/05/2019",
+        "value": 0.67
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/04/2019",
+        "paymentDate": "01/04/2019",
+        "value": 0.65
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/03/2019",
+        "paymentDate": "01/03/2019",
+        "value": 0.65
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/02/2019",
+        "paymentDate": "01/02/2019",
+        "value": 0.65
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/01/2019",
+        "paymentDate": "02/01/2019",
+        "value": 1.15
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/12/2018",
+        "paymentDate": "03/12/2018",
+        "value": 0.8
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/11/2018",
+        "paymentDate": "01/11/2018",
+        "value": 0.8
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/10/2018",
+        "paymentDate": "01/10/2018",
+        "value": 0.78
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/09/2018",
+        "paymentDate": "03/09/2018",
+        "value": 0.8
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/08/2018",
+        "paymentDate": "01/08/2018",
+        "value": 0.85
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/07/2018",
+        "paymentDate": "02/07/2018",
+        "value": 0.8
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/06/2018",
+        "paymentDate": "01/06/2018",
+        "value": 0.7
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/05/2018",
+        "paymentDate": "02/05/2018",
+        "value": 0.8
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/04/2018",
+        "paymentDate": "02/04/2018",
+        "value": 0.75
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/03/2018",
+        "paymentDate": "01/03/2018",
+        "value": 0.7
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/02/2018",
+        "paymentDate": "01/02/2018",
+        "value": 0.72
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/01/2018",
+        "paymentDate": "02/01/2018",
+        "value": 0.72
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/12/2017",
+        "paymentDate": "01/12/2017",
+        "value": 0.85
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/11/2017",
+        "paymentDate": "01/11/2017",
+        "value": 0.75
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/10/2017",
+        "paymentDate": "02/10/2017",
+        "value": 0.72
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/09/2017",
+        "paymentDate": "01/09/2017",
+        "value": 0.72
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/08/2017",
+        "paymentDate": "01/08/2017",
+        "value": 0.85
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/07/2017",
+        "paymentDate": "03/07/2017",
+        "value": 0.8
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/06/2017",
+        "paymentDate": "01/06/2017",
+        "value": 0.7
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/05/2017",
+        "paymentDate": "02/05/2017",
+        "value": 1.0
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/04/2017",
+        "paymentDate": "03/04/2017",
+        "value": 1.1
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/03/2017",
+        "paymentDate": "01/03/2017",
+        "value": 1.05
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/02/2017",
+        "paymentDate": "01/02/2017",
+        "value": 1.0
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/01/2017",
+        "paymentDate": "02/01/2017",
+        "value": 0.85
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/12/2016",
+        "paymentDate": "01/12/2016",
+        "value": 0.9
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/11/2016",
+        "paymentDate": "01/11/2016",
+        "value": 0.81
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "03/10/2016",
+        "paymentDate": "03/10/2016",
+        "value": 1.25
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/09/2016",
+        "paymentDate": "01/09/2016",
+        "value": 1.3
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/08/2016",
+        "paymentDate": "01/08/2016",
+        "value": 1.3
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/07/2016",
+        "paymentDate": "01/07/2016",
+        "value": 1.3
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/06/2016",
+        "paymentDate": "01/06/2016",
+        "value": 1.4
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "02/05/2016",
+        "paymentDate": "02/05/2016",
+        "value": 1.3
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/04/2016",
+        "paymentDate": "01/04/2016",
+        "value": 1.2
+      },
+      {
+        "type": "Dividendo",
+        "dateCom": "01/03/2016",
+        "paymentDate": "01/03/2016",
+        "value": 1.3
       }
     ]
   }
