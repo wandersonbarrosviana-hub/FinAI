@@ -126,28 +126,32 @@ const AllTransactions: React.FC<AllTransactionsProps> = ({ transactions = [], fa
                     </table>
 
                     {/* Mobile Cards */}
-                    <div className="md:hidden divide-y divide-slate-50 dark:divide-slate-800 px-4">
+                    <div className="md:hidden divide-y divide-slate-50 dark:divide-slate-800 px-2">
                         {filteredTransactions.length === 0 ? (
-                            <div className="py-20 text-center flex flex-col items-center gap-4">
-                                <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-full text-slate-300">
-                                    <ArrowUpCircle size={40} className="rotate-45 opacity-20" />
+                            <div className="py-12 text-center flex flex-col items-center gap-3">
+                                <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-full text-slate-300">
+                                    <ArrowUpCircle size={32} className="rotate-45 opacity-20" />
                                 </div>
-                                <p className="text-sm font-bold text-slate-400 italic">Nenhum lançamento encontrado.</p>
+                                <p className="text-[10px] font-bold text-slate-400 italic">Nenhum lançamento encontrado.</p>
                             </div>
                         ) : (
                             filteredTransactions.map(t => (
-                                <div key={t.id} className="py-5 flex flex-col gap-3">
-                                    <div className="flex justify-between items-start">
-                                        <div className="flex flex-col gap-0.5 overflow-hidden">
-                                            <span className="text-sm font-black text-slate-800 dark:text-white truncate max-w-[180px]">{t.description}</span>
-                                            <div className="flex items-center gap-1.5">
-                                                <span className="px-1.5 py-0.5 rounded-lg text-[8px] font-black bg-slate-50 dark:bg-slate-800 text-slate-500 uppercase tracking-tighter border border-slate-100 dark:border-slate-800 truncate max-w-[80px]">
+                                <div key={t.id} className="py-3 flex flex-col gap-2">
+                                    <div className="flex justify-between items-center">
+                                        <div className="flex flex-col min-w-0">
+                                            <span className="text-xs font-black text-slate-800 dark:text-white truncate">
+                                                {t.description}
+                                            </span>
+                                            <div className="flex items-center gap-1.5 mt-0.5">
+                                                <span className="px-1.5 py-0.5 rounded-md text-[8px] font-black bg-slate-50 dark:bg-slate-800 text-slate-500 uppercase tracking-tighter border border-slate-100 dark:border-slate-800 truncate max-w-[80px]">
                                                     {t.category}
                                                 </span>
-                                                <span className="text-[9px] text-slate-400 font-bold whitespace-nowrap">{new Date(t.date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}</span>
+                                                <span className="text-[9px] text-slate-400 font-bold whitespace-nowrap">
+                                                    {new Date(t.date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
+                                                </span>
                                             </div>
                                         </div>
-                                        <div className="text-right flex flex-col items-end gap-0.5 shrink-0 ml-2">
+                                        <div className="text-right flex flex-col items-end shrink-0">
                                             <span className={`text-sm font-black ${t.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}`}>
                                                 {t.type === 'income' ? '+' : '-'} R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                             </span>
@@ -156,17 +160,19 @@ const AllTransactions: React.FC<AllTransactionsProps> = ({ transactions = [], fa
                                             </span>
                                         </div>
                                     </div>
-                                    <div className="flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/30 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800">
-                                        <div className="flex items-center gap-2">
-                                            <Wallet size={12} className="text-sky-500" />
-                                            <span className="text-[10px] font-bold text-slate-500 truncate max-w-[120px]">
+                                    <div className="flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/30 p-1.5 rounded-lg border border-slate-100 dark:border-slate-800">
+                                        <div className="flex items-center gap-1.5 min-w-0">
+                                            <Wallet size={10} className="text-sky-500 flex-shrink-0" />
+                                            <span className="text-[9px] font-bold text-slate-500 truncate">
                                                 Carteira Principal
                                             </span>
                                         </div>
                                         {familyMembers && t.created_by && familyMembers[t.created_by] && (
-                                            <div className="flex items-center gap-1.5 bg-white/80 dark:bg-slate-900/80 px-2 py-1 rounded-full border border-slate-100 dark:border-slate-800 shadow-sm">
-                                                <img src={familyMembers[t.created_by].avatar} className="w-3.5 h-3.5 rounded-full" alt="Member" />
-                                                <span className="text-[9px] font-black text-slate-500 uppercase tracking-tighter">{familyMembers[t.created_by].name.split(' ')[0]}</span>
+                                            <div className="flex items-center gap-1 bg-white/80 dark:bg-slate-900/80 px-1.5 py-0.5 rounded-full border border-slate-100 dark:border-slate-800 shadow-sm flex-shrink-0">
+                                                <img src={familyMembers[t.created_by].avatar} className="w-3 h-3 rounded-full" alt="Member" />
+                                                <span className="text-[8px] font-black text-slate-500 uppercase tracking-tighter">
+                                                    {familyMembers[t.created_by].name.split(' ')[0]}
+                                                </span>
                                             </div>
                                         )}
                                     </div>

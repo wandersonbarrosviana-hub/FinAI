@@ -118,46 +118,45 @@ const DailyHistory: React.FC<DailyHistoryProps> = ({ transactions, accounts, onC
                                     </div>
 
                                     {/* Transactions List */}
-                                    <div className="px-2">
+                                    <div className="px-1">
                                         {group.items.map((t, index) => (
                                             <div
                                                 key={t.id}
-                                                className={`flex items-center justify-between p-4 hover:bg-slate-50 rounded-2xl transition-all mx-2 my-1 ${index !== group.items.length - 1 ? 'border-b border-slate-50' : ''
+                                                className={`flex items-center justify-between p-3 hover:bg-slate-50 rounded-xl transition-all mx-1 my-0.5 ${index !== group.items.length - 1 ? 'border-b border-slate-50' : ''
                                                     }`}
                                             >
                                                 {/* Icon & Info */}
-                                                <div className="flex items-center gap-4">
-                                                    <div className={`p-3 rounded-2xl ${t.type === 'income'
+                                                <div className="flex items-center gap-3">
+                                                    <div className={`p-2.5 rounded-xl ${t.type === 'income'
                                                         ? 'bg-emerald-50 text-emerald-600'
                                                         : 'bg-rose-50 text-rose-600'
                                                         }`}>
-                                                        {t.type === 'income' ? <ArrowUpCircle size={20} /> : <ArrowDownCircle size={20} />}
+                                                        {t.type === 'income' ? <ArrowUpCircle size={18} /> : <ArrowDownCircle size={18} />}
                                                     </div>
-                                                    <div>
-                                                        <p className="font-bold text-slate-900 text-sm truncate max-w-[150px] sm:max-w-none">{t.description}</p>
-                                                        <p className="text-xs text-slate-400 flex items-center gap-2 mt-0.5 font-medium uppercase tracking-tighter">
-                                                            <span className="bg-slate-50 px-1.5 py-0.5 rounded text-[10px] border border-slate-100">
+                                                    <div className="min-w-0">
+                                                        <p className="font-bold text-slate-900 text-xs truncate max-w-[140px]">{t.description}</p>
+                                                        <p className="text-[9px] text-slate-400 flex items-center gap-1.5 mt-0.5 font-medium uppercase tracking-tighter">
+                                                            <span className="bg-slate-50 px-1 py-0.5 rounded text-[8px] border border-slate-100">
                                                                 {t.category}
                                                             </span>
-                                                            <span>•</span>
-                                                            <span>{accounts.find(a => a.id === t.account)?.name || 'Conta'}</span>
+                                                            <span className="truncate max-w-[80px]">{accounts.find(a => a.id === t.account)?.name || 'Conta'}</span>
                                                         </p>
                                                     </div>
                                                 </div>
 
                                                 {/* Amount & Status */}
-                                                <div className="text-right">
-                                                    <p className={`font-black text-sm ${t.type === 'income' ? 'text-emerald-600' : 'text-rose-600'
+                                                <div className="text-right shrink-0">
+                                                    <p className={`font-black text-xs ${t.type === 'income' ? 'text-emerald-600' : 'text-rose-600'
                                                         }`}>
                                                         {t.type === 'income' ? '+' : '-'} R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                                     </p>
-                                                    <div className="mt-1">
+                                                    <div className="mt-0.5">
                                                         {t.isPaid ? (
-                                                            <span className="text-[10px] font-black text-emerald-600/70 flex items-center justify-end gap-1 uppercase tracking-widest">
+                                                            <span className="text-[8px] font-black text-emerald-600/70 flex items-center justify-end gap-1 uppercase tracking-tighter">
                                                                 ● Efetuado
                                                             </span>
                                                         ) : (
-                                                            <span className="text-[10px] font-black text-amber-600/70 flex items-center justify-end gap-1 uppercase tracking-widest">
+                                                            <span className="text-[8px] font-black text-amber-600/70 flex items-center justify-end gap-1 uppercase tracking-tighter">
                                                                 ○ Pendente
                                                             </span>
                                                         )}

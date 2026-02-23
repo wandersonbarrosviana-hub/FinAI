@@ -1301,7 +1301,7 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex overflow-hidden selection:bg-sky-500/30 no-horizontal-scroll">
       <Sidebar currentView={currentView} onViewChange={setCurrentView} isOpen={sidebarOpen} setIsOpen={setSidebarOpen} onLogout={handleLogout} userRole={userRole} />
-      <main className={`flex-1 flex flex-col transition-all duration-300 ml-0 ${sidebarOpen ? 'md:ml-64' : 'md:ml-20'}`}>
+      <main className={`flex-1 flex flex-col transition-all duration-500 no-horizontal-scroll pb-24 md:pb-8 pt-safe mt-14 md:mt-0 ${sidebarOpen ? 'md:ml-0' : 'md:ml-0'}`}>
         {/* Header - White Glassmorphism */}
         {isSyncing && (
           <div className="bg-sky-600 text-white text-[9px] font-black text-center py-0.5 uppercase tracking-tighter flex items-center justify-center gap-2 pt-safe">
@@ -1510,12 +1510,62 @@ const App: React.FC = () => {
 
       </main>
 
-      {/* Global Voice Control - Floating Action Button */}
-      <VoiceControl onAddTransaction={(result) => { handleAICommand(result); return true; }} />
+      {/* Bottom Navigation Bar for Mobile (PWA/APK Feel) */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-t border-slate-200 dark:border-slate-800 px-6 py-3 flex justify-between items-center z-[50] pb-safe">
+        <button
+          onClick={() => setCurrentView('dashboard')}
+          className={`flex flex-col items-center gap-1 transition-all ${currentView === 'dashboard' ? 'text-sky-600 dark:text-sky-400 scale-110' : 'text-slate-400'}`}
+        >
+          <div className={currentView === 'dashboard' ? 'icon-filled' : ''}>
+            <Search size={22} className={currentView === 'dashboard' ? 'text-sky-600' : ''} />
+          </div>
+          <span className="text-[10px] font-black uppercase tracking-tighter">Início</span>
+        </button>
+
+        <button
+          onClick={() => setCurrentView('transactions')}
+          className={`flex flex-col items-center gap-1 transition-all ${currentView === 'transactions' ? 'text-sky-600 dark:text-sky-400 scale-110' : 'text-slate-400'}`}
+        >
+          <div className={currentView === 'transactions' ? 'icon-filled' : ''}>
+            <AlertCircle size={22} className={currentView === 'transactions' ? 'text-sky-600' : ''} />
+          </div>
+          <span className="text-[10px] font-black uppercase tracking-tighter">Extrato</span>
+        </button>
+
+        <button
+          onClick={() => setCurrentView('expenses')}
+          className="relative -top-6 bg-sky-600 dark:bg-sky-500 p-4 rounded-2xl shadow-lg shadow-sky-600/30 text-white active:scale-90 transition-transform border-4 border-white dark:border-slate-900"
+        >
+          <Plus size={24} strokeWidth={3} />
+        </button>
+
+        <button
+          onClick={() => setCurrentView('charts')}
+          className={`flex flex-col items-center gap-1 transition-all ${currentView === 'charts' ? 'text-sky-600 dark:text-sky-400 scale-110' : 'text-slate-400'}`}
+        >
+          <div className={currentView === 'charts' ? 'icon-filled' : ''}>
+            <Sparkles size={22} className={currentView === 'charts' ? 'text-sky-600' : ''} />
+          </div>
+          <span className="text-[10px] font-black uppercase tracking-tighter">Insights</span>
+        </button>
+
+        <button
+          onClick={() => setSidebarOpen(true)}
+          className={`flex flex-col items-center gap-1 transition-all ${sidebarOpen ? 'text-sky-600' : 'text-slate-400'}`}
+        >
+          <Menu size={22} />
+          <span className="text-[10px] font-black uppercase tracking-tighter">Menu</span>
+        </button>
+      </nav>
+
+      {/* Global Voice Control - Floating Action Button (Moved or hidden on mobile to avoid conflict with Bottom Nav) */}
+      <div className="hidden md:block">
+        <VoiceControl onAddTransaction={(result) => { handleAICommand(result); return true; }} />
+      </div>
 
       {/* Global Components Layer */}
       {showNotificationPopup && notificationData && (
-        <div className="fixed bottom-6 right-6 z-50 animate-in fade-in slide-in-from-bottom-10 duration-500">
+        <div className="fixed bottom-24 md:bottom-6 right-6 z-50 animate-in fade-in slide-in-from-bottom-10 duration-500">
           <div className="bg-white/95 backdrop-blur-xl p-5 rounded-3xl shadow-2xl border border-slate-100 flex flex-col space-y-3 max-w-sm ring-1 ring-black/5">
             <div className="flex items-center space-x-3">
               <div className="p-2.5 bg-sky-50 text-sky-600 rounded-2xl border border-sky-100"><AlertCircle size={20} /></div>
