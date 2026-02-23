@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Transaction, Account } from '../types';
-import { FileText, Download, Filter, Search, ArrowUpCircle, ArrowDownCircle, ArrowRightCircle, Paperclip, X } from 'lucide-react';
+import { FileText, Download, Filter, Search, ArrowUpCircle, ArrowDownCircle, ArrowRightCircle, Paperclip, X, Wallet } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
@@ -71,8 +71,8 @@ const TransactionStatement: React.FC<TransactionStatementProps> = ({ transaction
     };
 
     return (
-        <div className="space-y-[var(--fluid-space-md)]">
-            <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4 bg-white dark:bg-slate-900 p-[var(--fluid-space-sm)] rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-sm ring-1 ring-black/5 dark:ring-white/5">
+        <div className="space-y-6">
+            <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4 bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm">
                 <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-800/50 px-5 py-3.5 rounded-2xl border border-slate-200/50 dark:border-slate-700/50 w-full md:w-auto focus-within:ring-2 focus-within:ring-sky-500/20 focus-within:border-sky-500 transition-all">
                     <Search size={20} className="text-slate-400 dark:text-slate-500" />
                     <input
@@ -109,9 +109,9 @@ const TransactionStatement: React.FC<TransactionStatementProps> = ({ transaction
                 </div>
             </div>
 
-            <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden mb-safe ring-1 ring-black/5 dark:ring-white/5">
+            <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden mb-safe">
                 {/* Mobile View: Cards */}
-                <div className="md:hidden divide-y divide-slate-100 dark:divide-slate-800/50 px-[var(--fluid-space-sm)]">
+                <div className="md:hidden divide-y divide-slate-50 dark:divide-slate-800">
                     {filtered.length === 0 ? (
                         <div className="p-16 text-center text-slate-400 italic text-sm font-medium">
                             Nenhum lançamento encontrado.

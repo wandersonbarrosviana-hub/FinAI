@@ -350,23 +350,23 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
             Gerenciar {type === 'expense' ? 'Despesas' : 'Receitas'}
           </h2>
-          <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-1">Organize seu fluxo financeiro</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Organize seu fluxo financeiro</p>
         </div>
 
         <div className="flex gap-3 w-full sm:w-auto">
           {type === 'income' && (
             <button
               onClick={() => setShowHistory(true)}
-              className="flex-1 sm:flex-none p-3.5 bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-sky-50 dark:hover:bg-slate-700 rounded-2xl transition-all shadow-sm border border-slate-200 dark:border-slate-700 flex items-center justify-center gap-2"
+              className="flex-1 sm:flex-none p-3 bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-sky-50 dark:hover:bg-slate-700 rounded-xl transition-all shadow-sm border border-slate-200 dark:border-slate-700 flex items-center justify-center gap-2"
               title="Ver Extrato Diário"
             >
-              <FileText size={20} />
+              <FileText size={18} />
               <span className="font-black text-[10px] uppercase tracking-widest">Extrato</span>
             </button>
           )}
@@ -382,9 +382,9 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
               if (isFormOpen && editingId) { setIsFormOpen(false); setEditingId(null); resetForm(); }
               else setIsFormOpen(!isFormOpen);
             }}
-            className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-8 py-4 rounded-2xl transition-all shadow-xl font-black text-[10px] uppercase tracking-widest ${isFormOpen ? 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700' : 'bg-sky-600 text-white hover:bg-sky-500 shadow-sky-100 dark:shadow-sky-900/20'}`}
+            className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl transition-all shadow-lg font-black text-[10px] uppercase tracking-widest ${isFormOpen ? 'bg-white dark:bg-slate-800 text-slate-400 border border-slate-200 dark:border-slate-700' : 'bg-sky-600 text-white hover:bg-sky-700 shadow-sky-100 dark:shadow-sky-900/20'}`}
           >
-            {isFormOpen ? <X size={20} /> : <Plus size={20} />}
+            {isFormOpen ? <X size={18} /> : <Plus size={18} />}
             <span>{isFormOpen ? 'Fechar' : 'Novo Lançamento'}</span>
           </button>
         </div>
@@ -399,7 +399,7 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
       )}
 
       {isFormOpen ? (
-        <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-900 p-[var(--fluid-space-md)] rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-xl animate-in fade-in slide-in-from-top-4 duration-500 ring-1 ring-black/5 dark:ring-white/5">
+        <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-900 p-5 sm:p-8 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
           <div className="flex items-center justify-between mb-8">
             <h3 className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase flex items-center gap-3 tracking-widest">
               <div className="p-2.5 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700">
