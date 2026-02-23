@@ -1301,7 +1301,7 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex overflow-hidden selection:bg-sky-500/30 no-horizontal-scroll">
       <Sidebar currentView={currentView} onViewChange={setCurrentView} isOpen={sidebarOpen} setIsOpen={setSidebarOpen} onLogout={handleLogout} userRole={userRole} />
-      <main className={`flex-1 flex flex-col transition-all duration-500 no-horizontal-scroll pb-24 md:pb-8 pt-safe mt-14 md:mt-0 ${sidebarOpen ? 'md:ml-0' : 'md:ml-0'}`}>
+      <main className={`flex-1 flex flex-col transition-all duration-500 no-horizontal-scroll pb-24 md:pb-8 pt-safe mt-14 md:mt-0 px-4 md:px-0 ${sidebarOpen ? 'md:ml-64' : 'md:ml-20'}`}>
         {/* Header - White Glassmorphism */}
         {isSyncing && (
           <div className="bg-sky-600 text-white text-[9px] font-black text-center py-0.5 uppercase tracking-tighter flex items-center justify-center gap-2 pt-safe">
@@ -1310,201 +1310,205 @@ const App: React.FC = () => {
           </div>
         )}
 
-        <header className="h-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-b border-slate-200/60 dark:border-slate-800/60 flex items-center justify-between px-4 md:px-8 sticky top-0 z-40 pt-safe shadow-sm transition-all">
-          {/* Mobile Menu Button - Compact on small screens */}
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="md:hidden p-2 bg-sky-50 text-sky-600 rounded-xl border border-sky-100 mr-2 flex-shrink-0"
-          >
-            <Menu size={20} />
-          </button>
+        <header className="h-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-b border-slate-200/60 dark:border-slate-800/60 flex items-center sticky top-0 z-40 pt-safe shadow-sm transition-all px-4 md:px-6">
+          <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
+            {/* Mobile Menu Button - Compact on small screens */}
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="md:hidden p-2 bg-sky-50 text-sky-600 rounded-xl border border-sky-100 mr-2 flex-shrink-0"
+            >
+              <Menu size={20} />
+            </button>
 
-          {/* Global Month Filter in Center - Fluid display */}
-          <div className="flex-1 flex justify-center max-w-[200px] sm:max-w-none px-1">
-            <div className="flex items-center gap-1 sm:gap-6 bg-white p-1.5 sm:p-2 rounded-2xl border border-slate-200 shadow-sm w-full sm:w-auto justify-between sm:justify-center">
-              <button
-                onClick={handlePrevMonth}
-                className="p-1.5 sm:p-2 hover:bg-slate-50 rounded-xl text-slate-400 hover:text-sky-600 transition-all active:scale-95"
-              >
-                <ChevronLeft size={16} className="sm:w-5 sm:h-5" />
-              </button>
-              <div className="text-center flex-1 sm:min-w-[160px]">
-                <div className="text-[8px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5 sm:mb-1 truncate">
-                  {currentDate.toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' })}
+            {/* Global Month Filter in Center - Fluid display */}
+            <div className="flex-1 flex justify-center max-w-[200px] sm:max-w-none px-1">
+              <div className="flex items-center gap-1 sm:gap-6 bg-white p-1.5 sm:p-2 rounded-2xl border border-slate-200 shadow-sm w-full sm:w-auto justify-between sm:justify-center">
+                <button
+                  onClick={handlePrevMonth}
+                  className="p-1.5 sm:p-2 hover:bg-slate-50 rounded-xl text-slate-400 hover:text-sky-600 transition-all active:scale-95"
+                >
+                  <ChevronLeft size={16} className="sm:w-5 sm:h-5" />
+                </button>
+                <div className="text-center flex-1 sm:min-w-[160px]">
+                  <div className="text-[8px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5 sm:mb-1 truncate">
+                    {currentDate.toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' })}
+                  </div>
+                  <div className={`text-sm sm:text-xl font-black ${monthlyBalance >= 0 ? 'text-emerald-600' : 'text-rose-600'} truncate`}>
+                    R$ {monthlyBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </div>
                 </div>
-                <div className={`text-sm sm:text-xl font-black ${monthlyBalance >= 0 ? 'text-emerald-600' : 'text-rose-600'} truncate`}>
-                  R$ {monthlyBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                </div>
+                <button
+                  onClick={handleNextMonth}
+                  className="p-1.5 sm:p-2 hover:bg-slate-50 rounded-xl text-slate-400 hover:text-sky-600 transition-all active:scale-95"
+                >
+                  <ChevronRight size={16} className="sm:w-5 sm:h-5" />
+                </button>
               </div>
-              <button
-                onClick={handleNextMonth}
-                className="p-1.5 sm:p-2 hover:bg-slate-50 rounded-xl text-slate-400 hover:text-sky-600 transition-all active:scale-95"
-              >
-                <ChevronRight size={16} className="sm:w-5 sm:h-5" />
-              </button>
             </div>
-          </div>
 
 
-          <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
-            <NotificationCenter
-              onAddTransaction={(t) => handleAddTransaction({ ...t, type: t.type as any })}
-              notifications={notifications}
-              onRespondToInvite={handleRespondToInvite}
-            />
+            <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
+              <NotificationCenter
+                onAddTransaction={(t) => handleAddTransaction({ ...t, type: t.type as any })}
+                notifications={notifications}
+                onRespondToInvite={handleRespondToInvite}
+              />
 
-            <div className="h-6 sm:h-8 w-[1px] bg-slate-200 hidden xs:block"></div>
+              <div className="h-6 sm:h-8 w-[1px] bg-slate-200 hidden xs:block"></div>
 
-            {/* User Profile - Compact on mobile */}
-            <div className="flex items-center gap-2 sm:gap-4 pl-1 sm:pl-2">
-              <div className="text-right hidden lg:block">
-                <p className="text-sm font-black text-slate-900 leading-none">{user.name}</p>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1.5">{user.email}</p>
+              {/* User Profile - Compact on mobile */}
+              <div className="flex items-center gap-2 sm:gap-4 pl-1 sm:pl-2">
+                <div className="text-right hidden lg:block">
+                  <p className="text-sm font-black text-slate-900 leading-none">{user.name}</p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1.5">{user.email}</p>
+                </div>
+
+                <button
+                  onClick={() => setIsProfileModalOpen(true)}
+                  className="w-9 h-9 sm:w-10 sm:h-10 bg-sky-50 rounded-xl sm:rounded-2xl flex items-center justify-center text-sky-600 font-black text-xs sm:text-sm shadow-sm border border-sky-100 hover:bg-sky-100 transition-all relative overflow-hidden"
+                >
+                  {user.avatarUrl ? (
+                    <img src={user.avatarUrl} alt={user.name} className="w-full h-full object-cover" />
+                  ) : (
+                    user.name ? user.name.charAt(0).toUpperCase() : 'U'
+                  )}
+                </button>
+
+                <button
+                  onClick={handleLogout}
+                  className="p-2 sm:px-3 sm:py-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all border border-transparent hover:border-rose-100"
+                  title="Sair"
+                >
+                  <LogOut size={18} />
+                </button>
               </div>
-
-              <button
-                onClick={() => setIsProfileModalOpen(true)}
-                className="w-9 h-9 sm:w-10 sm:h-10 bg-sky-50 rounded-xl sm:rounded-2xl flex items-center justify-center text-sky-600 font-black text-xs sm:text-sm shadow-sm border border-sky-100 hover:bg-sky-100 transition-all relative overflow-hidden"
-              >
-                {user.avatarUrl ? (
-                  <img src={user.avatarUrl} alt={user.name} className="w-full h-full object-cover" />
-                ) : (
-                  user.name ? user.name.charAt(0).toUpperCase() : 'U'
-                )}
-              </button>
-
-              <button
-                onClick={handleLogout}
-                className="p-2 sm:px-3 sm:py-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all border border-transparent hover:border-rose-100"
-                title="Sair"
-              >
-                <LogOut size={18} />
-              </button>
             </div>
           </div>
         </header>
 
         {/* Main Content Area - Safe Area Awareness */}
         <div className="flex-1 overflow-y-auto overflow-x-hidden p-3 md:p-6 relative scrollbar-hide pb-safe px-safe">
-          {userRole === 'admin' && <div className={currentView === 'admin' ? '' : 'hidden'}><AdminPanel isOnline={isOnline} /></div>}
-          <div className={currentView === 'dashboard' ? '' : 'hidden'}>
-            <Dashboard
-              transactions={filteredTransactions}
-              accounts={accounts}
-              onAddClick={() => setCurrentView('expenses')}
-              tags={tags}
-              goals={goals}
-              budgets={budgets}
-              customBudgets={customBudgets}
-              familyMembers={familyMembers}
-            />
-          </div>
-          <div className={currentView === 'transactions' ? '' : 'hidden'}>
-            <TransactionManager
-              transactions={filteredTransactions}
-              accounts={accounts}
-              tags={tags}
-              onAddTransaction={handleAddTransaction}
-              onDeleteTransaction={handleDeleteTransaction}
-              onUpdateTransaction={handleUpdateTransaction}
-              onTransfer={handleTransfer}
-              familyMembers={familyMembers}
-              onOpenAccountModal={() => setIsAccountModalOpen(true)}
-            />
-          </div>
-          <div className={currentView === 'debts' ? '' : 'hidden'}>
-            <DebtManager
-              debts={debts as any}
-              onAddDebt={handleAddDebt}
-              onUpdateDebt={handleUpdateDebt}
-              onDeleteDebt={handleDeleteDebt}
-              accounts={accounts}
-              onCreateExpense={async (data) => {
-                await handleAddTransaction(data);
-              }}
-              monthlyIncome={filteredTransactions
-                .filter(t => t.type === 'income' && t.date.startsWith(currentDate.toISOString().slice(0, 7)))
-                .reduce((sum, t) => sum + t.amount, 0)}
-            />
-          </div>
-          <div className={currentView === 'reports' ? '' : 'hidden'}>
-            <Reports
-              transactions={transactions}
-              accounts={accounts}
-              currentDate={currentDate}
-              tags={tags}
-            />
-          </div>
-          <div className={currentView === 'credit-cards' ? '' : 'hidden'}>
-            <CreditCardManager accounts={accounts.filter(a => a.isCredit)} transactions={transactions} onAddTransaction={handleAddTransaction} onAddAccount={handleAddAccount} />
-          </div>
-          <div className={currentView === 'budgets' ? '' : 'hidden'}>
-            <BudgetManager transactions={filteredTransactions} budgets={budgets} onUpdateBudget={handleUpdateBudget} onAddBudget={handleAddBudget} />
-          </div>
-          <div className={currentView === 'custom-budgets' ? '' : 'hidden'}>
-            <CustomBudgetManager
-              customBudgets={customBudgets}
-              transactions={filteredTransactions}
-              monthlyIncome={filteredTransactions
-                .filter(t => t.type === 'income' && t.date.startsWith(currentDate.toISOString().slice(0, 7)))
-                .reduce((sum, t) => sum + t.amount, 0)}
-              onAddCustomBudget={handleAddCustomBudget}
-              onDeleteCustomBudget={handleDeleteCustomBudget}
-            />
-          </div>
-          <div className={currentView === 'goals' ? '' : 'hidden'}>
-            <GoalManager goals={goals} transactions={filteredTransactions} accounts={accounts} onAddGoal={handleAddGoal} onDeleteGoal={handleDeleteGoal} />
-          </div>
-          <div className={currentView === 'categories' ? '' : 'hidden'}>
-            <CategoryManager transactions={filteredTransactions} />
-          </div>
-          <div className={currentView === 'accounts' ? '' : 'hidden'}>
-            <AccountManager accounts={accounts} transactions={transactions} onAddAccount={handleAddAccount} onDeleteAccount={handleDeleteAccount} />
-          </div>
-          <div className={currentView === 'retirement' ? '' : 'hidden'}>
-            <RetirementSimulator transactions={transactions} budgets={budgets} simulationParams={retirementParams} />
-          </div>
-          <div className={currentView === 'tags' ? '' : 'hidden'}>
-            <TagManager tags={tags} onAddTag={handleAddTag} onDeleteTag={handleDeleteTag} onUpdateTag={handleUpdateTag} />
-          </div>
-          <div className={currentView === 'ai-assistant' ? '' : 'hidden'}>
-            <div className="p-4 md:p-8 overflow-y-auto scrollbar-hide text-slate-800 h-full flex flex-col">
-              <div className="max-w-4xl mx-auto w-full h-full">
-                <div className="mb-6">
-                  <h2 className="text-2xl font-black text-slate-900 tracking-tight">Assistente Virtual</h2>
-                  <p className="text-slate-500 font-medium">Seu consultor financeiro pessoal 24/7</p>
+          <div className="max-w-7xl mx-auto w-full space-y-6">
+            {userRole === 'admin' && <div className={currentView === 'admin' ? '' : 'hidden'}><AdminPanel isOnline={isOnline} /></div>}
+            <div className={currentView === 'dashboard' ? '' : 'hidden'}>
+              <Dashboard
+                transactions={filteredTransactions}
+                accounts={accounts}
+                onAddClick={() => setCurrentView('expenses')}
+                tags={tags}
+                goals={goals}
+                budgets={budgets}
+                customBudgets={customBudgets}
+                familyMembers={familyMembers}
+              />
+            </div>
+            <div className={currentView === 'transactions' ? '' : 'hidden'}>
+              <TransactionManager
+                transactions={filteredTransactions}
+                accounts={accounts}
+                tags={tags}
+                onAddTransaction={handleAddTransaction}
+                onDeleteTransaction={handleDeleteTransaction}
+                onUpdateTransaction={handleUpdateTransaction}
+                onTransfer={handleTransfer}
+                familyMembers={familyMembers}
+                onOpenAccountModal={() => setIsAccountModalOpen(true)}
+              />
+            </div>
+            <div className={currentView === 'debts' ? '' : 'hidden'}>
+              <DebtManager
+                debts={debts as any}
+                onAddDebt={handleAddDebt}
+                onUpdateDebt={handleUpdateDebt}
+                onDeleteDebt={handleDeleteDebt}
+                accounts={accounts}
+                onCreateExpense={async (data) => {
+                  await handleAddTransaction(data);
+                }}
+                monthlyIncome={filteredTransactions
+                  .filter(t => t.type === 'income' && t.date.startsWith(currentDate.toISOString().slice(0, 7)))
+                  .reduce((sum, t) => sum + t.amount, 0)}
+              />
+            </div>
+            <div className={currentView === 'reports' ? '' : 'hidden'}>
+              <Reports
+                transactions={transactions}
+                accounts={accounts}
+                currentDate={currentDate}
+                tags={tags}
+              />
+            </div>
+            <div className={currentView === 'credit-cards' ? '' : 'hidden'}>
+              <CreditCardManager accounts={accounts.filter(a => a.isCredit)} transactions={transactions} onAddTransaction={handleAddTransaction} onAddAccount={handleAddAccount} />
+            </div>
+            <div className={currentView === 'budgets' ? '' : 'hidden'}>
+              <BudgetManager transactions={filteredTransactions} budgets={budgets} onUpdateBudget={handleUpdateBudget} onAddBudget={handleAddBudget} />
+            </div>
+            <div className={currentView === 'custom-budgets' ? '' : 'hidden'}>
+              <CustomBudgetManager
+                customBudgets={customBudgets}
+                transactions={filteredTransactions}
+                monthlyIncome={filteredTransactions
+                  .filter(t => t.type === 'income' && t.date.startsWith(currentDate.toISOString().slice(0, 7)))
+                  .reduce((sum, t) => sum + t.amount, 0)}
+                onAddCustomBudget={handleAddCustomBudget}
+                onDeleteCustomBudget={handleDeleteCustomBudget}
+              />
+            </div>
+            <div className={currentView === 'goals' ? '' : 'hidden'}>
+              <GoalManager goals={goals} transactions={filteredTransactions} accounts={accounts} onAddGoal={handleAddGoal} onDeleteGoal={handleDeleteGoal} />
+            </div>
+            <div className={currentView === 'categories' ? '' : 'hidden'}>
+              <CategoryManager transactions={filteredTransactions} />
+            </div>
+            <div className={currentView === 'accounts' ? '' : 'hidden'}>
+              <AccountManager accounts={accounts} transactions={transactions} onAddAccount={handleAddAccount} onDeleteAccount={handleDeleteAccount} />
+            </div>
+            <div className={currentView === 'retirement' ? '' : 'hidden'}>
+              <RetirementSimulator transactions={transactions} budgets={budgets} simulationParams={retirementParams} />
+            </div>
+            <div className={currentView === 'tags' ? '' : 'hidden'}>
+              <TagManager tags={tags} onAddTag={handleAddTag} onDeleteTag={handleDeleteTag} onUpdateTag={handleUpdateTag} />
+            </div>
+            <div className={currentView === 'ai-assistant' ? '' : 'hidden'}>
+              <div className="p-4 md:p-8 overflow-y-auto scrollbar-hide text-slate-800 h-full flex flex-col">
+                <div className="max-w-4xl mx-auto w-full h-full">
+                  <div className="mb-6">
+                    <h2 className="text-2xl font-black text-slate-900 tracking-tight">Assistente Virtual</h2>
+                    <p className="text-slate-500 font-medium">Seu consultor financeiro pessoal 24/7</p>
+                  </div>
+                  <FinancialAssistant
+                    userName={user?.name || 'Investidor'}
+                    transactions={transactions}
+                    accounts={accounts}
+                    goals={goals}
+                    budgets={budgets}
+                    onAddTransaction={handleAddTransaction}
+                    onOpenAccountModal={() => setIsAccountModalOpen(true)}
+                    userPlan={userPlan}
+                    userRole={userRole}
+                  />
                 </div>
-                <FinancialAssistant
-                  userName={user?.name || 'Investidor'}
-                  transactions={transactions}
-                  accounts={accounts}
-                  goals={goals}
-                  budgets={budgets}
-                  onAddTransaction={handleAddTransaction}
-                  onOpenAccountModal={() => setIsAccountModalOpen(true)}
-                  userPlan={userPlan}
-                  userRole={userRole}
-                />
               </div>
             </div>
-          </div>
-          <div className={currentView === 'expenses' ? '' : 'hidden'}>
-            <ExpenseManager type="expense" transactions={filteredTransactions} onAddTransaction={handleAddTransaction} onDeleteTransaction={handleDeleteTransaction} onUpdateTransaction={handleUpdateTransaction} tags={tags} accounts={accounts} familyMembers={familyMembers} onOpenAccountModal={() => setIsAccountModalOpen(true)} />
-          </div>
-          <div className={currentView === 'income' ? '' : 'hidden'}>
-            <ExpenseManager type="income" transactions={filteredTransactions} allTransactions={transactions} onAddTransaction={handleAddTransaction} onDeleteTransaction={handleDeleteTransaction} onUpdateTransaction={handleUpdateTransaction} tags={tags} accounts={accounts} familyMembers={familyMembers} onOpenAccountModal={() => setIsAccountModalOpen(true)} />
-          </div>
-          <div className={currentView === 'plans' ? '' : 'hidden'}>
-            <PlansPage userPlan={userPlan} onUpgradeSuccess={() => fetchData(user!.id)} />
-          </div>
-          <div className={currentView === 'charts' ? '' : 'hidden'}>
-            <ChartsHub transactions={filteredTransactions} />
-          </div>
-          <div className={currentView === 'settings' ? '' : 'hidden'}>
-            <Settings user={user} onLogout={handleLogout} onExportData={handleExportData} onForceSync={() => user?.id && fetchData(user.id, true)} onResetData={handleResetData} />
-          </div>
-          <div className={currentView === 'investments' ? '' : 'hidden'}>
-            <Investments />
+            <div className={currentView === 'expenses' ? '' : 'hidden'}>
+              <ExpenseManager type="expense" transactions={filteredTransactions} onAddTransaction={handleAddTransaction} onDeleteTransaction={handleDeleteTransaction} onUpdateTransaction={handleUpdateTransaction} tags={tags} accounts={accounts} familyMembers={familyMembers} onOpenAccountModal={() => setIsAccountModalOpen(true)} />
+            </div>
+            <div className={currentView === 'income' ? '' : 'hidden'}>
+              <ExpenseManager type="income" transactions={filteredTransactions} allTransactions={transactions} onAddTransaction={handleAddTransaction} onDeleteTransaction={handleDeleteTransaction} onUpdateTransaction={handleUpdateTransaction} tags={tags} accounts={accounts} familyMembers={familyMembers} onOpenAccountModal={() => setIsAccountModalOpen(true)} />
+            </div>
+            <div className={currentView === 'plans' ? '' : 'hidden'}>
+              <PlansPage userPlan={userPlan} onUpgradeSuccess={() => fetchData(user!.id)} />
+            </div>
+            <div className={currentView === 'charts' ? '' : 'hidden'}>
+              <ChartsHub transactions={filteredTransactions} />
+            </div>
+            <div className={currentView === 'settings' ? '' : 'hidden'}>
+              <Settings user={user} onLogout={handleLogout} onExportData={handleExportData} onForceSync={() => user?.id && fetchData(user.id, true)} onResetData={handleResetData} />
+            </div>
+            <div className={currentView === 'investments' ? '' : 'hidden'}>
+              <Investments />
+            </div>
           </div>
         </div>
 
