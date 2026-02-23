@@ -1311,7 +1311,7 @@ const App: React.FC = () => {
         )}
 
         <header className="h-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-b border-slate-200/60 dark:border-slate-800/60 flex items-center sticky top-0 z-40 pt-safe shadow-sm transition-all px-4 md:px-6">
-          <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
+          <div className="max-w-[1440px] mx-auto w-full flex items-center justify-between">
             {/* Mobile Menu Button - Compact on small screens */}
             <button
               onClick={() => setSidebarOpen(true)}
@@ -1388,7 +1388,7 @@ const App: React.FC = () => {
 
         {/* Main Content Area - Safe Area Awareness */}
         <div className="flex-1 overflow-y-auto overflow-x-hidden p-3 md:p-6 relative scrollbar-hide pb-safe px-safe">
-          <div className="max-w-7xl mx-auto w-full space-y-6">
+          <div className="max-w-[1440px] mx-auto w-full space-y-6">
             {userRole === 'admin' && <div className={currentView === 'admin' ? '' : 'hidden'}><AdminPanel isOnline={isOnline} /></div>}
             <div className={currentView === 'dashboard' ? '' : 'hidden'}>
               <Dashboard
