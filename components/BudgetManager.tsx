@@ -304,80 +304,14 @@ const BudgetManager: React.FC<BudgetManagerProps> = ({ transactions, budgets: pe
 
             {/* Existing Budget Sliders Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {budgets.map((budget) => {
-                    const sliderMax = getSliderMax();
-                    const spendingWidth = Math.min((budget.spent / sliderMax) * 100, 100);
-                    const budgetLeft = Math.min((budget.amount / sliderMax) * 100, 100);
-                    const isOverBudget = budget.spent > budget.amount;
-
-                    return (
-                        <div key={budget.category} className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
-
-                            {/* Header */}
-                            <div className="flex items-center justify-between mb-8 relative z-10">
-                                <div className="flex items-center gap-3">
-                                    <span className="text-3xl bg-slate-50 dark:bg-slate-800 p-3 rounded-2xl">{getCategoryIcon(budget.category)}</span>
-                                    <div>
-                                        <h4 className="font-black text-slate-800 dark:text-white text-lg">{budget.category}</h4>
-                                        <p className="text-xs text-slate-400 dark:text-slate-500 font-bold">
-                                            Meta: <span className="text-sky-600 dark:text-sky-400">R$ {budget.amount.toLocaleString('pt-BR')}</span>
-                                        </p>
-                                    </div>
-                                </div>
-                                <div className="text-right">
-                                    <p className="text-xs text-slate-400 dark:text-slate-500 font-bold uppercase">Gasto</p>
-                                    <p className={`text-xl font-black ${isOverBudget ? 'text-rose-500 dark:text-rose-400' : 'text-slate-700 dark:text-slate-300'}`}>
-                                        R$ {budget.spent.toLocaleString('pt-BR')}
-                                    </p>
-                                </div>
-                            </div>
-
-                            {/* Interactive Slider Area */}
-                            <div className="relative h-12 flex items-center mb-2">
-                                {/* Track Background (represents 0 to 100% of Income) */}
-                                <div className="absolute w-full h-4 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                                    {/* Spending Bar (Fill) */}
-                                    <div
-                                        className={`h-full transition-all duration-500 ${isOverBudget ? 'bg-rose-400 dark:bg-rose-500' : 'bg-slate-300 dark:bg-slate-600'}`}
-                                        style={{ width: `${spendingWidth}%` }}
-                                    ></div>
-                                </div>
-
-                                {/* The Invisible Range Input */}
-                                <input
-                                    type="range"
-                                    min="0"
-                                    max={sliderMax}
-                                    step="10"
-                                    value={budget.amount}
-                                    onChange={(e) => handleBudgetChange(budget.category, e.target.value)}
-                                    className="absolute inset-0 w-full h-full opacity-0 cursor-ew-resize z-20"
-                                    title={`Definir meta para ${budget.category}`}
-                                />
-
-                                {/* The "Stylish Dash" Visual Indicator for the Budget Goal */}
-                                <div
-                                    className="absolute h-8 w-1.5 bg-black dark:bg-white rounded-full shadow-xl pointer-events-none transition-all duration-75 z-10"
-                                    style={{
-                                        left: `calc(${budgetLeft}% - 3px)`, /* Center the 1.5 w dash */
-                                    }}
-                                >
-                                    {/* Tooltip above dash */}
-                                    <div className="absolute -top-9 left-1/2 -translate-x-1/2 bg-black dark:bg-white text-white dark:text-black text-[10px] font-bold px-2 py-1 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
-                                        {(budget.amount / sliderMax * 100).toFixed(1)}%
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Footer Info */}
-                            <div className="flex justify-between items-center text-[10px] font-bold text-slate-400 dark:text-slate-500">
-                                <span>0%</span>
-                                <span>{isOverBudget ? '⚠️ Orçamento Estourado' : 'Dentro da Meta'}</span>
-                                <span>100% Rec.</span>
-                            </div>
-                        </div>
-                    );
-                })}
+                {budgets.map((budget) => (
+                    <CategoryBudgetCard
+                        key={budget.category}
+                        budget={budget}
+                        sliderMax={getSliderMax()}
+                        onUpdate={(category, val) => handleBudgetChange(category, val)}
+                    />
+                ))}
             </div>
             {/* Chart Detail Modal */}
             <ChartTransactionModal
@@ -390,5 +324,103 @@ const BudgetManager: React.FC<BudgetManagerProps> = ({ transactions, budgets: pe
         </div >
     );
 };
+
+// --- Helper Components for Fluidity ---
+
+interface CategoryBudgetCardProps {
+    budget: BudgetWithSpending;
+    sliderMax: number;
+    onUpdate: (category: string, value: string) => void;
+}
+
+const CategoryBudgetCard = React.memo(({ budget, sliderMax, onUpdate }: CategoryBudgetCardProps) => {
+    const isOverBudget = budget.spent > budget.amount;
+    const spendingWidth = Math.min((budget.spent / sliderMax) * 100, 100);
+    const budgetLeft = Math.min((budget.amount / sliderMax) * 100, 100);
+
+    const getCategoryIcon = (category: string) => {
+        const icons: Record<string, string> = {
+            'Alimentação': '🍽️',
+            'Transporte': '🚗',
+            'Lazer': '🎮',
+            'Saúde': '💊',
+            'Educação': '📚',
+            'Moradia': '🏠',
+            'Investimentos': '📈',
+            'Outros': '📦'
+        };
+        return icons[category] || '💰';
+    };
+
+    return (
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-all relative overflow-hidden group">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-8 relative z-10">
+                <div className="flex items-center gap-3">
+                    <span className="text-3xl bg-slate-50 dark:bg-slate-800 p-3 rounded-2xl group-hover:scale-110 transition-transform duration-300">{getCategoryIcon(budget.category)}</span>
+                    <div>
+                        <h4 className="font-black text-slate-800 dark:text-white text-lg">{budget.category}</h4>
+                        <p className="text-xs text-slate-400 dark:text-slate-500 font-bold">
+                            Meta: <span className="text-sky-600 dark:text-sky-400">R$ {budget.amount.toLocaleString('pt-BR')}</span>
+                        </p>
+                    </div>
+                </div>
+                <div className="text-right">
+                    <p className="text-xs text-slate-400 dark:text-slate-500 font-bold uppercase">Gasto</p>
+                    <p className={`text-xl font-black ${isOverBudget ? 'text-rose-500 dark:text-rose-400' : 'text-slate-700 dark:text-slate-300'}`}>
+                        R$ {budget.spent.toLocaleString('pt-BR')}
+                    </p>
+                </div>
+            </div>
+
+            {/* Interactive Slider Area */}
+            <div className="relative h-12 flex items-center mb-2">
+                {/* Track Background */}
+                <div className="absolute w-full h-4 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                    {/* Spending Bar */}
+                    <div
+                        className={`h-full transition-all duration-700 ${isOverBudget ? 'bg-rose-400 dark:bg-rose-500' : 'bg-slate-300 dark:bg-slate-600'}`}
+                        style={{ width: `${spendingWidth}%` }}
+                    ></div>
+                </div>
+
+                {/* The Range Input - Hidden but captures events */}
+                <input
+                    type="range"
+                    min="0"
+                    max={sliderMax}
+                    step="10"
+                    value={budget.amount}
+                    onChange={(e) => onUpdate(budget.category, e.target.value)}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-ew-resize z-20"
+                    title={`Definir meta para ${budget.category}`}
+                />
+
+                {/* The "Stylish Dash" Visual Indicator - Optimization: No transition on left during drag */}
+                <div
+                    className="absolute h-8 w-2 bg-black dark:bg-white rounded-full shadow-xl pointer-events-none z-10 transition-transform active:scale-125"
+                    style={{
+                        left: `calc(${budgetLeft}% - 4px)`,
+                        boxShadow: '0 0 15px rgba(0,0,0,0.1)'
+                    }}
+                >
+                    {/* Tooltip above dash - more visible during interaction */}
+                    <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-black dark:bg-white text-white dark:text-black text-[10px] font-black px-2.5 py-1.5 rounded-xl whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 shadow-xl border border-white/10">
+                        {(budget.amount / sliderMax * 100).toFixed(1)}% ({budget.amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })})
+                    </div>
+                </div>
+            </div>
+
+            {/* Footer Info */}
+            <div className="flex justify-between items-center text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-tighter">
+                <span>0%</span>
+                <span className={isOverBudget ? 'text-rose-500' : 'text-emerald-500'}>
+                    {isOverBudget ? '⚠️ Limite Excedido' : '✓ Sob Controle'}
+                </span>
+                <span>100% Rec.</span>
+            </div>
+        </div>
+    );
+});
 
 export default BudgetManager;
