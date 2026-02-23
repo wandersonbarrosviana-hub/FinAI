@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { Transaction, Account, Tag } from '../types';
-import { Calendar, CheckCircle, Clock } from 'lucide-react';
+import { Calendar, CheckCircle, Clock, FileText, Download } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
 interface ReportsProps {
@@ -47,35 +49,58 @@ const Reports: React.FC<ReportsProps> = ({ transactions, accounts, tags, current
                             Filtros salvos
                         </button>
                     </div>
-                    <button
-                        onClick={() => {
-                            // Basic CSV Export Logic
-                            const headers = ["Data", "Descrição", "Categoria", "Valor", "Tipo", "Status"];
-                            const rows = transactions.map(t => [
-                                new Date(t.date).toLocaleDateString('pt-BR'),
-                                `"${t.description}"`, // Quote to handle commas
-                                t.category,
-                                t.amount.toFixed(2).replace('.', ','),
-                                t.type === 'income' ? 'Receita' : 'Despesa',
-                                t.isPaid ? 'Pago' : 'Pendente'
-                            ]);
+                    <div className="flex gap-4 items-center">
+                        <button
+                            onClick={() => {
+                                const data = transactions.map(t => ({
+                                    Data: new Date(t.date).toLocaleDateString('pt-BR'),
+                                    Descrição: t.description,
+                                    Categoria: t.category,
+                                    Valor: t.amount,
+                                    Tipo: t.type === 'income' ? 'Receita' : 'Despesa',
+                                    Status: t.isPaid ? 'Pago' : 'Pendente'
+                                }));
 
-                            const csvContent = "data:text/csv;charset=utf-8,"
-                                + headers.join(";") + "\n"
-                                + rows.map(e => e.join(";")).join("\n");
+                                const ws = XLSX.utils.json_to_sheet(data);
+                                const wb = XLSX.utils.book_new();
+                                XLSX.utils.book_append_sheet(wb, ws, "Relatório");
+                                XLSX.writeFile(wb, `relatorio_finai_${new Date().toISOString().split('T')[0]}.xlsx`);
+                            }}
+                            className="flex items-center gap-2 text-[10px] font-black text-slate-400 hover:text-emerald-600 transition-colors uppercase tracking-widest"
+                        >
+                            <Download size={14} className="text-emerald-500" /> Excel (XLSX)
+                        </button>
+                        <button
+                            onClick={() => {
+                                const doc = new jsPDF();
+                                doc.text("Relatório de Transações - FinAI", 14, 15);
 
-                            const encodedUri = encodeURI(csvContent);
-                            const link = document.createElement("a");
-                            link.setAttribute("href", encodedUri);
-                            link.setAttribute("download", `relatorio_finai_${new Date().toISOString().split('T')[0]}.csv`);
-                            document.body.appendChild(link);
-                            link.click();
-                            document.body.removeChild(link);
-                        }}
-                        className="flex items-center gap-2 text-xs font-black text-slate-400 hover:text-emerald-600 transition-colors uppercase tracking-widest"
-                    >
-                        <span className="text-lg">📥</span> Exportar CSV
-                    </button>
+                                const tableColumn = ["Data", "Descrição", "Categoria", "Valor", "Tipo", "Status"];
+                                const tableRows = transactions.map(t => [
+                                    new Date(t.date).toLocaleDateString('pt-BR'),
+                                    t.description,
+                                    t.category,
+                                    `R$ ${t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+                                    t.type === 'income' ? 'Receita' : 'Despesa',
+                                    t.isPaid ? 'Pago' : 'Pendente'
+                                ]);
+
+                                autoTable(doc, {
+                                    head: [tableColumn],
+                                    body: tableRows,
+                                    startY: 20,
+                                    theme: 'grid',
+                                    headStyles: { fillColor: [14, 165, 233], textColor: [255, 255, 255], fontStyle: 'bold' },
+                                    alternateRowStyles: { fillColor: [248, 250, 252] }
+                                } as any);
+
+                                doc.save(`relatorio_finai_${new Date().toISOString().split('T')[0]}.pdf`);
+                            }}
+                            className="flex items-center gap-2 text-[10px] font-black text-slate-400 hover:text-rose-600 transition-colors uppercase tracking-widest"
+                        >
+                            <FileText size={14} className="text-rose-500" /> PDF
+                        </button>
+                    </div>
                 </div>
 
                 <div className="p-4 sm:p-6 space-y-8">
