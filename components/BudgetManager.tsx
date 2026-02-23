@@ -70,7 +70,7 @@ const BudgetManager: React.FC<BudgetManagerProps> = ({ transactions, budgets: pe
         });
     }, [transactions, currentMonth, persistedBudgets]);
 
-    const handleBudgetChange = (category: string, newAmountStr: string) => {
+    const handleBudgetChange = React.useCallback((category: string, newAmountStr: string) => {
         const newAmount = parseFloat(newAmountStr);
         if (!isNaN(newAmount) && newAmount >= 0) {
             // Update Local
@@ -91,7 +91,7 @@ const BudgetManager: React.FC<BudgetManagerProps> = ({ transactions, budgets: pe
                 });
             }
         }
-    };
+    }, [budgets, currentMonth, onUpdateBudget, onAddBudget]);
 
     const getCategoryIcon = (category: string) => {
         const icons: Record<string, string> = {
@@ -334,9 +334,28 @@ interface CategoryBudgetCardProps {
 }
 
 const CategoryBudgetCard = React.memo(({ budget, sliderMax, onUpdate }: CategoryBudgetCardProps) => {
-    const isOverBudget = budget.spent > budget.amount;
+    // Radical Focus: Isolated state for immediate feedback
+    const [localAmount, setLocalAmount] = React.useState(budget.amount);
+
+    // Sync from props ONLY when budget changes from outside (e.g., initial load or other users)
+    React.useEffect(() => {
+        setLocalAmount(budget.amount);
+    }, [budget.amount]);
+
+    // Use a timer for debouncing the persistence to the parent/Supabase
+    React.useEffect(() => {
+        if (localAmount === budget.amount) return;
+
+        const timer = setTimeout(() => {
+            onUpdate(budget.category, localAmount.toString());
+        }, 500); // 500ms debounce
+
+        return () => clearTimeout(timer);
+    }, [localAmount, budget.category, budget.amount, onUpdate]);
+
+    const isOverBudget = budget.spent > localAmount;
     const spendingWidth = Math.min((budget.spent / sliderMax) * 100, 100);
-    const budgetLeft = Math.min((budget.amount / sliderMax) * 100, 100);
+    const budgetLeft = Math.min((localAmount / sliderMax) * 100, 100);
 
     const getCategoryIcon = (category: string) => {
         const icons: Record<string, string> = {
@@ -361,7 +380,7 @@ const CategoryBudgetCard = React.memo(({ budget, sliderMax, onUpdate }: Category
                     <div>
                         <h4 className="font-black text-slate-800 dark:text-white text-lg">{budget.category}</h4>
                         <p className="text-xs text-slate-400 dark:text-slate-500 font-bold">
-                            Meta: <span className="text-sky-600 dark:text-sky-400">R$ {budget.amount.toLocaleString('pt-BR')}</span>
+                            Meta: <span className="text-sky-600 dark:text-sky-400">R$ {localAmount.toLocaleString('pt-BR')}</span>
                         </p>
                     </div>
                 </div>
@@ -390,23 +409,23 @@ const CategoryBudgetCard = React.memo(({ budget, sliderMax, onUpdate }: Category
                     min="0"
                     max={sliderMax}
                     step="10"
-                    value={budget.amount}
-                    onChange={(e) => onUpdate(budget.category, e.target.value)}
+                    value={localAmount}
+                    onChange={(e) => setLocalAmount(parseFloat(e.target.value))}
                     className="absolute inset-0 w-full h-full opacity-0 cursor-ew-resize z-20"
                     title={`Definir meta para ${budget.category}`}
                 />
 
-                {/* The "Stylish Dash" Visual Indicator - Optimization: No transition on left during drag */}
+                {/* The "Stylish Dash" Visual Indicator - Absolute positioning for zero lag */}
                 <div
-                    className="absolute h-8 w-2 bg-black dark:bg-white rounded-full shadow-xl pointer-events-none z-10 transition-transform active:scale-125"
+                    className="absolute h-8 w-2 bg-black dark:bg-white rounded-full shadow-xl pointer-events-none z-10 transition-transform active:scale-150"
                     style={{
                         left: `calc(${budgetLeft}% - 4px)`,
                         boxShadow: '0 0 15px rgba(0,0,0,0.1)'
                     }}
                 >
-                    {/* Tooltip above dash - more visible during interaction */}
+                    {/* Tooltip above dash - immediate display */}
                     <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-black dark:bg-white text-white dark:text-black text-[10px] font-black px-2.5 py-1.5 rounded-xl whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 shadow-xl border border-white/10">
-                        {(budget.amount / sliderMax * 100).toFixed(1)}% ({budget.amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })})
+                        {(localAmount / sliderMax * 100).toFixed(1)}% ({localAmount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })})
                     </div>
                 </div>
             </div>
@@ -417,7 +436,7 @@ const CategoryBudgetCard = React.memo(({ budget, sliderMax, onUpdate }: Category
                 <span className={isOverBudget ? 'text-rose-500' : 'text-emerald-500'}>
                     {isOverBudget ? '⚠️ Limite Excedido' : '✓ Sob Controle'}
                 </span>
-                <span>100% Rec.</span>
+                <span>Max. Renda</span>
             </div>
         </div>
     );
