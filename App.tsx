@@ -1310,7 +1310,7 @@ const App: React.FC = () => {
           </div>
         )}
 
-        <header className="h-20 bg-white/80 backdrop-blur-xl border-b border-slate-200 flex items-center justify-between px-3 md:px-8 sticky top-0 z-40 pt-safe">
+        <header className="h-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-b border-slate-200/60 dark:border-slate-800/60 flex items-center justify-between px-4 md:px-8 sticky top-0 z-40 pt-safe shadow-sm transition-all">
           {/* Mobile Menu Button - Compact on small screens */}
           <button
             onClick={() => setSidebarOpen(true)}

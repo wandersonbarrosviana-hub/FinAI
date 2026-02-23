@@ -38,9 +38,9 @@ const AccountModal: React.FC<AccountModalProps> = ({ onClose, onAddAccount }) =>
     const getBankName = (bankId: string) => BANKS.find(b => b.id === bankId)?.name || 'Outro';
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
-            <div className="bg-white dark:bg-slate-900 w-full max-w-xl rounded-[2.5rem] shadow-2xl border border-slate-100 dark:border-slate-800 p-8 animate-in zoom-in-95 duration-300">
-                <div className="flex justify-between items-center mb-8">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
+            <div className="bg-white dark:bg-slate-900 w-full max-w-xl rounded-[2rem] sm:rounded-[2.5rem] shadow-2xl border border-slate-100 dark:border-slate-800 p-6 sm:p-8 animate-in zoom-in-95 duration-300 max-h-[98vh] overflow-y-auto">
+                <div className="flex justify-between items-center mb-6 sm:mb-8">
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 bg-sky-50 dark:bg-sky-900/20 rounded-2xl flex items-center justify-center text-sky-600">
                             <Plus size={24} />

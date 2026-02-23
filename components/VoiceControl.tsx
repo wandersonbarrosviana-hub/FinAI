@@ -225,7 +225,7 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
   };
 
   return (
-    <div className={`fixed bottom-24 right-4 z-50 flex flex-col items-end pointer-events-none`}>
+    <div className={`fixed bottom-24 right-4 z-50 flex flex-col items-end pointer-events-none pb-safe`}>
 
       {/* Transcript Bubble Feedback */}
       {(status === 'active_command' || status === 'processing' || (status === 'standby' && transcript)) && (

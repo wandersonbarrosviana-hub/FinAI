@@ -289,7 +289,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-slate-900/20 backdrop-blur-sm animate-in fade-in duration-300">
             <div
-                className="bg-white w-full max-w-6xl rounded-[2.5rem] shadow-2xl overflow-hidden border border-slate-100 animate-in zoom-in-95 duration-300 flex flex-col max-h-[90vh]"
+                className="bg-white w-full max-w-6xl rounded-[2rem] sm:rounded-[2.5rem] shadow-2xl overflow-hidden border border-slate-100 animate-in zoom-in-95 duration-300 flex flex-col max-h-[95vh] sm:max-h-[90vh]"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
@@ -311,37 +311,37 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
                     </button>
                 </div>
 
-                <div className="flex flex-col md:flex-row h-[800px]">
+                <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
                     {/* Sidebar Tabs */}
-                    <div className="w-full md:w-64 bg-slate-50 p-6 flex flex-col gap-2 border-r border-slate-100">
+                    <div className="w-full md:w-64 bg-slate-50 p-4 sm:p-6 flex flex-row md:flex-col gap-2 border-b md:border-b-0 md:border-r border-slate-100 overflow-x-auto scrollbar-hide">
                         <button
                             onClick={() => setActiveTab('profile')}
-                            className={`w-full flex items-center gap-3 p-4 rounded-2xl transition-all font-bold text-left ${activeTab === 'profile'
+                            className={`flex-1 md:w-full flex items-center justify-center md:justify-start gap-3 p-3 sm:p-4 rounded-xl sm:rounded-2xl transition-all font-bold text-xs sm:text-base whitespace-nowrap ${activeTab === 'profile'
                                 ? 'bg-white text-sky-600 shadow-md ring-1 ring-slate-100'
                                 : 'text-slate-500 hover:bg-white/50 hover:text-slate-700'
                                 }`}
                         >
-                            <User size={20} />
+                            <User size={18} className="sm:w-5 sm:h-5" />
                             Perfil
                         </button>
                         <button
                             onClick={() => setActiveTab('family')}
-                            className={`w-full flex items-center gap-3 p-4 rounded-2xl transition-all font-bold text-left ${activeTab === 'family'
+                            className={`flex-1 md:w-full flex items-center justify-center md:justify-start gap-3 p-3 sm:p-4 rounded-xl sm:rounded-2xl transition-all font-bold text-xs sm:text-base whitespace-nowrap ${activeTab === 'family'
                                 ? 'bg-white text-sky-600 shadow-md ring-1 ring-slate-100'
                                 : 'text-slate-500 hover:bg-white/50 hover:text-slate-700'
                                 }`}
                         >
-                            <Users size={20} />
+                            <Users size={18} className="sm:w-5 sm:h-5" />
                             Família
                         </button>
                         <button
                             onClick={() => setActiveTab('security')}
-                            className={`w-full flex items-center gap-3 p-4 rounded-2xl transition-all font-bold text-left ${activeTab === 'security'
+                            className={`flex-1 md:w-full flex items-center justify-center md:justify-start gap-3 p-3 sm:p-4 rounded-xl sm:rounded-2xl transition-all font-bold text-xs sm:text-base whitespace-nowrap ${activeTab === 'security'
                                 ? 'bg-white text-sky-600 shadow-md ring-1 ring-slate-100'
                                 : 'text-slate-500 hover:bg-white/50 hover:text-slate-700'
                                 }`}
                         >
-                            <Lock size={20} />
+                            <Lock size={18} className="sm:w-5 sm:h-5" />
                             Segurança
                         </button>
                     </div>

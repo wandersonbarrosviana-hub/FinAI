@@ -12,6 +12,8 @@
     "dev-tauri": "tauri dev"
   },
   "dependencies": {
+    "@capacitor/android": "^8.1.0",
+    "@capacitor/core": "^8.1.0",
     "@google/genai": "^1.40.0",
     "@google/generative-ai": "^0.24.1",
     "@supabase/supabase-js": "^2.95.3",
@@ -32,6 +34,7 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.1.0",
     "@tailwindcss/postcss": "^4.1.18",
     "@types/node": "^22.14.0",
     "@types/react-dropzone": "^4.2.2",

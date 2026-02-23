@@ -42,7 +42,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, isOpen, se
 
       {/* Sidebar (Responsive: Fixed on Desktop, Overlay on Mobile) */}
       <aside
-        className={`fixed top-0 left-0 h-full bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 shadow-2xl md:shadow-sm transition-all duration-300 z-[70] flex-col flex pt-safe pb-safe ${isOpen ? 'w-64 translate-x-0' : 'w-20 -translate-x-full md:translate-x-0'
+        className={`fixed top-0 left-0 h-full bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 shadow-2xl md:shadow-sm transition-all duration-500 ease-in-out z-[70] flex-col flex pt-safe pb-safe ${isOpen ? 'w-[80vw] md:w-64 translate-x-0' : 'w-20 -translate-x-full md:translate-x-0'
           }`}
       >
         {/* Logo Area */}
