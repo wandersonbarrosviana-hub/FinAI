@@ -90,7 +90,11 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
       tags: []
     }));
     setPaymentDate(new Date().toISOString().split('T')[0]);
-    setAccountId(accounts.length > 0 ? accounts[0].id : '');
+
+    // Pre-select default account if available
+    const defaultAcc = accounts.find(a => a.isDefault);
+    setAccountId(defaultAcc ? defaultAcc.id : (accounts.length > 0 ? accounts[0].id : ''));
+
     setAttachment('');
     setNotes('');
     setIgnoreInStatistics(false);

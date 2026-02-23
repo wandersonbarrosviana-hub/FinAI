@@ -45,6 +45,7 @@ export interface Account {
   creditLimit?: number;
   closingDay?: number;
   dueDay?: number;
+  isDefault?: boolean;
 }
 
 export interface Goal {

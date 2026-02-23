@@ -8,10 +8,11 @@ interface AccountManagerProps {
   accounts: Account[];
   transactions: Transaction[];
   onAddAccount: (a: Partial<Account>) => void;
+  onUpdateAccount: (id: string, updates: Partial<Account>) => void;
   onDeleteAccount: (id: string) => void;
 }
 
-const AccountManager: React.FC<AccountManagerProps> = ({ accounts, transactions, onAddAccount, onDeleteAccount }) => {
+const AccountManager: React.FC<AccountManagerProps> = ({ accounts, transactions, onAddAccount, onUpdateAccount, onDeleteAccount }) => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
   const [isBankSelectOpen, setIsBankSelectOpen] = useState(false);
@@ -20,7 +21,8 @@ const AccountManager: React.FC<AccountManagerProps> = ({ accounts, transactions,
     name: '',
     balance: 0,
     type: 'checking',
-    bankId: 'itau'
+    bankId: 'itau',
+    isDefault: false
   });
 
   const filteredBanks = BANKS.filter(b =>
@@ -36,7 +38,7 @@ const AccountManager: React.FC<AccountManagerProps> = ({ accounts, transactions,
       color: bank?.color
     });
     setIsFormOpen(false);
-    setFormData({ name: '', balance: 0, type: 'checking', bankId: 'itau' });
+    setFormData({ name: '', balance: 0, type: 'checking', bankId: 'itau', isDefault: false });
   };
 
   const getBankColor = (bankId: string) => BANKS.find(b => b.id === bankId)?.color || '#64748b';
@@ -192,6 +194,23 @@ const AccountManager: React.FC<AccountManagerProps> = ({ accounts, transactions,
                 />
               </div>
             </div>
+            <div className="space-y-4 md:col-span-2 lg:col-span-4">
+              <label className="flex items-center gap-3 cursor-pointer group/check">
+                <div className="relative">
+                  <input
+                    type="checkbox"
+                    className="sr-only peer"
+                    checked={formData.isDefault}
+                    onChange={e => setFormData({ ...formData, isDefault: e.target.checked })}
+                  />
+                  <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-sky-600"></div>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-sm font-bold text-slate-700 dark:text-white group-hover/check:text-sky-600 transition-colors">Definir como conta padrão</span>
+                  <span className="text-[10px] text-slate-400 font-medium font-bold uppercase tracking-widest">Registros automáticos usarão esta conta</span>
+                </div>
+              </label>
+            </div>
           </div>
           <div className="mt-8 flex justify-end">
             <button
@@ -262,10 +281,17 @@ const AccountManager: React.FC<AccountManagerProps> = ({ accounts, transactions,
                   >
                     <Trash2 size={18} />
                   </button>
-                  <span className={`text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest shadow-sm ${account.type === 'investment' ? 'bg-amber-500 text-white' : 'bg-sky-600 text-white'
-                    }`}>
-                    {account.type === 'checking' ? 'Corrente' : account.type === 'savings' ? 'Poupança' : 'Investimento'}
-                  </span>
+                  <div className="flex gap-2">
+                    <span className={`text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest shadow-sm ${account.type === 'investment' ? 'bg-amber-500 text-white' : 'bg-sky-600 text-white'
+                      }`}>
+                      {account.type === 'checking' ? 'Corrente' : account.type === 'savings' ? 'Poupança' : 'Investimento'}
+                    </span>
+                    {account.isDefault && (
+                      <span className="text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest shadow-sm bg-emerald-500 text-white flex items-center gap-1">
+                        <Check size={10} /> Padrão
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -337,16 +363,36 @@ const AccountManager: React.FC<AccountManagerProps> = ({ accounts, transactions,
                   />
                 </div>
                 <div>
-                  <h3 className="text-xl font-black text-slate-900 dark:text-white">{selectedAccount.name}</h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-xl font-black text-slate-900 dark:text-white">{selectedAccount.name}</h3>
+                    {selectedAccount.isDefault && (
+                      <span className="text-[10px] bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 font-black px-2 py-0.5 rounded-lg uppercase tracking-widest border border-emerald-200 dark:border-emerald-800">
+                        Padrão
+                      </span>
+                    )}
+                  </div>
                   <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">{getBankName(selectedAccount.bankId)}</p>
                 </div>
               </div>
-              <button
-                onClick={() => setSelectedAccount(null)}
-                className="p-2 bg-slate-200 dark:bg-slate-800 rounded-full hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors"
-              >
-                <X size={20} className="text-slate-600 dark:text-slate-400" />
-              </button>
+              <div className="flex flex-col items-end gap-2">
+                <button
+                  onClick={() => setSelectedAccount(null)}
+                  className="p-2 bg-slate-200 dark:bg-slate-800 rounded-full hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors"
+                >
+                  <X size={20} className="text-slate-600 dark:text-slate-400" />
+                </button>
+                {!selectedAccount.isDefault && (
+                  <button
+                    onClick={() => {
+                      onUpdateAccount(selectedAccount.id, { isDefault: true });
+                      setSelectedAccount({ ...selectedAccount, isDefault: true });
+                    }}
+                    className="text-[10px] font-black text-sky-600 hover:text-sky-700 flex items-center gap-1 transition-colors uppercase tracking-widest"
+                  >
+                    Marcar como Padrão
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Stats */}

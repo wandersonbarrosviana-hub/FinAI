@@ -386,7 +386,8 @@ const App: React.FC = () => {
           isCredit: a.is_credit,
           creditLimit: a.credit_limit,
           closingDay: a.closing_day,
-          dueDay: a.due_day
+          dueDay: a.due_day,
+          isDefault: a.is_default
         }));
 
         const mappedCB = cbData.map((cb: any) => ({
@@ -753,7 +754,7 @@ const App: React.FC = () => {
       category: data.category || 'Outros',
       subCategory: data.subCategory || 'Diversos',
       type: data.type || 'expense',
-      account: data.account || accounts[0]?.id,
+      account: data.account || accounts.find(a => a.isDefault)?.id || accounts[0]?.id,
       paymentMethod: data.paymentMethod || 'PIX',
       isPaid: data.isPaid !== undefined ? data.isPaid : data.type === 'income',
       recurrence: data.recurrence || 'one_time',
@@ -832,6 +833,15 @@ const App: React.FC = () => {
   };
 
   const handleUpdateAccount = async (id: string, updates: Partial<Account>) => {
+    // If setting as default, unset others first
+    if (updates.isDefault === true) {
+      const otherDefaults = accounts.filter(a => a.isDefault && a.id !== id);
+      for (const acc of otherDefaults) {
+        await db.accounts.update(acc.id, { isDefault: false });
+        await addToSyncQueue('accounts', acc.id, 'UPDATE');
+      }
+    }
+
     await db.accounts.update(id, updates);
     await addToSyncQueue('accounts', id, 'UPDATE');
   };
@@ -1117,8 +1127,18 @@ const App: React.FC = () => {
       isCredit: data.isCredit || false,
       creditLimit: data.creditLimit || 0,
       closingDay: data.closingDay || 1,
-      dueDay: data.dueDay || 10
+      dueDay: data.dueDay || 10,
+      isDefault: data.isDefault || (accounts.length === 0) // First account is default
     } as Account;
+
+    // If setting as default, unset others first
+    if (newAcc.isDefault) {
+      const otherDefaults = accounts.filter(a => a.isDefault);
+      for (const acc of otherDefaults) {
+        await db.accounts.update(acc.id, { isDefault: false });
+        await addToSyncQueue('accounts', acc.id, 'UPDATE');
+      }
+    }
 
     try {
       await db.accounts.add(newAcc);
@@ -1462,7 +1482,7 @@ const App: React.FC = () => {
               <CategoryManager transactions={filteredTransactions} />
             </div>
             <div className={currentView === 'accounts' ? '' : 'hidden'}>
-              <AccountManager accounts={accounts} transactions={transactions} onAddAccount={handleAddAccount} onDeleteAccount={handleDeleteAccount} />
+              <AccountManager accounts={accounts} transactions={transactions} onAddAccount={handleAddAccount} onUpdateAccount={handleUpdateAccount} onDeleteAccount={handleDeleteAccount} />
             </div>
             <div className={currentView === 'retirement' ? '' : 'hidden'}>
               <RetirementSimulator transactions={transactions} budgets={budgets} simulationParams={retirementParams} />

@@ -16,8 +16,12 @@ interface TransferFormProps {
 }
 
 const TransferForm: React.FC<TransferFormProps> = ({ accounts, onTransfer, onCancel }) => {
-    const [sourceAccountId, setSourceAccountId] = useState<string>(accounts[0]?.id || '');
-    const [destinationAccountId, setDestinationAccountId] = useState<string>(accounts.length > 1 ? accounts[1].id : '');
+    const defaultAcc = accounts.find(a => a.isDefault);
+    const [sourceAccountId, setSourceAccountId] = useState<string>(defaultAcc?.id || accounts[0]?.id || '');
+    const [destinationAccountId, setDestinationAccountId] = useState<string>(() => {
+        const potentialDest = accounts.find(a => a.id !== (defaultAcc?.id || accounts[0]?.id));
+        return potentialDest?.id || '';
+    });
     const [amount, setAmount] = useState<number>(0);
     const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0]);
     const [description, setDescription] = useState<string>('Transferência');

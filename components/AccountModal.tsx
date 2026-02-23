@@ -16,7 +16,8 @@ const AccountModal: React.FC<AccountModalProps> = ({ onClose, onAddAccount }) =>
         name: '',
         balance: 0,
         type: 'checking',
-        bankId: 'itau'
+        bankId: 'itau',
+        isDefault: false
     });
 
     const filteredBanks = BANKS.filter(b =>
@@ -132,6 +133,24 @@ const AccountModal: React.FC<AccountModalProps> = ({ onClose, onAddAccount }) =>
                                     onChange={e => setFormData({ ...formData, balance: parseFloat(e.target.value) || 0 })}
                                 />
                             </div>
+                        </div>
+
+                        <div className="space-y-4">
+                            <label className="flex items-center gap-3 cursor-pointer group/check">
+                                <div className="relative">
+                                    <input
+                                        type="checkbox"
+                                        className="sr-only peer"
+                                        checked={formData.isDefault}
+                                        onChange={e => setFormData({ ...formData, isDefault: e.target.checked })}
+                                    />
+                                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-sky-600"></div>
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-sm font-bold text-slate-700 dark:text-white group-hover/check:text-sky-600 transition-colors">Definir como conta padrão</span>
+                                    <span className="text-[10px] text-slate-400 font-medium">Novos lançamentos usarão esta conta automaticamente.</span>
+                                </div>
+                            </label>
                         </div>
                     </div>
 
