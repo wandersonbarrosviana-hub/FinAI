@@ -246,9 +246,9 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
           let width = img.width;
           let height = img.height;
 
-          // Max width/height - increased for better OCR
-          const MAX_WIDTH = 2000;
-          const MAX_HEIGHT = 2000;
+          // Max width/height - optimized for Groq Vision (limit 4MB)
+          const MAX_WIDTH = 1024;
+          const MAX_HEIGHT = 1024;
 
           if (width > height) {
             if (width > MAX_WIDTH) {
@@ -274,8 +274,8 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
             ctx.drawImage(img, 0, 0, width, height);
           }
 
-          // Compress to JPEG 0.9 quality (higher for better OCR)
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+          // Compress to JPEG 0.8 quality (balanced for OCR and File Size)
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
           resolve(dataUrl);
         };
         img.onerror = (err) => reject(err);

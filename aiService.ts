@@ -542,19 +542,19 @@ export const analyzeExpenseImage = async (base64Image: string, attempt: number =
 const analyzeWithGroqVision = async (base64Data: string, systemPrompt: string): Promise<any> => {
     if (!groq) throw new Error("Groq não configurado");
 
-    console.log("[OCR] Enviando para Groq Vision com payload otimizado...");
+    const payloadSize = Math.round((base64Data.length * 4) / 3 / 1024);
+    console.log(`[OCR] Enviando para Groq Vision (Payload: ~${payloadSize}KB)...`);
+
+    // Nota: Multimodal na Groq funciona melhor com as instruções no prompt de usuário
+    const combinedPrompt = `INSTRUÇÕES DO SISTEMA:\n${systemPrompt}\n\nAnalise a imagem abaixo seguindo as instruções acima.`;
 
     const response = await groq.chat.completions.create({
         model: GROQ_VISION_MODEL,
         messages: [
             {
-                role: "system",
-                content: "Você é um assistente especializado em extração de dados JSON de recibos e notas fiscais."
-            },
-            {
                 role: "user",
                 content: [
-                    { type: "text", text: systemPrompt },
+                    { type: "text", text: combinedPrompt },
                     {
                         type: "image_url",
                         image_url: {
@@ -564,8 +564,8 @@ const analyzeWithGroqVision = async (base64Data: string, systemPrompt: string): 
                 ],
             },
         ],
-        max_tokens: 1024, // Necessário para alguns modelos de visão na Groq
-        temperature: 0.1,  // Baixa temperatura para maior precisão
+        max_tokens: 1024,
+        temperature: 0.1,
     });
 
     const content = response.choices[0].message.content || "{}";
