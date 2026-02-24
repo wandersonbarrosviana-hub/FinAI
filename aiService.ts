@@ -542,9 +542,15 @@ export const analyzeExpenseImage = async (base64Image: string, attempt: number =
 const analyzeWithGroqVision = async (base64Data: string, systemPrompt: string): Promise<any> => {
     if (!groq) throw new Error("Groq não configurado");
 
+    console.log("[OCR] Enviando para Groq Vision com payload otimizado...");
+
     const response = await groq.chat.completions.create({
         model: GROQ_VISION_MODEL,
         messages: [
+            {
+                role: "system",
+                content: "Você é um assistente especializado em extração de dados JSON de recibos e notas fiscais."
+            },
             {
                 role: "user",
                 content: [
@@ -558,6 +564,8 @@ const analyzeWithGroqVision = async (base64Data: string, systemPrompt: string): 
                 ],
             },
         ],
+        max_tokens: 1024, // Necessário para alguns modelos de visão na Groq
+        temperature: 0.1,  // Baixa temperatura para maior precisão
     });
 
     const content = response.choices[0].message.content || "{}";
