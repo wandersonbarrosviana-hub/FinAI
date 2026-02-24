@@ -457,7 +457,8 @@ export const analyzeExpenseImage = async (base64Image: string, attempt: number =
     // 1: Gemini 1.5 Pro (Poderoso)
     // 2: GPT-4o-mini (Vision Fallback)
 
-    const modelToUse = attempt === 0 ? "gemini-1.5-flash" : "gemini-1.5-pro";
+    const modelToUse = (attempt === 0 ? FINAI_CONFIG.GEMINI_MODEL : FINAI_CONFIG.GEMINI_PRO_MODEL).trim();
+    console.log(`[OCR] Tentativa ${attempt} usando modelo: ${modelToUse}`);
 
     const systemPrompt = `
     VOCÊ É UM ESPECIALISTA EM EXTRAÇÃO DE DADOS FINANCEIROS (OCR ULTRA-PRECISO).
@@ -491,6 +492,8 @@ export const analyzeExpenseImage = async (base64Image: string, attempt: number =
     try {
         if (attempt < 2) {
             if (!genAI) throw new Error("GenAI não inicializado");
+
+            // Tentar o modelo solicitado
             const model = genAI.getGenerativeModel({ model: modelToUse });
 
             const result = await model.generateContent([
@@ -504,19 +507,21 @@ export const analyzeExpenseImage = async (base64Image: string, attempt: number =
             ]);
 
             const content = result.response.text();
+            console.log(`[OCR] Resposta do modelo ${modelToUse}:`, content);
             const cleaned = cleanJSON(content);
             const parsed = JSON.parse(cleaned);
 
-            // Requisito de Confiança: Se a IA não tiver certeza (>60), tentar o próximo modelo
-            if (parsed.confidence < 60 && attempt === 0) {
-                console.log(`Baixa confiança (${parsed.confidence}%) com Flash. Tentando Pro...`);
+            // Requisito de Confiança: Se a IA não tiver certeza (<60), tentar o próximo modelo
+            if ((!parsed.description || parsed.confidence < 60) && attempt === 0) {
+                console.warn(`Baixa confiança ou dados incompletos com ${modelToUse}. Tentando fallback...`);
                 return await analyzeExpenseImage(base64Image, 1);
             }
 
             return parsed;
         } else {
-            // Fallback Final: OpenAI Vision
+            // Fallback Final: OpenAI Vision (Muito resiliente)
             if (!openai) throw new Error("OpenAI Fallback não disponível");
+            console.log("[OCR] Usando fallback final: GPT-4o-mini Vision");
 
             const response = await openai.chat.completions.create({
                 model: "gpt-4o-mini",
@@ -537,10 +542,27 @@ export const analyzeExpenseImage = async (base64Image: string, attempt: number =
                 response_format: { type: "json_object" }
             });
 
-            return JSON.parse(response.choices[0].message.content || "{}");
+            const content = response.choices[0].message.content || "{}";
+            console.log("[OCR] Resposta GPT-4o-mini:", content);
+            return JSON.parse(content);
         }
     } catch (error: any) {
-        console.error(`OCR Attempt ${attempt} failed:`, error);
+        console.error(`[OCR] Erro na tentativa ${attempt} (${modelToUse}):`, error.message);
+
+        // Se o erro for 404 e estivermos na tentativa 0, tentar gemini-1.5-flash-latest antes de ir pro Pro
+        if (error.message?.includes('404') && attempt === 0) {
+            console.log("[OCR] Modelo não encontrado. Tentando alias 'gemini-1.5-flash-latest'...");
+            try {
+                const altModel = genAI!.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+                const result = await altModel.generateContent([
+                    { inlineData: { data: base64Data, mimeType: "image/jpeg" } },
+                    { text: systemPrompt }
+                ]);
+                return JSON.parse(cleanJSON(result.response.text()));
+            } catch (innerError) {
+                console.error("[OCR] Alias alternativo também falhou. Pulando para a próxima tentativa.");
+            }
+        }
 
         if (attempt < 2) {
             return await analyzeExpenseImage(base64Image, attempt + 1);
