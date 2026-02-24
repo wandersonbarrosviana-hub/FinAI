@@ -5,13 +5,26 @@ import { FINAI_CONFIG } from './config';
 // Groq Config (Motor Único)
 const GROQ_API_KEY = FINAI_CONFIG.GROQ_API_KEY;
 const GROQ_MODEL = FINAI_CONFIG.GROQ_MODEL;
-const GROQ_VISION_MODEL = FINAI_CONFIG.GROQ_VISION_MODEL || 'llama-3.2-11b-vision-preview';
+const GROQ_VISION_POOL = (FINAI_CONFIG as any).GROQ_VISION_POOL || ['llama-3.2-11b-vision-preview'];
 
-const groq = GROQ_API_KEY ? new OpenAI({
-    apiKey: GROQ_API_KEY,
-    dangerouslyAllowBrowser: true,
-    baseURL: "https://api.groq.com/openai/v1"
-}) : null;
+// Função centralizada para pegar o cliente Groq
+let groqInstance: OpenAI | null = null;
+const getGroqClient = () => {
+    if (groqInstance) return groqInstance;
+    if (!GROQ_API_KEY) return null;
+
+    try {
+        groqInstance = new OpenAI({
+            apiKey: GROQ_API_KEY,
+            dangerouslyAllowBrowser: true,
+            baseURL: "https://api.groq.com/openai/v1"
+        });
+        return groqInstance;
+    } catch (e) {
+        console.error("Erro ao instanciar cliente Groq:", e);
+        return null;
+    }
+};
 
 if (GROQ_API_KEY) {
     console.log("%c FinAI Groq UNIFIED Mode Active ", "background: #f59e0b; color: #fff; border-radius: 4px; font-weight: bold;");
@@ -74,9 +87,9 @@ const retryOperation = async <T>(operation: () => Promise<T>, maxRetries: number
 
 // --- CORE GENERATION ---
 export const generateContent = async (prompt: string): Promise<string> => {
-    if (!groq) return "Erro: Chave API Groq não configurada.";
+    if (!getGroqClient()) return "Erro: Chave API Groq não configurada.";
     try {
-        const response = await groq.chat.completions.create({
+        const response = await getGroqClient()?.chat.completions.create({
             model: GROQ_MODEL,
             messages: [{ role: "user", content: prompt }]
         });
@@ -89,7 +102,7 @@ export const generateContent = async (prompt: string): Promise<string> => {
 
 // --- VOICE COMMAND PARSING ---
 export const parseVoiceCommand = async (text: string): Promise<VoiceCommandResult> => {
-    if (!groq) return { intent: 'UNKNOWN', data: {}, message: 'Erro: Chave Groq não configurada.' };
+    if (!getGroqClient()) return { intent: 'UNKNOWN', data: {}, message: 'Erro: Chave Groq não configurada.' };
 
     const systemPrompt = `
       CONTEXTO: API Financeira (PT-BR).
@@ -99,7 +112,7 @@ export const parseVoiceCommand = async (text: string): Promise<VoiceCommandResul
     `;
 
     try {
-        const response = await groq.chat.completions.create({
+        const response = await getGroqClient()?.chat.completions.create({
             model: GROQ_MODEL,
             messages: [
                 { role: "system", content: systemPrompt },
@@ -124,7 +137,7 @@ export const chatWithFinancialAssistant = async (
     goals: any[],
     budgets: any[]
 ): Promise<string> => {
-    if (!groq) return "Erro: Groq não configurada.";
+    if (!getGroqClient()) return "Erro: Groq não configurada.";
 
     const safeContext = JSON.stringify({
         total: accounts.reduce((acc, a) => acc + a.balance, 0),
@@ -134,7 +147,7 @@ export const chatWithFinancialAssistant = async (
     const systemPrompt = `Você é o FinAI, assistente pessoal. Contexto: ${safeContext}`;
 
     try {
-        const response = await groq.chat.completions.create({
+        const response = await getGroqClient()?.chat.completions.create({
             model: GROQ_MODEL,
             messages: [
                 { role: "system", content: systemPrompt },
@@ -153,10 +166,10 @@ export const performDeepAnalysis = async (transactions: Transaction[], accounts:
 
 // --- NOTIFICATION PARSING ---
 export const parseNotification = async (notificationText: string): Promise<any> => {
-    if (!groq) return null;
+    if (!getGroqClient()) return null;
     const systemPrompt = `Extraia JSON de notificação: { "description": string, "amount": number, "type": "expense"|"income", "category": string, "date": "YYYY-MM-DD" }`;
     try {
-        const response = await groq.chat.completions.create({
+        const response = await getGroqClient()?.chat.completions.create({
             model: GROQ_MODEL,
             messages: [
                 { role: "system", content: systemPrompt },
@@ -172,10 +185,10 @@ export const parseNotification = async (notificationText: string): Promise<any> 
 
 // --- INVOICE PARSING ---
 export const parseInvoice = async (invoiceText: string): Promise<any> => {
-    if (!groq) return { error: "Groq não configurada." };
+    if (!getGroqClient()) return { error: "Groq não configurada." };
     const prompt = `Analise a fatura e retorne JSON { "items": [...], "total": number }. Texto: ${invoiceText.slice(0, 15000)}`;
     try {
-        const response = await groq.chat.completions.create({
+        const response = await getGroqClient()?.chat.completions.create({
             model: GROQ_MODEL,
             messages: [{ role: "user", content: prompt }],
             response_format: { type: "json_object" }
@@ -186,30 +199,99 @@ export const parseInvoice = async (invoiceText: string): Promise<any> => {
     }
 };
 
-// --- IMAGE OCR ANALYSIS ---
-export const analyzeExpenseImage = async (base64Image: string): Promise<any> => {
-    if (!groq || !GROQ_VISION_MODEL) return { error: "Groq Vision não configurado" };
-    const base64Data = base64Image.split(',')[1] || base64Image;
-    const systemPrompt = `Extraia dados financeiro da imagem em JSON: { description, amount, category, subCategory, date, paymentMethod, type, installments: { current, total }, confidence }.`;
+// --- OCR TEXT ANALYSIS (Nova Abordagem Híbrida) ---
+export const analyzeOCRText = async (rawText: string): Promise<any> => {
+    if (!getGroqClient()) return { error: "Groq não configurado" };
+
+    const systemPrompt = `
+      Você é um especialista em OCR financeiro.
+      Recebi um texto bruto extraído de um recibo/nota fiscal via OCR. 
+      O texto pode estar "sujo" (caracteres trocados, falta de espaços).
+      
+      SUA TAREFA: Limpar os dados e extrair o JSON financeiro.
+      
+      ESTRUTURA DE RETORNO (JSON):
+      {
+        "description": string,
+        "amount": number,
+        "category": string,
+        "subCategory": string,
+        "date": "YYYY-MM-DD",
+        "paymentMethod": "Cartão de Crédito" | "PIX" | "Dinheiro" | "Débito",
+        "type": "única" | "parcelada",
+        "installments": { "current": number, "total": number } | null,
+        "confidence": number (0-100)
+      }
+
+      TEXTO BRUTO DO OCR:
+      """
+      ${rawText}
+      """
+      
+      RETORNE APENAS O JSON. Se não houver data, use a data de hoje.
+    `;
 
     try {
-        const combinedPrompt = `INSTRUÇÕES: ${systemPrompt}\nAnalise a imagem.`;
-        const response = await groq.chat.completions.create({
-            model: GROQ_VISION_MODEL,
-            messages: [{
-                role: "user",
-                content: [
-                    { type: "text", text: combinedPrompt },
-                    { type: "image_url", image_url: { url: `data:image/jpeg;base64,${base64Data}` } }
-                ]
-            }],
-            max_tokens: 1024,
-            temperature: 0.1
+        const response = await getGroqClient()?.chat.completions.create({
+            model: GROQ_MODEL,
+            messages: [{ role: "user", content: systemPrompt }],
+            response_format: { type: "json_object" }
         });
-        return JSON.parse(cleanJSON(response.choices[0].message.content || "{}"));
+
+        const content = response.choices[0].message.content || "{}";
+        console.log("[AI-Analysis] Texto de OCR processado com sucesso.");
+        return JSON.parse(cleanJSON(content));
     } catch (error: any) {
-        return { error: error.message };
+        console.error("[AI-Analysis] Erro na análise de texto:", error.message);
+        throw error;
     }
+};
+
+// --- IMAGE OCR ANALYSIS ---
+export const analyzeExpenseImage = async (base64Image: string): Promise<any> => {
+    if (!getGroqClient()) return { error: "Groq não configurado" };
+
+    const base64Data = base64Image.split(',')[1] || base64Image;
+    const systemPrompt = `Extraia dados financeiros da imagem em JSON: { description, amount, category, subCategory, date, paymentMethod, type, installments: { current, total }, confidence }.`;
+
+    for (let i = 0; i < GROQ_VISION_POOL.length; i++) {
+        const currentModel = GROQ_VISION_POOL[i];
+        console.log(`[OCR] Tentativa ${i} usando modelo: ${currentModel}`);
+
+        try {
+            const combinedPrompt = `INSTRUÇÕES: ${systemPrompt}\nAnalise a imagem abaixo e retorne APENAS o JSON conforme a estrutura especificada.`;
+
+            const response = await getGroqClient()?.chat.completions.create({
+                model: currentModel,
+                messages: [{
+                    role: "user",
+                    content: [
+                        { type: "text", text: combinedPrompt },
+                        { type: "image_url", image_url: { url: `data:image/jpeg;base64,${base64Data}` } }
+                    ]
+                }],
+                max_tokens: 1024,
+                temperature: 0.1
+            });
+
+            const content = response.choices[0].message.content || "{}";
+            console.log(`[OCR] Sucesso com modelo: ${currentModel}`);
+            return JSON.parse(cleanJSON(content));
+
+        } catch (error: any) {
+            console.error(`[OCR] Falha no modelo ${currentModel}:`, error.message);
+            // Se for erro 400 (Bad Request/Not Found) ou 404, continua para o próximo modelo
+            const isModelMissing = error.message?.includes('400') || error.message?.includes('404') || error.message?.includes('not found');
+            if (!isModelMissing && i < GROQ_VISION_POOL.length - 1) {
+                // Se for outro erro mas ainda houver modelos, tenta o próximo
+                continue;
+            }
+            if (i === GROQ_VISION_POOL.length - 1) {
+                return { error: `Scanner indisponível: ${error.message}` };
+            }
+        }
+    }
+    return { error: "Nenhum modelo de visão disponível no momento." };
 };
 
 // --- ADVANCED AI INSIGHTS ---
@@ -219,14 +301,14 @@ export const getAdvancedAIInsights = async (
     budgets: any[],
     goals: any[]
 ): Promise<any> => {
-    if (!groq) return null;
+    if (!getGroqClient()) return null;
     const context = {
         bal: accounts.reduce((acc, a) => acc + a.balance, 0),
         tx: transactions.slice(0, 50).map(t => ({ d: t.description, v: t.amount, c: t.category }))
     };
     const prompt = `Gere insights financeiros profundos em JSON: { emotionalPatterns, scenarios, projections, healthScore }. DADOS: ${JSON.stringify(context)}`;
     try {
-        const response = await groq.chat.completions.create({
+        const response = await getGroqClient()?.chat.completions.create({
             model: GROQ_MODEL,
             messages: [{ role: "user", content: prompt }],
             response_format: { type: "json_object" }
@@ -239,10 +321,10 @@ export const getAdvancedAIInsights = async (
 
 // --- INVESTMENT ANALYSIS ---
 export const getInvestmentAnalysis = async (investment: any): Promise<any> => {
-    if (!groq) return null;
+    if (!getGroqClient()) return null;
     const prompt = `Analise este investimento e retorne JSON { score, recommendation, strengths, weaknesses, iaInsight }. DADOS: ${JSON.stringify(investment)}`;
     try {
-        const response = await groq.chat.completions.create({
+        const response = await getGroqClient()?.chat.completions.create({
             model: GROQ_MODEL,
             messages: [{ role: "user", content: prompt }],
             response_format: { type: "json_object" }

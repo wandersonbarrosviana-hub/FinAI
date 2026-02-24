@@ -3,7 +3,8 @@ import DailyHistory from './DailyHistory';
 import { Transaction, TransactionType, Tag as TagType, Account } from '../types';
 import { CATEGORIES_MAP, INCOME_CATEGORIES_MAP, BANKS } from '../constants';
 import { Calendar, CreditCard, Tag, Plus, Trash2, CheckCircle, Clock, Edit2, Save, X, Repeat, Divide, ChevronDown, ChevronUp, Paperclip, FileText, PieChart, Wallet, Calculator, Camera, Image, XCircle, Sparkles, Loader2 } from 'lucide-react';
-import { analyzeExpenseImage } from '../aiService';
+import { analyzeOCRText } from '../aiService';
+import { transcribeImage } from '../ocrService';
 
 interface ExpenseManagerProps {
   transactions: Transaction[];
@@ -72,6 +73,7 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
   // UI State
   const [showMoreInfo, setShowMoreInfo] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
+  const [ocrProgress, setOcrProgress] = useState(0);
 
   // Installment Logic State
   const [installmentValueType, setInstallmentValueType] = useState<'total' | 'installment'>('total');
@@ -311,8 +313,18 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
 
   const handleScanReceipt = async (base64Image: string) => {
     setIsScanning(true);
+    setOcrProgress(0);
     try {
-      const result = await analyzeExpenseImage(base64Image);
+      // Step 1: Transcribe localmente
+      const rawText = await transcribeImage(base64Image, (p) => setOcrProgress(p));
+
+      if (!rawText || rawText.trim().length < 5) {
+        throw new Error("Não foi possível extrair texto da imagem.");
+      }
+
+      // Step 2: Analisar texto com IA
+      const result = await analyzeOCRText(rawText);
+
       if (result && !result.error) {
         // Update form with AI data
         setFormData(prev => ({
@@ -331,8 +343,6 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
           setInputValue(result.amount.toString());
         }
 
-        // Se a categoria retornada não estiver no nosso mapa, a lógica de handleSubmit já lida com 'Outros'
-        // Mas vamos tentar bater a categoria se possível
         const targetMap = type === 'income' ? INCOME_CATEGORIES_MAP : CATEGORIES_MAP;
         if (!Object.keys(targetMap).includes(result.category)) {
           setFormData(prev => ({ ...prev, category: 'Outros' }));
@@ -346,13 +356,14 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
 
         alert(`FinAI: Identifiquei "${result.description}" no valor de R$ ${result.amount}${installmentMsg}.`);
       } else {
-        alert("FinAI: Não consegui ler os dados deste comprovante. Tente uma foto mais nítida.");
+        alert("FinAI: Não consegui interpretar os dados do comprovante.");
       }
-    } catch (error) {
-      console.error("Erro no OCR:", error);
-      alert("Erro ao processar imagem com IA.");
+    } catch (error: any) {
+      console.error("Erro no OCR Híbrido:", error);
+      alert(`Erro no Scanner: ${error.message || "Tente uma foto mais nítida."}`);
     } finally {
       setIsScanning(false);
+      setOcrProgress(0);
     }
   };
 
@@ -784,10 +795,16 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
                   input.click();
                 }}
                 disabled={isScanning}
-                className="flex items-center gap-2 px-4 py-3 bg-sky-600 text-white rounded-xl text-[10px] font-black hover:bg-sky-500 transition-all uppercase tracking-widest shadow-lg shadow-sky-100 dark:shadow-sky-900/20 disabled:opacity-50"
+                className="flex items-center gap-2 px-4 py-3 bg-sky-600 text-white rounded-xl text-[10px] font-black hover:bg-sky-500 transition-all uppercase tracking-widest shadow-lg shadow-sky-100 dark:shadow-sky-900/20 disabled:opacity-50 relative overflow-hidden"
               >
+                {isScanning && (
+                  <div
+                    className="absolute bottom-0 left-0 h-1 bg-white/30 transition-all duration-300"
+                    style={{ width: `${ocrProgress}%` }}
+                  />
+                )}
                 {isScanning ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
-                {isScanning ? 'Processando...' : 'Escanear com IA'}
+                {isScanning ? (ocrProgress < 100 ? `Lendo (${ocrProgress}%)` : 'Analisando...') : 'Escanear com IA'}
               </button>
 
               <button
