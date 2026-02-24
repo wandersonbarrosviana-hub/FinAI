@@ -7,20 +7,25 @@ import { FINAI_CONFIG } from './config';
 // API Keys from Config
 const GEMINI_API_KEY = FINAI_CONFIG.GEMINI_API_KEY;
 
-// Initialize Google Generative AI - DESATIVADO PARA TESTE GROQ
-const genAI = null;
+// Initialize Google Generative AI
+const genAI = GEMINI_API_KEY ? new GoogleGenerativeAI(GEMINI_API_KEY) : null;
 
 // Models
 const GEMINI_MODEL = FINAI_CONFIG.GEMINI_MODEL;
 
-// OpenAI Config - DESATIVADO PARA TESTE GROQ
-const openai = null;
+// OpenAI Config (Fallback Secundário)
+const OPENAI_API_KEY = FINAI_CONFIG.OPENAI_API_KEY;
 const OPENAI_MODEL = FINAI_CONFIG.OPENAI_MODEL;
 
-// Groq Config (Única Ativa)
+const openai = OPENAI_API_KEY ? new OpenAI({
+    apiKey: OPENAI_API_KEY,
+    dangerouslyAllowBrowser: true
+}) : null;
+
+// Groq Config (Prioridade OCR)
 const GROQ_API_KEY = FINAI_CONFIG.GROQ_API_KEY;
 const GROQ_MODEL = FINAI_CONFIG.GROQ_MODEL;
-const GROQ_VISION_MODEL = (FINAI_CONFIG as any).GROQ_VISION_MODEL || 'llama-3.2-90b-vision-preview';
+const GROQ_VISION_MODEL = FINAI_CONFIG.GROQ_VISION_MODEL || 'llama-3.2-11b-vision-preview';
 
 const groq = GROQ_API_KEY ? new OpenAI({
     apiKey: GROQ_API_KEY,
@@ -28,12 +33,18 @@ const groq = GROQ_API_KEY ? new OpenAI({
     baseURL: "https://api.groq.com/openai/v1"
 }) : null;
 
-console.log("%c FinAI MODO EXCLUSIVO GROQ ATIVO ", "background: #f59e0b; color: #fff; border-radius: 4px; font-weight: bold;");
+if (GEMINI_API_KEY) {
+    console.log("%c FinAI Gemini Ready ", "background: #4285f4; color: #fff; border-radius: 4px; font-weight: bold;");
+} else {
+    console.warn("%c FinAI AI Offline ", "background: #ef4444; color: #fff; border-radius: 4px; font-weight: bold;", "Chave Gemini não encontrada no .env");
+}
+
+if (OPENAI_API_KEY) {
+    console.log("%c FinAI OpenAI Ready ", "background: #10a37f; color: #fff; border-radius: 4px; font-weight: bold;");
+}
 
 if (GROQ_API_KEY) {
-    console.log("%c FinAI MODO EXCLUSIVO GROQ ATIVO ", "background: #f59e0b; color: #fff; border-radius: 4px; font-weight: bold;");
-} else {
-    console.warn("%c FinAI AI Offline ", "background: #ef4444; color: #fff; border-radius: 4px; font-weight: bold;", "Chave Groq não encontrada no .env");
+    console.log("%c FinAI Groq Vision Active ", "background: #f59e0b; color: #fff; border-radius: 4px; font-weight: bold;");
 }
 
 export interface VoiceCommandResult {
@@ -490,13 +501,54 @@ export const analyzeExpenseImage = async (base64Image: string, attempt: number =
     `;
 
     try {
-        if (!groq) throw new Error("Groq não configurada para modo exclusivo");
+        // PRIORIDADE 1: Groq Vision (Se configurado e primeira tentativa)
+        if (attempt === 0 && groq && GROQ_VISION_MODEL) {
+            console.log(`[OCR] Prioridade OCR: Usando Groq Vision (${GROQ_VISION_MODEL})`);
+            try {
+                return await analyzeWithGroqVision(base64Data, systemPrompt);
+            } catch (groqErr: any) {
+                console.warn("[OCR] Groq Vision falhou ou está instável, tentando Fallbacks:", groqErr.message);
+                // Se o erro for de modelo depreciado, avisamos no console mas seguimos para os fallbacks
+            }
+        }
 
-        console.log(`[OCR] Teste Purista: Usando exclusivamente Groq Vision: ${GROQ_VISION_MODEL}`);
-        return await analyzeWithGroqVision(base64Data, systemPrompt);
+        // PRIORIDADE 2: Pool de Gemini (v1/v1beta)
+        if (!genAI) throw new Error("GenAI não inicializado para fallbacks");
+
+        const modelToUse = GEMINI_MODELS_POOL[attempt % GEMINI_MODELS_POOL.length].trim();
+        const apiVersion = attempt % 2 === 0 ? 'v1' : 'v1beta';
+
+        console.log(`[OCR] Usando Fallback Gemini: ${modelToUse} (${apiVersion})`);
+
+        const model = genAI.getGenerativeModel(
+            { model: modelToUse },
+            { apiVersion: apiVersion as any }
+        );
+
+        const result = await model.generateContent([
+            {
+                inlineData: {
+                    data: base64Data,
+                    mimeType: "image/jpeg"
+                }
+            },
+            { text: systemPrompt }
+        ]);
+
+        const content = result.response.text();
+        console.log(`[OCR] Sucesso com ${modelToUse}:`, content);
+        return JSON.parse(cleanJSON(content));
+
     } catch (error: any) {
-        console.error(`[OCR] Falha no Modo Exclusivo Groq:`, error.message);
-        return { error: `Erro no Groq Vision: ${error.message}` };
+        console.error(`[OCR] Erro na tentativa ${attempt}:`, error.message);
+
+        // Se todas as tentativas de Gemini falharam ou se já passamos do limite do pool
+        if (attempt >= GEMINI_MODELS_POOL.length) {
+            console.log("[OCR] Todas as tentativas Gemini falharam. Usando OpenAI como último recurso.");
+            return await analyzeWithOpenAIVision(base64Data);
+        }
+
+        return await analyzeExpenseImage(base64Image, attempt + 1);
     }
 };
 

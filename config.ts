@@ -20,7 +20,7 @@ export const FINAI_CONFIG = {
     // Groq (Reserva Final)
     GROQ_API_KEY: import.meta.env.VITE_GROQ_API_KEY || "",
     GROQ_MODEL: 'llama-3.3-70b-versatile',
-    GROQ_VISION_MODEL: 'llama-3.2-90b-vision-preview',
+    GROQ_VISION_MODEL: 'llama-3.2-11b-vision-preview',
 
     IS_DEV: import.meta.env.DEV
 };
