@@ -322,7 +322,9 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
           category: result.category || prev.category,
           subCategory: result.subCategory || prev.subCategory,
           date: result.date || prev.date,
-          paymentMethod: result.paymentMethod || prev.paymentMethod
+          paymentMethod: result.paymentMethod || prev.paymentMethod,
+          recurrence: result.type === 'parcelada' ? 'installment' : 'one_time',
+          installmentCount: (result.type === 'parcelada' && result.installments?.total) ? result.installments.total : prev.installmentCount
         }));
 
         if (result.amount) {
@@ -338,7 +340,11 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
           setCustomSubCategory(result.subCategory || '');
         }
 
-        alert(`FinAI: Identifiquei "${result.description}" no valor de R$ ${result.amount}.`);
+        const installmentMsg = result.type === 'parcelada'
+          ? ` (Parcelado ${result.installments?.current || 1}/${result.installments?.total || 1})`
+          : ' (Única)';
+
+        alert(`FinAI: Identifiquei "${result.description}" no valor de R$ ${result.amount}${installmentMsg}.`);
       } else {
         alert("FinAI: Não consegui ler os dados deste comprovante. Tente uma foto mais nítida.");
       }

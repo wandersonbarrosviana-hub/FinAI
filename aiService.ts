@@ -25,6 +25,7 @@ const openai = OPENAI_API_KEY ? new OpenAI({
 // Groq Config (Reserva Final)
 const GROQ_API_KEY = FINAI_CONFIG.GROQ_API_KEY;
 const GROQ_MODEL = FINAI_CONFIG.GROQ_MODEL;
+const GROQ_VISION_MODEL = (FINAI_CONFIG as any).GROQ_VISION_MODEL || 'llama-3.2-90b-vision-preview';
 
 const groq = GROQ_API_KEY ? new OpenAI({
     apiKey: GROQ_API_KEY,
@@ -485,8 +486,12 @@ export const analyzeExpenseImage = async (base64Image: string, attempt: number =
       "subCategory": string,
       "date": "YYYY-MM-DD",
       "paymentMethod": "Cartão de Crédito" | "PIX" | "Dinheiro" | "Débito",
+      "type": "única" | "parcelada",
+      "installments": { "current": number, "total": number } | null,
       "confidence": number (0-100)
     }
+
+    IMPORTANTE: Identifique se o gasto é uma compra à vista (única) ou se há menção a parcelas (ex: 1/10, parc 2). Se for parcelada, extraia o número da parcela atual e o total.
     
     IMPORTANTE: Se não conseguir ler algum dado, use valores genéricos mas NUNCA diga que a imagem não é nítida.
     `;
@@ -494,7 +499,20 @@ export const analyzeExpenseImage = async (base64Image: string, attempt: number =
     try {
         if (!genAI) throw new Error("GenAI não inicializado");
 
-        // Tenta com a versão específica da API
+        // PRIORIDADE: Se for a tentativa 0 e tivermos Groq Vision, tentamos Groq primeiro como solicitado
+        if (attempt === 0 && groq && GROQ_VISION_MODEL) {
+            console.log(`[OCR] Tentativa Prioritária usando Groq Vision: ${GROQ_VISION_MODEL}`);
+            try {
+                return await analyzeWithGroqVision(base64Data, systemPrompt);
+            } catch (groqErr: any) {
+                console.warn("[OCR] Groq Vision falhou, voltando para o fluxo normal:", groqErr.message);
+            }
+        }
+
+        // Fluxo normal com Pool de Gemini
+        const modelToUse = GEMINI_MODELS_POOL[attempt].trim();
+        const apiVersion = attempt % 2 === 0 ? 'v1' : 'v1beta';
+
         const model = genAI.getGenerativeModel(
             { model: modelToUse },
             { apiVersion: apiVersion as any }
@@ -514,11 +532,38 @@ export const analyzeExpenseImage = async (base64Image: string, attempt: number =
         console.log(`[OCR] Sucesso com ${modelToUse} (${apiVersion}):`, content);
         return JSON.parse(cleanJSON(content));
     } catch (error: any) {
-        console.error(`[OCR] Falha tentativa ${attempt} (${modelToUse} - ${apiVersion}):`, error.message);
-
-        // Tenta o próximo modelo
+        console.error(`[OCR] Falha tentativa ${attempt}:`, error.message);
+        // Tenta o próximo modelo do pool
         return await analyzeExpenseImage(base64Image, attempt + 1);
     }
+};
+
+// Nova função para Groq Vision
+const analyzeWithGroqVision = async (base64Data: string, systemPrompt: string): Promise<any> => {
+    if (!groq) throw new Error("Groq não configurado");
+
+    const response = await groq.chat.completions.create({
+        model: GROQ_VISION_MODEL,
+        messages: [
+            {
+                role: "user",
+                content: [
+                    { type: "text", text: systemPrompt },
+                    {
+                        type: "image_url",
+                        image_url: {
+                            url: `data:image/jpeg;base64,${base64Data}`,
+                        },
+                    },
+                ],
+            },
+        ],
+        response_format: { type: "json_object" }
+    });
+
+    const content = response.choices[0].message.content || "{}";
+    console.log("[OCR] Sucesso com Groq Vision:", content);
+    return JSON.parse(content);
 };
 
 // Fallback Final para OpenAI Vision
