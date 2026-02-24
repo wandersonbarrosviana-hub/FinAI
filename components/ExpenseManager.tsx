@@ -246,9 +246,9 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
           let width = img.width;
           let height = img.height;
 
-          // Max width/height
-          const MAX_WIDTH = 1200;
-          const MAX_HEIGHT = 1200;
+          // Max width/height - increased for better OCR
+          const MAX_WIDTH = 2000;
+          const MAX_HEIGHT = 2000;
 
           if (width > height) {
             if (width > MAX_WIDTH) {
@@ -267,8 +267,8 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
           const ctx = canvas.getContext('2d');
           ctx?.drawImage(img, 0, 0, width, height);
 
-          // Compress to JPEG 0.7 quality
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+          // Compress to JPEG 0.9 quality (higher for better OCR)
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
           resolve(dataUrl);
         };
         img.onerror = (err) => reject(err);

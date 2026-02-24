@@ -9,11 +9,20 @@ import {
   Bell,
   CheckCircle,
   XCircle,
-  ClipboardPaste
+  ClipboardPaste,
+  Paperclip,
+  FileText,
+  Image as ImageIcon
 } from 'lucide-react';
+import * as pdfjsLib from 'pdfjs-dist';
+import * as XLSX from 'xlsx';
 import { Transaction, Account } from '../types';
 // import { processLocalQuery } from '../localIntelligence'; // Legacy
-import { chatWithFinancialAssistant, parseNotification } from '../aiService';
+import { chatWithFinancialAssistant, parseNotification, analyzeDocumentContent, analyzeExpenseImage } from '../aiService';
+
+// Configure PDF.js worker
+import pdfWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 import { canUseAI } from '../planConstraints';
 
 interface FinancialAssistantProps {
@@ -94,6 +103,9 @@ const FinancialAssistant: React.FC<FinancialAssistantProps> = ({
   const [notificationText, setNotificationText] = useState('');
   const [isParsing, setIsParsing] = useState(false);
   const [parsedData, setParsedData] = useState<any>(null);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -199,6 +211,88 @@ const FinancialAssistant: React.FC<FinancialAssistantProps> = ({
       alert("Não consegui identificar uma transação válida neste texto.");
     }
     setIsParsing(false);
+  };
+
+  // --- File Upload & Analysis Logic ---
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    setIsTyping(true);
+
+    try {
+      let content = '';
+      let isImage = file.type.startsWith('image/');
+
+      if (isImage) {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = async () => {
+          const base64 = reader.result as string;
+          const result = await analyzeExpenseImage(base64);
+
+          if (result && !result.error) {
+            setMessages(prev => [...prev, {
+              role: 'assistant',
+              content: `📸 **Identifiquei um comprovante!**\n\n**Descrição:** ${result.description}\n**Valor:** R$ ${result.amount}\n**Categoria:** ${result.category}\n\nDeseja realizar este lançamento agora?`,
+              timestamp: new Date()
+            }]);
+            // Store result for direct action if needed
+            setParsedData(result);
+            setShowImportModal(true);
+          } else {
+            setMessages(prev => [...prev, {
+              role: 'assistant',
+              content: "Não consegui ler este comprovante. Tente uma foto mais nítida.",
+              timestamp: new Date()
+            }]);
+          }
+          setIsTyping(false);
+        };
+        return;
+      }
+
+      if (file.type === 'application/pdf') {
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+        let fullText = '';
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const textContent = await page.getTextContent();
+          fullText += textContent.items.map((item: any) => item.str).join(' ') + '\n';
+        }
+        content = fullText;
+      } else if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+        const data = await file.arrayBuffer();
+        const workbook = XLSX.read(data);
+        const firstSheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheetName];
+        content = XLSX.utils.sheet_to_csv(worksheet);
+      } else {
+        content = await file.text();
+      }
+
+      const response = await analyzeDocumentContent(file.name, content, transactions, accounts);
+
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: response,
+        timestamp: new Date()
+      }]);
+
+    } catch (error) {
+      console.error("Error processing file:", error);
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: "Erro ao processar o arquivo. Verifique o formato e tente novamente.",
+        timestamp: new Date()
+      }]);
+    } finally {
+      setIsUploading(false);
+      setIsTyping(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
   };
 
   const confirmImport = () => {
@@ -356,12 +450,27 @@ const FinancialAssistant: React.FC<FinancialAssistantProps> = ({
       <div className="p-6 bg-white border-t border-slate-100">
         <div className="flex items-center gap-3 bg-slate-50 p-2 rounded-[2rem] border border-slate-200 focus-within:ring-4 focus-within:ring-sky-500/5 focus-within:border-sky-500/30 focus-within:bg-white transition-all shadow-inner">
           <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileUpload}
+            className="hidden"
+            accept=".pdf,.csv,.xlsx,.xls,image/*"
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isTyping || isUploading}
+            className="p-3 text-slate-400 hover:text-sky-600 hover:bg-sky-50 rounded-2xl transition-all"
+            title="Anexar arquivo ou foto"
+          >
+            {isUploading ? <Loader2 size={20} className="animate-spin" /> : <Paperclip size={20} />}
+          </button>
+          <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Peça uma análise ou dica..."
-            className="flex-1 bg-transparent px-4 py-3 text-sm text-slate-700 font-medium placeholder:text-slate-300 outline-none"
+            className="flex-1 bg-transparent px-2 py-3 text-sm text-slate-700 font-medium placeholder:text-slate-300 outline-none"
             disabled={isTyping}
           />
           <button

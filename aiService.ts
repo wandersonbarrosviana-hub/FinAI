@@ -454,42 +454,53 @@ export const analyzeExpenseImage = async (base64Image: string): Promise<any> => 
     const base64Data = base64Image.split(',')[1] || base64Image;
 
     const systemPrompt = `
-    AJA COMO UM ESPECIALISTA EM OCR FINANCEIRO.
-    Sua tarefa é ler a foto desse comprovante, recibo ou cupom fiscal e extrair os dados para preencher um formulário de despesa.
+    VOCÊ É UM ESPECIALISTA EM EXTRAÇÃO DE DADOS FINANCEIROS (OCR ULTRA-PRECISO).
+    Sua missão é extrair dados de fotos de recibos, comprovantes de PIX, faturas ou cupons fiscais.
     
-    REGRAS DE EXTRAÇÃO:
-    1. Descrição: Nome do estabelecimento ou produto principal.
-    2. Valor: Valor total pago.
-    3. Categoria: Selecione a melhor categoria baseada no nome (ex: Alimentação, Transporte, Saúde, Lazer, Moradia, Educação).
-    4. Subcategoria: Uma subcategoria específica dentro da categoria.
-    5. Data: Tente encontrar a data da compra no formato YYYY-MM-DD. Use a data atual se não encontrar.
-    6. Forma de Pagamento: (Cartão de Crédito, PIX, Dinheiro, Débito).
+    INSTRUÇÕES CRÍTICAS:
+    1. Seja extremamente preciso com valores numéricos.
+    2. Identifique o Nome do Estabelecimento (ex: "Posto Shell", "Mercado Livre", "Padaria").
+    3. Categorize com inteligência (ex: se for um posto de gasolina, a categoria é "Transporte").
+    4. Se a data não estiver visível, use a data atual: ${new Date().toISOString().split('T')[0]}.
+    5. Se houver parcelas (ex: 1/10), identifique-as.
     
-    RETORNE APENAS JSON:
+    MAPA DE CATEGORIAS SUGERIDAS:
+    - Alimentação (Mercados, Restaurantes)
+    - Transporte (Combustível, App, Ônibus)
+    - Lazer (Cinema, Viagem)
+    - Saúde (Farmácia, Hospital)
+    - Moradia (Aluguel, Luz, Água)
+    - Educação (Cursos, Livros)
+    
+    RETORNE APENAS JSON NO FORMATO:
     {
       "description": string,
-      "amount": number,
+      "amount": number (apenas o número),
       "category": string,
       "subCategory": string,
       "date": "YYYY-MM-DD",
-      "paymentMethod": string,
+      "paymentMethod": "Cartão de Crédito" | "PIX" | "Dinheiro" | "Débito",
+      "installments": { "current": number, "total": number } | null,
       "confidence": number (0-100)
     }
+    
+    IMPORTANTE: Se a imagem estiver difícil de ler, tente seu melhor para extrair pelo menos o valor e o nome. Não diga que não é nítida a menos que seja impossível ver qualquer texto.
     `;
 
     try {
         if (!genAI) throw new Error("GenAI não inicializado");
 
+        // Using 1.5 Flash for speed, but with a better prompt
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
         const result = await model.generateContent([
-            systemPrompt,
             {
                 inlineData: {
                     data: base64Data,
                     mimeType: "image/jpeg"
                 }
-            }
+            },
+            { text: systemPrompt }
         ]);
 
         const content = result.response.text();
@@ -699,5 +710,35 @@ export const getInvestmentAnalysis = async (investment: any): Promise<any> => {
     } catch (error: any) {
         console.error("Investment Analysis Error:", error);
         return null;
+    }
+};
+// --- DOCUMENT CONTENT ANALYSIS ---
+export const analyzeDocumentContent = async (
+    fileName: string,
+    content: string,
+    transactions: Transaction[],
+    accounts: Account[]
+): Promise<string> => {
+    if (!GEMINI_API_KEY) return "Erro: IA não configurada.";
+
+    const systemPrompt = `
+      Você é o FinAI Assistente Financeiro. O usuário acabou de fazer upload de um arquivo chamado "${fileName}".
+      
+      CONTEÚDO DO ARQUIVO:
+      ${content.slice(0, 20000)}
+      
+      TAREFA:
+      1. Analise o que é este arquivo (extrato, nota fiscal, fatura, planilha de gastos, etc).
+      2. Resuma os pontos principais.
+      3. Se identificar transações claras, sugira ao usuário que você pode ajudá-lo a lançá-las.
+      
+      Responda em tom profissional e ajude o usuário a entender seus dados.
+    `;
+
+    try {
+        return await generateContent(systemPrompt);
+    } catch (error: any) {
+        console.error("Document Analysis Error:", error);
+        return "Tive um problema ao analisar este documento. Pode tentar novamente ou descrever o que precisa?";
     }
 };
