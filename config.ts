@@ -4,7 +4,7 @@
 export const FINAI_CONFIG = {
     // Gemini (Principal)
     GEMINI_API_KEY: import.meta.env.VITE_GOOGLE_API_KEY || "",
-    GEMINI_MODEL: 'gemini-1.5-flash',
+    GEMINI_MODEL: 'gemini-2.0-flash',
     GEMINI_PRO_MODEL: 'gemini-1.5-pro',
     GEMINI_ALTERNATE_MODELS: [
         'gemini-1.5-flash-latest',
