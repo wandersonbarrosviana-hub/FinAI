@@ -558,12 +558,11 @@ const analyzeWithGroqVision = async (base64Data: string, systemPrompt: string): 
                 ],
             },
         ],
-        response_format: { type: "json_object" }
     });
 
     const content = response.choices[0].message.content || "{}";
     console.log("[OCR] Sucesso com Groq Vision:", content);
-    return JSON.parse(content);
+    return JSON.parse(cleanJSON(content));
 };
 
 // Fallback Final para OpenAI Vision
