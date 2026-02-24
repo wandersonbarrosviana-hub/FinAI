@@ -444,38 +444,39 @@ export const parseInvoice = async (invoiceText: string): Promise<any> => {
 };
 
 // --- IMAGE OCR ANALYSIS (Recibo/Comprovante) ---
-export const analyzeExpenseImage = async (base64Image: string): Promise<any> => {
+export const analyzeExpenseImage = async (base64Image: string, attempt: number = 0): Promise<any> => {
     if (!GEMINI_API_KEY) {
         console.warn("Gemini API Key missing for image analysis.");
         return { error: "Chave de API não configurada." };
     }
 
-    // Extract base64 data from the data URL
     const base64Data = base64Image.split(',')[1] || base64Image;
+
+    // Estratégia de Redundância:
+    // 0: Gemini 1.5 Flash (Rápido)
+    // 1: Gemini 1.5 Pro (Poderoso)
+    // 2: GPT-4o-mini (Vision Fallback)
+
+    const modelToUse = attempt === 0 ? "gemini-1.5-flash" : "gemini-1.5-pro";
 
     const systemPrompt = `
     VOCÊ É UM ESPECIALISTA EM EXTRAÇÃO DE DADOS FINANCEIROS (OCR ULTRA-PRECISO).
     Sua missão é extrair dados de fotos de recibos, comprovantes de PIX, faturas ou cupons fiscais.
     
+    PROCEDIMENTO DE DUAS ETAPAS:
+    1. TRANSCRICÃO: Primeiro, transcreva TODO o texto relevante que você consegue ler na imagem (Estabelecimento, Valores, Datas, Itens).
+    2. EXTRAÇÃO: Com base na transcrição acima, gere o JSON final.
+    
     INSTRUÇÕES CRÍTICAS:
-    1. Seja extremamente preciso com valores numéricos.
-    2. Identifique o Nome do Estabelecimento (ex: "Posto Shell", "Mercado Livre", "Padaria").
-    3. Categorize com inteligência (ex: se for um posto de gasolina, a categoria é "Transporte").
-    4. Se a data não estiver visível, use a data atual: ${new Date().toISOString().split('T')[0]}.
-    5. Se houver parcelas (ex: 1/10), identifique-as.
+    - Identifique o Nome do Estabelecimento de forma clara.
+    - O valor deve ser o TOTAL pago.
+    - Categorize com base no contexto (Posto = Transporte, Mercado = Alimentação, etc).
+    - Data atual para referência: ${new Date().toISOString().split('T')[0]}.
     
-    MAPA DE CATEGORIAS SUGERIDAS:
-    - Alimentação (Mercados, Restaurantes)
-    - Transporte (Combustível, App, Ônibus)
-    - Lazer (Cinema, Viagem)
-    - Saúde (Farmácia, Hospital)
-    - Moradia (Aluguel, Luz, Água)
-    - Educação (Cursos, Livros)
-    
-    RETORNE APENAS JSON NO FORMATO:
+    RETORNE APENAS O JSON FINAL (ignoring a transcrição no output final mas usando-a internamente):
     {
       "description": string,
-      "amount": number (apenas o número),
+      "amount": number,
       "category": string,
       "subCategory": string,
       "date": "YYYY-MM-DD",
@@ -484,31 +485,68 @@ export const analyzeExpenseImage = async (base64Image: string): Promise<any> => 
       "confidence": number (0-100)
     }
     
-    IMPORTANTE: Se a imagem estiver difícil de ler, tente seu melhor para extrair pelo menos o valor e o nome. Não diga que não é nítida a menos que seja impossível ver qualquer texto.
+    IMPORTANTE: Nunca diga que a imagem não é nítida. Extraia o que for possível, mesmo que seja apenas o valor total.
     `;
 
     try {
-        if (!genAI) throw new Error("GenAI não inicializado");
+        if (attempt < 2) {
+            if (!genAI) throw new Error("GenAI não inicializado");
+            const model = genAI.getGenerativeModel({ model: modelToUse });
 
-        // Using 1.5 Flash for speed, but with a better prompt
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const result = await model.generateContent([
+                {
+                    inlineData: {
+                        data: base64Data,
+                        mimeType: "image/jpeg"
+                    }
+                },
+                { text: systemPrompt }
+            ]);
 
-        const result = await model.generateContent([
-            {
-                inlineData: {
-                    data: base64Data,
-                    mimeType: "image/jpeg"
-                }
-            },
-            { text: systemPrompt }
-        ]);
+            const content = result.response.text();
+            const cleaned = cleanJSON(content);
+            const parsed = JSON.parse(cleaned);
 
-        const content = result.response.text();
-        console.log("Gemini Vision Response:", content);
-        return JSON.parse(cleanJSON(content));
+            // Requisito de Confiança: Se a IA não tiver certeza (>60), tentar o próximo modelo
+            if (parsed.confidence < 60 && attempt === 0) {
+                console.log(`Baixa confiança (${parsed.confidence}%) com Flash. Tentando Pro...`);
+                return await analyzeExpenseImage(base64Image, 1);
+            }
+
+            return parsed;
+        } else {
+            // Fallback Final: OpenAI Vision
+            if (!openai) throw new Error("OpenAI Fallback não disponível");
+
+            const response = await openai.chat.completions.create({
+                model: "gpt-4o-mini",
+                messages: [
+                    {
+                        role: "user",
+                        content: [
+                            { type: "text", text: systemPrompt },
+                            {
+                                type: "image_url",
+                                image_url: {
+                                    url: `data:image/jpeg;base64,${base64Data}`,
+                                },
+                            },
+                        ],
+                    },
+                ],
+                response_format: { type: "json_object" }
+            });
+
+            return JSON.parse(response.choices[0].message.content || "{}");
+        }
     } catch (error: any) {
-        console.error("Gemini Vision Error:", error);
-        return { error: `Erro na análise da imagem: ${error.message}` };
+        console.error(`OCR Attempt ${attempt} failed:`, error);
+
+        if (attempt < 2) {
+            return await analyzeExpenseImage(base64Image, attempt + 1);
+        }
+
+        return { error: `Impossível processar imagem após múltiplas tentativas: ${error.message}` };
     }
 };
 

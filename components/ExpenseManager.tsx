@@ -233,8 +233,8 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
     setShowMoreInfo(false);
   };
 
-  // Helper to compress image
-  const compressImage = (file: File): Promise<string> => {
+  // Helper to compress and optionally enhance image for OCR
+  const compressImage = (file: File, enhance = false): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.readAsDataURL(file);
@@ -265,7 +265,14 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
           canvas.width = width;
           canvas.height = height;
           const ctx = canvas.getContext('2d');
-          ctx?.drawImage(img, 0, 0, width, height);
+
+          if (ctx) {
+            if (enhance) {
+              // Apply filters to make text pop for OCR
+              ctx.filter = 'contrast(1.4) brightness(1.05) grayscale(0.2)';
+            }
+            ctx.drawImage(img, 0, 0, width, height);
+          }
 
           // Compress to JPEG 0.9 quality (higher for better OCR)
           const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
@@ -286,14 +293,15 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
       }
 
       try {
-        const compressedBase64 = await compressImage(file);
+        // Enhance only if it's for scanning
+        const compressedBase64 = await compressImage(file, isForScan);
         setAttachment(compressedBase64);
 
         if (isForScan) {
           handleScanReceipt(compressedBase64);
         }
       } catch (error) {
-        console.error("Erro ao comprimir imagem:", error);
+        console.error("Erro ao processar imagem:", error);
         alert("Erro ao processar a imagem. Tente novamente.");
       } finally {
         e.target.value = '';
