@@ -444,37 +444,40 @@ export const parseInvoice = async (invoiceText: string): Promise<any> => {
 };
 
 // --- IMAGE OCR ANALYSIS (Recibo/Comprovante) ---
+// --- IMAGE OCR ANALYSIS (Recibo/Comprovante) ---
 export const analyzeExpenseImage = async (base64Image: string, attempt: number = 0): Promise<any> => {
     if (!GEMINI_API_KEY) {
-        console.warn("Gemini API Key missing for image analysis.");
-        return { error: "Chave de API não configurada." };
+        console.warn("Gemini API Key missing.");
+        return { error: "Chave de API Gemini não configurada." };
     }
 
     const base64Data = base64Image.split(',')[1] || base64Image;
 
-    // Estratégia de Redundância:
-    // 0: Gemini 1.5 Flash (Rápido)
-    // 1: Gemini 1.5 Pro (Poderoso)
-    // 2: GPT-4o-mini (Vision Fallback)
+    // Lista exaustiva de modelos de visão para tentar em caso de 404
+    const GEMINI_MODELS_POOL = [
+        FINAI_CONFIG.GEMINI_MODEL,    // Padrão (gemini-1.5-flash)
+        FINAI_CONFIG.GEMINI_PRO_MODEL, // Pro (gemini-1.5-pro)
+        ...FINAI_CONFIG.GEMINI_ALTERNATE_MODELS,
+        'gemini-1.5-flash-latest',
+        'gemini-1.5-pro-latest'
+    ];
 
-    const modelToUse = (attempt === 0 ? FINAI_CONFIG.GEMINI_MODEL : FINAI_CONFIG.GEMINI_PRO_MODEL).trim();
-    console.log(`[OCR] Tentativa ${attempt} usando modelo: ${modelToUse}`);
+    if (attempt >= GEMINI_MODELS_POOL.length) {
+        // Se esgotou os modelos Gemini, tenta OpenAI
+        return await analyzeWithOpenAIVision(base64Data);
+    }
+
+    const modelToUse = GEMINI_MODELS_POOL[attempt].trim();
+    // Tenta v1 primeiro na tentativa 0, depois alterna
+    const apiVersion = attempt % 2 === 0 ? 'v1' : 'v1beta';
+
+    console.log(`[OCR] Tentativa ${attempt} usando model: ${modelToUse} (${apiVersion})`);
 
     const systemPrompt = `
-    VOCÊ É UM ESPECIALISTA EM EXTRAÇÃO DE DADOS FINANCEIROS (OCR ULTRA-PRECISO).
-    Sua missão é extrair dados de fotos de recibos, comprovantes de PIX, faturas ou cupons fiscais.
+    VOCÊ É UM ESPECIALISTA EM OCR FINANCEIRO.
+    Sua missão é extrair dados de fotos de recibos, faturas ou cupons fiscais.
     
-    PROCEDIMENTO DE DUAS ETAPAS:
-    1. TRANSCRICÃO: Primeiro, transcreva TODO o texto relevante que você consegue ler na imagem (Estabelecimento, Valores, Datas, Itens).
-    2. EXTRAÇÃO: Com base na transcrição acima, gere o JSON final.
-    
-    INSTRUÇÕES CRÍTICAS:
-    - Identifique o Nome do Estabelecimento de forma clara.
-    - O valor deve ser o TOTAL pago.
-    - Categorize com base no contexto (Posto = Transporte, Mercado = Alimentação, etc).
-    - Data atual para referência: ${new Date().toISOString().split('T')[0]}.
-    
-    RETORNE APENAS O JSON FINAL (ignoring a transcrição no output final mas usando-a internamente):
+    ESTRUTURA DE RETORNO (JSON):
     {
       "description": string,
       "amount": number,
@@ -482,93 +485,77 @@ export const analyzeExpenseImage = async (base64Image: string, attempt: number =
       "subCategory": string,
       "date": "YYYY-MM-DD",
       "paymentMethod": "Cartão de Crédito" | "PIX" | "Dinheiro" | "Débito",
-      "installments": { "current": number, "total": number } | null,
       "confidence": number (0-100)
     }
     
-    IMPORTANTE: Nunca diga que a imagem não é nítida. Extraia o que for possível, mesmo que seja apenas o valor total.
+    IMPORTANTE: Se não conseguir ler algum dado, use valores genéricos mas NUNCA diga que a imagem não é nítida.
     `;
 
     try {
-        if (attempt < 2) {
-            if (!genAI) throw new Error("GenAI não inicializado");
+        if (!genAI) throw new Error("GenAI não inicializado");
 
-            // Tentar o modelo solicitado
-            const model = genAI.getGenerativeModel({ model: modelToUse });
+        // Tenta com a versão específica da API
+        const model = genAI.getGenerativeModel(
+            { model: modelToUse },
+            { apiVersion: apiVersion as any }
+        );
 
-            const result = await model.generateContent([
-                {
-                    inlineData: {
-                        data: base64Data,
-                        mimeType: "image/jpeg"
-                    }
-                },
-                { text: systemPrompt }
-            ]);
+        const result = await model.generateContent([
+            {
+                inlineData: {
+                    data: base64Data,
+                    mimeType: "image/jpeg"
+                }
+            },
+            { text: systemPrompt }
+        ]);
 
-            const content = result.response.text();
-            console.log(`[OCR] Resposta do modelo ${modelToUse}:`, content);
-            const cleaned = cleanJSON(content);
-            const parsed = JSON.parse(cleaned);
-
-            // Requisito de Confiança: Se a IA não tiver certeza (<60), tentar o próximo modelo
-            if ((!parsed.description || parsed.confidence < 60) && attempt === 0) {
-                console.warn(`Baixa confiança ou dados incompletos com ${modelToUse}. Tentando fallback...`);
-                return await analyzeExpenseImage(base64Image, 1);
-            }
-
-            return parsed;
-        } else {
-            // Fallback Final: OpenAI Vision (Muito resiliente)
-            if (!openai) throw new Error("OpenAI Fallback não disponível");
-            console.log("[OCR] Usando fallback final: GPT-4o-mini Vision");
-
-            const response = await openai.chat.completions.create({
-                model: "gpt-4o-mini",
-                messages: [
-                    {
-                        role: "user",
-                        content: [
-                            { type: "text", text: systemPrompt },
-                            {
-                                type: "image_url",
-                                image_url: {
-                                    url: `data:image/jpeg;base64,${base64Data}`,
-                                },
-                            },
-                        ],
-                    },
-                ],
-                response_format: { type: "json_object" }
-            });
-
-            const content = response.choices[0].message.content || "{}";
-            console.log("[OCR] Resposta GPT-4o-mini:", content);
-            return JSON.parse(content);
-        }
+        const content = result.response.text();
+        console.log(`[OCR] Sucesso com ${modelToUse} (${apiVersion}):`, content);
+        return JSON.parse(cleanJSON(content));
     } catch (error: any) {
-        console.error(`[OCR] Erro na tentativa ${attempt} (${modelToUse}):`, error.message);
+        console.error(`[OCR] Falha tentativa ${attempt} (${modelToUse} - ${apiVersion}):`, error.message);
 
-        // Se o erro for 404 e estivermos na tentativa 0, tentar gemini-1.5-flash-latest antes de ir pro Pro
-        if (error.message?.includes('404') && attempt === 0) {
-            console.log("[OCR] Modelo não encontrado. Tentando alias 'gemini-1.5-flash-latest'...");
-            try {
-                const altModel = genAI!.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
-                const result = await altModel.generateContent([
-                    { inlineData: { data: base64Data, mimeType: "image/jpeg" } },
-                    { text: systemPrompt }
-                ]);
-                return JSON.parse(cleanJSON(result.response.text()));
-            } catch (innerError) {
-                console.error("[OCR] Alias alternativo também falhou. Pulando para a próxima tentativa.");
-            }
-        }
+        // Tenta o próximo modelo
+        return await analyzeExpenseImage(base64Image, attempt + 1);
+    }
+};
 
-        if (attempt < 2) {
-            return await analyzeExpenseImage(base64Image, attempt + 1);
-        }
+// Fallback Final para OpenAI Vision
+const analyzeWithOpenAIVision = async (base64Data: string): Promise<any> => {
+    if (!openai) {
+        console.warn("[OCR] OpenAI Fallback não configurado.");
+        return { error: "Todos os modelos Gemini falharam e o fallback OpenAI não está configurado." };
+    }
 
-        return { error: `Impossível processar imagem após múltiplas tentativas: ${error.message}` };
+    console.log("[OCR] Acionando Fallback Final: GPT-4o-mini Vision");
+
+    try {
+        const response = await openai.chat.completions.create({
+            model: "gpt-4o-mini",
+            messages: [
+                {
+                    role: "user",
+                    content: [
+                        { type: "text", text: "Extract financial data from image into JSON: description, amount, category, subCategory, date (YYYY-MM-DD), paymentMethod, confidence." },
+                        {
+                            type: "image_url",
+                            image_url: {
+                                url: `data:image/jpeg;base64,${base64Data}`,
+                            },
+                        },
+                    ],
+                },
+            ],
+            response_format: { type: "json_object" }
+        });
+
+        const content = response.choices[0].message.content || "{}";
+        console.log("[OCR] Sucesso com OpenAI Fallback:", content);
+        return JSON.parse(content);
+    } catch (error: any) {
+        console.error("[OCR] Falha total:", error.message);
+        return { error: "Falha total no sistema de reconhecimento." };
     }
 };
 
