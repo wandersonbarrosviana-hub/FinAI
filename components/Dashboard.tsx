@@ -382,7 +382,7 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
                           dataKey="name"
                           axisLine={false}
                           tickLine={false}
-                          tick={{ fill: '#64748b', fontSize: 10, fontWeight: 'bold' }}
+                          tick={{ fill: '#0f172a', fontSize: 10, fontWeight: '900' }}
                         />
                         <YAxis hide />
                         <Tooltip content={<CustomTooltip />} />
@@ -390,9 +390,9 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
                           type="monotone"
                           dataKey="Receitas"
                           stroke="#10b981"
-                          strokeWidth={3}
+                          strokeWidth={4}
                           fillOpacity={1}
-                          fill="url(#colorIncome)"
+                          fill="url(#waveGradient)"
                           animationDuration={1500}
                           className="glow-emerald"
                         />
@@ -400,8 +400,8 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
                           type="monotone"
                           dataKey="Despesas"
                           stroke="#f43f5e"
-                          strokeWidth={3}
-                          fillOpacity={1}
+                          strokeWidth={4}
+                          fillOpacity={0.6}
                           fill="url(#colorExpense)"
                           animationDuration={1500}
                           className="glow-rose"

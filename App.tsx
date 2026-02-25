@@ -1367,7 +1367,17 @@ const App: React.FC = () => {
 
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex overflow-hidden selection:bg-sky-500/30 no-horizontal-scroll">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex overflow-hidden selection:bg-indigo-500/30 no-horizontal-scroll">
+      <svg width="0" height="0" style={{ position: 'absolute', pointerEvents: 'none' }}>
+        <defs>
+          <linearGradient id="waveGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="var(--color-primary)" stopOpacity="0.8">
+              <animate attributeName="stop-opacity" values="0.8;0.5;0.8" dur="4s" repeatCount="indefinite" />
+            </stop>
+            <stop offset="100%" stopColor="var(--color-primary)" stopOpacity="0.1" />
+          </linearGradient>
+        </defs>
+      </svg>
       <Sidebar currentView={currentView} onViewChange={setCurrentView} isOpen={sidebarOpen} setIsOpen={setSidebarOpen} onLogout={handleLogout} userRole={userRole} />
       <main className={`flex-1 flex flex-col transition-[margin] duration-300 ease-in-out no-horizontal-scroll pb-24 md:pb-8 pt-safe mt-14 md:mt-0 px-4 md:px-0 ${sidebarOpen ? 'md:ml-64' : 'md:ml-20'}`}>
         {/* Header - White Glassmorphism */}
@@ -1433,7 +1443,7 @@ const App: React.FC = () => {
 
                 <button
                   onClick={() => setIsProfileModalOpen(true)}
-                  className="w-9 h-9 sm:w-10 sm:h-10 bg-sky-50 rounded-xl sm:rounded-2xl flex items-center justify-center text-sky-600 font-black text-xs sm:text-sm shadow-sm border border-sky-100 hover:bg-sky-100 transition-all relative overflow-hidden"
+                  className="w-9 h-9 sm:w-10 sm:h-10 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl sm:rounded-2xl flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-black text-xs sm:text-sm shadow-sm border border-indigo-100 dark:border-indigo-800 hover:bg-indigo-100 transition-all relative overflow-hidden avatar-vibrant"
                 >
                   {user.avatarUrl ? (
                     <img src={user.avatarUrl} alt={user.name} className="w-full h-full object-cover" />

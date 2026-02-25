@@ -84,7 +84,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, isOpen, se
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                className="w-8 h-8 bg-sky-600 rounded-lg flex items-center justify-center text-white font-black text-xs shrink-0"
+                className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-black text-xs shrink-0 shadow-lg glow-indigo"
               >
                 F
               </motion.div>
@@ -115,14 +115,14 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, isOpen, se
                 key={item.id}
                 onClick={() => handleNavClick(item.id)}
                 className={`w-full flex items-center p-3 sm:p-3.5 rounded-xl transition-colors relative group overflow-hidden ${isActive
-                  ? 'bg-sky-50/50 dark:bg-sky-900/10 text-sky-600 dark:text-sky-400 shadow-[inset_4px_0_0_0_#0284c7]'
+                  ? 'bg-indigo-50/50 dark:bg-indigo-900/10 text-indigo-600 dark:text-indigo-400 shadow-[inset_4px_0_0_0_#6366f1]'
                   : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800'
                   }`}
               >
                 <div className={`flex items-center relative z-10 ${isOpen ? 'ml-1 sm:ml-2' : 'mx-auto'}`}>
                   {React.cloneElement(item.icon as any, {
                     size: 20,
-                    className: `transition-transform duration-300 ${isActive ? 'scale-110 filter drop-shadow-[0_0_8px_rgba(0,0,0,0.1)]' : 'opacity-80 group-hover:opacity-100 group-hover:scale-110'}`
+                    className: `transition-transform duration-300 ${isActive ? 'scale-110 filter drop-shadow-[0_0_8px_rgba(99,102,241,0.4)]' : 'opacity-80 group-hover:opacity-100 group-hover:scale-110'}`
                   })}
 
                   <AnimatePresence mode="wait">

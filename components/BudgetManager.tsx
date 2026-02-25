@@ -293,23 +293,26 @@ const BudgetManager: React.FC<BudgetManagerProps> = ({ transactions, budgets: pe
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" />
-                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} interval={0} />
-                                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} tickFormatter={(value) => `R$${value / 1000}k`} />
+                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#0f172a', fontWeight: '900' }} interval={0} />
+                                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#0f172a', fontWeight: '900' }} tickFormatter={(value) => `R$${value / 1000}k`} />
                                 <Tooltip content={<CustomTooltip />} cursor={{ fill: 'transparent' }} />
                                 <Legend wrapperStyle={{ paddingTop: '20px' }} />
-                                <Bar dataKey="Orçado" fill="#334155" radius={[4, 4, 0, 0]} name="Meta Orçamentária" />
+                                <Bar dataKey="Orçado" fill="#334155" radius={[6, 6, 0, 0]} name="Meta Orçamentária" opacity={0.4} />
                                 <Bar
                                     dataKey="Efetivado"
-                                    fill="#10b981"
-                                    radius={[4, 4, 0, 0]}
+                                    fill="url(#waveGradient)"
+                                    radius={[8, 8, 0, 0]}
                                     name="Gasto Efetivado"
-                                    className="cursor-pointer"
+                                    className="cursor-pointer chart-wave-fill shadow-lg"
                                     onClick={(data) => handleBarClick(data)}
                                 />
                                 <Bar
                                     dataKey="Projetado"
-                                    fill="#0ea5e9"
-                                    radius={[4, 4, 0, 0]}
+                                    fill="url(#liquidWavePattern)"
+                                    stroke="var(--color-primary)"
+                                    strokeWidth={1}
+                                    strokeDasharray="4 4"
+                                    radius={[8, 8, 0, 0]}
                                     name="Gasto Projetado (Total)"
                                     className="cursor-pointer"
                                     onClick={(data) => handleBarClick(data)}
