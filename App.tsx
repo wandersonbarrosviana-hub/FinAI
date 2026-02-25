@@ -35,7 +35,7 @@ import { Budget, CustomBudget } from './types';
 import { Bell, Search, User as UserIcon, Plus, Sparkles, AlertCircle, ChevronLeft, ChevronRight, Loader2, LogOut, Settings as SettingsIcon, MessageSquare, Menu } from 'lucide-react';
 import { parseNotification } from './aiService';
 import { supabase } from './supabaseClient';
-import { Transaction, Account, Goal, User, ViewState, Tag, AppNotification, Debt } from './types';
+import { Transaction, Account, Goal, User, ViewState, Tag, AppNotification, Debt, FinancialScore } from './types';
 
 import { Session } from '@supabase/supabase-js';
 import { db } from './db';
@@ -174,11 +174,12 @@ const App: React.FC = () => {
       setSession(session);
       if (session?.user) {
         // Silently update user data if online
-        const userData = {
+        const userData: User = {
           id: session.user.id,
           email: session.user.email!,
           name: session.user.user_metadata.name || session.user.email!.split('@')[0],
-          avatarUrl: session.user.user_metadata.avatar_url
+          avatarUrl: session.user.user_metadata.avatar_url,
+          whatsappNumber: session.user.user_metadata.whatsapp_number
         };
         setUser(userData);
         localStorage.setItem('finai_user_data', JSON.stringify(userData));
@@ -199,11 +200,12 @@ const App: React.FC = () => {
       if (event === 'SIGNED_IN') {
         setSession(session);
         if (session?.user) {
-          const userData = {
+          const userData: User = {
             id: session.user.id,
             email: session.user.email!,
             name: session.user.user_metadata.name || session.user.email!.split('@')[0],
-            avatarUrl: session.user.user_metadata.avatar_url
+            avatarUrl: session.user.user_metadata.avatar_url,
+            whatsappNumber: session.user.user_metadata.whatsapp_number
           };
           setUser(userData);
           localStorage.setItem('finai_user_data', JSON.stringify(userData));
@@ -333,7 +335,7 @@ const App: React.FC = () => {
           supabase.from('budgets').select('*'),
           supabase.from('custom_budgets').select('*'),
           supabase.rpc('get_family_details', { current_user_id: userId }),
-          supabase.from('profiles').select('role, plan_type').eq('id', userId).single()
+          supabase.from('profiles').select('role, plan_type, whatsapp_number').eq('id', userId).single()
         ]);
 
         if (txRes.error) throw txRes.error;
@@ -351,6 +353,11 @@ const App: React.FC = () => {
         if (profileRes.data) {
           setUserRole(profileRes.data.role);
           setUserPlan(profileRes.data.plan_type as 'free' | 'pro' | 'premium' || 'free');
+          if (user) {
+            const updatedUser = { ...user, whatsappNumber: profileRes.data.whatsapp_number };
+            setUser(updatedUser);
+            localStorage.setItem('finai_user_data', JSON.stringify(updatedUser));
+          }
         }
 
         // Process Family Members
@@ -463,7 +470,7 @@ const App: React.FC = () => {
           } else {
             // Se não tiver no servidor, calcular localmente
             const { calculateFinancialScore } = await import('./scoreService');
-            const initialScore = await calculateFinancialScore(userId, mappedTxs, mappedAccs, budData, debtData || []);
+            const initialScore = await calculateFinancialScore(userId, mappedTxs, mappedAccs, budData, debts || []);
             setFinancialScore(initialScore);
           }
 
@@ -763,6 +770,36 @@ const App: React.FC = () => {
     const d = String(date.getDate()).padStart(2, '0');
 
     return `${y}-${m}-${d}`;
+  };
+
+  const handleUpdateProfile = async (name: string, avatarUrl?: string, whatsappNumber?: string) => {
+    if (!user) return;
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          name,
+          avatar_url: avatarUrl,
+          whatsapp_number: whatsappNumber,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
+
+      if (error) throw error;
+
+      // Update Auth Metadata as well for persistence
+      await supabase.auth.updateUser({
+        data: { name, avatar_url: avatarUrl, whatsapp_number: whatsappNumber }
+      });
+
+      const updatedUser = { ...user, name, avatarUrl, whatsappNumber };
+      setUser(updatedUser);
+      localStorage.setItem('finai_user_data', JSON.stringify(updatedUser));
+      alert('Perfil atualizado com sucesso!');
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      alert('Erro ao atualizar perfil.');
+    }
   };
 
   const handleAddTransaction = async (data: Partial<Transaction>) => {
@@ -1658,7 +1695,7 @@ const App: React.FC = () => {
           user={user}
           isOpen={isProfileModalOpen}
           onClose={() => setIsProfileModalOpen(false)}
-          onUpdate={async () => { }}
+          onUpdate={handleUpdateProfile}
           userPlan={userPlan}
           userRole={userRole}
         />

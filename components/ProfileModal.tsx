@@ -7,14 +7,18 @@ interface ProfileModalProps {
     user: UserType;
     isOpen: boolean;
     onClose: () => void;
-    onUpdate: (newName: string, newAvatarUrl?: string) => Promise<void>;
+    onUpdate: (newName: string, newAvatarUrl?: string, newWhatsapp?: string) => Promise<void>;
     userPlan: 'free' | 'pro' | 'premium';
     userRole: string;
 }
 
 const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUpdate, userPlan, userRole }) => {
     const [loading, setLoading] = useState(false);
-    const [formData, setFormData] = useState({ name: user.name || '', avatarUrl: user.avatarUrl }); // Removed avatarPreview/file hooks here, will re-add if needed or integrate logic
+    const [formData, setFormData] = useState({
+        name: user.name || '',
+        avatarUrl: user.avatarUrl,
+        whatsappNumber: user.whatsappNumber || ''
+    });
     const [avatarPreview, setAvatarPreview] = useState<string | null>(user.avatarUrl || null);
     const [avatarFile, setAvatarFile] = useState<File | null>(null);
     const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'family'>('profile');
@@ -276,7 +280,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
         setLoading(true);
         try {
             const avatarUrl = await uploadAvatar();
-            await onUpdate(formData.name, avatarUrl || undefined);
+            await onUpdate(formData.name, avatarUrl || undefined, formData.whatsappNumber);
             onClose();
         } catch (error) {
             console.error('Error updating profile:', error);
@@ -398,6 +402,22 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, isOpen, onClose, onUp
                                                 className="w-full pl-12 pr-4 py-3 bg-slate-100 border border-slate-200 rounded-xl text-slate-500 font-medium cursor-not-allowed"
                                             />
                                         </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">WhatsApp para Lançamentos (com DDD)</label>
+                                        <div className="relative">
+                                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">
+                                                +
+                                            </div>
+                                            <input
+                                                type="tel"
+                                                placeholder="5511999999999"
+                                                value={formData.whatsappNumber}
+                                                onChange={e => setFormData({ ...formData, whatsappNumber: e.target.value.replace(/\D/g, '') })}
+                                                className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all font-medium text-slate-700"
+                                            />
+                                        </div>
+                                        <p className="mt-1 text-[10px] text-slate-400">Insira apenas números com código do país e DDD (Ex: 5511999999999). Esse número será usado para validar seus lançamentos via WhatsApp.</p>
                                     </div>
                                 </div>
                             </div>

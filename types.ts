@@ -78,6 +78,7 @@ export interface User {
   email: string;
   name: string;
   avatarUrl?: string;
+  whatsappNumber?: string;
 }
 
 export type ViewState =
