@@ -182,11 +182,13 @@ const GoalManager: React.FC<GoalManagerProps> = ({ goals, transactions, accounts
                 </div>
               </div>
 
-              <div className="mt-6 h-3 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-800 rounded-full overflow-hidden shadow-inner dark:shadow-none">
+              <div className="mt-6 h-3 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-800 rounded-full overflow-hidden shadow-inner dark:shadow-none relative">
                 <div
-                  className="h-full bg-gradient-to-r from-sky-400 to-sky-600 rounded-full transition-all duration-1000 shadow-lg shadow-sky-500/30"
+                  className="h-full bg-gradient-to-r from-sky-400 to-sky-600 rounded-full transition-all duration-1000 shadow-lg glow-sky relative overflow-hidden"
                   style={{ width: `${progress}%` }}
-                ></div>
+                >
+                  <div className="absolute inset-0 animate-wave"></div>
+                </div>
               </div>
 
               <div className="mt-8 pt-6 border-t border-slate-50 dark:border-slate-800 flex items-center justify-between">

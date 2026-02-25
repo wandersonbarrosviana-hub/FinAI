@@ -102,7 +102,8 @@ export type ViewState =
   | 'ai-assistant'
   | 'tags'
   | 'admin'
-  | 'investments';
+  | 'investments'
+  | 'financial-assessment';
 
 export type DebtType = 'financing' | 'personal_loan' | 'credit_card' | 'informal' | 'other';
 export type AmortizationType = 'sac' | 'price' | 'unknown';
@@ -242,4 +243,33 @@ export interface SearchSuggestion {
   ticker: string;
   name: string;
   exchange?: string;
+}
+
+export interface FinancialScore {
+  id: string;
+  user_id: string;
+  total_score: number;
+  structure_score: number;
+  stability_score: number;
+  behavior_score: number;
+  psychology_score: number;
+  month: string;
+  updated_at: string;
+}
+
+export interface QuizResponse {
+  id: string;
+  user_id: string;
+  responses: Record<string, number>; // questionId -> score (1-5)
+  month: string;
+  created_at: string;
+}
+
+export interface RankingEntry {
+  user_id: string;
+  total_score: number;
+  month: string;
+  name: string;
+  avatar_url?: string;
+  percentile?: number;
 }

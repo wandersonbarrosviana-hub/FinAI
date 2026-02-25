@@ -398,9 +398,11 @@ const CategoryBudgetCard = React.memo(({ budget, sliderMax, onUpdate }: Category
                 <div className="absolute w-full h-4 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                     {/* Spending Bar */}
                     <div
-                        className={`h-full transition-all duration-700 ${isOverBudget ? 'bg-rose-400 dark:bg-rose-500' : 'bg-slate-300 dark:bg-slate-600'}`}
+                        className={`h-full transition-all duration-700 relative overflow-hidden ${isOverBudget ? 'bg-rose-400 dark:bg-rose-500 glow-rose' : 'bg-slate-300 dark:bg-slate-600'}`}
                         style={{ width: `${spendingWidth}%` }}
-                    ></div>
+                    >
+                        {isOverBudget && <div className="absolute inset-0 animate-wave"></div>}
+                    </div>
                 </div>
 
                 {/* The Range Input - Hidden but captures events */}

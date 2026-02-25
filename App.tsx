@@ -15,6 +15,7 @@ import CreditCardManager from './components/CreditCardManager';
 import ChartsHub from './components/ChartsHub';
 import CategoryManager from './components/CategoryManager';
 import Reports from './components/Reports';
+import FinancialAssessment from './components/FinancialAssessment';
 
 import { THEMES } from './constants';
 
@@ -126,6 +127,7 @@ const App: React.FC = () => {
   const [showNotificationPopup, setShowNotificationPopup] = useState(false);
   const [notificationData, setNotificationData] = useState<any>(null);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [financialScore, setFinancialScore] = useState<Partial<FinancialScore> | null>(null);
   // aiAdvice moved to Dashboard component
 
   // Date State for Global Filter
@@ -446,6 +448,24 @@ const App: React.FC = () => {
           await db.tags.bulkPut(tagData);
           await db.budgets.bulkPut(budData);
           await db.customBudgets.bulkPut(mappedCB);
+
+          // Buscar Financial Score
+          const currentMonth = new Date().toISOString().slice(0, 7);
+          const { data: scoreData } = await supabase
+            .from('financial_scores')
+            .select('*')
+            .eq('user_id', userId)
+            .eq('month', currentMonth)
+            .single();
+
+          if (scoreData) {
+            setFinancialScore(scoreData);
+          } else {
+            // Se não tiver no servidor, calcular localmente
+            const { calculateFinancialScore } = await import('./scoreService');
+            const initialScore = await calculateFinancialScore(userId, mappedTxs, mappedAccs, budData, debtData || []);
+            setFinancialScore(initialScore);
+          }
 
           localStorage.setItem('finai_fallback_txs', JSON.stringify(mappedTxs.slice(0, 50)));
           localStorage.setItem('finai_fallback_accs', JSON.stringify(mappedAccs));
@@ -1420,6 +1440,7 @@ const App: React.FC = () => {
                 budgets={budgets}
                 customBudgets={customBudgets}
                 familyMembers={familyMembers}
+                financialScore={financialScore}
               />
             </div>
             <div className={currentView === 'transactions' ? '' : 'hidden'}>
@@ -1457,6 +1478,17 @@ const App: React.FC = () => {
                 currentDate={currentDate}
                 tags={tags}
               />
+            </div>
+            <div className={currentView === 'financial-assessment' ? '' : 'hidden'}>
+              {user && (
+                <FinancialAssessment
+                  userId={user.id}
+                  transactions={transactions}
+                  accounts={accounts}
+                  budgets={budgets}
+                  debts={debts}
+                />
+              )}
             </div>
             <div className={currentView === 'credit-cards' ? '' : 'hidden'}>
               <CreditCardManager accounts={accounts.filter(a => a.isCredit)} transactions={transactions} onAddTransaction={handleAddTransaction} onAddAccount={handleAddAccount} />

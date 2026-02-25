@@ -28,6 +28,56 @@ const Reports: React.FC<ReportsProps> = ({ transactions, accounts, tags, current
     const [viewType, setViewType] = useState<'daily' | 'monthly'>('daily');
     const [groupBy, setGroupBy] = useState<'none' | 'category' | 'subcategory'>('none');
 
+    // Filter Logic
+    const filteredTransactions = React.useMemo(() => {
+        return transactions.filter(t => {
+            // 1. Period Filter based on reference
+            const dateStr = dateReference === 'date' ? t.date :
+                dateReference === 'dueDate' ? (t.dueDate || t.date) :
+                    (t.paymentDate || t.date);
+            const itemDate = new Date(dateStr);
+            const start = new Date(dateRange.start);
+            const end = new Date(dateRange.end);
+
+            // Set times to midnight for accurate comparison
+            itemDate.setHours(0, 0, 0, 0);
+            start.setHours(0, 0, 0, 0);
+            end.setHours(0, 0, 0, 0);
+
+            if (itemDate < start || itemDate > end) return false;
+
+            // 2. Status Filter
+            if (status === 'paid' && !t.isPaid) return false;
+            // Vencidas se pendente e data < hoje
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const dueDate = new Date(t.dueDate || t.date);
+            dueDate.setHours(0, 0, 0, 0);
+
+            if (status === 'overdue' && (t.isPaid || dueDate >= today)) return false;
+            if (status === 'pending' && (!t.isPaid && dueDate < today)) return false; // Se forpending, tiramos as vencidas (vencidas tem filtro próprio se o user quiser, ou pending = todas não pagas)
+
+            // Ajuste no status: se o usuário selecionou pending, mostramos as não pagas indep. do vencimento.
+            // Se selecionou overdue, apenas não pagas e vencidas.
+            if (status === 'pending' && t.isPaid) return false;
+
+            // 3. Recurrence
+            if (recurrence !== 'all' && t.recurrence !== recurrence) return false;
+
+            // 4. Multi-select filters (simulados)
+            if (selectedAccounts.length > 0 && !selectedAccounts.includes(t.account)) return false;
+            if (selectedCategories.length > 0 && !selectedCategories.includes(t.category)) return false;
+
+            return true;
+        }).sort((a, b) => {
+            if (sortBy === 'date_asc') return new Date(a.date).getTime() - new Date(b.date).getTime();
+            if (sortBy === 'date_desc') return new Date(b.date).getTime() - new Date(a.date).getTime();
+            if (sortBy === 'amount_asc') return a.amount - b.amount;
+            if (sortBy === 'amount_desc') return b.amount - a.amount;
+            return 0;
+        });
+    }, [transactions, dateRange, dateReference, status, recurrence, sortBy, selectedAccounts, selectedCategories]);
+
     // Helper to check if item is selected (for multi-select simulation)
     const toggleCategory = (cat: string) => {
         if (selectedCategories.includes(cat)) {
@@ -53,13 +103,13 @@ const Reports: React.FC<ReportsProps> = ({ transactions, accounts, tags, current
                     <div className="flex gap-4 items-center">
                         <button
                             onClick={() => {
-                                const data = transactions.map(t => ({
+                                const data = filteredTransactions.map(t => ({
                                     Data: new Date(t.date).toLocaleDateString('pt-BR'),
                                     Descrição: t.description,
                                     Categoria: t.category,
                                     Valor: t.amount,
                                     Tipo: t.type === 'income' ? 'Receita' : 'Despesa',
-                                    Status: t.isPaid ? 'Pago' : 'Pendente'
+                                    Status: t.isPaid ? 'Pago' : (new Date(t.dueDate || t.date) < new Date() ? 'Vencido' : 'Pendente')
                                 }));
 
                                 const ws = XLSX.utils.json_to_sheet(data);
@@ -77,13 +127,13 @@ const Reports: React.FC<ReportsProps> = ({ transactions, accounts, tags, current
                                 doc.text("Relatório de Transações - FinAI", 14, 15);
 
                                 const tableColumn = ["Data", "Descrição", "Categoria", "Valor", "Tipo", "Status"];
-                                const tableRows = transactions.map(t => [
+                                const tableRows = filteredTransactions.map(t => [
                                     new Date(t.date).toLocaleDateString('pt-BR'),
                                     t.description,
                                     t.category,
                                     `R$ ${t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
                                     t.type === 'income' ? 'Receita' : 'Despesa',
-                                    t.isPaid ? 'Pago' : 'Pendente'
+                                    t.isPaid ? 'Pago' : (new Date(t.dueDate || t.date) < new Date() ? 'Vencido' : 'Pendente')
                                 ]);
 
                                 autoTable(doc, {
@@ -159,8 +209,8 @@ const Reports: React.FC<ReportsProps> = ({ transactions, accounts, tags, current
                     <div>
                         <h3 className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-4">Situação</h3>
                         <div className="flex bg-slate-50 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
-                            {['Todas', 'Efetivadas', 'Pendentes'].map((label) => {
-                                const id = label === 'Todas' ? 'all' : label === 'Efetivadas' ? 'paid' : 'pending';
+                            {['Todas', 'Efetivadas', 'Pendentes', 'Vencidas'].map((label) => {
+                                const id = label === 'Todas' ? 'all' : label === 'Efetivadas' ? 'paid' : label === 'Pendentes' ? 'pending' : 'overdue';
                                 const isActive = status === id;
                                 return (
                                     <button

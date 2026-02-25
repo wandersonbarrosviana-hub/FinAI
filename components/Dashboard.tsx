@@ -5,7 +5,7 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   BarChart, Bar, Cell, PieChart, Pie, AreaChart, Area
 } from 'recharts';
-import { Transaction, Account, Goal, Budget } from '../types';
+import { Transaction, Account, Goal, Budget, FinancialScore } from '../types';
 import { TrendingUp, TrendingDown, Wallet, PlusCircle, ArrowUpRight, ArrowDownRight, Sparkles, X } from 'lucide-react';
 import ChartContainer from './ChartContainer';
 import AIInsightsWidget from './AIInsightsWidget';
@@ -14,6 +14,7 @@ import ChartTransactionModal from './ChartTransactionModal';
 import { AdvancedAIInsights, Transaction as TransactionType } from '../types';
 import { getAdvancedAIInsights } from '../aiService';
 import { Sector } from 'recharts';
+import { Trophy, Award } from 'lucide-react';
 
 interface DashboardProps {
   transactions: Transaction[];
@@ -24,9 +25,10 @@ interface DashboardProps {
   onAddClick: () => void;
   tags: any[];
   familyMembers?: Record<string, { name: string, avatar: string }>;
+  financialScore?: Partial<FinancialScore> | null;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, budgets, customBudgets = [], onAddClick, familyMembers }) => {
+const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, budgets, customBudgets = [], onAddClick, familyMembers, financialScore }) => {
   const [showAllTransactions, setShowAllTransactions] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'intelligence'>('overview');
 
@@ -392,6 +394,7 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
                           fillOpacity={1}
                           fill="url(#colorIncome)"
                           animationDuration={1500}
+                          className="glow-emerald"
                         />
                         <Area
                           type="monotone"
@@ -401,6 +404,7 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
                           fillOpacity={1}
                           fill="url(#colorExpense)"
                           animationDuration={1500}
+                          className="glow-rose"
                         />
                       </AreaChart>
                     </ResponsiveContainer>
@@ -424,6 +428,26 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
               <div>
                 <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Patrimônio Total</p>
                 <p className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">R$ {totalBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+              </div>
+            </div>
+
+            <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex items-center space-x-4 relative overflow-hidden group border-l-4 border-l-indigo-500">
+              <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/5 to-transparent pointer-events-none"></div>
+              <div className="p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl border border-indigo-100 dark:border-indigo-900/10 text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform">
+                <Trophy size={24} />
+              </div>
+              <div className="flex-1">
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Maturidade Financeira</p>
+                <div className="flex items-end gap-2 text-indigo-600 dark:text-indigo-400">
+                  <p className="text-2xl font-black tracking-tight">{financialScore?.total_score || 0}</p>
+                  <p className="text-[10px] font-black uppercase pb-1 tracking-widest">PTS</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-indigo-50 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 rounded-lg text-[8px] font-black uppercase tracking-widest">
+                  <Award size={10} />
+                  {financialScore?.total_score && financialScore.total_score > 800 ? 'Top 5%' : 'Top 22%'}
+                </div>
               </div>
             </div>
           </div>

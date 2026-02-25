@@ -12,7 +12,7 @@ import { ViewState } from './types';
 export const NAV_ITEMS = [
   { id: 'admin' as ViewState, label: 'Administrador', icon: <Icons.AdminIcon size={20} /> },
   { id: 'dashboard' as ViewState, label: 'Dashboard', icon: <Icons.DashboardIcon size={20} /> },
-
+  { id: 'financial-assessment' as ViewState, label: 'Avaliação Financeira', icon: <Icons.AssessmentIcon size={20} /> },
   { id: 'transactions' as ViewState, label: 'Transações', icon: <Icons.TransactionsIcon size={20} /> },
   { id: 'debts' as ViewState, label: 'Dívidas', icon: <Icons.DebtsIcon size={20} /> },
   { id: 'investments' as ViewState, label: 'Investimentos', icon: <Icons.InvestmentsIcon size={20} />, badge: 'Em breve' },

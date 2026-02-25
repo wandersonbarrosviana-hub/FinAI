@@ -156,6 +156,52 @@ html .bg-sky-500 {
     overflow-x: hidden !important;
     width: 100%;
   }
+
+  /* Glow Effects */
+  .glow-sky {
+    filter: drop-shadow(0 0 8px rgba(2, 132, 199, 0.4));
+  }
+
+  .glow-emerald {
+    filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.4));
+  }
+
+  .glow-purple {
+    filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.4));
+  }
+
+  .glow-rose {
+    filter: drop-shadow(0 0 8px rgba(244, 63, 94, 0.4));
+  }
+
+  .glow-amber {
+    filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.4));
+  }
+
+  /* Wave Animation for Progress Bars */
+  .animate-wave {
+    background: linear-gradient(90deg,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.2) 50%,
+        rgba(255, 255, 255, 0) 100%);
+    background-size: 200% 100%;
+    animation: wave-move 3s infinite linear;
+  }
+
+  @keyframes wave-move {
+    0% {
+      background-position: -200% 0;
+    }
+
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  /* Glassmorphism Refinement */
+  .glass-card {
+    @apply bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-slate-800/50;
+  }
 }
 
 @layer base {

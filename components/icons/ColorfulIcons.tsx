@@ -134,3 +134,12 @@ export const PlansIcon: React.FC<IconProps> = ({ size = 24, className }) => (
         <path d="M32 16L36 28H48L38 36L42 48L32 40L22 48L26 36L16 28H28L32 16Z" fill="#F59E0B" />
     </svg>
 );
+
+export const AssessmentIcon: React.FC<IconProps> = ({ size = 24, className }) => (
+    <svg width={size} height={size} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+        <path d="M32 6L54 14V30C54 44 44 56 32 60C20 56 10 44 10 30V14L32 6Z" fill="#6366F1" fillOpacity="0.1" stroke="#6366F1" strokeWidth="2" />
+        <circle cx="32" cy="30" r="10" stroke="#6366F1" strokeWidth="4" />
+        <path d="M32 20V24M32 36V40" stroke="#6366F1" strokeWidth="4" strokeLinecap="round" />
+        <path d="M24 30H28M36 30H40" stroke="#6366F1" strokeWidth="4" strokeLinecap="round" />
+    </svg>
+);
