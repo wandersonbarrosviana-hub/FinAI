@@ -35,6 +35,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, isOpen, se
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
             className="md:hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60]"
             onClick={() => setIsOpen(false)}
           />
@@ -45,10 +46,17 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, isOpen, se
       <motion.aside
         initial={false}
         animate={{
-          width: isOpen ? (window.innerWidth < 768 ? '80vw' : 256) : 80,
+          width: window.innerWidth < 768 ? '280px' : (isOpen ? 256 : 80),
           translateX: (window.innerWidth < 768 && !isOpen) ? '-100%' : '0%'
         }}
-        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+        transition={{
+          type: 'spring',
+          stiffness: 400,
+          damping: 40,
+          mass: 0.8,
+          restDelta: 0.5
+        }}
+        style={{ willChange: 'transform, width' }}
         className="fixed top-0 left-0 h-full bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 shadow-2xl md:shadow-sm z-[70] flex-col flex pt-safe pb-safe overflow-hidden"
       >
         {/* Logo Area */}

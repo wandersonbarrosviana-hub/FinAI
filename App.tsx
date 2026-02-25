@@ -1369,7 +1369,7 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex overflow-hidden selection:bg-sky-500/30 no-horizontal-scroll">
       <Sidebar currentView={currentView} onViewChange={setCurrentView} isOpen={sidebarOpen} setIsOpen={setSidebarOpen} onLogout={handleLogout} userRole={userRole} />
-      <main className={`flex-1 flex flex-col transition-all duration-500 no-horizontal-scroll pb-24 md:pb-8 pt-safe mt-14 md:mt-0 px-4 md:px-0 ${sidebarOpen ? 'md:ml-64' : 'md:ml-20'}`}>
+      <main className={`flex-1 flex flex-col transition-[margin] duration-300 ease-in-out no-horizontal-scroll pb-24 md:pb-8 pt-safe mt-14 md:mt-0 px-4 md:px-0 ${sidebarOpen ? 'md:ml-64' : 'md:ml-20'}`}>
         {/* Header - White Glassmorphism */}
         {isSyncing && (
           <div className="bg-sky-600 text-white text-[9px] font-black text-center py-0.5 uppercase tracking-tighter flex items-center justify-center gap-2 pt-safe">
