@@ -15,7 +15,8 @@ interface BudgetManagerProps {
 const BudgetManager: React.FC<BudgetManagerProps> = ({ transactions, budgets: persistedBudgets, onUpdateBudget, onAddBudget }) => {
     const [budgets, setBudgets] = useState<BudgetWithSpending[]>([]);
     const [currentMonth] = useState(new Date().toISOString().slice(0, 7));
-    const [monthlyIncome, setMonthlyIncome] = useState(0);
+    const [incomeProjected, setIncomeProjected] = useState(0);
+    const [incomeEffective, setIncomeEffective] = useState(0);
 
     // Chart Interaction State
     const [selectedChartData, setSelectedChartData] = useState<{
@@ -34,18 +35,26 @@ const BudgetManager: React.FC<BudgetManagerProps> = ({ transactions, budgets: pe
         // Filter transactions for current month
         const monthTransactions = transactions.filter(t => t.date.startsWith(currentMonth));
 
-        // Calculate Total Income
-        const income = monthTransactions
+        // Calculate Income: Projected (All) vs Effective (Paid)
+        const incomeProj = monthTransactions
             .filter(t => t.type === 'income')
             .reduce((sum, t) => sum + t.amount, 0);
-        setMonthlyIncome(income);
 
-        // Calculate Spending by Category
-        const spendingByCategory: Record<string, number> = {};
+        const incomeEff = monthTransactions
+            .filter(t => t.type === 'income' && t.isPaid)
+            .reduce((sum, t) => sum + t.amount, 0);
+
+        setIncomeProjected(incomeProj);
+        setIncomeEffective(incomeEff);
+
+        // Calculate Spending by Category: Total (Projected) vs Paid (Effective)
+        const spendingByCategory: Record<string, { projected: number, effective: number }> = {};
         CATEGORIES.forEach(cat => {
-            spendingByCategory[cat] = monthTransactions
-                .filter(t => t.type === 'expense' && t.category === cat)
-                .reduce((sum, t) => sum + t.amount, 0);
+            const catTxs = monthTransactions.filter(t => t.type === 'expense' && t.category === cat);
+            spendingByCategory[cat] = {
+                projected: catTxs.reduce((sum, t) => sum + t.amount, 0),
+                effective: catTxs.filter(t => t.isPaid).reduce((sum, t) => sum + t.amount, 0)
+            };
         });
 
         // Initialize or Update Budgets
@@ -53,17 +62,18 @@ const BudgetManager: React.FC<BudgetManagerProps> = ({ transactions, budgets: pe
         setBudgets(prev => {
             return CATEGORIES.map(category => {
                 const persisted = persistedBudgets.find(b => b.category === category && (!b.month || b.month === currentMonth));
-                const spent = spendingByCategory[category] || 0;
+                const spentData = spendingByCategory[category] || { projected: 0, effective: 0 };
 
-                // If persisted exists, use its amount. Else default relative to income or base.
-                const amount = persisted ? persisted.amount : (income > 0 ? income * 0.1 : 500);
+                // If persisted exists, use its amount. Else default relative to incomeProjected or base.
+                const amount = persisted ? persisted.amount : (incomeProj > 0 ? incomeProj * 0.1 : 500);
 
                 return {
-                    id: persisted?.id, // Keep ID for updates
+                    id: persisted?.id,
                     category,
                     amount,
-                    spent,
-                    percentage: amount > 0 ? (spent / amount) * 100 : 0,
+                    spent: spentData.projected,
+                    spentEffective: spentData.effective,
+                    percentage: amount > 0 ? (spentData.projected / amount) * 100 : 0,
                     month: currentMonth
                 };
             });
@@ -108,37 +118,39 @@ const BudgetManager: React.FC<BudgetManagerProps> = ({ transactions, budgets: pe
     };
 
     const getSliderMax = () => {
-        return monthlyIncome > 0 ? monthlyIncome : 5000;
+        return incomeProjected > 0 ? incomeProjected : 5000;
     };
 
     // Calculate Totals for Summary
     const totalBudgeted = budgets.reduce((sum, b) => sum + b.amount, 0);
-    const projectedBalance = monthlyIncome - totalBudgeted;
-    const totalSpent = budgets.reduce((sum, b) => sum + b.spent, 0);
+    const projectedBalance = incomeProjected - totalBudgeted;
+    const totalSpentProjected = budgets.reduce((sum, b) => sum + b.spent, 0);
+    const totalSpentEffective = budgets.reduce((sum, b) => sum + b.spentEffective, 0);
 
     // AI Insight Generator
     const aiInsight = useMemo(() => {
-        if (monthlyIncome === 0) return "Defina suas receitas para receber análises precisas.";
+        if (incomeProjected === 0) return "Defina suas receitas previstas para receber análises precisas.";
 
-        const budgetRatio = totalBudgeted / monthlyIncome;
-        const balanceRatio = projectedBalance / monthlyIncome;
+        const budgetRatio = totalBudgeted / incomeProjected;
+        const balanceRatio = projectedBalance / incomeProjected;
 
         if (projectedBalance < 0) {
-            return "⚠️ Atenção Crítica: Seu orçamento planejado excede sua receita mensal! Isso levará a dívidas. Reduza os limites de gastos em categorias não essenciais imediatamente.";
+            return "⚠️ Atenção Crítica: Seu orçamento planejado excede sua receita mensal prevista! Isso levará a dívidas. Reduza os limites de gastos em categorias não essenciais imediatamente.";
         } else if (balanceRatio < 0.1) {
-            return "⚠️ Alerta de Risco: Sua margem de segurança é muito baixa (menos de 10%). Tente reduzir gastos variáveis para criar uma reserva de emergência mais robusta.";
+            return "⚠️ Alerta de Risco: Sua margem de segurança sobre a receita prevista é muito baixa (menos de 10%). Tente reduzir gastos variáveis para criar uma reserva de emergência.";
         } else if (balanceRatio >= 0.2) {
-            return "✅ Excelente Saúde Financeira: Você está orçando com uma margem de mais de 20% para investimentos e poupança. Considere alocar esse saldo excedente em metas de longo prazo.";
+            return "✅ Excelente Planejamento: Você está orçando com uma margem de mais de 20% da sua receita prevista para investimentos e poupança.";
         } else {
-            return "ℹ️ Orçamento Equilibrado: Seus gastos planejados estão dentro da receita, mas há pouco espaço para imprevistos. Monitore seus gastos de perto.";
+            return "ℹ️ Orçamento Equilibrado: Seus gastos planejados estão dentro da receita prevista, mas há pouco espaço para imprevistos.";
         }
-    }, [monthlyIncome, totalBudgeted, projectedBalance]);
+    }, [incomeProjected, totalBudgeted, projectedBalance]);
 
     // Chart Data Preparation
     const chartData = budgets.map(b => ({
         name: b.category,
         Orçado: b.amount,
-        Realizado: b.spent,
+        Efetivado: b.spentEffective,
+        Projetado: b.spent,
         variance: b.amount - b.spent
     }));
 
@@ -178,10 +190,10 @@ const BudgetManager: React.FC<BudgetManagerProps> = ({ transactions, budgets: pe
     };
 
     const renderCustomBarLabel = (props: any) => {
-        const { x, y, width, value, index } = props;
+        const { x, y, width, index } = props;
         const item = chartData[index];
         const isPositive = item.variance >= 0;
-        const percentageDiff = item.Orçado > 0 ? ((item.Realizado - item.Orçado) / item.Orçado) * 100 : 0;
+        const percentageDiff = item.Orçado > 0 ? ((item.Projetado - item.Orçado) / item.Orçado) * 100 : 0;
 
         return (
             <text
@@ -214,9 +226,9 @@ const BudgetManager: React.FC<BudgetManagerProps> = ({ transactions, budgets: pe
                         <Wallet size={32} className="text-emerald-600 dark:text-emerald-400 sm:w-12 sm:h-12" />
                     </div>
                     <div className="flex flex-col">
-                        <p className="text-[10px] sm:text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest mb-1 sm:mb-2">Receita Total</p>
+                        <p className="text-[10px] sm:text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest mb-1 sm:mb-2">Receita Efetivada / Prevista</p>
                         <p className="text-lg sm:text-2xl font-black text-emerald-800 dark:text-emerald-300">
-                            R$ {monthlyIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                            R$ {incomeEffective.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} <span className="text-sm font-bold text-emerald-400">/ R$ {incomeProjected.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                         </p>
                     </div>
                 </div>
@@ -231,7 +243,7 @@ const BudgetManager: React.FC<BudgetManagerProps> = ({ transactions, budgets: pe
                             R$ {totalBudgeted.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                         </p>
                         <p className="text-[10px] font-bold text-sky-400 dark:text-sky-500 mt-0.5 sm:mt-1">
-                            {(monthlyIncome > 0 ? (totalBudgeted / monthlyIncome) * 100 : 0).toFixed(1)}% da Receita
+                            {(incomeProjected > 0 ? (totalBudgeted / incomeProjected) * 100 : 0).toFixed(1)}% da Receita Prevista
                         </p>
                     </div>
                 </div>
@@ -285,16 +297,24 @@ const BudgetManager: React.FC<BudgetManagerProps> = ({ transactions, budgets: pe
                                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} tickFormatter={(value) => `R$${value / 1000}k`} />
                                 <Tooltip content={<CustomTooltip />} cursor={{ fill: 'transparent' }} />
                                 <Legend wrapperStyle={{ paddingTop: '20px' }} />
-                                <Bar dataKey="Orçado" fill="#0ea5e9" radius={[4, 4, 0, 0]} name="Meta Orçamentária" />
+                                <Bar dataKey="Orçado" fill="#334155" radius={[4, 4, 0, 0]} name="Meta Orçamentária" />
                                 <Bar
-                                    dataKey="Realizado"
-                                    fill="#e2e8f0"
+                                    dataKey="Efetivado"
+                                    fill="#10b981"
                                     radius={[4, 4, 0, 0]}
-                                    name="Gasto Realizado"
+                                    name="Gasto Efetivado"
+                                    className="cursor-pointer"
+                                    onClick={(data) => handleBarClick(data)}
+                                />
+                                <Bar
+                                    dataKey="Projetado"
+                                    fill="#0ea5e9"
+                                    radius={[4, 4, 0, 0]}
+                                    name="Gasto Projetado (Total)"
                                     className="cursor-pointer"
                                     onClick={(data) => handleBarClick(data)}
                                 >
-                                    <LabelList dataKey="Realizado" content={renderCustomBarLabel} />
+                                    <LabelList dataKey="Projetado" content={renderCustomBarLabel} />
                                 </Bar>
                             </BarChart>
                         </ResponsiveContainer>
@@ -337,7 +357,7 @@ const CategoryBudgetCard = React.memo(({ budget, sliderMax, onUpdate }: Category
     // Radical Focus: Isolated state for immediate feedback
     const [localAmount, setLocalAmount] = React.useState(budget.amount);
 
-    // Sync from props ONLY when budget changes from outside (e.g., initial load or other users)
+    // Sync from props ONLY when budget changes from outside
     React.useEffect(() => {
         setLocalAmount(budget.amount);
     }, [budget.amount]);
@@ -354,7 +374,8 @@ const CategoryBudgetCard = React.memo(({ budget, sliderMax, onUpdate }: Category
     }, [localAmount, budget.category, budget.amount, onUpdate]);
 
     const isOverBudget = budget.spent > localAmount;
-    const spendingWidth = Math.min((budget.spent / sliderMax) * 100, 100);
+    const spendingEffectiveWidth = Math.min((budget.spentEffective / sliderMax) * 100, 100);
+    const spendingProjectedWidth = Math.min((budget.spent / sliderMax) * 100, 100);
     const budgetLeft = Math.min((localAmount / sliderMax) * 100, 100);
 
     const getCategoryIcon = (category: string) => {
@@ -385,9 +406,9 @@ const CategoryBudgetCard = React.memo(({ budget, sliderMax, onUpdate }: Category
                     </div>
                 </div>
                 <div className="text-right">
-                    <p className="text-xs text-slate-400 dark:text-slate-500 font-bold uppercase">Gasto</p>
-                    <p className={`text-xl font-black ${isOverBudget ? 'text-rose-500 dark:text-rose-400' : 'text-slate-700 dark:text-slate-300'}`}>
-                        R$ {budget.spent.toLocaleString('pt-BR')}
+                    <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase">Efetivado / Projetado</p>
+                    <p className={`text-lg font-black ${isOverBudget ? 'text-rose-500 dark:text-rose-400' : 'text-slate-700 dark:text-slate-300'}`}>
+                        R$ {budget.spentEffective.toLocaleString('pt-BR')} <span className="text-xs text-slate-400">/ R$ {budget.spent.toLocaleString('pt-BR')}</span>
                     </p>
                 </div>
             </div>
@@ -396,10 +417,15 @@ const CategoryBudgetCard = React.memo(({ budget, sliderMax, onUpdate }: Category
             <div className="relative h-12 flex items-center mb-2">
                 {/* Track Background */}
                 <div className="absolute w-full h-4 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                    {/* Spending Bar */}
+                    {/* Spending Bar - Projected (Lighter) */}
                     <div
-                        className={`h-full transition-all duration-700 relative overflow-hidden ${isOverBudget ? 'bg-rose-400 dark:bg-rose-500 glow-rose' : 'bg-slate-300 dark:bg-slate-600'}`}
-                        style={{ width: `${spendingWidth}%` }}
+                        className={`absolute h-full transition-all duration-700 opacity-30 ${isOverBudget ? 'bg-rose-400' : 'bg-sky-400'}`}
+                        style={{ width: `${spendingProjectedWidth}%` }}
+                    />
+                    {/* Spending Bar - Effective (Solid) */}
+                    <div
+                        className={`h-full transition-all duration-700 relative overflow-hidden ${isOverBudget ? 'bg-rose-400 dark:bg-rose-500 glow-rose' : 'bg-emerald-500'}`}
+                        style={{ width: `${spendingEffectiveWidth}%` }}
                     >
                         {isOverBudget && <div className="absolute inset-0 animate-wave"></div>}
                     </div>

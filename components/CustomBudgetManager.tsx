@@ -42,6 +42,9 @@ const CustomBudgetManager: React.FC<CustomBudgetManagerProps> = ({
             });
 
             const spent = pertinentTransactions.reduce((acc, t) => acc + t.amount, 0);
+            const spentEffective = pertinentTransactions
+                .filter(t => t.isPaid)
+                .reduce((acc, t) => acc + t.amount, 0);
 
             let computedLimit = budget.limitValue;
             if (budget.limitType === 'percentage') {
@@ -53,6 +56,7 @@ const CustomBudgetManager: React.FC<CustomBudgetManagerProps> = ({
             return {
                 ...budget,
                 spent,
+                spentEffective,
                 computedLimit,
                 percentage
             };
@@ -326,17 +330,21 @@ const CustomBudgetManager: React.FC<CustomBudgetManagerProps> = ({
                                         {budget.percentage.toFixed(0)}%
                                     </span>
                                     <div className="text-right">
-                                        <p className="text-[10px] font-bold text-slate-400 uppercase">Gasto / Limite</p>
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase">Efetivado / Projetado</p>
                                         <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
-                                            R$ {budget.spent.toLocaleString('pt-BR', { compactDisplay: "short" })} <span className="text-slate-300">/</span> R$ {budget.computedLimit.toLocaleString('pt-BR', { compactDisplay: "short" })}
+                                            R$ {budget.spentEffective.toLocaleString('pt-BR', { compactDisplay: "short" })} <span className="text-slate-300">/</span> R$ {budget.spent.toLocaleString('pt-BR', { compactDisplay: "short" })}
                                         </p>
                                     </div>
                                 </div>
 
-                                <div className="h-3 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                                <div className="h-3 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden relative">
                                     <div
-                                        className={`h-full rounded-full transition-all duration-1000 ${isOver ? 'bg-rose-500' : 'bg-indigo-500'}`}
+                                        className={`absolute h-full rounded-full transition-all duration-1000 ${isOver ? 'bg-rose-500 opacity-30' : 'bg-indigo-500 opacity-30'}`}
                                         style={{ width: `${percentageFormatted}%` }}
+                                    ></div>
+                                    <div
+                                        className={`h-full rounded-full transition-all duration-1000 ${isOver ? 'bg-rose-500' : 'bg-emerald-500'}`}
+                                        style={{ width: `${Math.min((budget.spentEffective / (budget.computedLimit || 1)) * 100, 100)}%` }}
                                     ></div>
                                 </div>
                                 {isOver && <p className="text-[10px] font-bold text-rose-500 mt-1 flex items-center gap-1"><Info size={10} /> Limite excedido em R$ {(budget.spent - budget.computedLimit).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>}

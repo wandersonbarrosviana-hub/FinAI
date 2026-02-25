@@ -69,7 +69,8 @@ export interface Budget {
 }
 
 export interface BudgetWithSpending extends Budget {
-  spent: number; // Calculated from transactions
+  spent: number; // Calculated from transactions (Projected/Total)
+  spentEffective: number; // Calculated from paid transactions
   percentage: number; // spent / amount * 100
 }
 
