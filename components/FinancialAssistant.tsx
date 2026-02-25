@@ -233,9 +233,14 @@ const FinancialAssistant: React.FC<FinancialAssistantProps> = ({
           const result = await analyzeExpenseImage(base64);
 
           if (result && !result.error) {
+            const isInstallment = result.recurrence === 'installment' || result.type === 'parcelada';
+            const recurrenceMsg = isInstallment
+              ? ` (${result.installments?.current || 1}/${result.installments?.total || 1} parcelas)`
+              : ' (Única)';
+
             setMessages(prev => [...prev, {
               role: 'assistant',
-              content: `📸 **Identifiquei um comprovante!**\n\n**Descrição:** ${result.description}\n**Valor:** R$ ${result.amount}\n**Categoria:** ${result.category}\n\nDeseja realizar este lançamento agora?`,
+              content: `📸 **Identifiquei um comprovante!**\n\n**Descrição:** ${result.description}\n**Valor:** R$ ${result.amount}${recurrenceMsg}\n**Categoria:** ${result.category}\n\nDeseja realizar este lançamento agora?`,
               timestamp: new Date()
             }]);
             // Store result for direct action if needed

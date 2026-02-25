@@ -3,8 +3,7 @@ import DailyHistory from './DailyHistory';
 import { Transaction, TransactionType, Tag as TagType, Account } from '../types';
 import { CATEGORIES_MAP, INCOME_CATEGORIES_MAP, BANKS } from '../constants';
 import { Calendar, CreditCard, Tag, Plus, Trash2, CheckCircle, Clock, Edit2, Save, X, Repeat, Divide, ChevronDown, ChevronUp, Paperclip, FileText, PieChart, Wallet, Calculator, Camera, Image, XCircle, Sparkles, Loader2 } from 'lucide-react';
-import { analyzeOCRText } from '../aiService';
-import { transcribeImage } from '../ocrService';
+import { analyzeOCRText, analyzeExpenseImage } from '../aiService';
 
 interface ExpenseManagerProps {
   transactions: Transaction[];
@@ -313,17 +312,11 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
 
   const handleScanReceipt = async (base64Image: string) => {
     setIsScanning(true);
-    setOcrProgress(0);
+    setOcrProgress(50); // Valor estático para indicar atividade na visão
     try {
-      // Step 1: Transcribe localmente
-      const rawText = await transcribeImage(base64Image, (p) => setOcrProgress(p));
-
-      if (!rawText || rawText.trim().length < 5) {
-        throw new Error("Não foi possível extrair texto da imagem.");
-      }
-
-      // Step 2: Analisar texto com IA
-      const result = await analyzeOCRText(rawText);
+      // Step 1: Analisar diretamente via Visão (Groq Vision)
+      // Isso unifica o comportamento do botão de scan com o do Assistente Virtual
+      const result = await analyzeExpenseImage(base64Image);
 
       if (result && !result.error) {
         // Update form with AI data
@@ -335,8 +328,8 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
           subCategory: result.subCategory || prev.subCategory,
           date: result.date || prev.date,
           paymentMethod: result.paymentMethod || prev.paymentMethod,
-          recurrence: result.type === 'parcelada' ? 'installment' : 'one_time',
-          installmentCount: (result.type === 'parcelada' && result.installments?.total) ? result.installments.total : prev.installmentCount
+          recurrence: result.recurrence || (result.type === 'parcelada' ? 'installment' : 'one_time'),
+          installmentCount: (result.installments?.total) ? result.installments.total : prev.installmentCount
         }));
 
         if (result.amount) {
@@ -350,7 +343,8 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
           setCustomSubCategory(result.subCategory || '');
         }
 
-        const installmentMsg = result.type === 'parcelada'
+        const isInstallment = result.recurrence === 'installment' || result.type === 'parcelada';
+        const installmentMsg = isInstallment
           ? ` (Parcelado ${result.installments?.current || 1}/${result.installments?.total || 1})`
           : ' (Única)';
 

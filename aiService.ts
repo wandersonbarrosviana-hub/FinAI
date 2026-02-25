@@ -203,43 +203,40 @@ export const parseInvoice = async (invoiceText: string): Promise<any> => {
 export const analyzeOCRText = async (rawText: string): Promise<any> => {
     if (!getGroqClient()) return { error: "Groq não configurado" };
 
-    const systemPrompt = `
-      Você é um especialista em OCR financeiro.
-      Recebi um texto bruto extraído de um recibo/nota fiscal via OCR. 
-      O texto pode estar "sujo" (caracteres trocados, falta de espaços).
-      
-      SUA TAREFA: Limpar os dados e extrair o JSON financeiro.
-      
-      ESTRUTURA DE RETORNO (JSON):
-      {
-        "description": string,
-        "amount": number,
-        "category": string,
-        "subCategory": string,
-        "date": "YYYY-MM-DD",
-        "paymentMethod": "Cartão de Crédito" | "PIX" | "Dinheiro" | "Débito",
-        "type": "única" | "parcelada",
-        "installments": { "current": number, "total": number } | null,
-        "confidence": number (0-100)
-      }
+    const systemPrompt = `Você é um robô de extração financeira de ALTA PRECISÃO.
+    REGRAS INQUEBRÁVEIS:
+    1. DESCRIÇÃO: Deve ser o NOME DO ESTABELECIMENTO localizado no TOPO da nota. IGNORAR nomes de produtos.
+    2. VALOR (amount): Deve ser o VALOR TOTAL FINAL localizado no RODAPÉ. Ignore subtotais ou valores de itens individuais.
+    3. SCHEMA OBRIGATÓRIO (JSON):
+    {
+      "description": string (NOME DA LOJA),
+      "amount": number (TOTAL FINAL),
+      "category": string (Alimentação, Transporte, Saúde, Lazer, Moradia, Outros),
+      "subCategory": string,
+      "date": "YYYY-MM-DD",
+      "paymentMethod": "Cartão de Crédito" | "PIX" | "Dinheiro" | "Débito",
+      "recurrence": "one_time" | "installment",
+      "installments": { "current": number, "total": number } | null,
+      "confidence": number
+    }`;
 
-      TEXTO BRUTO DO OCR:
-      """
-      ${rawText}
-      """
-      
-      RETORNE APENAS O JSON. Se não houver data, use a data de hoje.
-    `;
+    const userPrompt = `Analise este texto de OCR e extraia o NOME DA LOJA e o VALOR TOTAL FINAL:
+    """
+    ${rawText}
+    """`;
 
     try {
         const response = await getGroqClient()?.chat.completions.create({
             model: GROQ_MODEL,
-            messages: [{ role: "user", content: systemPrompt }],
+            messages: [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: userPrompt }
+            ],
             response_format: { type: "json_object" }
         });
 
         const content = response.choices[0].message.content || "{}";
-        console.log("[AI-Analysis] Texto de OCR processado com sucesso.");
+        console.log("[AI-Analysis] OCR processado com sucesso.");
         return JSON.parse(cleanJSON(content));
     } catch (error: any) {
         console.error("[AI-Analysis] Erro na análise de texto:", error.message);
@@ -252,24 +249,42 @@ export const analyzeExpenseImage = async (base64Image: string): Promise<any> => 
     if (!getGroqClient()) return { error: "Groq não configurado" };
 
     const base64Data = base64Image.split(',')[1] || base64Image;
-    const systemPrompt = `Extraia dados financeiros da imagem em JSON: { description, amount, category, subCategory, date, paymentMethod, type, installments: { current, total }, confidence }.`;
+    const systemPrompt = `Você é um robô de visão financeira de ALTA PRECISÃO.
+    REGRAS INQUEBRÁVEIS:
+    1. DESCRIÇÃO: Deve ser o NOME DO ESTABELECIMENTO localizado no TOPO da imagem. IGNORAR nomes de produtos.
+    2. VALOR (amount): Deve ser o VALOR TOTAL FINAL localizado no RODAPÉ.
+    3. SCHEMA OBRIGATÓRIO (JSON):
+    {
+      "description": string (NOME DO LUGAR),
+      "amount": number (VALOR TOTAL FINAL),
+      "category": string,
+      "subCategory": string,
+      "date": "YYYY-MM-DD",
+      "paymentMethod": string,
+      "recurrence": "one_time" | "installment",
+      "installments": { "current": number, "total": number } | null,
+      "confidence": number
+    }`;
+
+    const userPromptText = `Identifique o NOME DA LOJA e o VALOR TOTAL no comprovante acima.`;
 
     for (let i = 0; i < GROQ_VISION_POOL.length; i++) {
         const currentModel = GROQ_VISION_POOL[i];
         console.log(`[OCR] Tentativa ${i} usando modelo: ${currentModel}`);
 
         try {
-            const combinedPrompt = `INSTRUÇÕES: ${systemPrompt}\nAnalise a imagem abaixo e retorne APENAS o JSON conforme a estrutura especificada.`;
-
             const response = await getGroqClient()?.chat.completions.create({
                 model: currentModel,
-                messages: [{
-                    role: "user",
-                    content: [
-                        { type: "text", text: combinedPrompt },
-                        { type: "image_url", image_url: { url: `data:image/jpeg;base64,${base64Data}` } }
-                    ]
-                }],
+                messages: [
+                    { role: "system", content: systemPrompt },
+                    {
+                        role: "user",
+                        content: [
+                            { type: "text", text: userPromptText },
+                            { type: "image_url", image_url: { url: `data:image/jpeg;base64,${base64Data}` } }
+                        ]
+                    }
+                ],
                 max_tokens: 1024,
                 temperature: 0.1
             });
