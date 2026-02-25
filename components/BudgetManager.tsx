@@ -8,13 +8,13 @@ import ChartTransactionModal from './ChartTransactionModal';
 interface BudgetManagerProps {
     transactions: Transaction[];
     budgets: Budget[];
+    currentMonth: string;
     onUpdateBudget: (id: string, updates: Partial<Budget>) => void;
     onAddBudget: (budget: Partial<Budget>) => void;
 }
 
-const BudgetManager: React.FC<BudgetManagerProps> = ({ transactions, budgets: persistedBudgets, onUpdateBudget, onAddBudget }) => {
+const BudgetManager: React.FC<BudgetManagerProps> = ({ transactions, budgets: persistedBudgets, currentMonth, onUpdateBudget, onAddBudget }) => {
     const [budgets, setBudgets] = useState<BudgetWithSpending[]>([]);
-    const [currentMonth] = useState(new Date().toISOString().slice(0, 7));
     const [incomeProjected, setIncomeProjected] = useState(0);
     const [incomeEffective, setIncomeEffective] = useState(0);
 

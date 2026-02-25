@@ -7,6 +7,7 @@ interface CustomBudgetManagerProps {
     customBudgets: CustomBudget[];
     transactions: Transaction[];
     monthlyIncome: number;
+    currentMonth: string;
     onAddCustomBudget: (budget: Partial<CustomBudget>) => Promise<void>;
     onDeleteCustomBudget: (id: string) => Promise<void>;
 }
@@ -15,6 +16,7 @@ const CustomBudgetManager: React.FC<CustomBudgetManagerProps> = ({
     customBudgets,
     transactions,
     monthlyIncome,
+    currentMonth,
     onAddCustomBudget,
     onDeleteCustomBudget
 }) => {
@@ -28,7 +30,6 @@ const CustomBudgetManager: React.FC<CustomBudgetManagerProps> = ({
     });
 
     const categories = CATEGORIES;
-    const currentMonth = new Date().toISOString().slice(0, 7);
 
     // Calculate spent and percentage for each budget
     const enrichedBudgets = useMemo(() => {

@@ -631,12 +631,11 @@ const App: React.FC = () => {
   // Global Filter
   // Global Filter: Compare Year and Month explicitly
   // Global Filter: Compare Year and Month using string prefix (Robust against Timezone)
+  const activeMonthStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
+
   const filteredTransactions = transactions.filter(t => {
     if (!t.date) return false;
-    const year = currentDate.getFullYear();
-    const month = String(currentDate.getMonth() + 1).padStart(2, '0');
-    const filterPrefix = `${year}-${month}`;
-    return t.date.startsWith(filterPrefix);
+    return t.date.startsWith(activeMonthStr);
   });
 
   const monthlyBalance = filteredTransactions.reduce((acc, t) => {
@@ -1523,15 +1522,22 @@ const App: React.FC = () => {
               <CreditCardManager accounts={accounts.filter(a => a.isCredit)} transactions={transactions} onAddTransaction={handleAddTransaction} onAddAccount={handleAddAccount} />
             </div>
             <div className={currentView === 'budgets' ? '' : 'hidden'}>
-              <BudgetManager transactions={filteredTransactions} budgets={budgets} onUpdateBudget={handleUpdateBudget} onAddBudget={handleAddBudget} />
+              <BudgetManager
+                transactions={filteredTransactions}
+                budgets={budgets}
+                currentMonth={activeMonthStr}
+                onUpdateBudget={handleUpdateBudget}
+                onAddBudget={handleAddBudget}
+              />
             </div>
             <div className={currentView === 'custom-budgets' ? '' : 'hidden'}>
               <CustomBudgetManager
                 customBudgets={customBudgets}
                 transactions={filteredTransactions}
                 monthlyIncome={filteredTransactions
-                  .filter(t => t.type === 'income' && t.date.startsWith(currentDate.toISOString().slice(0, 7)))
+                  .filter(t => t.type === 'income')
                   .reduce((sum, t) => sum + t.amount, 0)}
+                currentMonth={activeMonthStr}
                 onAddCustomBudget={handleAddCustomBudget}
                 onDeleteCustomBudget={handleDeleteCustomBudget}
               />
