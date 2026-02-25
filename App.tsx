@@ -174,12 +174,11 @@ const App: React.FC = () => {
       setSession(session);
       if (session?.user) {
         // Silently update user data if online
-        const userData: User = {
+        const userData = {
           id: session.user.id,
           email: session.user.email!,
           name: session.user.user_metadata.name || session.user.email!.split('@')[0],
-          avatarUrl: session.user.user_metadata.avatar_url,
-          whatsappNumber: session.user.user_metadata.whatsapp_number
+          avatarUrl: session.user.user_metadata.avatar_url
         };
         setUser(userData);
         localStorage.setItem('finai_user_data', JSON.stringify(userData));
@@ -200,12 +199,11 @@ const App: React.FC = () => {
       if (event === 'SIGNED_IN') {
         setSession(session);
         if (session?.user) {
-          const userData: User = {
+          const userData = {
             id: session.user.id,
             email: session.user.email!,
             name: session.user.user_metadata.name || session.user.email!.split('@')[0],
-            avatarUrl: session.user.user_metadata.avatar_url,
-            whatsappNumber: session.user.user_metadata.whatsapp_number
+            avatarUrl: session.user.user_metadata.avatar_url
           };
           setUser(userData);
           localStorage.setItem('finai_user_data', JSON.stringify(userData));
@@ -335,7 +333,7 @@ const App: React.FC = () => {
           supabase.from('budgets').select('*'),
           supabase.from('custom_budgets').select('*'),
           supabase.rpc('get_family_details', { current_user_id: userId }),
-          supabase.from('profiles').select('role, plan_type, whatsapp_number').eq('id', userId).single()
+          supabase.from('profiles').select('role, plan_type').eq('id', userId).single()
         ]);
 
         if (txRes.error) throw txRes.error;
@@ -353,11 +351,6 @@ const App: React.FC = () => {
         if (profileRes.data) {
           setUserRole(profileRes.data.role);
           setUserPlan(profileRes.data.plan_type as 'free' | 'pro' | 'premium' || 'free');
-          if (user) {
-            const updatedUser = { ...user, whatsappNumber: profileRes.data.whatsapp_number };
-            setUser(updatedUser);
-            localStorage.setItem('finai_user_data', JSON.stringify(updatedUser));
-          }
         }
 
         // Process Family Members
@@ -772,7 +765,7 @@ const App: React.FC = () => {
     return `${y}-${m}-${d}`;
   };
 
-  const handleUpdateProfile = async (name: string, avatarUrl?: string, whatsappNumber?: string) => {
+  const handleUpdateProfile = async (name: string, avatarUrl?: string) => {
     if (!user) return;
     try {
       const { error } = await supabase
@@ -780,7 +773,6 @@ const App: React.FC = () => {
         .update({
           name,
           avatar_url: avatarUrl,
-          whatsapp_number: whatsappNumber,
           updated_at: new Date().toISOString()
         })
         .eq('id', user.id);
@@ -789,10 +781,10 @@ const App: React.FC = () => {
 
       // Update Auth Metadata as well for persistence
       await supabase.auth.updateUser({
-        data: { name, avatar_url: avatarUrl, whatsapp_number: whatsappNumber }
+        data: { name, avatar_url: avatarUrl }
       });
 
-      const updatedUser = { ...user, name, avatarUrl, whatsappNumber };
+      const updatedUser = { ...user, name, avatarUrl };
       setUser(updatedUser);
       localStorage.setItem('finai_user_data', JSON.stringify(updatedUser));
       alert('Perfil atualizado com sucesso!');
