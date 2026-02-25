@@ -1534,8 +1534,11 @@ const App: React.FC = () => {
               <CustomBudgetManager
                 customBudgets={customBudgets}
                 transactions={filteredTransactions}
-                monthlyIncome={filteredTransactions
+                incomeProjected={filteredTransactions
                   .filter(t => t.type === 'income')
+                  .reduce((sum, t) => sum + t.amount, 0)}
+                incomeEffective={filteredTransactions
+                  .filter(t => t.type === 'income' && t.isPaid)
                   .reduce((sum, t) => sum + t.amount, 0)}
                 currentMonth={activeMonthStr}
                 onAddCustomBudget={handleAddCustomBudget}

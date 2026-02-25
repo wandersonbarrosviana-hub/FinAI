@@ -6,7 +6,8 @@ import { Plus, Trash2, PieChart, Info, Check, X, Calculator, DollarSign, Calenda
 interface CustomBudgetManagerProps {
     customBudgets: CustomBudget[];
     transactions: Transaction[];
-    monthlyIncome: number;
+    incomeProjected: number;
+    incomeEffective: number;
     currentMonth: string;
     onAddCustomBudget: (budget: Partial<CustomBudget>) => Promise<void>;
     onDeleteCustomBudget: (id: string) => Promise<void>;
@@ -15,7 +16,8 @@ interface CustomBudgetManagerProps {
 const CustomBudgetManager: React.FC<CustomBudgetManagerProps> = ({
     customBudgets,
     transactions,
-    monthlyIncome,
+    incomeProjected,
+    incomeEffective,
     currentMonth,
     onAddCustomBudget,
     onDeleteCustomBudget
@@ -47,22 +49,28 @@ const CustomBudgetManager: React.FC<CustomBudgetManagerProps> = ({
                 .filter(t => t.isPaid)
                 .reduce((acc, t) => acc + t.amount, 0);
 
-            let computedLimit = budget.limitValue;
+            let computedLimitProjected = budget.limitValue;
+            let computedLimitEffective = budget.limitValue;
+
             if (budget.limitType === 'percentage') {
-                computedLimit = (monthlyIncome * budget.limitValue) / 100;
+                computedLimitProjected = (incomeProjected * budget.limitValue) / 100;
+                computedLimitEffective = (incomeEffective * budget.limitValue) / 100;
             }
 
-            const percentage = computedLimit > 0 ? (spent / computedLimit) * 100 : 0;
+            const percentageProjected = computedLimitProjected > 0 ? (spent / computedLimitProjected) * 100 : 0;
+            const percentageEffective = computedLimitEffective > 0 ? (spentEffective / computedLimitEffective) * 100 : 0;
 
             return {
                 ...budget,
                 spent,
                 spentEffective,
-                computedLimit,
-                percentage
+                computedLimitProjected,
+                computedLimitEffective,
+                percentageProjected,
+                percentageEffective
             };
         });
-    }, [customBudgets, transactions, monthlyIncome, currentMonth]);
+    }, [customBudgets, transactions, incomeProjected, incomeEffective, currentMonth]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -249,9 +257,14 @@ const CustomBudgetManager: React.FC<CustomBudgetManagerProps> = ({
                                     onChange={e => setFormData({ ...formData, limitValue: parseFloat(e.target.value) || 0 })}
                                 />
                                 {formData.limitType === 'percentage' && (
-                                    <p className="text-xs font-medium text-indigo-500 ml-1">
-                                        Equivale a: R$ {((monthlyIncome * (formData.limitValue || 0)) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                                    </p>
+                                    <div className="flex flex-col gap-1 ml-1">
+                                        <p className="text-[10px] font-bold text-sky-600 uppercase tracking-tight">
+                                            Meta Projetada: R$ {((incomeProjected * (formData.limitValue || 0)) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                        </p>
+                                        <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-tight">
+                                            Meta Efetivada: R$ {((incomeEffective * (formData.limitValue || 0)) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                        </p>
+                                    </div>
                                 )}
                             </div>
                         </div>
@@ -327,28 +340,49 @@ const CustomBudgetManager: React.FC<CustomBudgetManagerProps> = ({
 
                             <div className="mb-6 z-10 relative">
                                 <div className="flex justify-between items-end mb-1">
-                                    <span className="text-3xl font-black text-indigo-600 dark:text-indigo-400">
-                                        {budget.percentage.toFixed(0)}%
-                                    </span>
+                                    <div className="flex flex-col">
+                                        <span className={`text-2xl font-black ${budget.percentageProjected > 100 ? 'text-rose-500' : 'text-indigo-600'} dark:text-indigo-400 leading-none`}>
+                                            {budget.percentageProjected.toFixed(0)}%
+                                        </span>
+                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-tighter mt-1">Geral</span>
+                                    </div>
                                     <div className="text-right">
                                         <p className="text-[10px] font-bold text-slate-400 uppercase">Efetivado / Projetado</p>
                                         <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
-                                            R$ {budget.spentEffective.toLocaleString('pt-BR', { compactDisplay: "short" })} <span className="text-slate-300">/</span> R$ {budget.spent.toLocaleString('pt-BR', { compactDisplay: "short" })}
+                                            R$ {budget.spentEffective.toLocaleString('pt-BR', { maximumFractionDigits: 0 })} <span className="text-slate-300">/</span> R$ {budget.spent.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
                                         </p>
                                     </div>
                                 </div>
 
-                                <div className="h-3 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden relative">
+                                <div className="h-4 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden relative mb-2">
+                                    {/* Barra Projetada (Meta Total) */}
                                     <div
-                                        className={`absolute h-full rounded-full transition-all duration-1000 ${isOver ? 'bg-rose-500 opacity-30' : 'bg-indigo-500 opacity-30'}`}
-                                        style={{ width: `${percentageFormatted}%` }}
+                                        className={`absolute h-full rounded-full transition-all duration-1000 ${budget.percentageProjected > 100 ? 'bg-rose-500' : 'bg-indigo-500'} opacity-30`}
+                                        style={{ width: `${Math.min(budget.percentageProjected, 100)}%` }}
                                     ></div>
+                                    {/* Barra Efetivada (Meta Atual) */}
                                     <div
-                                        className={`h-full rounded-full transition-all duration-1000 ${isOver ? 'bg-rose-500' : 'bg-emerald-500'}`}
-                                        style={{ width: `${Math.min((budget.spentEffective / (budget.computedLimit || 1)) * 100, 100)}%` }}
+                                        className={`h-full rounded-full transition-all duration-1000 ${budget.percentageEffective > 100 ? 'bg-rose-500' : 'bg-emerald-500'}`}
+                                        style={{ width: `${Math.min(budget.percentageEffective, 100)}%` }}
                                     ></div>
                                 </div>
-                                {isOver && <p className="text-[10px] font-bold text-rose-500 mt-1 flex items-center gap-1"><Info size={10} /> Limite excedido em R$ {(budget.spent - budget.computedLimit).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>}
+
+                                <div className="flex justify-between text-[9px] font-black uppercase tracking-tight text-slate-400 px-1">
+                                    <div className="flex items-center gap-1">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                                        <span>Meta Efet: R$ {budget.computedLimitEffective.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}</span>
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 opacity-50"></div>
+                                        <span>Meta Proj: R$ {budget.computedLimitProjected.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}</span>
+                                    </div>
+                                </div>
+
+                                {budget.spent > budget.computedLimitProjected && (
+                                    <p className="text-[10px] font-bold text-rose-500 mt-2 flex items-center gap-1">
+                                        <AlertTriangle size={10} /> Excesso Proj: R$ {(budget.spent - budget.computedLimitProjected).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                    </p>
+                                )}
                             </div>
 
                             <div className="pt-4 border-t border-slate-50 dark:border-slate-800 flex justify-between items-center text-xs font-medium text-slate-500">
