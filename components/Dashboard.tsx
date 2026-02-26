@@ -363,7 +363,7 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
             </div>
 
             {/* Right: AI Insights */}
-            <div className="flex-1 pt-6 md:pt-0 relative z-10 w-full lg:w-1/3">
+            <div className="pt-6 lg:pt-0 relative z-10 h-full w-full">
               <AIInsightsWidget transactions={transactions} budgets={budgets} />
             </div>
           </div>
