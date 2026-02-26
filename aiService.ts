@@ -321,7 +321,18 @@ export const getAdvancedAIInsights = async (
         bal: accounts.reduce((acc, a) => acc + a.balance, 0),
         tx: transactions.slice(0, 50).map(t => ({ d: t.description, v: t.amount, c: t.category }))
     };
-    const prompt = `Gere insights financeiros profundos em JSON: { emotionalPatterns, scenarios, projections, healthScore }. DADOS: ${JSON.stringify(context)}`;
+    const prompt = `Gere insights financeiros profundos OBRIGATORIAMENTE no seguinte formato JSON exato. Não invente chaves e garanta que todas as listas sejam arrays válidos:
+    {
+      "healthScore": número (0 a 100),
+      "emotionalPatterns": ["padrão 1", "padrão 2"],
+      "scenarios": [
+        { "description": "cenario", "action": "ação", "impact": "impacto", "targetObjective": "objetivo" }
+      ],
+      "projections": [
+        { "month": "Mês 1", "amount": número }
+      ]
+    }
+    DADOS: ${JSON.stringify(context)}`;
     try {
         const response = await getGroqClient()?.chat.completions.create({
             model: GROQ_MODEL,
