@@ -346,6 +346,7 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
                         dot={{ fill: '#94a3b8', r: 4, strokeWidth: 0 }}
                         activeDot={{ r: 6, fill: '#475569', stroke: '#fff', strokeWidth: 2 }}
                         animationDuration={1500}
+                        label={{ position: 'top', fill: '#64748b', fontSize: 10, fontWeight: 'bold', formatter: (val: number) => `R$${(val / 1000).toFixed(1)}k` }}
                       />
                       <Area
                         type="monotone"
@@ -355,6 +356,7 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
                         fillOpacity={0.1}
                         fill="#ef4444"
                         animationDuration={1500}
+                        label={{ position: 'bottom', fill: '#ef4444', fontSize: 10, fontWeight: 'bold', formatter: (val: number) => `R$${(val / 1000).toFixed(1)}k` }}
                       />
                     </ComposedChart>
                   </ResponsiveContainer>
@@ -480,6 +482,17 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
                         dataKey="value"
                         stroke="none"
                         cornerRadius={4}
+                        labelLine={false}
+                        label={({ cx, cy, midAngle, innerRadius, outerRadius, percent, name }) => {
+                          const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+                          const x = cx + radius * Math.cos(-midAngle * Math.PI / 180);
+                          const y = cy + radius * Math.sin(-midAngle * Math.PI / 180);
+                          return percent > 0.05 ? (
+                            <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central" fontSize={10} fontWeight="bold">
+                              {`${(percent * 100).toFixed(0)}%`}
+                            </text>
+                          ) : null;
+                        }}
                       >
                         {pieData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} className="hover:opacity-80 transition-opacity outline-none" />

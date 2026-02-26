@@ -52,7 +52,21 @@ const AdvancedAIIntelligence: React.FC<AdvancedAIIntelligenceProps> = ({
         );
     }
 
-    if (!insights) return null;
+    if (!insights || !insights.healthScore || !insights.emotionalPatterns || !insights.projections || insights.projections.length === 0 || !insights.scenarios) {
+        return (
+            <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/20 rounded-3xl p-8 flex flex-col items-center justify-center text-center">
+                <AlertCircle size={40} className="text-amber-500 mb-4" />
+                <h3 className="text-lg font-bold text-amber-700 dark:text-amber-400 mb-1">Análise Incompleta</h3>
+                <p className="text-sm text-amber-600 dark:text-amber-500 mb-4">A IA retornou dados incompletos. Isso pode acontecer devido a limites de token ou formato da resposta.</p>
+                <button
+                    onClick={onRefresh}
+                    className="bg-amber-600 text-white px-6 py-2 rounded-xl font-bold hover:bg-amber-700 transition-colors shadow-lg shadow-amber-200 dark:shadow-none uppercase text-[10px] tracking-widest"
+                >
+                    Recalcular Insights
+                </button>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6">
@@ -210,7 +224,7 @@ const AdvancedAIIntelligence: React.FC<AdvancedAIIntelligenceProps> = ({
                             <Info size={14} />
                         </div>
                         <p className="text-[10px] text-indigo-700 dark:text-indigo-400 font-bold leading-tight">
-                            Com base no seu histórico, o saldo final em {new Date(insights.projections[5].date).toLocaleDateString('pt-BR', { month: 'long' })} será de R$ {insights.projections[insights.projections.length - 1].amount.toLocaleString('pt-BR')}.
+                            Com base no seu histórico, o saldo final projetado será de R$ {insights.projections[insights.projections.length - 1]?.amount?.toLocaleString('pt-BR') || 0}.
                         </p>
                     </div>
                 </div>

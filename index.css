@@ -26,6 +26,11 @@
   --color-sky-600: var(--color-primary);
 }
 
+@theme {
+  --font-sans: "Outfit", "Inter", sans-serif;
+  --font-outfit: "Outfit", sans-serif;
+}
+
 /* Luxury Icon Behavior */
 svg.lucide {
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
