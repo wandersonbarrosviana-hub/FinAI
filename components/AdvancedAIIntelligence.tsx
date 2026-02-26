@@ -52,7 +52,15 @@ const AdvancedAIIntelligence: React.FC<AdvancedAIIntelligenceProps> = ({
         );
     }
 
-    if (!insights || !insights.healthScore || !insights.emotionalPatterns || !insights.projections || insights.projections.length === 0 || !insights.scenarios) {
+    if (
+        !insights ||
+        !insights.healthScore ||
+        !insights.emotionalPatterns ||
+        !insights.projections ||
+        insights.projections.length === 0 ||
+        !insights.scenarios ||
+        !Array.isArray(insights.scenarios)
+    ) {
         return (
             <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/20 rounded-3xl p-8 flex flex-col items-center justify-center text-center">
                 <AlertCircle size={40} className="text-amber-500 mb-4" />
