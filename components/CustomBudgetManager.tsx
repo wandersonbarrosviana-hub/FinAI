@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Transaction, CustomBudget } from '../types';
 import { CATEGORIES } from '../constants';
-import { Plus, Trash2, PieChart, Info, Check, X, Calculator, DollarSign, Calendar, CreditCard, ShoppingBag } from 'lucide-react';
+import { Plus, Trash2, PieChart, Info, Check, X, Calculator, DollarSign, Calendar, CreditCard, ShoppingBag, AlertTriangle } from 'lucide-react';
 
 interface CustomBudgetManagerProps {
     customBudgets: CustomBudget[];
