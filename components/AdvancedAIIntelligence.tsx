@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Sparkles, Activity, Brain, TrendingUp, Calendar, AlertCircle, CheckCircle2, Zap, ArrowRight, Info, ShieldCheck, HeartPulse } from 'lucide-react';
+import { Sparkles, Activity, Brain, TrendingUp, Calendar, AlertCircle, AlertTriangle, CheckCircle2, Zap, ArrowRight, Info, ShieldCheck, HeartPulse } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Transaction, Account, Budget, Goal, AdvancedAIInsights } from '../types';
 import { getAdvancedAIInsights } from '../aiService';
