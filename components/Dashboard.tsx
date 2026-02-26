@@ -346,7 +346,15 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
                         dot={{ fill: '#94a3b8', r: 4, strokeWidth: 0 }}
                         activeDot={{ r: 6, fill: '#475569', stroke: '#fff', strokeWidth: 2 }}
                         animationDuration={1500}
-                        label={{ position: 'top', fill: '#64748b', fontSize: 10, fontWeight: 'bold', formatter: (val: number) => `R$${(val / 1000).toFixed(1)}k` }}
+                        label={(props) => {
+                          const { x, y, value } = props;
+                          if (value === undefined || value === 0) return null;
+                          return (
+                            <text x={x} y={y} dy={-10} fill="#64748b" fontSize={10} fontWeight="bold" textAnchor="middle">
+                              {`R$${(Number(value) / 1000).toFixed(1)}k`}
+                            </text>
+                          );
+                        }}
                       />
                       <Area
                         type="monotone"
@@ -356,7 +364,15 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
                         fillOpacity={0.1}
                         fill="#ef4444"
                         animationDuration={1500}
-                        label={{ position: 'bottom', fill: '#ef4444', fontSize: 10, fontWeight: 'bold', formatter: (val: number) => `R$${(val / 1000).toFixed(1)}k` }}
+                        label={(props) => {
+                          const { x, y, value } = props;
+                          if (value === undefined || value === 0) return null;
+                          return (
+                            <text x={x} y={y} dy={20} fill="#ef4444" fontSize={10} fontWeight="bold" textAnchor="middle">
+                              {`R$${(Number(value) / 1000).toFixed(1)}k`}
+                            </text>
+                          );
+                        }}
                       />
                     </ComposedChart>
                   </ResponsiveContainer>
