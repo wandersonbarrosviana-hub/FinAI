@@ -74,7 +74,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, isOpen, se
                   const parent = e.currentTarget.parentElement;
                   if (parent && !parent.querySelector('h1')) {
                     const text = document.createElement('h1');
-                    text.className = "text-xl sm:text-2xl font-black tracking-tighter bg-gradient-to-r from-sky-600 to-blue-600 bg-clip-text text-transparent";
+                    text.className = "text-xl sm:text-2xl font-bold tracking-tight text-slate-800 dark:text-slate-200";
                     text.innerHTML = 'FinAI<span class="text-sky-500">.</span>';
                     parent.appendChild(text);
                   }
@@ -84,7 +84,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, isOpen, se
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-black text-xs shrink-0 shadow-lg glow-indigo"
+                className="w-8 h-8 md:w-10 md:h-10 bg-sky-100 dark:bg-sky-900/30 rounded-xl flex items-center justify-center text-sky-600 dark:text-sky-400 font-bold text-sm md:text-base shrink-0 shadow-sm"
               >
                 F
               </motion.div>
@@ -114,15 +114,15 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, isOpen, se
               <button
                 key={item.id}
                 onClick={() => handleNavClick(item.id)}
-                className={`w-full flex items-center p-3 sm:p-3.5 rounded-xl transition-colors relative group overflow-hidden ${isActive
-                  ? 'bg-indigo-50/50 dark:bg-indigo-900/10 text-indigo-600 dark:text-indigo-400 shadow-[inset_4px_0_0_0_#6366f1]'
+                className={`w-full flex items-center p-3 sm:p-3.5 rounded-xl transition-all duration-200 relative group overflow-hidden ${isActive
+                  ? 'bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400 font-semibold shadow-sm'
                   : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800'
                   }`}
               >
                 <div className={`flex items-center relative z-10 ${isOpen ? 'ml-1 sm:ml-2' : 'mx-auto'}`}>
                   {React.cloneElement(item.icon as any, {
                     size: 20,
-                    className: `transition-transform duration-300 ${isActive ? 'scale-110 filter drop-shadow-[0_0_8px_rgba(99,102,241,0.4)]' : 'opacity-80 group-hover:opacity-100 group-hover:scale-110'}`
+                    className: `transition-transform duration-300 ${isActive ? 'scale-110 drop-shadow-sm' : 'opacity-80 group-hover:opacity-100 group-hover:scale-110'}`
                   })}
 
                   <AnimatePresence mode="wait">
@@ -132,11 +132,11 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, isOpen, se
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -10 }}
                         transition={{ duration: 0.2 }}
-                        className={`ml-3 text-sm font-bold tracking-tight flex items-center gap-1.5 whitespace-nowrap ${isActive ? 'text-sky-900 dark:text-sky-100' : ''}`}
+                        className={`ml-3 text-sm font-medium tracking-tight flex items-center gap-1.5 whitespace-nowrap ${isActive ? 'text-sky-700 dark:text-sky-300 font-semibold' : ''}`}
                       >
                         {item.label}
                         {(item as any).badge && (
-                          <span className="text-[8px] font-black px-2 py-0.5 rounded-full bg-gradient-to-r from-sky-500 to-indigo-500 text-white uppercase tracking-[0.1em] leading-none shadow-sm shadow-sky-500/20 animate-pulse-slow">
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-sky-100 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400 uppercase tracking-wider leading-none shadow-sm ml-auto">
                             {(item as any).badge}
                           </span>
                         )}
@@ -166,7 +166,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, isOpen, se
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -10 }}
-                    className={`ml-3 text-sm font-bold tracking-tight whitespace-nowrap ${currentView === 'settings' ? 'text-sky-900 dark:text-sky-100' : ''}`}
+                    className={`ml-3 text-sm font-medium tracking-tight whitespace-nowrap ${currentView === 'settings' ? 'text-sky-700 dark:text-sky-300 font-semibold' : ''}`}
                   >
                     Configurações
                   </motion.span>
@@ -186,7 +186,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, isOpen, se
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -10 }}
-                    className="ml-3 text-sm font-bold tracking-tight whitespace-nowrap"
+                    className="ml-3 text-sm font-medium tracking-tight whitespace-nowrap"
                   >
                     Sair
                   </motion.span>

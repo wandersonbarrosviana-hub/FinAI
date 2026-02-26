@@ -46,6 +46,7 @@ export interface Account {
   closingDay?: number;
   dueDay?: number;
   isDefault?: boolean;
+  bankLogo?: string;
 }
 
 export interface Goal {

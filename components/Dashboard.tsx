@@ -3,7 +3,7 @@ import React, { useState, useMemo } from 'react';
 import AllTransactions from './AllTransactions';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  BarChart, Bar, Cell, PieChart, Pie, AreaChart, Area
+  BarChart, Bar, Cell, PieChart, Pie, AreaChart, Area, ComposedChart
 } from 'recharts';
 import { Transaction, Account, Goal, Budget, FinancialScore } from '../types';
 import { TrendingUp, TrendingDown, Wallet, PlusCircle, ArrowUpRight, ArrowDownRight, Sparkles, X } from 'lucide-react';
@@ -15,6 +15,7 @@ import { AdvancedAIInsights, Transaction as TransactionType } from '../types';
 import { getAdvancedAIInsights } from '../aiService';
 import { Sector } from 'recharts';
 import { Trophy, Award } from 'lucide-react';
+import TopSummaryCards from './TopSummaryCards';
 
 interface DashboardProps {
   transactions: Transaction[];
@@ -102,6 +103,10 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
     .filter(t => t.type === 'expense')
     .reduce((acc, curr) => acc + curr.amount, 0);
 
+  const transferBalance = transactions
+    .filter(t => t.type === 'transfer' && t.isPaid)
+    .reduce((acc, curr) => acc + curr.amount, 0);
+
   // Process Last 7 Days Data (Memoized)
   const last7DaysData = useMemo(() => {
     const today = new Date();
@@ -187,24 +192,24 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
   }, [transactions, customBudgets]);
 
   // Clean Palette
-  const BASE_COLORS = ['#0284c7', '#059669', '#db2777', '#7c3aed', '#d97706', '#dc2626'];
+  const BASE_COLORS = ['#38bdf8', '#fbbf24', '#f87171', '#818cf8', '#34d399', '#f472b6'];
   const COLORS = pieData.length > 0 ? BASE_COLORS.slice(0, pieData.length) : BASE_COLORS;
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-4 rounded-2xl shadow-xl text-xs z-50 animate-in zoom-in-95 duration-200">
-          <p className="font-black text-slate-900 dark:text-white mb-2 uppercase tracking-widest border-b border-slate-100 dark:border-slate-800 pb-2">{label || payload[0].name}</p>
+          <p className="font-semibold text-slate-900 dark:text-white mb-2 uppercase tracking-widest border-b border-slate-100 dark:border-slate-800 pb-2">{label || payload[0].name}</p>
           {payload.map((p: any, index: number) => (
             <div key={index} className="flex items-center gap-2 mb-1 last:mb-0">
               <div className="w-2 h-2 rounded-full" style={{ backgroundColor: p.color || p.payload.fill }}></div>
               <span className="font-bold text-slate-500 dark:text-slate-400 capitalize">{p.name}:</span>
-              <span className="font-black text-slate-800 dark:text-white ml-auto">
+              <span className="font-semibold text-slate-800 dark:text-white ml-auto">
                 R$ {Number(p.value).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </span>
             </div>
           ))}
-          <p className="text-[8px] font-black text-sky-500 mt-2 uppercase tracking-tighter">Clique para ver detalhes</p>
+          <p className="text-[8px] font-semibold text-sky-500 mt-2 uppercase tracking-tighter">Clique para ver detalhes</p>
         </div>
       );
     }
@@ -253,31 +258,36 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
 
   return (
     <div className="space-y-6">
+      <TopSummaryCards
+        totalBalance={totalBalance}
+        monthIncome={monthIncome}
+        monthExpense={monthExpense}
+        transferBalance={transferBalance}
+      />
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">Visão Geral</h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Resumo financeiro em tempo real</p>
+          <h2 className="text-2xl sm:text-3xl font-medium text-slate-900 dark:text-white tracking-tight">Visão Geral</h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Resumo financeiro em tempo real</p>
         </div>
         <button
           onClick={onAddClick}
-          className="flex items-center gap-2 bg-sky-600 hover:bg-sky-700 text-white p-3 sm:px-5 sm:py-2.5 rounded-xl font-bold transition-all shadow-lg shadow-sky-100 active:scale-95 w-full sm:w-auto justify-center uppercase text-[10px] tracking-widest"
+          className="flex items-center gap-2 bg-sky-600 hover:bg-sky-700 text-white p-3 sm:px-5 sm:py-2.5 rounded-xl font-medium transition-all shadow-sm active:scale-95 w-full sm:w-auto justify-center text-[13px]"
         >
           <PlusCircle size={20} />
           <span>Lançar Manual</span>
         </button>
       </div>
 
-      {/* Modern Tabs - Fluid Width */}
-      <div className="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-2xl w-full sm:w-fit overflow-x-auto scrollbar-hide">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <button
           onClick={() => handleTabChange('overview')}
-          className={`flex-1 sm:flex-none px-4 sm:px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'overview' ? 'bg-white dark:bg-slate-900 text-sky-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+          className={`flex-1 sm:flex-none px-4 sm:px-6 py-2.5 rounded-xl text-[10px] font-semibold uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'overview' ? 'bg-white dark:bg-slate-900 text-sky-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
         >
           Resumo Geral
         </button>
         <button
           onClick={() => handleTabChange('intelligence')}
-          className={`flex-1 sm:flex-none px-4 sm:px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 whitespace-nowrap ${activeTab === 'intelligence' ? 'bg-white dark:bg-slate-900 text-purple-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+          className={`flex-1 sm:flex-none px-4 sm:px-6 py-2.5 rounded-xl text-[10px] font-semibold uppercase tracking-widest transition-all flex items-center justify-center gap-2 whitespace-nowrap ${activeTab === 'intelligence' ? 'bg-white dark:bg-slate-900 text-purple-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
         >
           <Sparkles size={14} className={activeTab === 'intelligence' ? 'text-amber-400' : ''} />
           Inteligência IA
@@ -298,124 +308,63 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
       ) : (
         <>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-            {/* Main Stats Card (Clean White) */}
-            <div className="lg:col-span-3 bg-white dark:bg-slate-900 p-5 sm:p-8 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col md:flex-row gap-6 sm:gap-8 relative overflow-hidden group">
-              {/* Background Glow - Subtle */}
-              <div className="absolute top-0 right-0 w-64 h-64 bg-sky-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-sky-500/10 transition-all duration-700"></div>
-
-              {/* Vertical Flow - Adaptive Width */}
-              <div className="w-full md:max-w-xs flex flex-col justify-between py-2 relative z-10 gap-6">
-                <div className="absolute left-[19px] top-4 bottom-4 w-[2px] bg-gradient-to-b from-emerald-100 via-slate-100 to-rose-100 z-0 hidden xs:block"></div>
-
-                {/* Income */}
-                <div className="relative z-10 flex items-center gap-4 group/item">
-                  <div className="w-10 h-10 flex-shrink-0 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 shadow-sm">
-                    <ArrowUpRight size={20} />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Entrada</p>
-                    <p className="text-lg sm:text-xl font-black text-emerald-600 dark:text-emerald-400 truncate">R$ {monthIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                    <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium mt-0.5 truncate">
-                      Previsto: R$ {monthIncomeForecast.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                    </p>
-                  </div>
+            {/* Left/Middle: Trend Chart (Weekly) */}
+            <div className="lg:col-span-2 bg-white dark:bg-slate-900 p-5 sm:p-8 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm relative z-10">
+              <div className="flex justify-between items-center mb-4">
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">Fluxo de Caixa</h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Resumo mensal por semanas</p>
                 </div>
-
-                {/* Balance (Net) */}
-                <div className="relative z-10 flex items-center gap-4 group/item">
-                  <div className={`w-12 h-12 flex-shrink-0 rounded-2xl flex items-center justify-center border shadow-sm ${monthIncome - monthExpense >= 0 ? 'bg-emerald-600 text-white border-emerald-500' : 'bg-rose-600 text-white border-rose-500'}`}>
-                    <Wallet size={24} />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Saldo Mensal</p>
-                    <p className={`text-xl sm:text-2xl font-black truncate ${monthIncome - monthExpense >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
-                      {monthIncome - monthExpense >= 0 ? '+' : ''} R$ {(monthIncome - monthExpense).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                    </p>
-                    <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium mt-0.5 truncate">
-                      Previsto: {monthIncomeForecast - monthExpenseForecast >= 0 ? '+' : ''} R$ {(monthIncomeForecast - monthExpenseForecast).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Expense */}
-                <div className="relative z-10 flex items-center gap-4 group/item">
-                  <div className="w-10 h-10 flex-shrink-0 rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-600 shadow-sm">
-                    <ArrowDownRight size={20} />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Saída</p>
-                    <p className="text-lg sm:text-xl font-black text-rose-600 dark:text-rose-400 truncate">R$ {monthExpense.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                    <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium mt-0.5 truncate">
-                      Previsto: R$ {monthExpenseForecast.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                    </p>
-                  </div>
+                <div className="p-2 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                  <TrendingDown size={18} className="text-rose-500" />
                 </div>
               </div>
-
-              {/* Middle: Trend Chart (Weekly) */}
-              <div className="flex-1 border-t md:border-t-0 md:border-l border-slate-100 pt-6 md:pt-0 md:pl-8 relative z-10">
-                <div className="flex justify-between items-center mb-4">
-                  <div>
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">Fluxo de Caixa</h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Resumo mensal por semanas</p>
-                  </div>
-                  <div className="p-2 bg-slate-50 dark:bg-slate-800 rounded-lg">
-                    <TrendingDown size={18} className="text-rose-500" />
-                  </div>
-                </div>
-                <div className="h-64 mt-4 overflow-x-auto scrollbar-hide">
-                  <div className="h-full min-w-[600px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={chartData}>
-                        <defs>
-                          <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#10b981" stopOpacity={0.2} />
-                            <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                          </linearGradient>
-                          <linearGradient id="colorExpense" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.2} />
-                            <stop offset="95%" stopColor="#f43f5e" stopOpacity={0} />
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                        <XAxis
-                          dataKey="name"
-                          axisLine={false}
-                          tickLine={false}
-                          tick={{ fill: '#0f172a', fontSize: 10, fontWeight: '900' }}
-                        />
-                        <YAxis hide />
-                        <Tooltip content={<CustomTooltip />} />
-                        <Area
-                          type="monotone"
-                          dataKey="Receitas"
-                          stroke="#10b981"
-                          strokeWidth={4}
-                          fillOpacity={1}
-                          fill="url(#waveGradient)"
-                          animationDuration={1500}
-                          className="glow-emerald"
-                        />
-                        <Area
-                          type="monotone"
-                          dataKey="Despesas"
-                          stroke="#f43f5e"
-                          strokeWidth={4}
-                          fillOpacity={0.6}
-                          fill="url(#colorExpense)"
-                          animationDuration={1500}
-                          className="glow-rose"
-                        />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </div>
+              <div className="h-64 mt-4 overflow-x-auto scrollbar-hide">
+                <div className="h-full min-w-[600px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <ComposedChart data={chartData}>
+                      <defs>
+                        <linearGradient id="colorExpense" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#ef4444" stopOpacity={0.1} />
+                          <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                      <XAxis
+                        dataKey="name"
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: '#0f172a', fontSize: 10, fontWeight: '900' }}
+                      />
+                      <YAxis hide />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Line
+                        type="monotone"
+                        dataKey="Receitas"
+                        stroke="#94a3b8"
+                        strokeWidth={2}
+                        dot={{ fill: '#94a3b8', r: 4, strokeWidth: 0 }}
+                        activeDot={{ r: 6, fill: '#475569', stroke: '#fff', strokeWidth: 2 }}
+                        animationDuration={1500}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="Despesas"
+                        stroke="#ef4444"
+                        strokeWidth={3}
+                        fillOpacity={0.1}
+                        fill="#ef4444"
+                        animationDuration={1500}
+                      />
+                    </ComposedChart>
+                  </ResponsiveContainer>
                 </div>
               </div>
+            </div>
 
-              {/* Right: AI Insights */}
-              <div className="flex-1 border-t md:border-t-0 md:border-l border-slate-100 pt-6 md:pt-0 md:pl-8 relative z-10">
-                <AIInsightsWidget transactions={transactions} budgets={budgets} />
-              </div>
+            {/* Right: AI Insights */}
+            <div className="flex-1 pt-6 md:pt-0 relative z-10 w-full lg:w-1/3">
+              <AIInsightsWidget transactions={transactions} budgets={budgets} />
             </div>
           </div>
 
@@ -427,7 +376,7 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
               </div>
               <div>
                 <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Patrimônio Total</p>
-                <p className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">R$ {totalBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                <p className="text-2xl font-semibold text-slate-900 dark:text-white tracking-tight">R$ {totalBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
               </div>
             </div>
 
@@ -439,12 +388,12 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
               <div className="flex-1">
                 <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Maturidade Financeira</p>
                 <div className="flex items-end gap-2 text-indigo-600 dark:text-indigo-400">
-                  <p className="text-2xl font-black tracking-tight">{financialScore?.total_score || 0}</p>
-                  <p className="text-[10px] font-black uppercase pb-1 tracking-widest">PTS</p>
+                  <p className="text-2xl font-semibold tracking-tight">{financialScore?.total_score || 0}</p>
+                  <p className="text-[10px] font-semibold uppercase pb-1 tracking-widest">PTS</p>
                 </div>
               </div>
               <div className="text-right">
-                <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-indigo-50 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 rounded-lg text-[8px] font-black uppercase tracking-widest">
+                <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-indigo-50 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 rounded-lg text-[8px] font-semibold uppercase tracking-widest">
                   <Award size={10} />
                   {financialScore?.total_score && financialScore.total_score > 800 ? 'Top 5%' : 'Top 22%'}
                 </div>
@@ -482,8 +431,8 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
                             const data = payload[0].payload;
                             return (
                               <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-3 rounded-2xl shadow-xl z-50">
-                                <p className="font-black text-[10px] uppercase text-slate-400 mb-1">{data.name}</p>
-                                <p className="text-sm font-black text-slate-900 dark:text-white">R$ {data.spent.toLocaleString('pt-BR')} / R$ {data.limit.toLocaleString('pt-BR')}</p>
+                                <p className="font-semibold text-[10px] uppercase text-slate-400 mb-1">{data.name}</p>
+                                <p className="text-sm font-semibold text-slate-900 dark:text-white">R$ {data.spent.toLocaleString('pt-BR')} / R$ {data.limit.toLocaleString('pt-BR')}</p>
                                 <p className="text-[10px] font-bold text-sky-500 mt-1">{data.percent.toFixed(1)}% utilizado</p>
                               </div>
                             );
@@ -525,49 +474,12 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
                         data={pieData}
                         cx="50%"
                         cy="50%"
-                        innerRadius={50}
-                        outerRadius={70}
-                        paddingAngle={5}
+                        innerRadius={60}
+                        outerRadius={80}
+                        paddingAngle={2}
                         dataKey="value"
                         stroke="none"
-                        activeIndex={activeIndex !== null ? activeIndex : undefined}
-                        activeShape={renderActiveShape}
-                        onMouseEnter={(_, index) => setActiveIndex(index)}
-                        onMouseLeave={() => setActiveIndex(null)}
-                        onClick={onPieClick}
-                        className="cursor-pointer"
-                        label={({ x, y, cx, name, percent }) => (
-                          <g>
-                            <defs>
-                              <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-                                <feGaussianBlur in="SourceAlpha" stdDeviation="2" />
-                                <feOffset dx="0" dy="1" result="offsetblur" />
-                                <feComponentTransfer>
-                                  <feFuncA type="linear" slope="0.5" />
-                                </feComponentTransfer>
-                                <feMerge>
-                                  <feMergeNode />
-                                  <feMergeNode in="SourceGraphic" />
-                                </feMerge>
-                              </filter>
-                            </defs>
-                            <text
-                              x={x}
-                              y={y}
-                              fill="white"
-                              textAnchor={x > cx ? 'start' : 'end'}
-                              dominantBaseline="central"
-                              className="font-black"
-                              style={{
-                                fontSize: '10px',
-                                filter: 'drop-shadow(0px 1px 2px rgba(0,0,0,0.8))'
-                              }}
-                            >
-                              {`${(percent * 100).toFixed(0)}%`}
-                            </text>
-                          </g>
-                        )}
-                        labelLine={{ stroke: '#64748b', strokeWidth: 1, strokeDasharray: '2 2' }}
+                        cornerRadius={4}
                       >
                         {pieData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} className="hover:opacity-80 transition-opacity outline-none" />
@@ -582,7 +494,7 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
                     <div key={entry.name} className="flex flex-col group">
                       <div className="flex items-center">
                         <div className="w-2.5 h-2.5 rounded-full mr-3 shadow-sm" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
-                        <span className="text-slate-700 dark:text-slate-300 font-black group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors uppercase text-[10px] tracking-tight">{entry.name}</span>
+                        <span className="text-slate-700 dark:text-slate-300 font-semibold group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors uppercase text-[10px] tracking-tight">{entry.name}</span>
                       </div>
                       <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 ml-5">
                         R$ {entry.value.toLocaleString('pt-BR', { minimumFractionDigits: 0 })}
@@ -607,11 +519,11 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
                   <div key={t.id} className="p-3 flex flex-col gap-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                     <div className="flex justify-between items-center">
                       <div className="flex flex-col min-w-0">
-                        <span className="text-xs font-black text-slate-900 dark:text-white truncate">
+                        <span className="text-xs font-semibold text-slate-900 dark:text-white truncate">
                           {t.description}
                         </span>
                         <div className="flex items-center gap-1.5 mt-0.5">
-                          <span className="px-1.5 py-0.5 rounded-md text-[8px] font-black bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 uppercase tracking-tighter">
+                          <span className="px-1.5 py-0.5 rounded-md text-[8px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 uppercase tracking-tighter">
                             {t.category}
                           </span>
                           <span className="text-[9px] text-slate-400 font-bold">
@@ -620,10 +532,10 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
                         </div>
                       </div>
                       <div className="flex flex-col items-end shrink-0">
-                        <span className={`text-sm font-black ${t.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                        <span className={`text-sm font-semibold ${t.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
                           {t.type === 'income' ? '+' : '-'} R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                         </span>
-                        <span className={`px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-tighter ${t.isPaid
+                        <span className={`px-1.5 py-0.5 rounded text-[8px] font-semibold uppercase tracking-tighter ${t.isPaid
                           ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/10 dark:text-emerald-400'
                           : 'bg-amber-50 text-amber-600 dark:bg-amber-900/10 dark:text-amber-400'
                           }`}>
@@ -709,14 +621,14 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest ${t.isPaid
+                          <span className={`px-2 py-0.5 rounded text-[9px] font-semibold uppercase tracking-widest ${t.isPaid
                             ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400'
                             : 'bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400'
                             }`}>
                             {t.isPaid ? 'Pago' : 'Pendente'}
                           </span>
                         </td>
-                        <td className={`px-6 py-4 text-sm font-black text-right whitespace-nowrap pr-8 ${t.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                        <td className={`px-6 py-4 text-sm font-semibold text-right whitespace-nowrap pr-8 ${t.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
                           {t.type === 'income' ? '+' : '-'} R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                         </td>
                       </tr>
@@ -727,9 +639,9 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
             </div>
           </div>
         </>
-      )}
+      )
+      }
 
-      {/* Chart Detail Modal */}
       <ChartTransactionModal
         isOpen={selectedChartData.isOpen}
         onClose={() => setSelectedChartData({ ...selectedChartData, isOpen: false })}
@@ -739,11 +651,9 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
         familyMembers={familyMembers}
       />
 
-      {/* All Transactions Modal */}
       {showAllTransactions && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-0 sm:p-4 animate-in fade-in duration-300">
           <div className="bg-white dark:bg-slate-950 w-full h-full sm:h-[90vh] sm:max-w-5xl sm:rounded-[3rem] shadow-2xl overflow-hidden relative animate-in zoom-in-95 slide-in-from-bottom-10 duration-500 ring-1 ring-black/5">
-            {/* Desktop/Mobile Close Button */}
             <button
               onClick={() => setShowAllTransactions(false)}
               className="absolute top-6 right-6 z-[110] p-3 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-2xl text-slate-400 hover:text-rose-600 transition-all shadow-sm border border-slate-100 dark:border-slate-800 active:scale-95 group"
