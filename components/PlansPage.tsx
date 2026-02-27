@@ -54,7 +54,8 @@ const PlansPage: React.FC<PlansPageProps> = ({ userPlan, onUpgradeSuccess }) => 
     useEffect(() => {
         // Only load PayPal if user is not yet the max plan or needs upgrade
         const script = document.createElement('script');
-        script.src = `https://www.paypal.com/sdk/js?client-id=sb&currency=BRL`;
+        const clientId = import.meta.env.VITE_PAYPAL_CLIENT_ID || 'sb';
+        script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=BRL`;
         script.async = true;
         script.onload = () => {
             // PayPal will be rendered only when a plan is selected or container is ready

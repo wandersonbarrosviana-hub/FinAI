@@ -18,41 +18,42 @@ declare
 begin
   current_user_id := auth.uid();
 
-  -- 1. Transactions: Always delete because they are the "data" being reset.
-  -- Deleting transactions first avoids FK issues with accounts/categories/tags
+  -- 1. Identify accounts that will be deleted based on user parameters
+  -- This CTE/Temp logic helps manage dependencies
+  create temp table accounts_to_delete as
+  select id from accounts 
+  where user_id = current_user_id
+  and (
+    (not p_keep_accounts and (is_credit is false or is_credit is null)) or
+    (not p_keep_credit_cards and is_credit is true)
+  );
+
+  -- 2. Delete debts first (may reference transactions)
+  delete from debts where user_id = current_user_id;
+
+  -- 3. Delete transactions pointing to the specific accounts being deleted
+  -- This handles the case where other users (family) might have transactions pointing to these accounts
+  delete from transactions where account_id in (select id from accounts_to_delete);
+
+  -- 4. Delete all remaining transactions belonging to this user
   delete from transactions where user_id = current_user_id;
 
-  -- 2. Budgets: Always delete (implied by "zerado")
+  -- 5. Delete budgets and custom budgets
   delete from budgets where user_id = current_user_id;
+  delete from custom_budgets where user_id = current_user_id;
 
-  -- 3. Goals: Conditional
+  -- 6. Delete tags
+  delete from tags where user_id = current_user_id;
+
+  -- 7. Goals: Conditional delete
   if not p_keep_goals then
     delete from goals where user_id = current_user_id;
   end if;
 
-  -- 4. Accounts & Credit Cards
-  -- Logic:
-  -- IF keep_accounts AND keep_cards -> Delete NOTHING from accounts
-  -- IF keep_accounts AND NOT keep_cards -> Delete WHERE is_credit = true
-  -- IF NOT keep_accounts AND keep_cards -> Delete WHERE is_credit = false
-  -- IF NOT keep_accounts AND NOT keep_cards -> Delete ALL accounts
-  
-  if p_keep_accounts and p_keep_credit_cards then
-    -- Do nothing
-    null;
-  elsif p_keep_accounts and not p_keep_credit_cards then
-    delete from accounts where user_id = current_user_id and is_credit = true;
-  elsif not p_keep_accounts and p_keep_credit_cards then
-    delete from accounts where user_id = current_user_id and is_credit = false;
-  else
-    delete from accounts where user_id = current_user_id;
-  end if;
+  -- 8. Finally delete the accounts
+  delete from accounts where id in (select id from accounts_to_delete);
 
-  -- 5. Tags: Always delete? Or keep? 
-  -- User didn't specify tags in the "Keep" list (Categories, Cards, Accounts, Goals).
-  -- So we delete tags to ensure "zerado".
-  delete from tags where user_id = current_user_id;
-  
-  -- Note: Categories are client-side (localStorage), handled by frontend.
+  -- Cleanup temp table
+  drop table accounts_to_delete;
 end;
 $$;

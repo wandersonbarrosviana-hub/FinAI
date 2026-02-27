@@ -1298,38 +1298,56 @@ const App: React.FC = () => {
       setLoading(true);
       const { keepCategories = false, keepCreditCards = false, keepAccounts = false, keepGoals = false } = options || {};
 
-      const { error } = await supabase.rpc('reset_user_data_v2', {
-        p_keep_goals: keepGoals,
-        p_keep_credit_cards: keepCreditCards,
-        p_keep_accounts: keepAccounts
-      });
-
-      if (error) {
-        console.error('Error resetting data:', error);
-        alert('Erro ao resetar dados. Tente novamente ou contate o suporte.');
+      // Somente tenta chamar o RPC se o Supabase parecer configurado e houver conexão
+      if (supabase.supabaseUrl.includes('dummy')) {
+        console.warn('[FinAI] RPC skipped due to dummy Supabase config');
       } else {
-        if (!keepCategories) {
-          localStorage.removeItem('finai_categories');
-          localStorage.removeItem('finai_subcategories');
-        }
-        localStorage.removeItem('finai_current_view');
-        localStorage.removeItem('finai_current_date');
+        const { error } = await supabase.rpc('reset_user_data_v2', {
+          p_keep_goals: keepGoals,
+          p_keep_credit_cards: keepCreditCards,
+          p_keep_accounts: keepAccounts
+        });
 
-        // Limpar Banco Local (Dexie)
-        await db.transactions.clear();
-        if (!keepAccounts) await db.accounts.clear();
-        else if (!keepCreditCards) {
-          const accs = await db.accounts.toArray();
-          const idsToRemove = accs.filter(a => a.isCredit).map(a => a.id);
-          await db.accounts.bulkDelete(idsToRemove);
+        if (error) {
+          console.error('Error resetting data on Supabase:', error);
+          // Não bloqueamos o reset local por erro no servidor, apenas avisamos
+          alert(`Aviso: Erro ao limpar dados na nuvem (${error.message}). O reset local continuará.`);
         }
-        if (!keepGoals) await db.goals.clear();
-
-        alert('Dados resetados com sucesso!');
-        window.location.reload();
       }
+
+      // 1. Limpar LocalStorage (Categorias e Preferências)
+      if (!keepCategories) {
+        localStorage.removeItem('finai_categories');
+        localStorage.removeItem('finai_subcategories');
+      }
+      localStorage.removeItem('finai_current_view');
+      localStorage.removeItem('finai_current_date');
+
+      // 2. Limpar Banco Local (Dexie) - LIMPEZA COMPLETA
+      await db.transactions.clear();
+      await db.budgets.clear();
+      await db.customBudgets.clear();
+      await db.debts.clear();
+      await db.tags.clear();
+      await db.syncQueue.clear();
+
+      if (!keepAccounts) {
+        await db.accounts.clear();
+      } else if (!keepCreditCards) {
+        const accs = await db.accounts.toArray();
+        const idsToRemove = accs.filter(a => a.isCredit).map(a => a.id);
+        await db.accounts.bulkDelete(idsToRemove);
+      }
+
+      if (!keepGoals) {
+        await db.goals.clear();
+      }
+
+      alert('Dados locais resetados com sucesso!');
+      window.location.reload();
     } catch (err) {
-      console.error('Unexpected error:', err);
+      console.error('Unexpected error during reset:', err);
+      alert('Erro crítico ao resetar dados locais.');
     } finally {
       setLoading(false);
     }
