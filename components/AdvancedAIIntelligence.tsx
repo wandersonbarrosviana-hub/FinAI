@@ -105,9 +105,11 @@ const AdvancedAIIntelligence: React.FC<AdvancedAIIntelligenceProps> = ({
                                 className={`${insights.healthScore.score > 70 ? 'text-emerald-500' : insights.healthScore.score > 40 ? 'text-amber-500' : 'text-rose-500'} transition-all duration-1000 ease-out`}
                             />
                         </svg>
-                        <div className="absolute flex flex-col items-center">
-                            <span className="text-4xl font-black text-slate-900 dark:text-white">{insights.healthScore.score}</span>
-                            <span className="text-[10px] font-bold text-slate-400 uppercase">Score</span>
+                        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                            <span className="text-4xl font-black text-slate-900 dark:text-white leading-none">
+                                {Math.round(insights.healthScore.score || 0)}
+                            </span>
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Score</span>
                         </div>
                         <HeartPulse
                             size={16}
@@ -155,7 +157,7 @@ const AdvancedAIIntelligence: React.FC<AdvancedAIIntelligenceProps> = ({
                             </div>
                             <div>
                                 <p className="text-[9px] font-black text-slate-400 uppercase">Pico Semanal</p>
-                                <p className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-tight">{insights.emotionalPatterns.peakDay}</p>
+                                <p className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-tight">{insights.emotionalPatterns.peakDay || "Não detectado"}</p>
                             </div>
                         </div>
 
@@ -165,7 +167,9 @@ const AdvancedAIIntelligence: React.FC<AdvancedAIIntelligenceProps> = ({
                             </div>
                             <div>
                                 <p className="text-[9px] font-black text-slate-400 uppercase">Categoria Gatilho</p>
-                                <p className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-tight">{insights.emotionalPatterns.peakCategory}</p>
+                                <p className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-tight">
+                                    {insights.emotionalPatterns.peakCategory || "Eiversificado"}
+                                </p>
                             </div>
                         </div>
 
@@ -198,9 +202,13 @@ const AdvancedAIIntelligence: React.FC<AdvancedAIIntelligenceProps> = ({
                         </div>
                     </div>
 
-                    <div className="flex-1 h-32 mt-2 min-h-[128px]">
+                    <div className="flex-1 h-64 mt-2 min-h-[250px]">
                         <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={insights.projections}>
+                            <AreaChart
+                                key={`projection-chart-${insights.projections.length}-${insights.healthScore.score}`}
+                                data={insights.projections}
+                                margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+                            >
                                 <defs>
                                     <linearGradient id="colorProj" x1="0" y1="0" x2="0" y2="1">
                                         <stop offset="5%" stopColor="#0284c7" stopOpacity={0.3} />
@@ -214,16 +222,21 @@ const AdvancedAIIntelligence: React.FC<AdvancedAIIntelligenceProps> = ({
                                     tickLine={false}
                                     tick={{ fill: '#94a3b8', fontSize: 9, fontWeight: 'bold' }}
                                     tickFormatter={(val) => {
+                                        if (!val) return "";
                                         const d = new Date(val);
-                                        return d.toLocaleDateString('pt-BR', { month: 'short' }).toUpperCase();
+                                        return isNaN(d.getTime()) ? val : d.toLocaleDateString('pt-BR', { month: 'short' }).toUpperCase();
                                     }}
                                 />
+                                <YAxis hide domain={['auto', 'auto']} />
                                 <Tooltip
                                     contentStyle={{ backgroundColor: '#fff', borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
-                                    labelFormatter={(val) => new Date(val).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
-                                    formatter={(val: number) => [`R$ ${val.toLocaleString('pt-BR')}`, 'Saldo Projetado']}
+                                    labelFormatter={(val) => {
+                                        const d = new Date(val);
+                                        return isNaN(d.getTime()) ? val : d.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+                                    }}
+                                    formatter={(val: number) => [`R$ ${Number(val).toLocaleString('pt-BR')}`, 'Saldo Projetado']}
                                 />
-                                <Area type="monotone" dataKey="amount" stroke="#0284c7" strokeWidth={3} fillOpacity={1} fill="url(#colorProj)" />
+                                <Area type="monotone" dataKey="amount" stroke="#0284c7" strokeWidth={3} fillOpacity={1} fill="url(#colorProj)" animationDuration={1000} />
                             </AreaChart>
                         </ResponsiveContainer>
                     </div>

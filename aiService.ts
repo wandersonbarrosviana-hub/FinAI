@@ -316,31 +316,125 @@ export const getAdvancedAIInsights = async (
     budgets: any[],
     goals: any[]
 ): Promise<any> => {
-    if (!getGroqClient()) return null;
+    const client = getGroqClient();
+    if (!client) {
+        console.error("[FinAI] Groq Client not found");
+        return null;
+    }
+
     const context = {
-        bal: accounts.reduce((acc, a) => acc + a.balance, 0),
-        tx: transactions.slice(0, 50).map(t => ({ d: t.description, v: t.amount, c: t.category }))
+        total_balance: accounts.reduce((acc, a) => acc + (a.balance || 0), 0),
+        transactions: transactions.slice(0, 40).map(t => ({
+            description: t.description,
+            amount: t.amount,
+            category: t.category,
+            date: t.date
+        }))
     };
-    const prompt = `Gere insights financeiros profundos OBRIGATORIAMENTE no seguinte formato JSON exato. Não invente chaves e garanta que todas as listas sejam arrays válidos:
+
+    const systemPrompt = `Você é o analista financeiro senior FinAI. Sua tarefa é analisar os dados do usuário e retornar EXCLUSIVAMENTE um objeto JSON.
+    REGRAS DE OURO:
+    1. DETERMINISMO: Se os dados forem os mesmos, o resultado DEVE ser idêntico.
+    2. FIDELIDADE: Baseie o HealthScore estritamente no saldo (total_balance) vs despesas recentes.
+    3. PROJEÇÕES: Gere OBRIGATORIAMENTE 6 pontos de projeção (um para cada mês futuro).
+    4. SCHEMA: Use Português do Brasil (PT-BR). Não inclua explicações fora do JSON.`;
+
+    const userPrompt = `Analise os seguintes dados financeiros e gere um relatório lógico, consistente e numérico.
+    
+    DADOS DO USUÁRIO:
+    ${JSON.stringify(context)}
+
+    REGRAS PARA O SCORE (0-100):
+    - 90-100: Saldo > 5x média de gastos, sem dívidas.
+    - 70-89: Saldo > 2x média de gastos.
+    - 40-69: Saldo cobre despesas mas sem reserva.
+    - <40: Despesas próximas ou superiores ao saldo.
+
+    FORMATO JSON OBRIGATÓRIO:
     {
-      "healthScore": número (0 a 100),
-      "emotionalPatterns": ["padrão 1", "padrão 2"],
+      "healthScore": {
+        "score": number,
+        "liquidity": number,
+        "reserve": number,
+        "debt": number,
+        "stability": number,
+        "message": "string curta"
+      },
+      "emotionalPatterns": {
+        "peakDay": "string",
+        "peakCategory": "string",
+        "impulsivityScore": number,
+        "description": "string curta",
+        "highSpendingDays": [
+          { "day": "YYYY-MM-DD", "amount": number, "isImpulsive": boolean }
+        ]
+      },
       "scenarios": [
-        { "description": "cenario", "action": "ação", "impact": "impacto", "targetObjective": "objetivo" }
+        { "description": "string", "action": "string", "impact": "string", "targetObjective": "string" }
       ],
       "projections": [
-        { "month": "Mês 1", "amount": número }
+        { "date": "YYYY-MM-DD", "amount": number },
+        { "date": "YYYY-MM-DD", "amount": number },
+        { "date": "YYYY-MM-DD", "amount": number },
+        { "date": "YYYY-MM-DD", "amount": number },
+        { "date": "YYYY-MM-DD", "amount": number },
+        { "date": "YYYY-MM-DD", "amount": number }
       ]
-    }
-    DADOS: ${JSON.stringify(context)}`;
+    }`;
+
     try {
-        const response = await getGroqClient()?.chat.completions.create({
+        console.log("[FinAI] Solicitando insights avançados (Modo Lógico)...");
+        const response = await client.chat.completions.create({
             model: GROQ_MODEL,
-            messages: [{ role: "user", content: prompt }],
-            response_format: { type: "json_object" }
+            messages: [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: userPrompt }
+            ],
+            response_format: { type: "json_object" },
+            temperature: 0, // Determinismo máximo
+            seed: 42 // Seed fixa para estabilizar resultados em modelos que suportam
         });
-        return JSON.parse(response.choices[0]?.message?.content || "{}");
-    } catch {
+
+        const content = response.choices[0]?.message?.content || "{}";
+        const rawParsed = JSON.parse(cleanJSON(content));
+
+        // Pós-processamento com validação rigorosa
+        const insights = {
+            healthScore: {
+                score: Math.min(100, Math.max(0, Number(rawParsed.healthScore?.score) ?? 0)),
+                liquidity: Number(rawParsed.healthScore?.liquidity) || 0,
+                reserve: Number(rawParsed.healthScore?.reserve) || 0,
+                debt: Number(rawParsed.healthScore?.debt) || 0,
+                stability: Number(rawParsed.healthScore?.stability) || 0,
+                message: String(rawParsed.healthScore?.message || "Análise indisponível")
+            },
+            emotionalPatterns: {
+                peakDay: String(rawParsed.emotionalPatterns?.peakDay || "Não identificado"),
+                peakCategory: String(rawParsed.emotionalPatterns?.peakCategory || "Variado"),
+                impulsivityScore: Number(rawParsed.emotionalPatterns?.impulsivityScore) || 0,
+                description: String(rawParsed.emotionalPatterns?.description || "Sem padrões claros detectados."),
+                highSpendingDays: (rawParsed.emotionalPatterns?.highSpendingDays || []).map((d: any) => ({
+                    day: String(d.day || ""),
+                    amount: Number(d.amount) || 0,
+                    isImpulsive: Boolean(d.isImpulsive)
+                }))
+            },
+            scenarios: (rawParsed.scenarios || []).map((s: any) => ({
+                description: String(s.description || ""),
+                action: String(s.action || ""),
+                impact: String(s.impact || ""),
+                targetObjective: String(s.targetObjective || "")
+            })),
+            projections: (rawParsed.projections || []).map((p: any) => ({
+                date: String(p.date || ""),
+                amount: Number(p.amount) || 0
+            }))
+        };
+
+        console.log("[FinAI] Insights processados com sucesso.");
+        return insights;
+    } catch (error: any) {
+        console.error("[FinAI] Erro crítico na API do Groq:", error);
         return null;
     }
 };
