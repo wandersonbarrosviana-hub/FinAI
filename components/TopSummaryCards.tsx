@@ -6,13 +6,15 @@ interface TopSummaryCardsProps {
     monthIncome: number;
     monthExpense: number;
     transferBalance: number;
+    onCardClick: (type: 'accounts' | 'income' | 'expense' | 'transfer') => void;
 }
 
 const TopSummaryCards: React.FC<TopSummaryCardsProps> = ({
     totalBalance,
     monthIncome,
     monthExpense,
-    transferBalance
+    transferBalance,
+    onCardClick
 }) => {
     return (
         <div className="w-full mb-6">
@@ -25,8 +27,11 @@ const TopSummaryCards: React.FC<TopSummaryCardsProps> = ({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* Contas Card */}
-                <div className="bg-[#1976D2] rounded-2xl p-5 text-white flex items-center gap-4 relative overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                    <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
+                <div
+                    onClick={() => onCardClick('accounts')}
+                    className="bg-[#1976D2] rounded-2xl p-5 text-white flex items-center gap-4 relative overflow-hidden shadow-sm hover:shadow-xl hover:brightness-110 active:scale-95 transition-all cursor-pointer group"
+                >
+                    <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
                         <Building2 size={24} className="text-white opacity-90" />
                     </div>
                     <div className="flex flex-col z-10">
@@ -38,8 +43,11 @@ const TopSummaryCards: React.FC<TopSummaryCardsProps> = ({
                 </div>
 
                 {/* Receitas Card */}
-                <div className="bg-[#0f9d58] rounded-2xl p-5 text-white flex items-center gap-4 relative overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                    <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
+                <div
+                    onClick={() => onCardClick('income')}
+                    className="bg-[#0f9d58] rounded-2xl p-5 text-white flex items-center gap-4 relative overflow-hidden shadow-sm hover:shadow-xl hover:brightness-110 active:scale-95 transition-all cursor-pointer group"
+                >
+                    <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
                         <Plus size={24} className="text-white opacity-90" />
                     </div>
                     <div className="flex flex-col z-10">
@@ -51,8 +59,11 @@ const TopSummaryCards: React.FC<TopSummaryCardsProps> = ({
                 </div>
 
                 {/* Despesas Card */}
-                <div className="bg-[#DB4437] rounded-2xl p-5 text-white flex items-center gap-4 relative overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                    <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
+                <div
+                    onClick={() => onCardClick('expense')}
+                    className="bg-[#DB4437] rounded-2xl p-5 text-white flex items-center gap-4 relative overflow-hidden shadow-sm hover:shadow-xl hover:brightness-110 active:scale-95 transition-all cursor-pointer group"
+                >
+                    <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
                         <Minus size={24} className="text-white opacity-90" />
                     </div>
                     <div className="flex flex-col z-10">
@@ -64,8 +75,11 @@ const TopSummaryCards: React.FC<TopSummaryCardsProps> = ({
                 </div>
 
                 {/* Transferências Card */}
-                <div className="bg-[#F4B400] rounded-2xl p-5 text-white flex items-center gap-4 relative overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                    <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
+                <div
+                    onClick={() => onCardClick('transfer')}
+                    className="bg-[#F4B400] rounded-2xl p-5 text-white flex items-center gap-4 relative overflow-hidden shadow-sm hover:shadow-xl hover:brightness-110 active:scale-95 transition-all cursor-pointer group"
+                >
+                    <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
                         <ArrowRightLeft size={24} className="text-white opacity-90" />
                     </div>
                     <div className="flex flex-col z-10">

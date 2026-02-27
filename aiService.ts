@@ -44,13 +44,23 @@ export interface VoiceCommandResult {
 
 // Helper to clean Markdown JSON code blocks
 const cleanJSON = (text: string): string => {
-    let clean = text.replace(/```json\n?|\n?```/g, '').trim();
-    const firstBrace = clean.indexOf('{');
-    const lastBrace = clean.lastIndexOf('}');
-    if (firstBrace !== -1 && lastBrace !== -1) {
-        clean = clean.substring(firstBrace, lastBrace + 1);
+    try {
+        let clean = text.replace(/```json\n?|\n?```/g, '').trim();
+        const firstBrace = clean.indexOf('{');
+        const lastBrace = clean.lastIndexOf('}');
+        if (firstBrace !== -1 && lastBrace !== -1) {
+            clean = clean.substring(firstBrace, lastBrace + 1);
+        }
+
+        // Remove vírgulas extras no final de objetos ou arrays (trailing commas)
+        // Isso resolve erros comuns de sintaxe da IA: { "a": 1, } -> { "a": 1 }
+        clean = clean.replace(/,\s*([}\]])/g, '$1');
+
+        return clean;
+    } catch (e) {
+        console.error("[FinAI] Erro ao limpar JSON:", e);
+        return text;
     }
-    return clean;
 };
 
 // Security: Sanitize user input
@@ -331,15 +341,20 @@ export const getAdvancedAIInsights = async (
         }))
     };
 
-    const systemPrompt = `Você é o analista financeiro senior FinAI. Sua tarefa é analisar os dados do usuário e retornar EXCLUSIVAMENTE um objeto JSON válido.
-    REGRAS CRÍTICAS:
-    1. DETERMINISMO: Se os dados financeiros forem idênticos, o JSON retornado DEVE ser idêntico. Não use termos vagos que mudam a cada rodada.
-    2. FIDELIDADE: Baseie o HealthScore estritamente na relação entre Saldo Total, Reserva e Despesas Médias.
-    3. PADRÕES EMOCIONAIS:
-       - 'peakDay': Deve ser o DIA DA SEMANA (ex: Segunda-feira) com maior frequência de gastos. NUNCA retorne uma data específica.
-       - 'peakCategory': Identifique uma categoria de DESPESA (ex: Lazer, Ifood, Shopping) que sugira comportamento impulsivo. NUNCA use categorias de receita como 'Salário'.
-    4. PROJEÇÕES: Gere 6 meses de projeção seguindo a tendência de gastos atual.
-    5. IDIOMA: Português do Brasil (PT-BR). APENAS o JSON bruto.`;
+    const systemPrompt = `Você é o analista financeiro senior FinAI. Sua tarefa é unificar a visão de saúde financeira do usuário.
+    REGRAS DE OURO:
+    1. CONSISTÊNCIA: Sua análise DEVE complementar o score de 'Maturidade Financeira' visto no Dashboard. Se o usuário tem saldo positivo e reserva, o score deve ser alto.
+    2. DETERMINISMO: Dados idênticos = Resposta idêntica.
+    3. FIDELIDADE: Baseie o HealthScore (0-100) na Matriz de Maturidade:
+       - Liquidez (Saldo imediato)
+       - Reserva (Meses de sobrevivência)
+       - Estabilidade (Consistência de ganhos vs gastos)
+    4. PADRÕES EMOCIONAIS:
+       - 'peakDay': Dia da semana recorrente (ex: Sábado).
+       - 'peakCategory': Categoria de despesa impulsiva.
+       - 'description': Explique de forma DIDÁTICA a relação entre emoção e gasto.
+    5. PROJEÇÕES: 6 meses baseados na média real.
+    6. IDIOMA: Português do Brasil. APENAS o JSON bruto.`;
 
     const userPrompt = `DADOS FINANCEIROS PARA ANÁLISE:
     ${JSON.stringify(context)}
@@ -381,9 +396,16 @@ export const getAdvancedAIInsights = async (
         });
 
         const content = response.choices[0]?.message?.content || "{}";
-        console.log("[FinAI] Conteúdo bruto da IA:", content.substring(0, 100) + "...");
+        const cleaned = cleanJSON(content);
 
-        const rawParsed = JSON.parse(cleanJSON(content));
+        let rawParsed: any;
+        try {
+            rawParsed = JSON.parse(cleaned);
+        } catch (parseError) {
+            console.error("[FinAI] Falha grave no parsing do JSON da IA:", parseError);
+            console.log("[FinAI] Conteúdo que tentamos analisar:", cleaned);
+            return null;
+        }
 
         // Pós-processamento com validação rigorosa
         const insights = {

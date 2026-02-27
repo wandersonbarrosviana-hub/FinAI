@@ -16,6 +16,7 @@ import { getAdvancedAIInsights } from '../aiService';
 import { Sector } from 'recharts';
 import { Trophy, Award } from 'lucide-react';
 import TopSummaryCards from './TopSummaryCards';
+import SummaryDetailModal from './SummaryDetailModal';
 
 interface DashboardProps {
   transactions: Transaction[];
@@ -51,7 +52,33 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
     color: '#0284c7'
   });
 
+  const [summaryModal, setSummaryModal] = useState<{
+    isOpen: boolean;
+    type: 'accounts' | 'income' | 'expense' | 'transfer';
+    title: string;
+    color: string;
+  }>({
+    isOpen: false,
+    type: 'accounts',
+    title: '',
+    color: '#1976D2'
+  });
+
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+
+  const handleSummaryCardClick = (type: 'accounts' | 'income' | 'expense' | 'transfer') => {
+    const config = {
+      accounts: { title: 'Instituições & Saldos', color: '#1976D2' },
+      income: { title: 'Receitas Consolidadas', color: '#0f9d58' },
+      expense: { title: 'Despesas Realizadas', color: '#DB4437' },
+      transfer: { title: 'Balanço de Movimentações', color: '#F4B400' }
+    };
+    setSummaryModal({
+      isOpen: true,
+      type,
+      ...config[type]
+    });
+  };
 
   const fetchAIInsights = async (force = false) => {
     if (isAILoading) return;
@@ -263,6 +290,7 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
         monthIncome={monthIncome}
         monthExpense={monthExpense}
         transferBalance={transferBalance}
+        onCardClick={handleSummaryCardClick}
       />
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
@@ -677,6 +705,25 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
         title={selectedChartData.title}
         transactions={selectedChartData.transactions}
         color={selectedChartData.color}
+        familyMembers={familyMembers}
+      />
+
+      <SummaryDetailModal
+        isOpen={summaryModal.isOpen}
+        onClose={() => setSummaryModal({ ...summaryModal, isOpen: false })}
+        title={summaryModal.title}
+        type={summaryModal.type}
+        color={summaryModal.color}
+        data={{
+          accounts: summaryModal.type === 'accounts' ? accounts : [],
+          transactions: summaryModal.type === 'income'
+            ? transactions.filter(t => t.type === 'income' && t.isPaid)
+            : summaryModal.type === 'expense'
+              ? transactions.filter(t => t.type === 'expense' && t.isPaid)
+              : summaryModal.type === 'transfer'
+                ? transactions.filter(t => t.type === 'transfer' && t.isPaid)
+                : []
+        }}
         familyMembers={familyMembers}
       />
 
