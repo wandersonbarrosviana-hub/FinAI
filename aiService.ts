@@ -332,31 +332,52 @@ export const getAdvancedAIInsights = async (
     };
 
     const systemPrompt = `Você é o analista financeiro senior FinAI. Sua tarefa é analisar os dados do usuário e retornar EXCLUSIVAMENTE um objeto JSON válido.
-    REGRAS:
-    - Retorne APENAS o JSON bruto, sem markdown ou explicações.
-    - FIDELIDADE: Baseie o HealthScore no saldo real vs despesas.
-    - PROJEÇÕES: 6 meses futuros obrigatórios.
-    - IDIOMA: Português do Brasil (PT-BR).`;
+    REGRAS CRÍTICAS:
+    1. DETERMINISMO: Se os dados financeiros forem idênticos, o JSON retornado DEVE ser idêntico. Não use termos vagos que mudam a cada rodada.
+    2. FIDELIDADE: Baseie o HealthScore estritamente na relação entre Saldo Total, Reserva e Despesas Médias.
+    3. PADRÕES EMOCIONAIS:
+       - 'peakDay': Deve ser o DIA DA SEMANA (ex: Segunda-feira) com maior frequência de gastos. NUNCA retorne uma data específica.
+       - 'peakCategory': Identifique uma categoria de DESPESA (ex: Lazer, Ifood, Shopping) que sugira comportamento impulsivo. NUNCA use categorias de receita como 'Salário'.
+    4. PROJEÇÕES: Gere 6 meses de projeção seguindo a tendência de gastos atual.
+    5. IDIOMA: Português do Brasil (PT-BR). APENAS o JSON bruto.`;
 
-    const userPrompt = `DADOS FINANCEIROS:
+    const userPrompt = `DADOS FINANCEIROS PARA ANÁLISE:
     ${JSON.stringify(context)}
 
-    Gere o JSON seguindo este esquema:
+    Gere o JSON seguindo este esquema rigoroso:
     {
-      "healthScore": { "score": 0-100, "liquidity": 0-100, "reserve": 0-100, "debt": 0-100, "stability": 0-100, "message": "string" },
-      "emotionalPatterns": { "peakDay": "string", "peakCategory": "string", "impulsivityScore": 0-100, "description": "string", "highSpendingDays": [] },
-      "scenarios": [{ "description": "string", "action": "string", "impact": "string", "targetObjective": "string" }],
-      "projections": [{ "date": "YYYY-MM-DD", "amount": number }]
+      "healthScore": { 
+        "score": 0-100, 
+        "liquidity": 0-100, 
+        "reserve": 0-100, 
+        "debt": 0-100, 
+        "stability": 0-100, 
+        "message": "Resumo lógico da saúde financeira atual" 
+      },
+      "emotionalPatterns": { 
+        "peakDay": "Dia da Semana (ex: Sexta-feira)", 
+        "peakCategory": "Categoria de Despesa", 
+        "impulsivityScore": 0-100, 
+        "description": "Análise do comportamento de compra (ex: 'Picos de gastos no fim de semana em Lazer')", 
+        "highSpendingDays": [] 
+      },
+      "scenarios": [
+        { "description": "string", "action": "string", "impact": "string", "targetObjective": "string" }
+      ],
+      "projections": [
+        { "date": "YYYY-MM-DD", "amount": number }
+      ]
     }`;
 
     try {
-        console.log("[FinAI] Solicitando insights avançados (Modo Robusto)...");
+        console.log("[FinAI] Solicitando insights avançados (Modo Determinístico e Lógico)...");
         const response = await client.chat.completions.create({
             model: GROQ_MODEL,
             messages: [
                 { role: "system", content: systemPrompt },
                 { role: "user", content: userPrompt }
-            ]
+            ],
+            temperature: 0 // Garantir que a resposta seja idêntica para os mesmos dados
         });
 
         const content = response.choices[0]?.message?.content || "{}";

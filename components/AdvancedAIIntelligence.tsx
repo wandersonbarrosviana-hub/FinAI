@@ -151,24 +151,40 @@ const AdvancedAIIntelligence: React.FC<AdvancedAIIntelligenceProps> = ({
                     <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-4">Padrões Emocionais</p>
 
                     <div className="space-y-4 relative z-10">
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 group/item">
                             <div className="p-2 bg-amber-50 dark:bg-amber-900/20 text-amber-600 rounded-xl">
                                 <Calendar size={18} />
                             </div>
-                            <div>
-                                <p className="text-[9px] font-black text-slate-400 uppercase">Pico Semanal</p>
+                            <div className="flex-1">
+                                <div className="flex items-center gap-1">
+                                    <p className="text-[9px] font-black text-slate-400 uppercase">Pico Semanal</p>
+                                    <div className="relative group/tip text-slate-300">
+                                        <Info size={10} className="cursor-help" />
+                                        <div className="absolute bottom-full left-0 mb-2 w-48 bg-slate-800 text-white text-[9px] p-2 rounded-lg opacity-0 group-hover/tip:opacity-100 transition-opacity pointer-events-none z-50">
+                                            O dia da semana em que você costuma concentrar o maior volume de gastos recorrentes.
+                                        </div>
+                                    </div>
+                                </div>
                                 <p className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-tight">{insights.emotionalPatterns.peakDay || "Não detectado"}</p>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 group/item">
                             <div className="p-2 bg-sky-50 dark:bg-sky-900/20 text-sky-600 rounded-xl">
                                 <Activity size={18} />
                             </div>
-                            <div>
-                                <p className="text-[9px] font-black text-slate-400 uppercase">Categoria Gatilho</p>
+                            <div className="flex-1">
+                                <div className="flex items-center gap-1">
+                                    <p className="text-[9px] font-black text-slate-400 uppercase">Categoria Gatilho</p>
+                                    <div className="relative group/tip text-slate-300">
+                                        <Info size={10} className="cursor-help" />
+                                        <div className="absolute bottom-full left-0 mb-2 w-48 bg-slate-800 text-white text-[9px] p-2 rounded-lg opacity-0 group-hover/tip:opacity-100 transition-opacity pointer-events-none z-50">
+                                            A categoria de despesa que mais impacta sua impulsividade financeira baseada no histórico.
+                                        </div>
+                                    </div>
+                                </div>
                                 <p className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-tight">
-                                    {insights.emotionalPatterns.peakCategory || "Eiversificado"}
+                                    {insights.emotionalPatterns.peakCategory || "Variado"}
                                 </p>
                             </div>
                         </div>
