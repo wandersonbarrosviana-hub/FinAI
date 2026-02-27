@@ -117,10 +117,10 @@ export const parseVoiceCommand = async (text: string): Promise<VoiceCommandResul
             messages: [
                 { role: "system", content: systemPrompt },
                 { role: "user", content: `Comando: "${text}"` }
-            ],
-            response_format: { type: "json_object" }
+            ]
         });
-        const parsed = JSON.parse(response.choices[0]?.message?.content || "{}");
+        const content = response.choices[0]?.message?.content || "{}";
+        const parsed = JSON.parse(cleanJSON(content));
         if (parsed.data) parsed.data.originalText = text;
         return parsed;
     } catch (error: any) {
@@ -174,10 +174,10 @@ export const parseNotification = async (notificationText: string): Promise<any> 
             messages: [
                 { role: "system", content: systemPrompt },
                 { role: "user", content: notificationText }
-            ],
-            response_format: { type: "json_object" }
+            ]
         });
-        return JSON.parse(response.choices[0]?.message?.content || "{}");
+        const content = response.choices[0]?.message?.content || "{}";
+        return JSON.parse(cleanJSON(content));
     } catch {
         return null;
     }
@@ -190,10 +190,10 @@ export const parseInvoice = async (invoiceText: string): Promise<any> => {
     try {
         const response = await getGroqClient()?.chat.completions.create({
             model: GROQ_MODEL,
-            messages: [{ role: "user", content: prompt }],
-            response_format: { type: "json_object" }
+            messages: [{ role: "user", content: prompt }]
         });
-        return JSON.parse(response.choices[0]?.message?.content || "{}");
+        const content = response.choices[0]?.message?.content || "{}";
+        return JSON.parse(cleanJSON(content));
     } catch (error: any) {
         return { error: error.message };
     }
@@ -231,8 +231,7 @@ export const analyzeOCRText = async (rawText: string): Promise<any> => {
             messages: [
                 { role: "system", content: systemPrompt },
                 { role: "user", content: userPrompt }
-            ],
-            response_format: { type: "json_object" }
+            ]
         });
 
         const content = response.choices[0].message.content || "{}";
@@ -332,70 +331,37 @@ export const getAdvancedAIInsights = async (
         }))
     };
 
-    const systemPrompt = `Você é o analista financeiro senior FinAI. Sua tarefa é analisar os dados do usuário e retornar EXCLUSIVAMENTE um objeto JSON.
-    REGRAS DE OURO:
-    1. DETERMINISMO: Se os dados forem os mesmos, o resultado DEVE ser idêntico.
-    2. FIDELIDADE: Baseie o HealthScore estritamente no saldo (total_balance) vs despesas recentes.
-    3. PROJEÇÕES: Gere OBRIGATORIAMENTE 6 pontos de projeção (um para cada mês futuro).
-    4. SCHEMA: Use Português do Brasil (PT-BR). Não inclua explicações fora do JSON.`;
+    const systemPrompt = `Você é o analista financeiro senior FinAI. Sua tarefa é analisar os dados do usuário e retornar EXCLUSIVAMENTE um objeto JSON válido.
+    REGRAS:
+    - Retorne APENAS o JSON bruto, sem markdown ou explicações.
+    - FIDELIDADE: Baseie o HealthScore no saldo real vs despesas.
+    - PROJEÇÕES: 6 meses futuros obrigatórios.
+    - IDIOMA: Português do Brasil (PT-BR).`;
 
-    const userPrompt = `Analise os seguintes dados financeiros e gere um relatório lógico, consistente e numérico.
-    
-    DADOS DO USUÁRIO:
+    const userPrompt = `DADOS FINANCEIROS:
     ${JSON.stringify(context)}
 
-    REGRAS PARA O SCORE (0-100):
-    - 90-100: Saldo > 5x média de gastos, sem dívidas.
-    - 70-89: Saldo > 2x média de gastos.
-    - 40-69: Saldo cobre despesas mas sem reserva.
-    - <40: Despesas próximas ou superiores ao saldo.
-
-    FORMATO JSON OBRIGATÓRIO:
+    Gere o JSON seguindo este esquema:
     {
-      "healthScore": {
-        "score": number,
-        "liquidity": number,
-        "reserve": number,
-        "debt": number,
-        "stability": number,
-        "message": "string curta"
-      },
-      "emotionalPatterns": {
-        "peakDay": "string",
-        "peakCategory": "string",
-        "impulsivityScore": number,
-        "description": "string curta",
-        "highSpendingDays": [
-          { "day": "YYYY-MM-DD", "amount": number, "isImpulsive": boolean }
-        ]
-      },
-      "scenarios": [
-        { "description": "string", "action": "string", "impact": "string", "targetObjective": "string" }
-      ],
-      "projections": [
-        { "date": "YYYY-MM-DD", "amount": number },
-        { "date": "YYYY-MM-DD", "amount": number },
-        { "date": "YYYY-MM-DD", "amount": number },
-        { "date": "YYYY-MM-DD", "amount": number },
-        { "date": "YYYY-MM-DD", "amount": number },
-        { "date": "YYYY-MM-DD", "amount": number }
-      ]
+      "healthScore": { "score": 0-100, "liquidity": 0-100, "reserve": 0-100, "debt": 0-100, "stability": 0-100, "message": "string" },
+      "emotionalPatterns": { "peakDay": "string", "peakCategory": "string", "impulsivityScore": 0-100, "description": "string", "highSpendingDays": [] },
+      "scenarios": [{ "description": "string", "action": "string", "impact": "string", "targetObjective": "string" }],
+      "projections": [{ "date": "YYYY-MM-DD", "amount": number }]
     }`;
 
     try {
-        console.log("[FinAI] Solicitando insights avançados (Modo Lógico)...");
+        console.log("[FinAI] Solicitando insights avançados (Modo Robusto)...");
         const response = await client.chat.completions.create({
             model: GROQ_MODEL,
             messages: [
                 { role: "system", content: systemPrompt },
                 { role: "user", content: userPrompt }
-            ],
-            response_format: { type: "json_object" },
-            temperature: 0, // Determinismo máximo
-            seed: 42 // Seed fixa para estabilizar resultados em modelos que suportam
+            ]
         });
 
         const content = response.choices[0]?.message?.content || "{}";
+        console.log("[FinAI] Conteúdo bruto da IA:", content.substring(0, 100) + "...");
+
         const rawParsed = JSON.parse(cleanJSON(content));
 
         // Pós-processamento com validação rigorosa
@@ -446,10 +412,10 @@ export const getInvestmentAnalysis = async (investment: any): Promise<any> => {
     try {
         const response = await getGroqClient()?.chat.completions.create({
             model: GROQ_MODEL,
-            messages: [{ role: "user", content: prompt }],
-            response_format: { type: "json_object" }
+            messages: [{ role: "user", content: prompt }]
         });
-        return JSON.parse(response.choices[0]?.message?.content || "{}");
+        const content = response.choices[0]?.message?.content || "{}";
+        return JSON.parse(cleanJSON(content));
     } catch {
         return null;
     }
