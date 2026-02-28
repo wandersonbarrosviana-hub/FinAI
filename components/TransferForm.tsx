@@ -11,6 +11,7 @@ interface TransferFormProps {
         amount: number;
         date: string;
         description: string;
+        category: string;
     }) => void;
     onCancel: () => void;
 }
@@ -25,6 +26,7 @@ const TransferForm: React.FC<TransferFormProps> = ({ accounts, onTransfer, onCan
     const [amount, setAmount] = useState<number>(0);
     const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0]);
     const [description, setDescription] = useState<string>('Transferência');
+    const [category, setCategory] = useState<string>('Transferência');
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -42,7 +44,8 @@ const TransferForm: React.FC<TransferFormProps> = ({ accounts, onTransfer, onCan
             destinationAccountId,
             amount,
             date,
-            description
+            description,
+            category
         });
     };
 

@@ -115,23 +115,23 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
 
   const totalBalance = accounts.reduce((acc, curr) => acc + curr.balance, 0);
   const monthIncome = transactions
-    .filter(t => t.type === 'income' && t.isPaid)
+    .filter(t => t.type === 'income' && t.isPaid && !t.ignoreInTotals)
     .reduce((acc, curr) => acc + curr.amount, 0);
 
   const monthExpense = transactions
-    .filter(t => t.type === 'expense' && t.isPaid)
+    .filter(t => t.type === 'expense' && t.isPaid && !t.ignoreInTotals)
     .reduce((acc, curr) => acc + curr.amount, 0);
 
   const monthIncomeForecast = transactions
-    .filter(t => t.type === 'income')
+    .filter(t => t.type === 'income' && !t.ignoreInTotals)
     .reduce((acc, curr) => acc + curr.amount, 0);
 
   const monthExpenseForecast = transactions
-    .filter(t => t.type === 'expense')
+    .filter(t => t.type === 'expense' && !t.ignoreInTotals)
     .reduce((acc, curr) => acc + curr.amount, 0);
 
   const transferBalance = transactions
-    .filter(t => t.type === 'transfer' && t.isPaid)
+    .filter(t => t.ignoreInTotals && t.type === 'expense') // outbound transfers give volume
     .reduce((acc, curr) => acc + curr.amount, 0);
 
   // Process Last 7 Days Data (Memoized)
@@ -143,7 +143,7 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
       d.setDate(today.getDate() - i);
       const dateStr = d.toISOString().split('T')[0];
       const dayVal = transactions
-        .filter(t => t.date === dateStr && t.type === 'expense' && t.isPaid)
+        .filter(t => t.date === dateStr && t.type === 'expense' && t.isPaid && !t.ignoreInTotals)
         .reduce((sum, t) => sum + t.amount, 0);
 
       data.push({
@@ -162,7 +162,7 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
     }
 
     transactions.forEach(t => {
-      if (!t.isPaid) return;
+      if (!t.isPaid || t.ignoreInTotals) return;
       const date = new Date(t.date);
       const day = date.getDate();
       let weekKey = 'Semana 1';
@@ -185,7 +185,7 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
   }, [transactions]);
 
   const pieData = useMemo(() => {
-    const expenses = transactions.filter(t => t.type === 'expense' && t.isPaid);
+    const expenses = transactions.filter(t => t.type === 'expense' && t.isPaid && !t.ignoreInTotals);
     const categoryMap: { [key: string]: number } = {};
 
     expenses.forEach(t => {
@@ -206,7 +206,7 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
   const customBudgetsData = useMemo(() => {
     return customBudgets.map(cb => {
       const spent = transactions
-        .filter(t => t.type === 'expense' && t.isPaid && cb.categories.includes(t.category))
+        .filter(t => t.type === 'expense' && t.isPaid && cb.categories.includes(t.category) && !t.ignoreInTotals)
         .reduce((sum, t) => sum + t.amount, 0);
 
       return {
@@ -273,7 +273,7 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
 
   const onPieClick = (data: any, index: number) => {
     const categoryTransactions = transactions.filter(t =>
-      t.category === data.name && t.type === 'expense' && t.isPaid
+      t.category === data.name && t.type === 'expense' && t.isPaid && !t.ignoreInTotals
     );
     setSelectedChartData({
       isOpen: true,
@@ -717,11 +717,11 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
         data={{
           accounts: summaryModal.type === 'accounts' ? accounts : [],
           transactions: summaryModal.type === 'income'
-            ? transactions.filter(t => t.type === 'income' && t.isPaid)
+            ? transactions.filter(t => t.type === 'income' && t.isPaid && !t.ignoreInTotals)
             : summaryModal.type === 'expense'
-              ? transactions.filter(t => t.type === 'expense' && t.isPaid)
+              ? transactions.filter(t => t.type === 'expense' && t.isPaid && !t.ignoreInTotals)
               : summaryModal.type === 'transfer'
-                ? transactions.filter(t => t.type === 'transfer' && t.isPaid)
+                ? transactions.filter(t => t.ignoreInTotals)
                 : []
         }}
         familyMembers={familyMembers}

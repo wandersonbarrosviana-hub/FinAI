@@ -1137,16 +1137,18 @@ const App: React.FC = () => {
     amount: number;
     date: string;
     description: string;
+    category?: string;
   }) => {
     await handleAddTransaction({
       description: `Transferência para: ${data.description}`,
       amount: data.amount,
       type: 'expense',
       account: data.sourceAccountId,
-      category: 'Transferência',
+      category: data.category || 'Transferência',
       subCategory: 'Saída',
       date: data.date,
-      isPaid: true
+      isPaid: true,
+      ignoreInTotals: true
     });
 
     await handleAddTransaction({
@@ -1154,10 +1156,11 @@ const App: React.FC = () => {
       amount: data.amount,
       type: 'income',
       account: data.destinationAccountId,
-      category: 'Transferência',
+      category: data.category || 'Transferência',
       subCategory: 'Entrada',
       date: data.date,
-      isPaid: true
+      isPaid: true,
+      ignoreInTotals: true
     });
   };
 
