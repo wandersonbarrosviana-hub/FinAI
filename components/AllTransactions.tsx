@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Transaction } from '../types';
-import { ChevronLeft, Filter, Wallet, ArrowUpCircle, ArrowDownCircle, ArrowRightCircle, Calendar } from 'lucide-react';
+import { ChevronLeft, Filter, Wallet, ArrowUpCircle, ArrowDownCircle, ArrowRightCircle, Calendar, AlertTriangle, AlertCircle, Clock } from 'lucide-react';
 
 interface AllTransactionsProps {
     transactions: Transaction[];
@@ -40,6 +40,44 @@ const AllTransactions: React.FC<AllTransactionsProps> = ({ transactions = [], fa
             return d.getMonth() === selectedMonth && d.getFullYear() === selectedYear;
         }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     }, [transactions, selectedMonth, selectedYear]);
+
+    const renderStatusBadge = (t: Transaction, small: boolean = false) => {
+        const textClass = small ? "text-[8px] px-1.5 py-0.5" : "text-[10px] px-2 py-0.5";
+        const iconSize = small ? 8 : 10;
+
+        if (t.isPaid) {
+            return (
+                <span className={`${textClass} rounded font-black uppercase tracking-widest flex items-center justify-center gap-1 w-fit bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400`}>
+                    Pago
+                </span>
+            );
+        }
+
+        const [y, m, d] = (t.dueDate || t.date).split('-').map(Number);
+        const localTxDate = new Date(y, m - 1, d);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const diffDays = Math.ceil((localTxDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+        if (diffDays < 0) {
+            return (
+                <span className={`${textClass} rounded font-black uppercase tracking-widest flex items-center justify-center gap-1 w-fit bg-rose-50 text-rose-600 dark:bg-rose-900/20 dark:text-rose-400`} title="Atrasado">
+                    <AlertCircle size={iconSize} /> Pendente
+                </span>
+            );
+        } else if (diffDays <= 3) {
+            return (
+                <span className={`${textClass} rounded font-black uppercase tracking-widest flex items-center justify-center gap-1 w-fit bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400`} title="Vence em breve">
+                    <AlertTriangle size={iconSize} /> Pendente
+                </span>
+            );
+        }
+        return (
+            <span className={`${textClass} rounded font-black uppercase tracking-widest flex items-center justify-center gap-1 w-fit bg-slate-50 text-slate-500 dark:bg-slate-800 dark:text-slate-400`} title="Pendente">
+                <Clock size={iconSize} /> Pendente
+            </span>
+        );
+    };
 
     return (
         <div className="flex flex-col h-full space-y-6 animate-in fade-in duration-500">
@@ -113,9 +151,7 @@ const AllTransactions: React.FC<AllTransactionsProps> = ({ transactions = [], fa
                                         </span>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest ${t.isPaid ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
-                                            {t.isPaid ? 'Pago' : 'Pendente'}
-                                        </span>
+                                        {renderStatusBadge(t, false)}
                                     </td>
                                     <td className={`px-6 py-4 text-sm font-black text-right pr-8 ${t.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}`}>
                                         {t.type === 'income' ? '+' : '-'} R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
@@ -151,13 +187,11 @@ const AllTransactions: React.FC<AllTransactionsProps> = ({ transactions = [], fa
                                                 </span>
                                             </div>
                                         </div>
-                                        <div className="text-right flex flex-col items-end shrink-0">
+                                        <div className="text-right flex flex-col items-end shrink-0 gap-1">
                                             <span className={`text-sm font-black ${t.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}`}>
                                                 {t.type === 'income' ? '+' : '-'} R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                             </span>
-                                            <span className={`px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-tighter ${t.isPaid ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
-                                                {t.isPaid ? 'Pago' : 'Pendente'}
-                                            </span>
+                                            {renderStatusBadge(t, true)}
                                         </div>
                                     </div>
                                     <div className="flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/30 p-1.5 rounded-lg border border-slate-100 dark:border-slate-800">
