@@ -206,7 +206,7 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
   const customBudgetsData = useMemo(() => {
     return customBudgets.map(cb => {
       const spent = transactions
-        .filter(t => t.type === 'expense' && t.isPaid && cb.categories.includes(t.category) && !t.ignoreInTotals)
+        .filter(t => t.type === 'expense' && t.isPaid && cb.categories.includes(t.category))
         .reduce((sum, t) => sum + t.amount, 0);
 
       return {

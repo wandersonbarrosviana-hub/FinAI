@@ -1139,12 +1139,19 @@ const App: React.FC = () => {
     description: string;
     category?: string;
   }) => {
+    // Check if destination is an investment account to automatically categorize as 'Investimentos'
+    const destAcc = accounts.find(a => a.id === data.destinationAccountId);
+    const isInvestment = destAcc?.type === 'investment';
+    const resolvedCategory = data.category && data.category !== 'Transferência' 
+      ? data.category 
+      : (isInvestment ? 'Investimentos' : 'Transferência');
+
     await handleAddTransaction({
       description: `Transferência para: ${data.description}`,
       amount: data.amount,
       type: 'expense',
       account: data.sourceAccountId,
-      category: data.category || 'Transferência',
+      category: resolvedCategory,
       subCategory: 'Saída',
       date: data.date,
       isPaid: true,
@@ -1156,7 +1163,7 @@ const App: React.FC = () => {
       amount: data.amount,
       type: 'income',
       account: data.destinationAccountId,
-      category: data.category || 'Transferência',
+      category: resolvedCategory,
       subCategory: 'Entrada',
       date: data.date,
       isPaid: true,

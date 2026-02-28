@@ -1,6 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Mic, MicOff, Loader2, CheckCircle, AlertCircle, Sparkles, Volume2, Power } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 interface VoiceControlProps {
   onAddTransaction: (result: any) => boolean | void;
@@ -225,7 +226,13 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
   };
 
   return (
-    <div className={`fixed bottom-24 right-4 z-50 flex flex-col items-end pointer-events-none pb-safe`}>
+    <motion.div 
+      drag
+      dragMomentum={false}
+      dragElastic={0.1}
+      className="fixed bottom-24 right-4 z-50 flex flex-col items-end pointer-events-auto pb-safe"
+      style={{ touchAction: 'none' }}
+    >
 
       {/* Transcript Bubble Feedback */}
       {(status === 'active_command' || status === 'processing' || (status === 'standby' && transcript)) && (
@@ -239,7 +246,7 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
       {/* Main FAB */}
       <button
         onClick={handleInteraction}
-        className={`p-4 rounded-full shadow-2xl transition-all duration-500 relative overflow-hidden group active:scale-95 flex items-center justify-center pointer-events-auto ${!isListeningMode ? 'bg-slate-900 text-white w-14 h-14' : // OFF
+        className={`p-4 rounded-full shadow-2xl transition-all duration-500 relative overflow-hidden group flex items-center justify-center ${!isListeningMode ? 'bg-slate-900 text-white w-14 h-14' : // OFF
           status === 'standby' ? 'bg-sky-600 text-white w-16 h-16 ring-4 ring-sky-200 shadow-sky-400/50' : // ON - Waiting
             status === 'active_command' ? 'bg-sky-500 text-white w-16 h-16 animate-pulse ring-4 ring-sky-300' : // ON - Hearing
               status === 'processing' ? 'bg-indigo-600 text-white w-16 h-16' :
@@ -274,7 +281,7 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onAddTransaction }) => {
           </span>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 };
 
