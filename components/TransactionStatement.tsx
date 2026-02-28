@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Transaction, Account } from '../types';
-import { FileText, Download, Filter, Search, ArrowUpCircle, ArrowDownCircle, ArrowRightCircle, Paperclip, X, Wallet } from 'lucide-react';
+import { FileText, Download, Filter, Search, ArrowUpCircle, ArrowDownCircle, ArrowRightCircle, Paperclip, X, Wallet, AlertCircle, AlertTriangle, Clock } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
@@ -22,6 +22,46 @@ const TransactionStatement: React.FC<TransactionStatementProps> = ({ transaction
         const matchesType = filterType === 'all' || t.type === filterType;
         return matchesSearch && matchesType;
     });
+
+    const renderStatusBadge = (t: Transaction, isDesktop: boolean = false) => {
+        const desktopClass = "px-2 py-1 rounded-lg text-[9px] border";
+        const mobileClass = "px-2 py-0.5 rounded-[0.5rem] text-[8px]";
+        const textClass = isDesktop ? desktopClass : mobileClass;
+        const iconSize = isDesktop ? 10 : 8;
+
+        if (t.isPaid) {
+            return (
+                <span className={`${textClass} font-black uppercase tracking-widest whitespace-nowrap flex items-center justify-center gap-1 w-fit bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900/30`}>
+                    Efetuado
+                </span>
+            );
+        }
+
+        const [y, m, d] = (t.dueDate || t.date).split('-').map(Number);
+        const localTxDate = new Date(y, m - 1, d);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const diffDays = Math.ceil((localTxDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+        if (diffDays < 0) {
+            return (
+                <span className={`${textClass} font-black uppercase tracking-widest whitespace-nowrap flex items-center justify-center gap-1 w-fit bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 border-rose-100 dark:border-rose-900/30`} title="Atrasado">
+                    <AlertCircle size={iconSize} /> Pendente
+                </span>
+            );
+        } else if (diffDays <= 3) {
+            return (
+                <span className={`${textClass} font-black uppercase tracking-widest whitespace-nowrap flex items-center justify-center gap-1 w-fit bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 border-amber-100 dark:border-amber-900/30`} title="Vence em breve">
+                    <AlertTriangle size={iconSize} /> Pendente
+                </span>
+            );
+        }
+        return (
+            <span className={`${textClass} font-black uppercase tracking-widest whitespace-nowrap flex items-center justify-center gap-1 w-fit bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700/50`} title="Pendente">
+                <Clock size={iconSize} /> Pendente
+            </span>
+        );
+    };
 
     const handleExportXLSX = () => {
         const data = filtered.map(t => ({
@@ -140,12 +180,7 @@ const TransactionStatement: React.FC<TransactionStatementProps> = ({ transaction
                                         <span className={`text-[var(--fluid-text-sm)] font-black tracking-tighter ${t.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
                                             {t.type === 'income' ? '+' : '-'} R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                         </span>
-                                        <span className={`px-2 py-0.5 rounded-[0.5rem] text-[8px] font-black uppercase tracking-[0.1em] ${t.isPaid
-                                            ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400'
-                                            : 'bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400'
-                                            }`}>
-                                            {t.isPaid ? 'Efetuado' : 'Pendente'}
-                                        </span>
+                                        {renderStatusBadge(t, false)}
                                     </div>
                                 </div>
                                 <div className="flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/30 p-3 rounded-2xl border border-slate-100 dark:border-slate-800/50">
@@ -190,13 +225,8 @@ const TransactionStatement: React.FC<TransactionStatementProps> = ({ transaction
                         <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
                             {filtered.map((t) => (
                                 <tr key={t.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
-                                    <td className="px-6 py-4 text-center">
-                                        <span className={`px-2 py-1 rounded-lg text-[9px] font-black border uppercase tracking-widest whitespace-nowrap ${t.isPaid
-                                            ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900/30'
-                                            : 'bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 border-amber-100 dark:border-amber-900/30'
-                                            }`}>
-                                            {t.isPaid ? 'PAGO' : 'PENDENTE'}
-                                        </span>
+                                    <td className="px-6 py-4 flex justify-center">
+                                        {renderStatusBadge(t, true)}
                                     </td>
                                     <td className="px-6 py-4 min-w-[200px]">
                                         <div className="text-sm font-bold text-slate-700 dark:text-slate-200 whitespace-normal" title={t.description}>{t.description}</div>
