@@ -2,8 +2,9 @@
 import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import * as pdfjsLib from 'pdfjs-dist';
-import { Upload, FileText, Loader2, CheckCircle, AlertCircle, Trash2, Edit2, Save, X } from 'lucide-react';
+import { Upload, FileText, Loader2, CheckCircle, AlertCircle, Trash2, Edit2, Save, X, Camera } from 'lucide-react';
 import { parseInvoice } from '../aiService';
+import { transcribeImage } from '../ocrService';
 
 // Configure PDF.js worker locally using Vite's URL import
 import pdfWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
@@ -54,9 +55,15 @@ const InvoiceUploader: React.FC<InvoiceUploaderProps> = ({ onConfirm, onCancel }
             let text = '';
             if (file.type === 'application/pdf') {
                 text = await extractTextFromPDF(file);
+            } else if (file.type.startsWith('image/')) {
+                // Image OCR
+                const base64 = await new Promise<string>((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve(e.target?.result as string);
+                    reader.readAsDataURL(file);
+                });
+                text = await transcribeImage(base64, (p) => setProgress(p / 2));
             } else {
-                // Image OCR would go here (not implemented yet without Tesseract or Vision model)
-                // For now, assume PDF only or text file
                 text = await file.text();
             }
 
@@ -101,7 +108,7 @@ const InvoiceUploader: React.FC<InvoiceUploaderProps> = ({ onConfirm, onCancel }
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop,
-        accept: { 'application/pdf': ['.pdf'], 'text/plain': ['.txt'] },
+        accept: { 'application/pdf': ['.pdf'], 'text/plain': ['.txt'], 'image/*': ['.jpeg', '.jpg', '.png'] },
         maxFiles: 1
     });
 
@@ -265,6 +272,24 @@ const InvoiceUploader: React.FC<InvoiceUploaderProps> = ({ onConfirm, onCancel }
                             Tentar Novamente
                         </button>
                     )}
+
+                    <div className="flex gap-4 mt-6" onClick={(e) => e.stopPropagation()}>
+                        <label className="flex items-center gap-2 px-6 py-3 bg-sky-600 hover:bg-sky-500 text-white font-black rounded-xl cursor-pointer shadow-lg shadow-sky-200 transition-all text-xs tracking-widest uppercase relative z-10 hover:shadow-sky-300">
+                            <Camera size={18} />
+                            Tirar Foto
+                            <input 
+                              type="file" 
+                              accept="image/*" 
+                              capture="environment" 
+                              className="hidden" 
+                              onChange={(e) => {
+                                  if (e.target.files && e.target.files.length > 0) {
+                                      processFile(e.target.files[0]);
+                                  }
+                              }} 
+                            />
+                        </label>
+                    </div>
                 </div>
             )}
         </div>
