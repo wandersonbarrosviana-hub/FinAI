@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import DailyHistory from './DailyHistory';
 import { Transaction, TransactionType, Tag as TagType, Account } from '../types';
 import { CATEGORIES_MAP, INCOME_CATEGORIES_MAP, BANKS } from '../constants';
-import { Calendar, CreditCard, Tag, Plus, Trash2, CheckCircle, Clock, Edit2, Save, X, Repeat, Divide, ChevronDown, ChevronUp, Paperclip, FileText, PieChart, Wallet, Calculator, Camera, Image, XCircle, Sparkles, Loader2 } from 'lucide-react';
+import { Calendar, CreditCard, Tag, Plus, Trash2, CheckCircle, Clock, Edit2, Save, X, Repeat, Divide, ChevronDown, ChevronUp, Paperclip, FileText, PieChart, Wallet, Calculator, Camera, Image, XCircle, Sparkles, Loader2, AlertCircle, AlertTriangle } from 'lucide-react';
 import { analyzeOCRText, analyzeExpenseImage } from '../aiService';
+import PaymentModal, { PaymentData } from './PaymentModal';
 
 interface ExpenseManagerProps {
   transactions: Transaction[];
@@ -35,16 +36,28 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
   const [showHistory, setShowHistory] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [selectedAttachment, setSelectedAttachment] = useState<string | null>(null);
+  const [paymentModalTx, setPaymentModalTx] = useState<Transaction | null>(null);
 
-  const targetMap = type === 'income' ? INCOME_CATEGORIES_MAP : CATEGORIES_MAP;
-  const categoriesList = Object.keys(targetMap);
+  const [customCategoriesMap, setCustomCategoriesMap] = useState<Record<string, string[]>>({});
+
+  useEffect(() => {
+    const saved = localStorage.getItem('finai_categories');
+    if (saved) {
+      setCustomCategoriesMap(JSON.parse(saved));
+    }
+  }, []);
+
+  const baseMap = type === 'income' ? INCOME_CATEGORIES_MAP : CATEGORIES_MAP;
+  // Merge base map with custom categories
+  const targetMap = { ...baseMap, ...customCategoriesMap };
+  const categoriesList = Array.from(new Set([...Object.keys(baseMap), ...Object.keys(customCategoriesMap)]));
 
   // Form State
   const [formData, setFormData] = useState<Partial<Transaction>>({
     description: '',
     amount: 0,
-    category: categoriesList[0],
-    subCategory: targetMap[categoriesList[0]][0],
+    category: categoriesList.length > 0 ? categoriesList[0] : 'Outros',
+    subCategory: categoriesList.length > 0 && targetMap[categoriesList[0]] ? targetMap[categoriesList[0]][0] : 'Diversos',
     date: new Date().toISOString().split('T')[0],
     dueDate: new Date().toISOString().split('T')[0],
     paymentMethod: type === 'income' ? 'PIX' : 'Cartão de Crédito',
@@ -80,11 +93,15 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
 
   useEffect(() => {
     // Reset defaults when type changes
+    const newBaseMap = type === 'income' ? INCOME_CATEGORIES_MAP : CATEGORIES_MAP;
+    const newTargetMap = { ...newBaseMap, ...customCategoriesMap };
+    const newCategoriesList = Array.from(new Set([...Object.keys(newBaseMap), ...Object.keys(customCategoriesMap)]));
+
     setFormData(prev => ({
       ...prev,
       type: type,
-      category: categoriesList[0],
-      subCategory: targetMap[categoriesList[0]][0],
+      category: newCategoriesList.length > 0 ? newCategoriesList[0] : 'Outros',
+      subCategory: newCategoriesList.length > 0 && newTargetMap[newCategoriesList[0]] ? newTargetMap[newCategoriesList[0]][0] : 'Diversos',
       isPaid: type === 'income',
       paymentMethod: type === 'income' ? 'PIX' : 'Cartão de Crédito',
       recurrence: 'one_time',
@@ -160,9 +177,21 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
     let finalCategory = formData.category;
     let finalSubCategory = formData.subCategory;
 
-    if (formData.category === 'Outros') {
+    if (formData.category === 'Outros' && (customCategory || customSubCategory)) {
       finalCategory = customCategory || 'Outros';
       finalSubCategory = customSubCategory || 'Diversos';
+
+      // Salvar a nova categoria no localStorage para uso futuro
+      const currentSavedCategories = { ...customCategoriesMap };
+      if (!currentSavedCategories[finalCategory]) {
+        currentSavedCategories[finalCategory] = [];
+      }
+      if (finalSubCategory && !currentSavedCategories[finalCategory].includes(finalSubCategory)) {
+        currentSavedCategories[finalCategory].push(finalSubCategory);
+      }
+      localStorage.setItem('finai_categories', JSON.stringify(currentSavedCategories));
+      window.dispatchEvent(new Event('storage')); // Notificar outros componentes
+      setCustomCategoriesMap(currentSavedCategories);
     }
 
     let finalAmount = parseFloat(inputValue);
@@ -361,8 +390,51 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
     }
   };
 
-  const toggleStatus = (id: string, currentStatus: boolean) => {
-    onUpdateTransaction(id, { isPaid: !currentStatus });
+  const toggleStatus = (t: Transaction) => {
+    if (!t.isPaid) {
+      setPaymentModalTx(t);
+    } else {
+      onUpdateTransaction(t.id, { isPaid: false });
+    }
+  };
+
+  const handlePaymentConfirm = (data: PaymentData) => {
+    if (!paymentModalTx) return;
+
+    if (data.paymentType === 'full') {
+      const finalAmount = paymentModalTx.amount + data.interest + data.penalty;
+      onUpdateTransaction(paymentModalTx.id, {
+        isPaid: true,
+        amount: finalAmount,
+        date: data.accountingDate,
+        paymentDate: new Date().toISOString().split('T')[0]
+      });
+    } else {
+      // Partial payment
+      const paidAmount = data.amountPaid + data.interest + data.penalty;
+
+      onUpdateTransaction(paymentModalTx.id, {
+        isPaid: true,
+        amount: paidAmount,
+        date: data.accountingDate,
+        description: paymentModalTx.description + ' (Parcial)',
+        paymentDate: new Date().toISOString().split('T')[0]
+      });
+
+      const remainingAmount = paymentModalTx.amount - data.amountPaid;
+
+      // Omit id so App.tsx auto-generates a new one
+      const { id, ...txWithoutId } = paymentModalTx;
+      onAddTransaction({
+        ...txWithoutId,
+        amount: remainingAmount,
+        isPaid: false,
+        paymentDate: undefined,
+        description: paymentModalTx.description + ' (Restante)',
+        dueDate: paymentModalTx.dueDate || paymentModalTx.date
+      });
+    }
+    setPaymentModalTx(null);
   };
 
   const getAccountInfo = (accountId: string) => {
@@ -370,6 +442,55 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
     if (!account) return null;
     const bank = BANKS.find(b => b.id === account.bankId);
     return { ...account, bankLogo: bank?.logoUrl };
+  };
+
+  const getPendingStatus = (txDateStr: string) => {
+    const txDate = new Date(txDateStr);
+    const today = new Date();
+    // Parse considering timezone offsets correctly by using local parts if needed
+    // But since txDateStr is YYYY-MM-DD, new Date(YYYY-MM-DD) might be interpreted as UTC and become previous day.
+    // Better to parse manually:
+    const [y, m, d] = txDateStr.split('-').map(Number);
+    const localTxDate = new Date(y, m - 1, d);
+    today.setHours(0, 0, 0, 0);
+
+    const diffTime = localTxDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 0) return 'overdue';
+    if (diffDays <= 3) return 'warning';
+    return 'pending';
+  };
+
+  const renderStatusIcon = (t: Transaction) => {
+    if (t.isPaid) {
+      return (
+        <div className="flex items-center justify-center text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 w-8 h-8 rounded-full border border-emerald-100 dark:border-emerald-900/30">
+          <CheckCircle size={16} />
+        </div>
+      );
+    }
+
+    const status = getPendingStatus(t.dueDate || t.date);
+    if (status === 'overdue') {
+      return (
+        <div className="flex items-center justify-center text-rose-600 bg-rose-50 dark:bg-rose-900/20 w-8 h-8 rounded-full border border-rose-100 dark:border-rose-900/30" title="Atrasado">
+          <AlertCircle size={16} />
+        </div>
+      );
+    }
+    if (status === 'warning') {
+      return (
+        <div className="flex items-center justify-center text-amber-600 bg-amber-50 dark:bg-amber-900/20 w-8 h-8 rounded-full border border-amber-100 dark:border-amber-900/30" title="Vence em breve">
+          <AlertTriangle size={16} />
+        </div>
+      );
+    }
+    return (
+      <div className="flex items-center justify-center text-slate-400 bg-slate-50 dark:bg-slate-800/20 w-8 h-8 rounded-full border border-slate-200 dark:border-slate-700/30" title="Pendente">
+        <Clock size={16} />
+      </div>
+    );
   };
 
   return (
@@ -961,19 +1082,11 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
                   <tr key={t.id} className="hover:bg-cyan-500/5 dark:hover:bg-cyan-500/10 transition-colors group">
                     <td className="sticky left-0 z-10 bg-white dark:bg-slate-900 px-4 py-4 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] w-[80px]">
                       <button
-                        onClick={() => toggleStatus(t.id, t.isPaid)}
+                        onClick={() => toggleStatus(t)}
                         className="transition-transform active:scale-95 focus:outline-none w-full flex justify-center"
                         title="Clique para alterar status"
                       >
-                        {t.isPaid ? (
-                          <div className="flex items-center justify-center text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 w-8 h-8 rounded-full border border-emerald-100 dark:border-emerald-900/30">
-                            <CheckCircle size={16} />
-                          </div>
-                        ) : (
-                          <div className="flex items-center justify-center text-amber-600 bg-amber-50 dark:bg-amber-900/20 w-8 h-8 rounded-full border border-amber-100 dark:border-amber-900/30">
-                            <Clock size={16} />
-                          </div>
-                        )}
+                        {renderStatusIcon(t)}
                       </button>
                     </td>
                     <td className="sticky left-[80px] z-10 bg-white dark:bg-slate-900 px-4 md:px-6 py-4 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] min-w-[200px]">
@@ -1124,6 +1237,15 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
             </div>
           </div>
         )}
+
+      {paymentModalTx && (
+        <PaymentModal
+          transaction={paymentModalTx}
+          isOpen={!!paymentModalTx}
+          onClose={() => setPaymentModalTx(null)}
+          onConfirm={handlePaymentConfirm}
+        />
+      )}
     </div>
   );
 };
