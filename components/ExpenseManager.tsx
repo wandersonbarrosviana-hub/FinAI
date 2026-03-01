@@ -884,31 +884,41 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
             <div className="md:col-span-2 lg:col-span-3 pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-wrap gap-2">
               <input
                 type="file"
-                id="cameraInput"
+                id="normalCameraInput"
                 accept="image/*"
                 capture="environment"
                 className="hidden"
-                onChange={handleFileUpload}
+                onChange={(e) => handleFileUpload(e as any, false)}
               />
+              <input
+                type="file"
+                id="aiCameraInput"
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+                onChange={(e) => handleFileUpload(e as any, true)}
+              />
+              <input
+                type="file"
+                id="aiGalleryInput"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => handleFileUpload(e as any, true)}
+              />
+
               <button
                 type="button"
-                onClick={() => document.getElementById('cameraInput')?.click()}
+                onClick={() => document.getElementById('normalCameraInput')?.click()}
                 disabled={isScanning}
                 className="flex items-center gap-2 px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-[10px] font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all uppercase tracking-widest disabled:opacity-50 shadow-sm"
               >
                 {isScanning ? <Loader2 size={14} className="animate-spin text-sky-600" /> : <Camera size={14} className="text-sky-600" />}
-                {isScanning ? 'Lendo...' : 'Bater Foto'}
+                {isScanning ? 'Lendo...' : 'Bater Foto (Sem IA)'}
               </button>
 
               <button
                 type="button"
-                onClick={() => {
-                  const input = document.createElement('input');
-                  input.type = 'file';
-                  input.accept = 'image/*';
-                  input.onchange = (e) => handleFileUpload(e as any, true);
-                  input.click();
-                }}
+                onClick={() => document.getElementById('aiCameraInput')?.click()}
                 disabled={isScanning}
                 className="flex items-center gap-2 px-4 py-3 bg-sky-600 text-white rounded-xl text-[10px] font-black hover:bg-sky-500 transition-all uppercase tracking-widest shadow-lg shadow-sky-100 dark:shadow-sky-900/20 disabled:opacity-50 relative overflow-hidden"
               >
@@ -918,8 +928,24 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
                     style={{ width: `${ocrProgress}%` }}
                   />
                 )}
+                {isScanning ? <Loader2 size={14} className="animate-spin" /> : <Camera size={14} />}
+                {isScanning ? (ocrProgress < 100 ? `Lendo (${ocrProgress}%)` : 'Analisando...') : 'AI (Câmera)'}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => document.getElementById('aiGalleryInput')?.click()}
+                disabled={isScanning}
+                className="flex items-center gap-2 px-4 py-3 bg-emerald-600 text-white rounded-xl text-[10px] font-black hover:bg-emerald-500 transition-all uppercase tracking-widest shadow-lg shadow-emerald-100 dark:shadow-emerald-900/20 disabled:opacity-50 relative overflow-hidden"
+              >
+                {isScanning && (
+                  <div
+                    className="absolute bottom-0 left-0 h-1 bg-white/30 transition-all duration-300"
+                    style={{ width: `${ocrProgress}%` }}
+                  />
+                )}
                 {isScanning ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
-                {isScanning ? (ocrProgress < 100 ? `Lendo (${ocrProgress}%)` : 'Analisando...') : 'Escanear com IA'}
+                {isScanning ? (ocrProgress < 100 ? `Lendo (${ocrProgress}%)` : 'Analisando...') : 'AI (Galeria)'}
               </button>
 
               <button
