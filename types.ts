@@ -105,6 +105,8 @@ export type ViewState =
   | 'tags'
   | 'admin'
   | 'investments'
+  | 'payment-success'
+  | 'payment-failure'
   | 'financial-assessment';
 
 export type DebtType = 'financing' | 'personal_loan' | 'credit_card' | 'informal' | 'other';

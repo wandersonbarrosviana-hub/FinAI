@@ -33,6 +33,8 @@ import { canAddAccount, canAddCard, canUseAI, PLAN_LIMITS } from './planConstrai
 import { Budget, CustomBudget } from './types';
 
 import { Bell, Search, User as UserIcon, Plus, Sparkles, AlertCircle, ChevronLeft, ChevronRight, Loader2, LogOut, Settings as SettingsIcon, MessageSquare, Menu } from 'lucide-react';
+import PaymentSuccess from './components/PaymentSuccess';
+import PaymentFailure from './components/PaymentFailure';
 import { parseNotification } from './aiService';
 import { supabase } from './supabaseClient';
 import { Transaction, Account, Goal, User, ViewState, Tag, AppNotification, Debt, FinancialScore } from './types';
@@ -163,6 +165,15 @@ const App: React.FC = () => {
     root.style.setProperty('--color-primary-soft', theme.soft);
     root.style.setProperty('--color-primary-glow', theme.glow);
     root.style.setProperty('--color-primary-dark', theme.dark);
+
+    // Verify MP callback
+    const urlParams = new URLSearchParams(window.location.search);
+    const paymentStatus = urlParams.get('payment');
+    if (paymentStatus === 'success') {
+      setCurrentView('payment-success');
+    } else if (paymentStatus === 'failure') {
+      setCurrentView('payment-failure');
+    }
   }, []);
 
   // No auto-clearing user from localStorage based on state
@@ -1142,8 +1153,8 @@ const App: React.FC = () => {
     // Check if destination is an investment account to automatically categorize as 'Investimentos'
     const destAcc = accounts.find(a => a.id === data.destinationAccountId);
     const isInvestment = destAcc?.type === 'investment';
-    const resolvedCategory = data.category && data.category !== 'Transferência' 
-      ? data.category 
+    const resolvedCategory = data.category && data.category !== 'Transferência'
+      ? data.category
       : (isInvestment ? 'Investimentos' : 'Transferência');
 
     await handleAddTransaction({
@@ -1597,6 +1608,12 @@ const App: React.FC = () => {
             </div>
             <div className={currentView === 'tags' ? '' : 'hidden'}>
               <TagManager tags={tags} onAddTag={handleAddTag} onDeleteTag={handleDeleteTag} onUpdateTag={handleUpdateTag} />
+            </div>
+            <div className={currentView === 'payment-success' ? '' : 'hidden'}>
+              <PaymentSuccess onContinue={() => setCurrentView('dashboard')} />
+            </div>
+            <div className={currentView === 'payment-failure' ? '' : 'hidden'}>
+              <PaymentFailure onRetry={() => setCurrentView('plans')} onBack={() => setCurrentView('dashboard')} />
             </div>
             <div className={currentView === 'ai-assistant' ? '' : 'hidden'}>
               <div className="p-4 md:p-8 overflow-y-auto scrollbar-hide text-slate-800 h-full flex flex-col">

@@ -12,7 +12,6 @@ type BillingCycle = 'monthly' | 'annual';
 const PlansPage: React.FC<PlansPageProps> = ({ userPlan, onUpgradeSuccess }) => {
     const [loading, setLoading] = useState(false);
     const [billingCycle, setBillingCycle] = useState<BillingCycle>('monthly');
-    const [selectedPlanId, setSelectedPlanId] = useState<'pro' | 'premium' | null>(null);
 
     const plans = {
         pro: {
@@ -51,92 +50,48 @@ const PlansPage: React.FC<PlansPageProps> = ({ userPlan, onUpgradeSuccess }) => 
         }
     };
 
-    useEffect(() => {
-        // Only load PayPal if user is not yet the max plan or needs upgrade
-        const script = document.createElement('script');
-        const clientId = import.meta.env.VITE_PAYPAL_CLIENT_ID || 'sb';
-        script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=BRL`;
-        script.async = true;
-        script.onload = () => {
-            // PayPal will be rendered only when a plan is selected or container is ready
-        };
-        document.body.appendChild(script);
-
-        return () => {
-            if (document.body.contains(script)) {
-                document.body.removeChild(script);
-            }
-        };
-    }, []);
-
-    useEffect(() => {
-        if (selectedPlanId) {
-            renderPayPalButton(selectedPlanId);
-        }
-    }, [selectedPlanId, billingCycle]);
-
-    const renderPayPalButton = (planId: 'pro' | 'premium') => {
-        const containerId = `paypal-button-${planId}`;
-        const container = document.getElementById(containerId);
-        if (!container) return;
-
-        // Clear existing button if any
-        container.innerHTML = '';
-
-        const plan = plans[planId];
-        const amount = billingCycle === 'monthly' ? plan.monthlyPrice.replace(',', '.') : plan.annualPrice.replace(',', '.');
-
-        (window as any).paypal.Buttons({
-            style: {
-                layout: 'vertical',
-                color: planId === 'premium' ? 'gold' : 'blue',
-                shape: 'pill',
-                label: 'checkout'
-            },
-            createOrder: (data: any, actions: any) => {
-                return actions.order.create({
-                    purchase_units: [{
-                        amount: {
-                            value: amount,
-                            currency_code: 'BRL'
-                        },
-                        description: `Assinatura FinAI ${plan.name} - ${billingCycle === 'monthly' ? 'Mensal' : 'Anual'}`
-                    }]
-                });
-            },
-            onApprove: async (data: any, actions: any) => {
-                setLoading(true);
-                const order = await actions.order.capture();
-                console.log('Payment Approved:', order);
-                await handleUpgrade(planId);
-            },
-            onError: (err: any) => {
-                console.error('PayPal Error:', err);
-                alert('Ocorreu um erro no processamento do pagamento.');
-            }
-        }).render(`#${containerId}`);
-    };
-
     const handleUpgrade = async (planId: 'pro' | 'premium') => {
+        setLoading(true);
         try {
             const { data: { user } } = await supabase.auth.getUser();
-            if (!user) return;
+            if (!user) {
+                alert("Usuário não logado.");
+                return;
+            }
 
-            const { error } = await supabase
-                .from('profiles')
-                .update({ plan_type: planId })
-                .eq('id', user.id);
+            // Chamada para a Edge Function do Mercado Pago
+            const { data, error } = await supabase.functions.invoke('create-mp-checkout', {
+                body: {
+                    plan: planId,
+                    userId: user.id,
+                    email: user.email,
+                    billingCycle
+                }
+            });
 
-            if (error) throw error;
-            onUpgradeSuccess();
-        } catch (error) {
-            console.error('Error upgrading plan:', error);
-            alert('Erro ao atualizar plano no banco de dados.');
+            if (error) {
+                console.error("Supabase EF Error:", error);
+                throw new Error("Erro de comunicação com o servidor de pagamentos.");
+            }
+
+            if (data?.init_point) {
+                // Redireciona o usuário para o Mercado Pago
+                window.location.href = data.init_point;
+            } else if (data?.error) {
+                throw new Error(data.error);
+            } else {
+                throw new Error("Resposta inválida do servidor.");
+            }
+
+        } catch (error: any) {
+            console.error('Error generating checkout:', error);
+            alert(`Erro ao iniciar pagamento: ${error.message}`);
         } finally {
             setLoading(false);
-            setSelectedPlanId(null);
         }
     };
+
+    // Keep the calculation helper
 
     const getSavingsPercent = (planId: 'pro' | 'premium') => {
         const plan = plans[planId];
@@ -262,16 +217,12 @@ const PlansPage: React.FC<PlansPageProps> = ({ userPlan, onUpgradeSuccess }) => 
                             </div>
                         ) : (
                             <>
-                                {selectedPlanId === 'pro' ? (
-                                    <div id="paypal-button-pro" className="paypal-container"></div>
-                                ) : (
-                                    <button
-                                        onClick={() => setSelectedPlanId('pro')}
-                                        className="w-full py-4 px-6 bg-slate-900 text-white text-[11px] font-black rounded-2xl uppercase tracking-widest hover:bg-slate-800 transition-colors shadow-lg shadow-slate-900/10"
-                                    >
-                                        Upgrade para PRO
-                                    </button>
-                                )}
+                                <button
+                                    onClick={() => handleUpgrade('pro')}
+                                    className="w-full py-4 px-6 bg-slate-900 text-white text-[11px] font-black rounded-2xl uppercase tracking-widest hover:bg-slate-800 transition-colors shadow-lg shadow-slate-900/10"
+                                >
+                                    Assinar PRO via Pix / Cartão
+                                </button>
                             </>
                         )}
                     </div>
@@ -325,16 +276,12 @@ const PlansPage: React.FC<PlansPageProps> = ({ userPlan, onUpgradeSuccess }) => 
                             </div>
                         ) : (
                             <>
-                                {selectedPlanId === 'premium' ? (
-                                    <div id="paypal-button-premium" className="paypal-container"></div>
-                                ) : (
-                                    <button
-                                        onClick={() => setSelectedPlanId('premium')}
-                                        className="w-full py-4 px-6 bg-gradient-to-r from-amber-400 to-orange-500 text-white text-[11px] font-black rounded-2xl uppercase tracking-widest shadow-xl shadow-orange-500/30 hover:shadow-2xl transition-all"
-                                    >
-                                        Upgrade para Premium
-                                    </button>
-                                )}
+                                <button
+                                    onClick={() => handleUpgrade('premium')}
+                                    className="w-full py-4 px-6 bg-gradient-to-r from-amber-400 to-orange-500 text-white text-[11px] font-black rounded-2xl uppercase tracking-widest shadow-xl shadow-orange-500/30 hover:shadow-2xl transition-all"
+                                >
+                                    Assinar Premium via Pix / Cartão
+                                </button>
                             </>
                         )}
                         <p className="text-[9px] text-center text-slate-500 font-black uppercase tracking-widest">Pagamento seguro &bull; Cancele a qualquer momento</p>
