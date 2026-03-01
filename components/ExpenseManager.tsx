@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import DailyHistory from './DailyHistory';
 import { Transaction, TransactionType, Tag as TagType, Account } from '../types';
 import { CATEGORIES_MAP, INCOME_CATEGORIES_MAP, BANKS } from '../constants';
-import { Calendar, CreditCard, Tag, Plus, Trash2, CheckCircle, Clock, Edit2, Save, X, Repeat, Divide, ChevronDown, ChevronUp, Paperclip, FileText, PieChart, Wallet, Calculator, Camera, Image, XCircle, Sparkles, Loader2, AlertCircle, AlertTriangle } from 'lucide-react';
+import { Calendar, CreditCard, Tag, Plus, Trash2, CheckCircle, Clock, Edit2, Save, X, Repeat, Divide, ChevronDown, ChevronUp, Paperclip, FileText, PieChart, Wallet, Calculator, Camera, Image, XCircle, Sparkles, Loader2, AlertCircle, AlertTriangle, DollarSign } from 'lucide-react';
 import { analyzeOCRText, analyzeExpenseImage } from '../aiService';
 import PaymentModal, { PaymentData } from './PaymentModal';
 
@@ -32,6 +32,14 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
   onOpenAccountModal
 }) => {
   const filteredTransactions = transactions.filter(t => t.type === type);
+
+  const totalProjected = filteredTransactions
+    .filter(t => !t.ignoreInTotals)
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  const totalEffective = filteredTransactions
+    .filter(t => t.isPaid && !t.ignoreInTotals)
+    .reduce((sum, t) => sum + t.amount, 0);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -534,6 +542,34 @@ const ExpenseManager: React.FC<ExpenseManagerProps> = ({
         </div>
       </div>
 
+      {!isFormOpen && (
+        <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-4 duration-500">
+          <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-5 rounded-3xl shadow-sm flex items-center justify-between">
+            <div>
+              <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Total Previsto</p>
+              <h3 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-white mt-1">
+                R$ {totalProjected.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </h3>
+            </div>
+            <div className={`p-3 rounded-2xl ${type === 'income' ? 'bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400' : 'bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400'}`}>
+              <DollarSign size={24} />
+            </div>
+          </div>
+          
+          <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-5 rounded-3xl shadow-sm flex items-center justify-between">
+            <div>
+              <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Total Efetivado</p>
+              <h3 className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">
+                R$ {totalEffective.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </h3>
+            </div>
+            <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 rounded-2xl">
+              <CheckCircle size={24} />
+            </div>
+          </div>
+        </div>
+      )}
+      
       {showHistory && (
         <DailyHistory
           transactions={allTransactions || transactions}
