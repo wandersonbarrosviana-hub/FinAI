@@ -12,59 +12,62 @@ serve(async (req) => {
   }
 
   try {
-    const { plan, userId, email, billingCycle = 'monthly' } = await req.json();
+    const rawBody = await req.text();
+    console.log("Raw Request Body:", rawBody);
 
-    if (!plan || !userId) {
-      throw new Error("Parameters 'plan' and 'userId' are required.");
+    if (!rawBody) throw new Error("Requisição vazia");
+
+    let body;
+    try {
+      body = JSON.parse(rawBody);
+    } catch (e) {
+      throw new Error("JSON inválido na requisição");
     }
 
-    // Mercado Pago Preapproval configuration
-    // The MP_ACCESS_TOKEN and MP_WEBHOOK_URL must be configured in Supabase Secrets
+    const { plan, userId, email, billingCycle = 'monthly' } = body;
+
+    if (!plan || !userId) {
+      throw new Error(`Parâmetros faltando: plan=${plan}, userId=${userId}`);
+    }
+
     const MP_ACCESS_TOKEN = Deno.env.get('MP_ACCESS_TOKEN');
-    
-    // We mock the response if no MP Token is found in the environment to prevent crashing on the frontend
+
     if (!MP_ACCESS_TOKEN) {
-      console.warn("Mercado Pago token not found! Returning mock URL.");
-      return new Response(JSON.stringify({ 
-        init_point: "https://sandbox.mercadopago.com.br/checkout/v1/redirect?pref_id=mock",
-        mocked: true,
-        message: "O sistema está em modo desenvolvedor pois o ACCESS_TOKEN não foi configurado."
+      console.warn("Mercado Pago token não encontrado!");
+      return new Response(JSON.stringify({
+        error: "Configuração incompleta",
+        detail: "ACCESS_TOKEN do Mercado Pago não encontrado nas Secrets do Supabase."
       }), {
+        status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
-    // Plans values synchronized with PlansPage
     const planPrices: Record<string, { monthly: number, annual: number }> = {
       pro: { monthly: 8.99, annual: 90.99 },
       premium: { monthly: 13.99, annual: 143.99 }
     };
 
     const prices = planPrices[plan as string];
-    if (!prices) {
-      throw new Error("Plano inválido.");
-    }
-    
-    const price = billingCycle === 'annual' ? prices.annual : prices.monthly;
-    const frequency = billingCycle === 'annual' ? 12 : 1;
-    const frequencyType = "months";
+    if (!prices) throw new Error("Plano inválido.");
 
-    const frontendUrl = Deno.env.get('FRONTEND_URL') || "http://localhost:5173";
+    const price = billingCycle === 'annual' ? prices.annual : prices.monthly;
 
     const payload = {
-      back_url: `${frontendUrl}/?payment=success`, // Garantindo navegação pelo React sem Router
-      reason: `FinAI - Plano ${plan.charAt(0).toUpperCase() + plan.slice(1)} ${billingCycle === 'annual' ? 'Anual' : 'Mensal'}`,
+      back_url: "https://fin-ai-assist.vercel.app/?payment=success",
+      reason: `FinAI - Plano ${plan.toUpperCase()} ${billingCycle.toUpperCase()}`,
       auto_recurring: {
-        frequency: frequency,
-        frequency_type: frequencyType,
+        frequency: billingCycle === 'annual' ? 12 : 1,
+        frequency_type: "months",
         transaction_amount: price,
         currency_id: "BRL"
       },
-      payer_email: email || "cliente@finai.com.br",
-      external_reference: userId, // Passamos o userID para vincular
-
+      payer_email: email || "usuario@finai.com.br",
+      external_reference: userId,
       status: "authorized"
     };
+
+    console.log("Payload MP:", JSON.stringify(payload));
 
     const mpResponse = await fetch("https://api.mercadopago.com/preapproval", {
       method: "POST",
@@ -78,16 +81,21 @@ serve(async (req) => {
     const mpData = await mpResponse.json();
 
     if (!mpResponse.ok) {
-      console.error("Mercado Pago Error:", mpData);
-      throw new Error("Erro ao criar assinatura no Mercado Pago.");
+      console.error("Erro MP Detalhado:", JSON.stringify(mpData));
+      return new Response(JSON.stringify({
+        error: "Erro na API do Mercado Pago",
+        detail: mpData.message || mpData.error || mpData,
+        status_code: mpResponse.status
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
-    // Insert or update state as 'pending' in our DB
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabaseAdmin = createClient(supabaseUrl, supabaseKey);
 
-    // Save pending subscription
     await supabaseAdmin
       .from('user_subscriptions')
       .upsert({
@@ -95,8 +103,7 @@ serve(async (req) => {
         plan_name: plan,
         status: 'pending',
         mp_subscription_id: mpData.id,
-        current_period_start: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        current_period_start: new Date().toISOString()
       }, { onConflict: 'user_id' });
 
     return new Response(JSON.stringify({ init_point: mpData.init_point }), {
@@ -104,7 +111,7 @@ serve(async (req) => {
     });
 
   } catch (error: any) {
-    console.error("Error creating checkout:", error.message);
+    console.error("Erro na função:", error.message);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 400,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

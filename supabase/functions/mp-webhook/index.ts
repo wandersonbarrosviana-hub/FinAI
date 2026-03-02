@@ -9,7 +9,7 @@ serve(async (req) => {
 
     // Apenas nos importamos se houver um ID e o Tópico for de 'subscription_preapproval' ou 'payment'
     const topic = body.type || body.topic;
-    
+
     // Configura o client admin do Supabase
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -18,7 +18,7 @@ serve(async (req) => {
     // Quando o usuário completa a assinatura e gera o pagamento de aprovação
     if (topic === "payment") {
       const paymentId = body.data.id;
-      
+
       const MP_ACCESS_TOKEN = Deno.env.get('MP_ACCESS_TOKEN');
       if (!MP_ACCESS_TOKEN) {
         throw new Error("Token do MP não configurado no servidor.");
@@ -34,11 +34,11 @@ serve(async (req) => {
         // A referência externa é o userID que passamos no checkout!
         const userId = payment.external_reference;
         if (userId) {
-           // Calcula o próximo mês
-           const nextMonth = new Date();
-           nextMonth.setMonth(nextMonth.getMonth() + 1);
+          // Calcula o próximo mês
+          const nextMonth = new Date();
+          nextMonth.setMonth(nextMonth.getMonth() + 1);
 
-           await supabaseAdmin
+          await supabaseAdmin
             .from('user_subscriptions')
             .update({
               status: 'active',
@@ -46,16 +46,16 @@ serve(async (req) => {
               updated_at: new Date().toISOString()
             })
             .eq('user_id', userId);
-            
-           // Atualiza na profile tabela para forçar o frontend a liberar
-           const isPremium = payment.description?.toLowerCase().includes('premium');
-           
-           await supabaseAdmin
+
+          // Atualiza na profile tabela para forçar o frontend a liberar
+          const isPremium = payment.description?.toLowerCase().includes('premium');
+
+          await supabaseAdmin
             .from('profiles')
             .update({ plan_type: isPremium ? 'premium' : 'pro' })
             .eq('id', userId);
-            
-           console.log(`Assinatura ativada (Plano ${isPremium ? 'Premium' : 'Pro'}) para o usuário ${userId}`);
+
+          console.log(`Assinatura ativada (Plano ${isPremium ? 'Premium' : 'Pro'}) para o usuário ${userId}`);
         }
       }
     } else if (topic === "subscription_preapproval") {
@@ -68,20 +68,20 @@ serve(async (req) => {
         const preapproval = await mpResponse.json();
 
         if (preapproval.status === 'cancelled') {
-           const userId = preapproval.external_reference;
-           if (userId) {
-             await supabaseAdmin
+          const userId = preapproval.external_reference;
+          if (userId) {
+            await supabaseAdmin
               .from('user_subscriptions')
               .update({ status: 'canceled', updated_at: new Date().toISOString() })
               .eq('user_id', userId);
 
-             await supabaseAdmin
+            await supabaseAdmin
               .from('profiles')
               .update({ plan_type: 'free' })
               .eq('id', userId);
-              
-             console.log(`Assinatura cancelada para o usuário ${userId}`);
-           }
+
+            console.log(`Assinatura cancelada para o usuário ${userId}`);
+          }
         }
       }
     }
