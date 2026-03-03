@@ -1,8 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-import Toast from 'react-native-toast-message';
+import React, { useState } from 'react';
+import { Search, Loader2, Trash2, TrendingUp, AlertCircle, Info } from 'lucide-react';
 
 const FMP_API_KEY = "gC76KcQcKKVrLRflHPZ8U33OK2KS0Y6P";
 const BASE_URL = "https://financialmodelingprep.com/api/v3";
@@ -24,6 +21,7 @@ export default function InvestmentAnalytics() {
     const [searchQuery, setSearchQuery] = useState('');
     const [loading, setLoading] = useState(false);
     const [stocks, setStocks] = useState<StockData[]>([]);
+    const [errorMsg, setErrorMsg] = useState('');
 
     // Pagination State
     const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -32,56 +30,52 @@ export default function InvestmentAnalytics() {
     const fetchStockData = async (ticker: string) => {
         try {
             setLoading(true);
+            setErrorMsg('');
 
-            // Auto append .SA if not present and doesn't look like a US ticker already
-            let fmpTicker = ticker.toUpperCase().trim();
-            if (!fmpTicker.endsWith('.SA')) {
-                fmpTicker = `${fmpTicker}.SA`;
-            }
+            let b3Ticker = ticker.toUpperCase().trim();
+            // Brapi doesn't need .SA for Brazilian stocks, but handles them if present.
+            // Best to remove it to ensure clean lookup
+            b3Ticker = b3Ticker.replace('.SA', '');
 
             // Check if already in list to avoid duplicates
-            if (stocks.some(s => s.symbol === fmpTicker)) {
-                Toast.show({
-                    type: 'info',
-                    text1: 'Atenção',
-                    text2: 'Este ativo já está na tabela.',
-                });
+            if (stocks.some(s => s.symbol === b3Ticker)) {
+                setErrorMsg('Este ativo já está na tabela.');
                 setLoading(false);
                 setSearchQuery('');
                 return;
             }
 
-            // 1. Fetch Quote (Price, Changes, Shares Outstanding)
-            const quoteRes = await fetch(`${BASE_URL}/quote/${fmpTicker}?apikey=${FMP_API_KEY}`);
-            const quoteData = await quoteRes.json();
+            // Fetch Data from Brapi
+            // Using the Quote endpoint with fundamental modules and the user's token
+            const res = await fetch(`https://brapi.dev/api/quote/${b3Ticker}?modules=summaryProfile,financialData,defaultKeyStatistics&token=eVP75WsHBzT8JMkb8KC94R`);
 
-            if (!quoteData || quoteData.length === 0) {
-                throw new Error('Ativo não encontrado');
+            if (!res.ok) {
+                if (res.status === 404) throw new Error("Ativo não encontrado na B3.");
+                throw new Error(`Erro na API (${res.status}) ao buscar cotação.`);
             }
 
-            // 2. Fetch Key Metrics TTM (P/E, P/B, ROE, Div Yield)
-            const metricsRes = await fetch(`${BASE_URL}/key-metrics-ttm/${fmpTicker}?apikey=${FMP_API_KEY}`);
-            const metricsData = await metricsRes.json();
+            const rawData = await res.json();
 
-            // 3. Fetch Income Statement TTM (Net Income)
-            const incomeRes = await fetch(`${BASE_URL}/income-statement/${fmpTicker}?period=annual&limit=1&apikey=${FMP_API_KEY}`);
-            const incomeData = await incomeRes.json();
+            if (!rawData.results || rawData.results.length === 0) {
+                throw new Error('Ativo não encontrado. Verifique o código.');
+            }
 
-            const quote = quoteData[0];
-            const metrics = metricsData && metricsData.length > 0 ? metricsData[0] : {};
-            const income = incomeData && incomeData.length > 0 ? incomeData[0] : {};
+            const data = rawData.results[0];
+            const stats = data.defaultKeyStatistics || {};
+            const financial = data.financialData || {};
 
+            // Fallback to 0 if data is missing since free API might lack some deep fundamental fields
             const newStock: StockData = {
-                symbol: quote.symbol,
-                name: quote.name,
-                price: quote.price || 0,
-                changesPercentage: quote.changesPercentage || 0,
-                sharesOutstanding: quote.sharesOutstanding || 0,
-                dividendYield: (metrics.dividendYieldTTM || 0) * 100, // Convert to %
-                peRatio: metrics.peRatioTTM || 0,
-                pbRatio: metrics.pbRatioTTM || 0,
-                roe: (metrics.roeTTM || 0) * 100, // Convert to %
-                netIncome: income.netIncome || 0
+                symbol: data.symbol,
+                name: data.longName || data.shortName || data.symbol,
+                price: data.regularMarketPrice || 0,
+                changesPercentage: data.regularMarketChangePercent || 0,
+                sharesOutstanding: stats.sharesOutstanding || 0,
+                dividendYield: (financial.dividendYield || 0) * 100, // Convert to %
+                peRatio: stats.trailingPE || 0,
+                pbRatio: stats.priceToBook || 0,
+                roe: (financial.returnOnEquity || 0) * 100, // Convert to %
+                netIncome: financial.netIncomeToCommon || 0
             };
 
             setStocks(prev => [newStock, ...prev]);
@@ -89,17 +83,14 @@ export default function InvestmentAnalytics() {
 
         } catch (error: any) {
             console.error("Error fetching stock:", error);
-            Toast.show({
-                type: 'error',
-                text1: 'Erro',
-                text2: error.message || 'Erro ao buscar dados do ativo.',
-            });
+            setErrorMsg(error.message || 'Erro ao buscar dados do ativo.');
         } finally {
             setLoading(false);
         }
     };
 
-    const handleSearch = () => {
+    const handleSearch = (e?: React.FormEvent) => {
+        if (e) e.preventDefault();
         if (searchQuery.trim()) {
             fetchStockData(searchQuery);
         }
@@ -127,359 +118,186 @@ export default function InvestmentAnalytics() {
     };
 
     return (
-        <View style={styles.container}>
-            <View style={styles.header}>
-                <View>
-                    <Text style={styles.title}>Análise de Ativos</Text>
-                    <Text style={styles.subtitle}>Pesquise empresas na B3 para ver indicadores</Text>
-                </View>
-            </View>
+        <div className="flex flex-col h-full max-w-[1440px] mx-auto w-full space-y-6">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                    <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+                        <TrendingUp className="text-sky-600" />
+                        Análise de Ativos
+                    </h1>
+                    <p className="text-sm font-medium text-slate-500 mt-1">
+                        Pesquise empresas na B3 para ver cotações e indicadores fundamentalistas em tempo real.
+                    </p>
+                </div>
 
-            <View style={styles.searchContainer}>
-                <View style={styles.inputWrapper}>
-                    <MaterialCommunityIcons name="magnify" size={20} color="#8E8E93" style={styles.searchIcon} />
-                    <TextInput
-                        style={styles.searchInput}
-                        placeholder="Digite o Ticker (ex: ITUB4, PETR4)"
-                        placeholderTextColor="#8E8E93"
-                        value={searchQuery}
-                        onChangeText={setSearchQuery}
-                        onSubmitEditing={handleSearch}
-                        autoCapitalize="characters"
-                    />
-                </View>
-                <TouchableOpacity
-                    style={styles.searchButton}
-                    onPress={handleSearch}
-                    disabled={loading || !searchQuery.trim()}
-                >
-                    {loading ? (
-                        <ActivityIndicator color="#FFF" size="small" />
-                    ) : (
-                        <Text style={styles.searchButtonText}>Adicionar</Text>
-                    )}
-                </TouchableOpacity>
-            </View>
+                {/* Search Input */}
+                <form onSubmit={handleSearch} className="flex relative items-center max-w-md w-full">
+                    <div className="relative flex-1">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <Search size={18} className="text-slate-400" />
+                        </div>
+                        <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="block w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-shadow outline-none text-slate-900 dark:text-white placeholder-slate-400 uppercase font-medium"
+                            placeholder="Digite o Ticker (ex: ITUB4, PETR4)..."
+                        />
+                    </div>
+                    <button
+                        type="submit"
+                        disabled={loading || !searchQuery.trim()}
+                        className="ml-3 bg-sky-600 hover:bg-sky-700 text-white rounded-xl px-5 py-3 text-sm font-bold transition-all shadow-sm shadow-sky-600/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[100px]"
+                    >
+                        {loading ? <Loader2 size={18} className="animate-spin" /> : 'Adicionar'}
+                    </button>
+                </form>
+            </div>
 
-            <View style={styles.tableCard}>
-                <View style={styles.tableControls}>
-                    <Text style={styles.controlsText}>Mostrar:</Text>
-                    {[10, 20, 30, 40].map(num => (
-                        <TouchableOpacity
-                            key={num}
-                            style={[styles.pageButton, itemsPerPage === num && styles.pageButtonActive]}
-                            onPress={() => {
-                                setItemsPerPage(num);
-                                setCurrentPage(1);
-                            }}
-                        >
-                            <Text style={[styles.pageButtonText, itemsPerPage === num && styles.pageButtonTextActive]}>
-                                {num}
-                            </Text>
-                        </TouchableOpacity>
-                    ))}
-                </View>
+            {errorMsg && (
+                <div className="bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-2 border border-rose-100 dark:border-rose-500/20 animate-in fade-in">
+                    <AlertCircle size={16} />
+                    {errorMsg}
+                    <button onClick={() => setErrorMsg('')} className="ml-auto text-rose-400 hover:text-rose-600">&times;</button>
+                </div>
+            )}
 
-                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                    <View>
-                        {/* Table Header */}
-                        <View style={styles.tableHeader}>
-                            <Text style={[styles.headerCell, { width: 100 }]}>Ativo</Text>
-                            <Text style={[styles.headerCell, { width: 110 }]}>Cotação</Text>
-                            <Text style={[styles.headerCell, { width: 120 }]}>Div. Yield (12m)</Text>
-                            <Text style={[styles.headerCell, { width: 90 }]}>P/L</Text>
-                            <Text style={[styles.headerCell, { width: 90 }]}>P/VP</Text>
-                            <Text style={[styles.headerCell, { width: 110 }]}>ROE</Text>
-                            <Text style={[styles.headerCell, { width: 130 }]}>Lucro Líquido</Text>
-                            <Text style={[styles.headerCell, { width: 140 }]}>Ações (Mercado)</Text>
-                            <Text style={[styles.headerCell, { width: 60, textAlign: 'center' }]}>Ações</Text>
-                        </View>
+            {/* Main Table Card */}
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col flex-1">
+                {/* Table Header Controls */}
+                <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
+                    <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold text-slate-500">Mostrar:</span>
+                        <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
+                            {[10, 20, 30, 40].map(num => (
+                                <button
+                                    key={num}
+                                    onClick={() => { setItemsPerPage(num); setCurrentPage(1); }}
+                                    className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${itemsPerPage === num
+                                        ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+                                        : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                                        }`}
+                                >
+                                    {num}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
 
-                        {/* Table Body */}
-                        {stocks.length === 0 ? (
-                            <View style={styles.emptyStateContainer}>
-                                <MaterialCommunityIcons name="chart-box-outline" size={48} color="#3A3A3C" />
-                                <Text style={styles.emptyStateText}>Nenhum ativo adicionado.</Text>
-                                <Text style={styles.emptyStateSubText}>Pesquise por um ticker acima para começar.</Text>
-                            </View>
-                        ) : (
-                            paginatedStocks.map((stock, index) => (
-                                <View key={stock.symbol} style={[styles.tableRow, index % 2 === 0 ? styles.rowEven : styles.rowOdd]}>
-                                    <View style={[styles.cell, { width: 100 }]}>
-                                        <Text style={styles.tickerText}>{stock.symbol.replace('.SA', '')}</Text>
-                                        <Text style={styles.nameText} numberOfLines={1}>{stock.name}</Text>
-                                    </View>
+                    <div className="hidden sm:flex items-center gap-1 text-xs text-slate-400 font-medium">
+                        <Info size={14} /> Dados providos por Financial Modeling Prep API
+                    </div>
+                </div>
 
-                                    <View style={[styles.cell, { width: 110 }]}>
-                                        <Text style={styles.priceText}>R$ {stock.price.toFixed(2)}</Text>
-                                        <Text style={[
-                                            styles.changeText,
-                                            { color: stock.changesPercentage >= 0 ? '#34C759' : '#FF3B30' }
-                                        ]}>
-                                            {stock.changesPercentage > 0 ? '+' : ''}{stock.changesPercentage.toFixed(2)}%
-                                        </Text>
-                                    </View>
-
-                                    <Text style={[styles.cell, styles.cellText, { width: 120 }]}>
-                                        {stock.dividendYield.toFixed(2)}%
-                                    </Text>
-                                    <Text style={[styles.cell, styles.cellText, { width: 90 }]}>
-                                        {stock.peRatio.toFixed(2)}
-                                    </Text>
-                                    <Text style={[styles.cell, styles.cellText, { width: 90 }]}>
-                                        {stock.pbRatio.toFixed(2)}
-                                    </Text>
-                                    <Text style={[styles.cell, styles.cellText, { width: 110 }]}>
-                                        {stock.roe.toFixed(2)}%
-                                    </Text>
-                                    <Text style={[styles.cell, styles.cellText, { width: 130 }]}>
-                                        {formatCurrency(stock.netIncome)}
-                                    </Text>
-                                    <Text style={[styles.cell, styles.cellText, { width: 140 }]}>
-                                        {formatNumber(stock.sharesOutstanding)}
-                                    </Text>
-
-                                    <TouchableOpacity
-                                        style={[styles.cell, { width: 60, alignItems: 'center' }]}
-                                        onPress={() => removeItem(stock.symbol)}
-                                    >
-                                        <MaterialCommunityIcons name="trash-can-outline" size={20} color="#FF3B30" />
-                                    </TouchableOpacity>
-                                </View>
-                            ))
-                        )}
-                    </View>
-                </ScrollView>
+                {/* Table Area */}
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse min-w-[900px]">
+                        <thead>
+                            <tr className="bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 text-[11px] uppercase tracking-wider text-slate-500 font-bold">
+                                <th className="py-4 px-6 font-bold">Ativo</th>
+                                <th className="py-4 px-4 font-bold">Cotação Atual</th>
+                                <th className="py-4 px-4 font-bold text-right">Div. Yield (12m)</th>
+                                <th className="py-4 px-4 font-bold text-right">P/L</th>
+                                <th className="py-4 px-4 font-bold text-right">P/VP</th>
+                                <th className="py-4 px-4 font-bold text-right">ROE</th>
+                                <th className="py-4 px-4 font-bold text-right">Lucro Líquido</th>
+                                <th className="py-4 px-4 font-bold text-right">Ações (Mkt)</th>
+                                <th className="py-4 px-4 font-bold text-center w-16">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
+                            {stocks.length === 0 ? (
+                                <tr>
+                                    <td colSpan={9} className="py-20 text-center">
+                                        <div className="flex flex-col items-center justify-center text-slate-400">
+                                            <TrendingUp size={48} className="opacity-20 mb-4" />
+                                            <p className="text-base font-semibold text-slate-600 dark:text-slate-300">Nenhum ativo na tabela</p>
+                                            <p className="text-sm mt-1">Pesquise por uma empresa acima para adicionar.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ) : (
+                                paginatedStocks.map((stock) => (
+                                    <tr key={stock.symbol} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
+                                        <td className="py-3 px-6">
+                                            <div className="flex flex-col">
+                                                <span className="font-black text-slate-900 dark:text-white">{stock.symbol.replace('.SA', '')}</span>
+                                                <span className="text-[11px] text-slate-500 font-medium truncate max-w-[150px]">{stock.name}</span>
+                                            </div>
+                                        </td>
+                                        <td className="py-3 px-4">
+                                            <div className="flex flex-col">
+                                                <span className="font-bold text-slate-900 dark:text-white">R$ {stock.price.toFixed(2)}</span>
+                                                <span className={`text-[11px] font-bold ${stock.changesPercentage >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                                                    {stock.changesPercentage > 0 ? '+' : ''}{stock.changesPercentage.toFixed(2)}%
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td className="py-3 px-4 text-right font-medium text-slate-700 dark:text-slate-300">
+                                            {stock.dividendYield.toFixed(2)}%
+                                        </td>
+                                        <td className="py-3 px-4 text-right font-medium text-slate-700 dark:text-slate-300">
+                                            {stock.peRatio.toFixed(2)}
+                                        </td>
+                                        <td className="py-3 px-4 text-right font-medium text-slate-700 dark:text-slate-300">
+                                            {stock.pbRatio.toFixed(2)}
+                                        </td>
+                                        <td className="py-3 px-4 text-right font-medium text-slate-700 dark:text-slate-300">
+                                            {stock.roe.toFixed(2)}%
+                                        </td>
+                                        <td className="py-3 px-4 text-right font-medium text-slate-700 dark:text-slate-300">
+                                            <span className="bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded text-xs">
+                                                {formatCurrency(stock.netIncome)}
+                                            </span>
+                                        </td>
+                                        <td className="py-3 px-4 text-right font-medium text-slate-700 dark:text-slate-300">
+                                            {formatNumber(stock.sharesOutstanding)}
+                                        </td>
+                                        <td className="py-3 px-4 text-center">
+                                            <button
+                                                onClick={() => removeItem(stock.symbol)}
+                                                className="p-1.5 text-slate-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-md transition-all opacity-0 group-hover:opacity-100"
+                                                title="Remover"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
 
                 {/* Pagination Footer */}
                 {stocks.length > 0 && (
-                    <View style={styles.paginationFooter}>
-                        <Text style={styles.summaryText}>
-                            Mostrando {startIndex + 1}-{Math.min(startIndex + itemsPerPage, stocks.length)} de {stocks.length} ativos
-                        </Text>
-                        <View style={styles.paginationControls}>
-                            <TouchableOpacity
-                                style={[styles.navButton, currentPage === 1 && styles.navButtonDisabled]}
+                    <div className="p-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50 mt-auto">
+                        <span className="text-xs font-semibold text-slate-500">
+                            Mostrando {startIndex + 1} a {Math.min(startIndex + itemsPerPage, stocks.length)} de {stocks.length} ativos
+                        </span>
+
+                        <div className="flex items-center gap-2">
+                            <button
                                 disabled={currentPage === 1}
-                                onPress={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                className="px-3 py-1.5 text-xs font-bold rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 disabled:opacity-30 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                             >
-                                <MaterialCommunityIcons name="chevron-left" size={24} color={currentPage === 1 ? "#3A3A3C" : "#E5E5EA"} />
-                            </TouchableOpacity>
-
-                            <Text style={styles.pageIndicatorText}>
-                                {currentPage} / {totalPages}
-                            </Text>
-
-                            <TouchableOpacity
-                                style={[styles.navButton, currentPage === totalPages && styles.navButtonDisabled]}
+                                Anterior
+                            </button>
+                            <div className="px-3 py-1.5 text-xs font-bold text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg">
+                                Página {currentPage} de {totalPages}
+                            </div>
+                            <button
                                 disabled={currentPage === totalPages}
-                                onPress={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                className="px-3 py-1.5 text-xs font-bold rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 disabled:opacity-30 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                             >
-                                <MaterialCommunityIcons name="chevron-right" size={24} color={currentPage === totalPages ? "#3A3A3C" : "#E5E5EA"} />
-                            </TouchableOpacity>
-                        </View>
-                    </View>
+                                Próxima
+                            </button>
+                        </div>
+                    </div>
                 )}
-            </View>
-        </View>
+            </div>
+        </div>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        paddingHorizontal: 16,
-        paddingTop: 8,
-    },
-    header: {
-        marginBottom: 20,
-    },
-    title: {
-        fontSize: 24,
-        fontWeight: '700',
-        color: '#FFF',
-        marginBottom: 4,
-    },
-    subtitle: {
-        fontSize: 14,
-        color: '#8E8E93',
-    },
-    searchContainer: {
-        flexDirection: 'row',
-        marginBottom: 24,
-        alignItems: 'center',
-    },
-    inputWrapper: {
-        flex: 1,
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#1C1C1E',
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: '#2C2C2E',
-        height: 48,
-        paddingHorizontal: 12,
-        marginRight: 12,
-    },
-    searchIcon: {
-        marginRight: 8,
-    },
-    searchInput: {
-        flex: 1,
-        color: '#FFF',
-        fontSize: 16,
-    },
-    searchButton: {
-        backgroundColor: '#0A84FF',
-        height: 48,
-        paddingHorizontal: 20,
-        borderRadius: 12,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    searchButtonText: {
-        color: '#FFF',
-        fontSize: 16,
-        fontWeight: '600',
-    },
-    tableCard: {
-        backgroundColor: '#1C1C1E',
-        borderRadius: 16,
-        borderWidth: 1,
-        borderColor: '#2C2C2E',
-        overflow: 'hidden',
-    },
-    tableControls: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 16,
-        borderBottomWidth: 1,
-        borderBottomColor: '#2C2C2E',
-    },
-    controlsText: {
-        color: '#8E8E93',
-        marginRight: 12,
-        fontSize: 14,
-    },
-    pageButton: {
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        borderRadius: 8,
-        marginRight: 8,
-        backgroundColor: '#2C2C2E',
-    },
-    pageButtonActive: {
-        backgroundColor: '#0A84FF',
-    },
-    pageButtonText: {
-        color: '#E5E5EA',
-        fontSize: 14,
-        fontWeight: '500',
-    },
-    pageButtonTextActive: {
-        color: '#FFF',
-        fontWeight: '700',
-    },
-    tableHeader: {
-        flexDirection: 'row',
-        borderBottomWidth: 1,
-        borderBottomColor: '#2C2C2E',
-        backgroundColor: '#242426',
-    },
-    headerCell: {
-        paddingVertical: 12,
-        paddingHorizontal: 16,
-        color: '#8E8E93',
-        fontSize: 13,
-        fontWeight: '600',
-    },
-    tableRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        borderBottomWidth: 1,
-        borderBottomColor: '#2C2C2E',
-    },
-    rowEven: {
-        backgroundColor: '#1C1C1E',
-    },
-    rowOdd: {
-        backgroundColor: '#202022',
-    },
-    cell: {
-        paddingVertical: 14,
-        paddingHorizontal: 16,
-        justifyContent: 'center',
-    },
-    cellText: {
-        color: '#E5E5EA',
-        fontSize: 14,
-        fontWeight: '500',
-    },
-    tickerText: {
-        color: '#FFF',
-        fontSize: 15,
-        fontWeight: '700',
-    },
-    nameText: {
-        color: '#8E8E93',
-        fontSize: 12,
-        marginTop: 2,
-    },
-    priceText: {
-        color: '#FFF',
-        fontSize: 15,
-        fontWeight: '600',
-    },
-    changeText: {
-        fontSize: 12,
-        fontWeight: '500',
-        marginTop: 2,
-    },
-    emptyStateContainer: {
-        padding: 40,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    emptyStateText: {
-        color: '#FFF',
-        fontSize: 16,
-        fontWeight: '600',
-        marginTop: 12,
-    },
-    emptyStateSubText: {
-        color: '#8E8E93',
-        fontSize: 14,
-        marginTop: 4,
-    },
-    paginationFooter: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: 16,
-        borderTopWidth: 1,
-        borderTopColor: '#2C2C2E',
-        backgroundColor: '#1C1C1E',
-    },
-    summaryText: {
-        color: '#8E8E93',
-        fontSize: 13,
-    },
-    paginationControls: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    navButton: {
-        padding: 4,
-        backgroundColor: '#2C2C2E',
-        borderRadius: 8,
-    },
-    navButtonDisabled: {
-        backgroundColor: 'transparent',
-    },
-    pageIndicatorText: {
-        color: '#E5E5EA',
-        fontSize: 14,
-        fontWeight: '600',
-        marginHorizontal: 12,
-    }
-});
