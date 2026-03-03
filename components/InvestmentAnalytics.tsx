@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Loader2, Trash2, TrendingUp, AlertCircle, Info, BarChart2 } from 'lucide-react';
+import { Search, Loader2, Trash2, TrendingUp, AlertCircle, Info, BarChart2, X } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 
 const FMP_API_KEY = "gC76KcQcKKVrLRflHPZ8U33OK2KS0Y6P";
@@ -24,6 +24,7 @@ export default function InvestmentAnalytics() {
     const [loading, setLoading] = useState(false);
     const [stocks, setStocks] = useState<StockData[]>([]);
     const [errorMsg, setErrorMsg] = useState('');
+    const [selectedStockDividends, setSelectedStockDividends] = useState<{ symbol: string, dividends: any[] } | null>(null);
 
     // Pagination State
     const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -63,31 +64,6 @@ export default function InvestmentAnalytics() {
 
             const data = rawData.results[0];
 
-            // Fetch Dividends to calculate Yield manually because free tier blocks financialData module
-            let dividendYieldComputed = 0;
-            try {
-                const divRes = await fetch(`https://brapi.dev/api/quote/${b3Ticker}/dividends?token=eVP75WsHBzT8JMkb8KC94R`);
-                if (divRes.ok) {
-                    const divData = await divRes.json();
-                    if (divData.results && divData.results.length > 0) {
-                        const dividends = divData.results[0].dividends || [];
-                        const oneYearAgo = new Date();
-                        oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
-
-                        // Sum dividends from last 12 months
-                        const ttmDividends = dividends
-                            .filter((d: any) => new Date(d.paymentDate) >= oneYearAgo)
-                            .reduce((sum: number, d: any) => sum + (d.rate || 0), 0);
-
-                        if (data.regularMarketPrice > 0) {
-                            dividendYieldComputed = (ttmDividends / data.regularMarketPrice) * 100;
-                        }
-                    }
-                }
-            } catch (e) {
-                console.warn("Could not fetch dividends for yield calculation", e);
-            }
-
             // Fetch Yahoo Finance Supplemental Data via Supabase Edge Function
             let yfMetrics: any = {};
             let yfDividends: any[] = [];
@@ -108,6 +84,43 @@ export default function InvestmentAnalytics() {
 
             const yfFinancial = yfMetrics.financialData || {};
             const yfStats = yfMetrics.defaultKeyStatistics || {};
+
+            // Calculate Yield: Primary source Yahoo Finance, fallback to Brapi
+            let dividendYieldComputed = 0;
+
+            if (yfDividends.length > 0) {
+                const oneYearAgo = new Date();
+                oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+                const ttmDividends = yfDividends
+                    .filter((d: any) => new Date(d.date) >= oneYearAgo)
+                    .reduce((sum: number, d: any) => sum + (d.dividends || 0), 0);
+
+                if (data.regularMarketPrice > 0) {
+                    dividendYieldComputed = (ttmDividends / data.regularMarketPrice) * 100;
+                }
+            } else {
+                try {
+                    const divRes = await fetch(`https://brapi.dev/api/quote/${b3Ticker}/dividends?token=eVP75WsHBzT8JMkb8KC94R`);
+                    if (divRes.ok) {
+                        const divData = await divRes.json();
+                        if (divData.results && divData.results.length > 0) {
+                            const dividends = divData.results[0].dividends || [];
+                            const oneYearAgo = new Date();
+                            oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+
+                            const ttmDividends = dividends
+                                .filter((d: any) => new Date(d.paymentDate) >= oneYearAgo)
+                                .reduce((sum: number, d: any) => sum + (d.rate || 0), 0);
+
+                            if (data.regularMarketPrice > 0) {
+                                dividendYieldComputed = (ttmDividends / data.regularMarketPrice) * 100;
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.warn("Could not fetch Brapi dividends", e);
+                }
+            }
 
             // Fallback to 0 if data is missing since free API lacks deep fundamental fields natively
             const newStock: StockData = {
@@ -207,6 +220,55 @@ export default function InvestmentAnalytics() {
                 </div>
             )}
 
+            {/* Dividend History Modal */}
+            {selectedStockDividends && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in">
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-lg shadow-xl border border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden max-h-[80vh]">
+                        <div className="p-4 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between sticky top-0 bg-white dark:bg-slate-900 z-10">
+                            <h3 className="font-bold flex items-center gap-2 text-slate-800 dark:text-white">
+                                <BarChart2 size={18} className="text-sky-500" /> Histórico de Dividendos ({selectedStockDividends.symbol.replace('.SA', '')})
+                            </h3>
+                            <button onClick={() => setSelectedStockDividends(null)} className="p-1 rounded-md text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors">
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <div className="p-0 overflow-y-auto">
+                            <table className="w-full text-left text-sm">
+                                <thead className="bg-slate-50 dark:bg-slate-950 sticky top-0 z-10 shadow-sm">
+                                    <tr>
+                                        <th className="py-3 px-6 font-semibold text-slate-500 text-xs uppercase tracking-wider">Data (Ex-Div)</th>
+                                        <th className="py-3 px-6 font-semibold text-slate-500 text-xs uppercase tracking-wider text-right">Valor Pago</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {selectedStockDividends.dividends.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={2} className="py-12 text-center text-slate-500">
+                                                <div className="flex flex-col items-center justify-center gap-2">
+                                                    <Info size={32} className="text-slate-300" />
+                                                    <p>Nenhum dividendo registrado nos últimos 6 anos.</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        [...selectedStockDividends.dividends].reverse().map((d, i) => (
+                                            <tr key={i} className="border-b last:border-0 border-slate-100 dark:border-slate-800/60 hover:bg-slate-50/50 dark:hover:bg-slate-800/20">
+                                                <td className="py-3 px-6 text-slate-700 dark:text-slate-300 font-medium">
+                                                    {new Date(d.date).toLocaleDateString('pt-BR')}
+                                                </td>
+                                                <td className="py-3 px-6 text-right font-bold text-emerald-600 dark:text-emerald-400">
+                                                    R$ {Number(d.dividends).toFixed(4)}
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Main Table Card */}
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col flex-1">
                 {/* Table Header Controls */}
@@ -301,6 +363,7 @@ export default function InvestmentAnalytics() {
                                         </td>
                                         <td className="py-3 px-4 text-center">
                                             <button
+                                                onClick={() => setSelectedStockDividends({ symbol: stock.symbol, dividends: stock.historicalDividends })}
                                                 className="p-1.5 text-sky-500 hover:text-white hover:bg-sky-500 rounded-md transition-all flex items-center gap-1 text-xs mx-auto"
                                                 title={`Ver ${stock.historicalDividends.length} yields pagos`}
                                             >
