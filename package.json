@@ -33,7 +33,8 @@
     "react-dropzone": "^15.0.0",
     "recharts": "^3.7.0",
     "tesseract.js": "^7.0.0",
-    "xlsx": "^0.18.5"
+    "xlsx": "^0.18.5",
+    "yahoo-finance2": "^3.13.1"
   },
   "devDependencies": {
     "@capacitor/cli": "^8.1.0",

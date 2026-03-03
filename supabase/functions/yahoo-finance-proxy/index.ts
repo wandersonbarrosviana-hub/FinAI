@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import yahooFinance from "npm:yahoo-finance2@2.11.3";
+import YahooFinance from "npm:yahoo-finance2@3.13.1";
+const yahooFinance = new YahooFinance({ suppressNotices: ['yahooSurvey'] });
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -48,9 +49,9 @@ serve(async (req) => {
     sixYearsAgo.setFullYear(today.getFullYear() - 6);
 
     const historicalDividends = await yahooFinance.historical(yfTicker, {
-        period1: sixYearsAgo.toISOString().split('T')[0],
-        period2: today.toISOString().split('T')[0],
-        events: 'div'
+        period1: sixYearsAgo,
+        period2: today,
+        events: 'dividends'
     }).catch((err) => {
         console.warn(`Failed to fetch dividends for ${yfTicker}:`, err);
         return [];
