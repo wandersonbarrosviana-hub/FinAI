@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Search, Loader2, Trash2, TrendingUp, AlertCircle, Info } from 'lucide-react';
+import { Search, Loader2, Trash2, TrendingUp, AlertCircle, Info, BarChart2 } from 'lucide-react';
+import { supabase } from '../supabaseClient';
 
 const FMP_API_KEY = "gC76KcQcKKVrLRflHPZ8U33OK2KS0Y6P";
 const BASE_URL = "https://financialmodelingprep.com/api/v3";
@@ -15,6 +16,7 @@ interface StockData {
     roe: number; // ROE TTM
     name: string;
     changesPercentage: number;
+    historicalDividends: any[]; // Histórico de 6 anos
 }
 
 export default function InvestmentAnalytics() {
@@ -86,20 +88,41 @@ export default function InvestmentAnalytics() {
                 console.warn("Could not fetch dividends for yield calculation", e);
             }
 
+            // Fetch Yahoo Finance Supplemental Data via Supabase Edge Function
+            let yfMetrics: any = {};
+            let yfDividends: any[] = [];
+
+            try {
+                const { data: yfData, error } = await supabase.functions.invoke('yahoo-finance-proxy', {
+                    body: { ticker: b3Ticker }
+                });
+                if (!error && yfData) {
+                    yfMetrics = yfData.quoteSummary || {};
+                    yfDividends = yfData.dividends || [];
+                } else {
+                    console.warn("Proxy returned error:", error);
+                }
+            } catch (e) {
+                console.warn("Could not fetch Yahoo Finance edge function", e);
+            }
+
+            const yfFinancial = yfMetrics.financialData || {};
+            const yfStats = yfMetrics.defaultKeyStatistics || {};
+
             // Fallback to 0 if data is missing since free API lacks deep fundamental fields natively
             const newStock: StockData = {
                 symbol: data.symbol,
                 name: data.longName || data.shortName || data.symbol,
                 price: data.regularMarketPrice || 0,
                 changesPercentage: data.regularMarketChangePercent || 0,
-                sharesOutstanding: 0, // Not available in free tier quote
+                sharesOutstanding: yfStats.sharesOutstanding || 0, // Got from Yahoo
                 dividendYield: dividendYieldComputed,
-                peRatio: data.priceEarnings || 0, // Brapi often provides P/E in the root
-                pbRatio: 0, // Not available in free tier
-                roe: 0, // Not available in free tier
-                netIncome: 0 // Not available in free tier
+                peRatio: data.priceEarnings || yfStats.trailingPE || 0,
+                pbRatio: yfStats.priceToBook || 0, // Got from Yahoo
+                roe: (yfFinancial.returnOnEquity || 0) * 100, // Got from Yahoo
+                netIncome: yfFinancial.netIncomeToCommon || 0, // Got from Yahoo
+                historicalDividends: yfDividends
             };
-
             setStocks(prev => [newStock, ...prev]);
             setSearchQuery('');
 
@@ -224,6 +247,7 @@ export default function InvestmentAnalytics() {
                                 <th className="py-4 px-4 font-bold text-right">ROE</th>
                                 <th className="py-4 px-4 font-bold text-right">Lucro Líquido</th>
                                 <th className="py-4 px-4 font-bold text-right">Ações (Mkt)</th>
+                                <th className="py-4 px-4 font-bold text-center w-24">Histórico</th>
                                 <th className="py-4 px-4 font-bold text-center w-16">Ações</th>
                             </tr>
                         </thead>
@@ -277,8 +301,16 @@ export default function InvestmentAnalytics() {
                                         </td>
                                         <td className="py-3 px-4 text-center">
                                             <button
+                                                className="p-1.5 text-sky-500 hover:text-white hover:bg-sky-500 rounded-md transition-all flex items-center gap-1 text-xs mx-auto"
+                                                title={`Ver ${stock.historicalDividends.length} yields pagos`}
+                                            >
+                                                <BarChart2 size={16} /> 6 Anos
+                                            </button>
+                                        </td>
+                                        <td className="py-3 px-4 text-center">
+                                            <button
                                                 onClick={() => removeItem(stock.symbol)}
-                                                className="p-1.5 text-slate-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-md transition-all opacity-0 group-hover:opacity-100"
+                                                className="p-1.5 text-slate-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-md transition-all opacity-0 group-hover:opacity-100 mx-auto"
                                                 title="Remover"
                                             >
                                                 <Trash2 size={16} />
