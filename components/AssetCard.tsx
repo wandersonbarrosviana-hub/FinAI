@@ -53,6 +53,10 @@ const AssetCard: React.FC<AssetCardProps> = ({ asset }) => {
                     <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 tracking-widest uppercase">Setor</p>
                     <p className="text-xs font-bold text-slate-600 dark:text-slate-300 truncate max-w-[120px]">{asset.segment}</p>
                 </div>
+                <div className="text-center">
+                    <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 tracking-widest uppercase">L. Líquido (12M)</p>
+                    <p className="text-xs font-black text-emerald-500 dark:text-emerald-400">{i.lpa && i.numero_papeis ? formatCurrency(i.lpa * i.numero_papeis) : '-'}</p>
+                </div>
                 {!isFii && (
                     <div className="text-right">
                         <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 tracking-widest uppercase">ROE</p>

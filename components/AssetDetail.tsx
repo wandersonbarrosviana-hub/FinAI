@@ -79,6 +79,7 @@ const AssetDetail: React.FC<AssetDetailProps> = ({ asset, onBack }) => {
                     <IndicatorCard label="LPA" value={i.lpa} prefix="R$ " icon={BarChart3} />
                     {!isFii && (
                         <>
+                            <IndicatorCard label="L. Líquido (12M)" value={(i.lpa || 0) * (i.numero_papeis || 0)} prefix="R$ " color="text-emerald-500" icon={Activity} />
                             <IndicatorCard label="ROE" value={i.roe} suffix="%" color="text-emerald-500" icon={Percent} />
                             <IndicatorCard label="ROIC" value={i.roic} suffix="%" color="text-sky-500" icon={Activity} />
                             <IndicatorCard label="EBITDA" value={i.ebitda} prefix="R$ " icon={BarChart} />

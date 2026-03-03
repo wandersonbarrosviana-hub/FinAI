@@ -38,7 +38,7 @@ serve(async (req) => {
         error: "Configuração incompleta",
         detail: "ACCESS_TOKEN do Mercado Pago não encontrado nas Secrets do Supabase."
       }), {
-        status: 400,
+        status: 200, // Força 200 para frontend ler JSON
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
@@ -82,12 +82,13 @@ serve(async (req) => {
 
     if (!mpResponse.ok) {
       console.error("Erro MP Detalhado:", JSON.stringify(mpData));
+      // Retornar o erro completo para visualização no alert do frontend
       return new Response(JSON.stringify({
         error: "Erro na API do Mercado Pago",
         detail: mpData.message || mpData.error || mpData,
         status_code: mpResponse.status
       }), {
-        status: 400,
+        status: 200, // Força 200 para frontend ler JSON
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
@@ -113,7 +114,7 @@ serve(async (req) => {
   } catch (error: any) {
     console.error("Erro na função:", error.message);
     return new Response(JSON.stringify({ error: error.message }), {
-      status: 400,
+      status: 200, // Força 200 para frontend ler JSON
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
