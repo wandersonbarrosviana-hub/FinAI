@@ -45,9 +45,8 @@ export default function InvestmentAnalytics() {
                 return;
             }
 
-            // Fetch Data from Brapi
-            // Using the Quote endpoint with fundamental modules and the user's token
-            const res = await fetch(`https://brapi.dev/api/quote/${b3Ticker}?modules=summaryProfile,financialData,defaultKeyStatistics&token=eVP75WsHBzT8JMkb8KC94R`);
+            // Fetch Basic Quote Data from Brapi (Free tier supported modules only)
+            const res = await fetch(`https://brapi.dev/api/quote/${b3Ticker}?modules=summaryProfile&token=eVP75WsHBzT8JMkb8KC94R`);
 
             if (!res.ok) {
                 if (res.status === 404) throw new Error("Ativo não encontrado na B3.");
@@ -61,21 +60,44 @@ export default function InvestmentAnalytics() {
             }
 
             const data = rawData.results[0];
-            const stats = data.defaultKeyStatistics || {};
-            const financial = data.financialData || {};
 
-            // Fallback to 0 if data is missing since free API might lack some deep fundamental fields
+            // Fetch Dividends to calculate Yield manually because free tier blocks financialData module
+            let dividendYieldComputed = 0;
+            try {
+                const divRes = await fetch(`https://brapi.dev/api/quote/${b3Ticker}/dividends?token=eVP75WsHBzT8JMkb8KC94R`);
+                if (divRes.ok) {
+                    const divData = await divRes.json();
+                    if (divData.results && divData.results.length > 0) {
+                        const dividends = divData.results[0].dividends || [];
+                        const oneYearAgo = new Date();
+                        oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+
+                        // Sum dividends from last 12 months
+                        const ttmDividends = dividends
+                            .filter((d: any) => new Date(d.paymentDate) >= oneYearAgo)
+                            .reduce((sum: number, d: any) => sum + (d.rate || 0), 0);
+
+                        if (data.regularMarketPrice > 0) {
+                            dividendYieldComputed = (ttmDividends / data.regularMarketPrice) * 100;
+                        }
+                    }
+                }
+            } catch (e) {
+                console.warn("Could not fetch dividends for yield calculation", e);
+            }
+
+            // Fallback to 0 if data is missing since free API lacks deep fundamental fields natively
             const newStock: StockData = {
                 symbol: data.symbol,
                 name: data.longName || data.shortName || data.symbol,
                 price: data.regularMarketPrice || 0,
                 changesPercentage: data.regularMarketChangePercent || 0,
-                sharesOutstanding: stats.sharesOutstanding || 0,
-                dividendYield: (financial.dividendYield || 0) * 100, // Convert to %
-                peRatio: stats.trailingPE || 0,
-                pbRatio: stats.priceToBook || 0,
-                roe: (financial.returnOnEquity || 0) * 100, // Convert to %
-                netIncome: financial.netIncomeToCommon || 0
+                sharesOutstanding: 0, // Not available in free tier quote
+                dividendYield: dividendYieldComputed,
+                peRatio: data.priceEarnings || 0, // Brapi often provides P/E in the root
+                pbRatio: 0, // Not available in free tier
+                roe: 0, // Not available in free tier
+                netIncome: 0 // Not available in free tier
             };
 
             setStocks(prev => [newStock, ...prev]);
