@@ -54,6 +54,7 @@ const InvestmentDividendChart: React.FC<InvestmentDividendChartProps> = ({ divid
             return (
                 <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3 rounded-xl shadow-xl">
                     <p className="text-xs font-black text-slate-500 uppercase mb-1">{payload[0].payload.label}</p>
+                    <p className="text-[10px] font-bold text-slate-400 mb-1">Pago em: {new Date(payload[0].payload.sortKey).toLocaleDateString('pt-BR')}</p>
                     <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400">R$ {payload[0].value.toFixed(4)}</p>
                     <p className="text-[10px] font-medium text-slate-400">DY: {payload[0].payload.yield}%</p>
                 </div>

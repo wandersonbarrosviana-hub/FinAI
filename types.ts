@@ -280,3 +280,21 @@ export interface RankingEntry {
   avatar_url?: string;
   percentile?: number;
 }
+
+export interface Wallet {
+    id: string;
+    user_id: string;
+    name: string;
+    created_at: string;
+}
+
+export interface WalletAsset {
+    id: string;
+    wallet_id: string;
+    symbol: string;
+    quantity: number;
+    purchase_price: number;
+    asset_type: 'acao' | 'fii';
+    tax: number;
+    created_at: string;
+}
