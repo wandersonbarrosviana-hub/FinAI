@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Search, Loader2, Trash2, TrendingUp, AlertCircle, Info, BarChart2, Activity, PieChart, Calculator } from 'lucide-react';
+import { Search, Loader2, Trash2, TrendingUp, AlertCircle, Info, BarChart2, Activity, PieChart, Calculator, X } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import InvestmentDividendChart from './InvestmentDividendChart';
 import InvestmentPortfolio from './InvestmentPortfolio';
@@ -27,8 +27,9 @@ export default function InvestmentAnalytics() {
     const [loading, setLoading] = useState(false);
     const [stocks, setStocks] = useState<StockData[]>([]);
     const [selectedSymbol, setSelectedSymbol] = useState<string | null>(null);
-    const [errorMsg, setErrorMsg] = useState('');
     const [activeTab, setActiveTab] = useState<'analysis' | 'portfolio'>('analysis');
+    const [errorMsg, setErrorMsg] = useState('');
+    const [selectedStockDividends, setSelectedStockDividends] = useState<{ symbol: string, dividends: any[] } | null>(null);
 
     const fetchStockData = async (ticker: string) => {
         try {
@@ -45,19 +46,13 @@ export default function InvestmentAnalytics() {
             }
 
             const res = await fetch(`https://brapi.dev/api/quote/${b3Ticker}?modules=summaryProfile,dividends&token=eVP75WsHBzT8JMkb8KC94R`);
+            const dataWrap = await res.json();
 
-            if (!res.ok) {
-                if (res.status === 404) throw new Error("Ativo não encontrado na B3.");
-                throw new Error(`Erro na API (${res.status}) ao buscar cotação.`);
+            if (!res.ok || !dataWrap.results || dataWrap.results.length === 0) {
+                throw new Error('Ativo não encontrado ou erro na API.');
             }
 
-            const rawData = await res.json();
-            if (!rawData.results || rawData.results.length === 0) {
-                throw new Error('Ativo não encontrado. Verifique o código.');
-            }
-
-            const data = rawData.results[0];
-
+            const data = dataWrap.results[0];
             let yfMetrics: any = {};
             let yfDividends: any[] = [];
 
@@ -70,12 +65,11 @@ export default function InvestmentAnalytics() {
                     yfDividends = yfData.dividends || [];
                 }
             } catch (e) {
-                console.warn("Could not fetch Yahoo Finance proxy", e);
+                console.warn("Could not fetch Yahoo Finance edge function", e);
             }
 
-            // Map Brapi Dividends (Priority for Payment Date)
             const brapiDividends = data.dividendsData?.cashDividends?.map((d: any) => ({
-                date: d.paymentDate, // Using paymentDate as the primary date
+                date: d.paymentDate,
                 dividends: d.rate,
                 type: d.type
             })) || [];
@@ -149,8 +143,8 @@ export default function InvestmentAnalytics() {
     }, [selectedSymbol]);
 
     const formatCurrency = (value: number) => {
-        if (Math.abs(value) >= 1e9) return `R$ ${(value / 1e9).toFixed(2)}B`;
-        if (Math.abs(value) >= 1e6) return `R$ ${(value / 1e6).toFixed(2)}M`;
+        if (value >= 1e9) return `R$ ${(value / 1e9).toFixed(2)}B`;
+        if (value >= 1e6) return `R$ ${(value / 1e6).toFixed(2)}M`;
         return `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
     };
 
@@ -369,9 +363,11 @@ export default function InvestmentAnalytics() {
                                 )}
                             </div>
                         </div>
-                    ) : (
-                    <InvestmentPortfolio />
+                    )}
+                </>
+            ) : (
+                <InvestmentPortfolio />
             )}
-                </div>
-            );
+        </div>
+    );
 }
