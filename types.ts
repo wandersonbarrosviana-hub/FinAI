@@ -150,8 +150,11 @@ export interface InvestmentIndicator {
   divida_liquida_ebitda: number;
   vpa: number;
   lpa: number;
+  dpa: number;
+  net_income: number;
   divida_liquida: number;
   divida_bruta: number;
+  shares_outstanding: number;
   liquidez_media_diaria: number;
   free_float: number;
   patrimonio_liquido: number;

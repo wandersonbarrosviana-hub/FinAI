@@ -1,35 +1,31 @@
-import React, { useState, useMemo } from 'react';
-import { Search, Loader2, TrendingUp, AlertCircle, Info, BarChart2, DollarSign, PieChart, Activity, Globe } from 'lucide-react';
+import React, { useState, useCallback } from 'react';
+import { Search, Loader2, Trash2, TrendingUp, AlertCircle, Info, BarChart2, Activity, PieChart, Calculator } from 'lucide-react';
 import { supabase } from '../supabaseClient';
-import {
-    BarChart,
-    Bar,
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    Tooltip,
-    ResponsiveContainer,
-    Cell
-} from 'recharts';
+import InvestmentDividendChart from './InvestmentDividendChart';
 
 interface StockData {
     symbol: string;
     price: number;
-    dividendYield: number;
-    peRatio: number;
-    pbRatio: number;
-    netIncome: number;
-    sharesOutstanding: number;
-    roe: number;
+    dividendYield: number; // TTM
+    peRatio: number; // P/L TTM
+    pbRatio: number; // P/VP TTM
+    netIncome: number; // Lucro Líquido TTM
+    sharesOutstanding: number; // Quantidade de papéis
+    roe: number; // ROE TTM
+    lpa: number; // Lucro por Ação
+    vpa: number; // Valor Patrimonial por Ação
+    dpa: number; // Dividendo por Ação (12m)
+    payout: number; // Payout (%)
     name: string;
     changesPercentage: number;
-    historicalDividends: any[];
+    historicalDividends: any[]; // Histórico de 6 anos
 }
 
 export default function InvestmentAnalytics() {
     const [searchQuery, setSearchQuery] = useState('');
     const [loading, setLoading] = useState(false);
-    const [selectedStock, setSelectedStock] = useState<StockData | null>(null);
+    const [stocks, setStocks] = useState<StockData[]>([]);
+    const [selectedSymbol, setSelectedSymbol] = useState<string | null>(null);
     const [errorMsg, setErrorMsg] = useState('');
 
     const fetchStockData = async (ticker: string) => {
@@ -40,7 +36,12 @@ export default function InvestmentAnalytics() {
             let b3Ticker = ticker.toUpperCase().trim();
             b3Ticker = b3Ticker.replace('.SA', '');
 
-            // Fetch Basic Quote Data from Brapi
+            if (stocks.some(s => s.symbol.replace('.SA', '') === b3Ticker)) {
+                setErrorMsg('Este ativo já foi adicionado.');
+                setLoading(false);
+                return;
+            }
+
             const res = await fetch(`https://brapi.dev/api/quote/${b3Ticker}?modules=summaryProfile&token=eVP75WsHBzT8JMkb8KC94R`);
 
             if (!res.ok) {
@@ -55,7 +56,6 @@ export default function InvestmentAnalytics() {
 
             const data = rawData.results[0];
 
-            // Fetch Yahoo Finance Supplemental Data
             let yfMetrics: any = {};
             let yfDividends: any[] = [];
 
@@ -74,7 +74,6 @@ export default function InvestmentAnalytics() {
             const yfFinancial = yfMetrics.financialData || {};
             const yfStats = yfMetrics.defaultKeyStatistics || {};
 
-            // Calculate Yield TTM
             let dividendYieldComputed = 0;
             if (yfDividends.length > 0) {
                 const oneYearAgo = new Date();
@@ -88,9 +87,6 @@ export default function InvestmentAnalytics() {
                 }
             }
 
-            // Fallback for Net Income since it often comes zerado from some sources
-            const netIncome = yfFinancial.netIncomeToCommon || yfFinancial.netIncome || yfStats.netIncome || 0;
-
             const newStock: StockData = {
                 symbol: data.symbol,
                 name: data.longName || data.shortName || data.symbol,
@@ -101,14 +97,23 @@ export default function InvestmentAnalytics() {
                 peRatio: data.priceEarnings || yfStats.trailingPE || 0,
                 pbRatio: yfStats.priceToBook || 0,
                 roe: (yfFinancial.returnOnEquity || 0) * 100,
-                netIncome: netIncome,
+                netIncome: yfFinancial.netIncomeToCommon || yfFinancial.netIncome || yfStats.netIncome || 0,
+                lpa: yfStats.trailingEps || 0,
+                vpa: yfStats.bookValue || 0,
+                dpa: (dividendYieldComputed / 100) * (data.regularMarketPrice || 0),
+                payout: (yfStats.payoutRatio || 0) * 100,
                 historicalDividends: yfDividends
             };
 
-            setSelectedStock(newStock);
+            setStocks(prev => {
+                const updated = [newStock, ...prev];
+                if (updated.length === 1) setSelectedSymbol(newStock.symbol);
+                return updated;
+            });
             setSearchQuery('');
 
         } catch (error: any) {
+            console.error("Error fetching stock:", error);
             setErrorMsg(error.message || 'Erro ao buscar dados do ativo.');
         } finally {
             setLoading(false);
@@ -122,245 +127,212 @@ export default function InvestmentAnalytics() {
         }
     };
 
+    const removeItem = useCallback((symbolToRemove: string) => {
+        setStocks(prev => {
+            const updatedStocks = prev.filter(s => s.symbol !== symbolToRemove);
+            if (selectedSymbol === symbolToRemove) {
+                setSelectedSymbol(updatedStocks.length > 0 ? updatedStocks[0].symbol : null);
+            }
+            return updatedStocks;
+        });
+    }, [selectedSymbol]);
+
     const formatCurrency = (value: number) => {
         if (Math.abs(value) >= 1e9) return `R$ ${(value / 1e9).toFixed(2)}B`;
         if (Math.abs(value) >= 1e6) return `R$ ${(value / 1e6).toFixed(2)}M`;
         return `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
     };
 
-    // Process dividends for chart (per year)
-    const annualDividends = useMemo(() => {
-        if (!selectedStock?.historicalDividends) return [];
-
-        const years: Record<number, number> = {};
-        selectedStock.historicalDividends.forEach(d => {
-            const year = new Date(d.date).getFullYear();
-            years[year] = (years[year] || 0) + (d.dividends || 0);
-        });
-
-        return Object.entries(years)
-            .map(([year, total]) => ({ year, total }))
-            .sort((a, b) => Number(a.year) - Number(b.year))
-            .slice(-6); // Last 6 years
-    }, [selectedStock]);
+    const selectedStock = stocks.find(s => s.symbol === selectedSymbol) || stocks[0];
 
     return (
-        <div className="flex flex-col h-full max-w-6xl mx-auto w-full space-y-8 p-4 md:p-0">
-            {/* Header and Search */}
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+        <div className="flex flex-col h-full max-w-[1440px] mx-auto w-full space-y-6">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
-                        <div className="p-2 bg-sky-500/10 rounded-xl">
-                            <TrendingUp className="text-sky-600" size={28} />
-                        </div>
-                        Análise Fundamentalista
+                    <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+                        <TrendingUp className="text-sky-600" />
+                        Análise de Ativos
                     </h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">
-                        Pesquise um ativo da B3 para visualizar indicadores e dividendos.
+                    <p className="text-sm font-medium text-slate-500 mt-1">
+                        Pesquise empresas na B3 para ver cotações e indicadores fundamentalistas em tempo real.
                     </p>
                 </div>
 
                 <form onSubmit={handleSearch} className="flex relative items-center max-w-md w-full">
                     <div className="relative flex-1">
-                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <Search size={20} className="text-slate-400" />
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <Search size={18} className="text-slate-400" />
                         </div>
                         <input
                             type="text"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="block w-full pl-12 pr-4 py-4 bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-2xl text-base focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 transition-all outline-none text-slate-900 dark:text-white placeholder-slate-400 uppercase font-bold shadow-sm"
-                            placeholder="Ex: ITUB4, VALE3..."
+                            className="block w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-shadow outline-none text-slate-900 dark:text-white placeholder-slate-400 uppercase font-medium"
+                            placeholder="Digite o Ticker (ex: ITUB4, PETR4)..."
                         />
                     </div>
                     <button
                         type="submit"
                         disabled={loading || !searchQuery.trim()}
-                        className="ml-3 bg-sky-600 hover:bg-sky-700 text-white rounded-2xl px-8 py-4 text-base font-black transition-all shadow-lg shadow-sky-600/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[140px]"
+                        className="ml-3 bg-sky-600 hover:bg-sky-700 text-white rounded-xl px-5 py-3 text-sm font-bold transition-all shadow-sm shadow-sky-600/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[100px]"
                     >
-                        {loading ? <Loader2 size={24} className="animate-spin" /> : 'Analisar'}
+                        {loading ? <Loader2 size={18} className="animate-spin" /> : 'Adicionar'}
                     </button>
                 </form>
             </div>
 
             {errorMsg && (
-                <div className="bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 px-6 py-4 rounded-2xl text-sm font-bold flex items-center gap-3 border-2 border-rose-100 dark:border-rose-500/20 animate-in slide-in-from-top-2 duration-300">
-                    <AlertCircle size={20} />
+                <div className="bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-2 border border-rose-100 dark:border-rose-500/20 animate-in fade-in">
+                    <AlertCircle size={16} />
                     {errorMsg}
-                    <button onClick={() => setErrorMsg('')} className="ml-auto text-rose-400 hover:text-rose-600 font-black text-xl">&times;</button>
+                    <button onClick={() => setErrorMsg('')} className="ml-auto text-rose-400 hover:text-rose-600">&times;</button>
                 </div>
             )}
 
-            {!selectedStock && !loading && (
-                <div className="flex flex-col items-center justify-center py-24 text-slate-400 bg-slate-50 dark:bg-slate-900/50 rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-800">
-                    <Activity size={64} className="opacity-10 mb-6" />
-                    <p className="text-xl font-bold text-slate-500 dark:text-slate-400">Nenhum ativo selecionado</p>
-                    <p className="text-sm mt-2">Digite o código do ativo acima para começar a análise.</p>
+            {stocks.length === 0 ? (
+                <div className="flex-1 bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center p-12 text-center">
+                    <div className="w-24 h-24 bg-sky-50 dark:bg-sky-500/10 rounded-full flex items-center justify-center mb-6">
+                        <TrendingUp size={40} className="text-sky-500" />
+                    </div>
+                    <h2 className="text-xl font-black text-slate-800 dark:text-white mb-2 tracking-tight">Comece sua Análise</h2>
+                    <p className="text-slate-500 dark:text-slate-400 max-w-sm font-medium">
+                        Adicione ativos da B3 acima para comparar indicadores fundamentais e histórico de dividendos em tempo real.
+                    </p>
                 </div>
-            )}
-
-            {selectedStock && (
-                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                    {/* Main Info Card */}
-                    <div className="bg-white dark:bg-slate-900 p-8 rounded-[2rem] border-2 border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-none relative overflow-hidden">
-                        <div className="absolute top-0 right-0 p-8 opacity-5">
-                            <TrendingUp size={120} />
+            ) : (
+                <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
+                    <div className="xl:col-span-1 space-y-4">
+                        <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest px-2">Meus Ativos</h3>
+                        <div className="flex flex-col gap-3">
+                            {stocks.map(stock => (
+                                <button
+                                    key={stock.symbol}
+                                    onClick={() => setSelectedSymbol(stock.symbol)}
+                                    className={`flex items-center justify-between p-4 rounded-3xl border transition-all text-left ${selectedSymbol === stock.symbol
+                                        ? 'bg-sky-600 border-sky-600 text-white shadow-xl shadow-sky-600/20'
+                                        : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white hover:border-sky-500'
+                                        }`}
+                                >
+                                    <div>
+                                        <p className="font-black tracking-tight">{stock.symbol.replace('.SA', '')}</p>
+                                        <p className={`text-[10px] font-bold uppercase opacity-60 truncate max-w-[120px]`}>{stock.name}</p>
+                                    </div>
+                                    <div className="text-right flex flex-col items-end">
+                                        <p className="font-black">R$ {stock.price.toFixed(2)}</p>
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); removeItem(stock.symbol); }}
+                                            className={`p-1 mt-1 rounded-md transition-colors ${selectedSymbol === stock.symbol ? 'hover:bg-white/20' : 'hover:bg-rose-50 text-slate-300 hover:text-rose-500'}`}
+                                        >
+                                            <Trash2 size={14} />
+                                        </button>
+                                    </div>
+                                </button>
+                            ))}
                         </div>
+                    </div>
 
-                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative z-10">
-                            <div>
-                                <div className="flex items-center gap-3 mb-2">
-                                    <span className="text-5xl font-black text-slate-900 dark:text-white tracking-tighter">
-                                        {selectedStock.symbol.replace('.SA', '')}
-                                    </span>
-                                    <div className={`px-4 py-1.5 rounded-full text-sm font-black ${selectedStock.changesPercentage >= 0 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' : 'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400'}`}>
-                                        {selectedStock.changesPercentage > 0 ? '+' : ''}{selectedStock.changesPercentage.toFixed(2)}%
+                    <div className="xl:col-span-3 space-y-8">
+                        {selectedStock && (
+                            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 border border-slate-200 dark:border-slate-800 shadow-sm mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                                    <div>
+                                        <div className="flex items-center gap-3 mb-2">
+                                            <h2 className="text-4xl font-black text-slate-930 dark:text-white tracking-tighter uppercase">{selectedStock.symbol.replace('.SA', '')}</h2>
+                                            <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-sky-50 dark:bg-sky-500/10 text-sky-600 dark:text-sky-400`}>Ação</span>
+                                        </div>
+                                        <p className="text-slate-500 font-bold uppercase text-xs tracking-tight">{selectedStock.name}</p>
+                                    </div>
+                                    <div className="bg-emerald-50 dark:bg-emerald-500/10 px-8 py-5 rounded-3xl border border-emerald-100 dark:border-emerald-500/20 text-right">
+                                        <p className="text-[10px] font-black text-emerald-600/50 uppercase tracking-widest mb-1">Cotação Atual</p>
+                                        <p className="text-3xl font-black text-emerald-600 dark:text-emerald-400 tracking-tighter">R$ {selectedStock.price.toFixed(2)}</p>
                                     </div>
                                 </div>
-                                <h2 className="text-xl font-bold text-slate-500 flex items-center gap-2">
-                                    <Globe size={18} /> {selectedStock.name}
-                                </h2>
-                            </div>
-                            <div className="text-right">
-                                <p className="text-sm font-black text-slate-400 uppercase tracking-widest mb-1">Cotação Atual</p>
-                                <p className="text-5xl font-black text-sky-600 dark:text-sky-400 tabular-nums">
-                                    R$ {selectedStock.price.toFixed(2)}
-                                </p>
-                            </div>
-                        </div>
 
-                        {/* Metrics Grid */}
-                        <div className="grid grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
-                            <MetricCard
-                                label="Dividend Yield (12m)"
-                                value={`${selectedStock.dividendYield.toFixed(2)}%`}
-                                icon={<DollarSign className="text-emerald-500" />}
-                                subtitle="Retorno em Proventos"
-                            />
-                            <MetricCard
-                                label="Preço / Lucro (P/L)"
-                                value={selectedStock.peRatio.toFixed(2)}
-                                icon={<Activity className="text-blue-500" />}
-                                subtitle="Tempo de Payback"
-                            />
-                            <MetricCard
-                                label="Preço / V.P (P/VP)"
-                                value={selectedStock.pbRatio.toFixed(2)}
-                                icon={<PieChart className="text-orange-500" />}
-                                subtitle="Valor Patrimonial"
-                            />
-                            <MetricCard
-                                label="ROE"
-                                value={`${selectedStock.roe.toFixed(2)}%`}
-                                icon={<TrendingUp className="text-purple-500" />}
-                                subtitle="Retorno sobre Patrimônio"
-                            />
-                            <MetricCard
-                                label="Lucro Líquido (TTM)"
-                                value={formatCurrency(selectedStock.netIncome)}
-                                icon={<BarChart2 className="text-pink-500" />}
-                                subtitle="Resultado dos 12 meses"
-                                highlight={selectedStock.netIncome > 0}
-                            />
-                            <MetricCard
-                                label="Total de Ações"
-                                value={`${(selectedStock.sharesOutstanding / 1e6).toFixed(2)}M`}
-                                icon={<Info className="text-slate-500" />}
-                                subtitle="Quantidade de Papéis"
-                            />
-                        </div>
-                    </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                                    <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
+                                        <div className="flex items-center gap-3 text-sky-500 mb-2">
+                                            <Calculator size={20} />
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Valuation & Lucro</span>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1">LPA</p>
+                                                <p className="text-xl font-black text-slate-900 dark:text-white">R$ {selectedStock.lpa.toFixed(2)}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1">VPA</p>
+                                                <p className="text-xl font-black text-slate-900 dark:text-white">R$ {selectedStock.vpa.toFixed(2)}</p>
+                                            </div>
+                                        </div>
+                                        <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
+                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1">Lucro Líquido (12m)</p>
+                                            <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400">{formatCurrency(selectedStock.netIncome)}</p>
+                                        </div>
+                                    </div>
 
-                    {/* Dividend History Chart */}
-                    <div className="bg-white dark:bg-slate-900 p-8 rounded-[2rem] border-2 border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-none">
-                        <div className="flex items-center justify-between mb-8">
-                            <div>
-                                <h3 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-3">
-                                    <BarChart2 className="text-sky-500" /> Histórico de Dividendos Anuais
-                                </h3>
-                                <p className="text-slate-500 mt-1 font-medium">Evolução dos pagamentos nos últimos 6 anos.</p>
-                            </div>
-                        </div>
+                                    <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
+                                        <div className="flex items-center gap-3 text-indigo-500 mb-2">
+                                            <Activity size={20} />
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Eficiência</span>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1">ROE</p>
+                                                <p className="text-xl font-black text-slate-900 dark:text-white">{selectedStock.roe.toFixed(2)}%</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1">Payout</p>
+                                                <p className="text-xl font-black text-slate-900 dark:text-white">{selectedStock.payout.toFixed(2)}%</p>
+                                            </div>
+                                        </div>
+                                        <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-between items-end">
+                                            <div>
+                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1">P/L</p>
+                                                <p className="text-xl font-black text-slate-900 dark:text-white">{selectedStock.peRatio.toFixed(2)}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1 text-right">P/VP</p>
+                                                <p className="text-xl font-black text-slate-900 dark:text-white text-right">{selectedStock.pbRatio.toFixed(2)}</p>
+                                            </div>
+                                        </div>
+                                    </div>
 
-                        <div className="h-[400px] w-full mt-4">
-                            {annualDividends.length > 0 ? (
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={annualDividends} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" opacity={0.5} />
-                                        <XAxis
-                                            dataKey="year"
-                                            axisLine={false}
-                                            tickLine={false}
-                                            tick={{ fill: '#94A3B8', fontSize: 13, fontWeight: 700 }}
-                                            dy={10}
-                                        />
-                                        <YAxis
-                                            axisLine={false}
-                                            tickLine={false}
-                                            tick={{ fill: '#94A3B8', fontSize: 12 }}
-                                            tickFormatter={(val) => `R$ ${val.toFixed(2)}`}
-                                        />
-                                        <Tooltip
-                                            cursor={{ fill: 'rgba(14, 165, 233, 0.05)', radius: 12 }}
-                                            content={({ active, payload, label }) => {
-                                                if (active && payload && payload.length) {
-                                                    return (
-                                                        <div className="bg-slate-900 text-white p-4 rounded-2xl shadow-2xl border border-slate-700">
-                                                            <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">{label}</p>
-                                                            <p className="text-xl font-bold text-sky-400">R$ {Number(payload[0].value).toFixed(2)}</p>
-                                                            <p className="text-[10px] text-slate-500 mt-1">Total acumulado no ano</p>
-                                                        </div>
-                                                    );
-                                                }
-                                                return null;
-                                            }}
-                                        />
-                                        <Bar
-                                            dataKey="total"
-                                            radius={[10, 10, 10, 10]}
-                                            barSize={60}
-                                        >
-                                            {annualDividends.map((entry, index) => (
-                                                <Cell
-                                                    key={`cell-${index}`}
-                                                    fill={index === annualDividends.length - 1 ? '#0EA5E9' : '#94A3B8'}
-                                                    fillOpacity={index === annualDividends.length - 1 ? 1 : 0.3}
-                                                    className="transition-all duration-500"
-                                                />
-                                            ))}
-                                        </Bar>
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            ) : (
-                                <div className="h-full flex flex-col items-center justify-center text-slate-400 opacity-50">
-                                    <Info size={48} className="mb-4" />
-                                    <p className="text-lg font-bold">Sem dados de dividendos disponíveis</p>
-                                    <p className="text-sm">A empresa pode não ter pago dividendos no período.</p>
+                                    <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
+                                        <div className="flex items-center gap-3 text-emerald-500 mb-2">
+                                            <PieChart size={20} />
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Proventos</span>
+                                        </div>
+                                        <div>
+                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1">DPA (12m)</p>
+                                            <p className="text-2xl font-black text-slate-900 dark:text-white">R$ {selectedStock.dpa.toFixed(2)}</p>
+                                        </div>
+                                        <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
+                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1">Dividend Yield (12m)</p>
+                                            <p className="text-3xl font-black text-emerald-600 dark:text-emerald-400 tracking-tighter">{selectedStock.dividendYield.toFixed(2)}%</p>
+                                        </div>
+                                    </div>
                                 </div>
-                            )}
-                        </div>
+
+                                <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 border border-slate-200 dark:border-slate-800 shadow-sm ring-1 ring-black/5 dark:ring-white/5">
+                                    <div className="flex items-center justify-between mb-8">
+                                        <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest flex items-center gap-3">
+                                            <BarChart2 className="text-sky-500" /> Histórico de Dividendos
+                                        </h3>
+                                        <div className="flex items-center gap-1 text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                                            <Info size={14} className="text-slate-300" />
+                                            Análise dos últimos 6 anos
+                                        </div>
+                                    </div>
+                                    <InvestmentDividendChart
+                                        dividends={selectedStock.historicalDividends}
+                                        currentPrice={selectedStock.price}
+                                    />
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}
-        </div>
-    );
-}
-
-function MetricCard({ label, value, icon, subtitle, highlight = false }: { label: string, value: string, icon: React.ReactNode, subtitle: string, highlight?: boolean }) {
-    return (
-        <div className="bg-slate-50 dark:bg-slate-950/50 p-6 rounded-3xl border-2 border-transparent hover:border-sky-500/20 transition-all group">
-            <div className="flex items-center justify-between mb-4">
-                <div className="p-3 bg-white dark:bg-slate-900 rounded-2xl shadow-sm group-hover:scale-110 transition-transform duration-300">
-                    {icon}
-                </div>
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{label}</span>
-            </div>
-            <p className={`text-2xl font-black tabular-nums transition-colors ${highlight ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-900 dark:text-white'}`}>
-                {value}
-            </p>
-            <p className="text-xs font-bold text-slate-500 mt-1.5 uppercase tracking-tight opacity-70">
-                {subtitle}
-            </p>
         </div>
     );
 }
