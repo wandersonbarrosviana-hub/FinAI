@@ -45,7 +45,7 @@ export default function InvestmentAnalytics() {
                 return;
             }
 
-            const res = await fetch(`https://brapi.dev/api/quote/${b3Ticker}?modules=summaryProfile,dividends&token=eVP75WsHBzT8JMkb8KC94R`);
+            const res = await fetch(`https://brapi.dev/api/quote/${b3Ticker}?modules=summaryProfile&token=eVP75WsHBzT8JMkb8KC94R`);
             const dataWrap = await res.json();
 
             if (!res.ok || !dataWrap.results || dataWrap.results.length === 0) {

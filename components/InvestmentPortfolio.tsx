@@ -73,7 +73,7 @@ export default function InvestmentPortfolio() {
         // Fetch current market data for all symbols in the wallet
         const symbols = walletAssets.map(a => a.symbol).join(',');
         try {
-            const res = await fetch(`https://brapi.dev/api/quote/${symbols}?modules=dividends&token=eVP75WsHBzT8JMkb8KC94R`);
+            const res = await fetch(`https://brapi.dev/api/quote/${symbols}?token=eVP75WsHBzT8JMkb8KC94R`);
             const marketData = await res.json();
 
             const enrichedAssets = walletAssets.map(asset => {
