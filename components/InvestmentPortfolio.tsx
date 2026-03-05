@@ -72,10 +72,17 @@ export default function InvestmentPortfolio() {
         }
 
         // Fetch current market data and historical data (for variation and dividends)
-        const symbols = walletAssets.map(a => a.symbol).join(',');
+        const activeAssets = walletAssets.filter(a => a.symbol);
+        if (activeAssets.length === 0) {
+            setAssets(walletAssets.map(a => ({ ...a, currentPrice: a.purchase_price, profitability: 0 })));
+            setLoading(false);
+            return;
+        }
+
+        const symbols = activeAssets.map(a => a.symbol).join(',');
         try {
             // Request with range=5y and interval=1d for historical daily basis
-            const res = await fetch(`https://brapi.dev/api/quote/${symbols}?range=5y&interval=1d&modules=summaryProfile&token=eVP75WsHBzT8JMkb8KC94R`);
+            const res = await fetch(`https://brapi.dev/api/quote/${symbols.trim()}?range=5y&interval=1d&modules=summaryProfile&token=eVP75WsHBzT8JMkb8KC94R`);
             const marketData = await res.json();
 
             const enrichedAssets = walletAssets.map(asset => {
@@ -185,7 +192,12 @@ export default function InvestmentPortfolio() {
             }]);
 
         if (error) {
-            setError('Erro ao adicionar ativo.');
+            console.error('Add asset error:', error);
+            if (error.message?.includes('purchase_date')) {
+                setError('Erro: A coluna purchase_date não foi encontrada. Certifique-se de aplicar a migração SQL no seu painel Supabase.');
+            } else {
+                setError('Erro ao adicionar ativo. Verifique os dados ou o console.');
+            }
         } else {
             fetchAssets(selectedWalletId);
             setIsAddingAsset(false);
