@@ -38,15 +38,18 @@ serve(async (req) => {
 
     console.log(`Fetching data for: ${yfTicker}`);
 
-    // Fetch Base Fundamentals (P/B, ROE, Net Income)
+    // Fetch Base Fundamentals (P/B, ROE, Net Income, Price, Payout)
     const quoteSummary = await yahooFinance.quoteSummary(yfTicker, {
-        modules: ['defaultKeyStatistics', 'financialData']
+        modules: ['defaultKeyStatistics', 'financialData', 'price', 'summaryDetail']
     });
 
     // Fetch Historical Dividends (Last 6 Years)
     const today = new Date();
     const sixYearsAgo = new Date();
     sixYearsAgo.setFullYear(today.getFullYear() - 6);
+
+    const fiveYearsAgo = new Date();
+    fiveYearsAgo.setFullYear(today.getFullYear() - 5);
 
     const historicalDividends = await yahooFinance.historical(yfTicker, {
         period1: sixYearsAgo,
@@ -57,10 +60,21 @@ serve(async (req) => {
         return [];
     });
 
+    // Fetch Historical Prices (Last 5 Years, daily)
+    const historicalPrices = await yahooFinance.historical(yfTicker, {
+        period1: fiveYearsAgo,
+        period2: today,
+        interval: '1d'
+    }).catch((err) => {
+        console.warn(`Failed to fetch historical prices for ${yfTicker}:`, err);
+        return [];
+    });
+
     return new Response(JSON.stringify({
         ticker: yfTicker,
         quoteSummary: quoteSummary,
-        dividends: historicalDividends
+        dividends: historicalDividends,
+        prices: historicalPrices
     }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,

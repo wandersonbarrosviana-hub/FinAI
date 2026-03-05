@@ -210,6 +210,32 @@ def main():
             results.append(data)
         time.sleep(1) # Be polite
         
+    # --- Aggregation Logic (ON/PN Summation) ---
+    # Group by prefix (4 letters) and sum ON/PN classes (3, 4, 5, 6, 7, 8)
+    # Units (11) are intentionally excluded as per user request.
+    prefix_shares = {}
+    for res in results:
+        if res.get('type') == 'acao':
+            ticker = res['ticker']
+            prefix = ticker[:4]
+            suffix = ticker[4:]
+            if suffix in ['3', '4', '5', '6', '7', '8']:
+                shares = res['indicators'].get('numero_papeis', 0)
+                prefix_shares[prefix] = prefix_shares.get(prefix, 0) + shares
+
+    # Apply aggregated totals and update Market Cap
+    for res in results:
+        if res.get('type') == 'acao':
+            ticker = res['ticker']
+            prefix = ticker[:4]
+            suffix = ticker[4:]
+            if suffix in ['3', '4', '5', '6', '7', '8'] and prefix in prefix_shares:
+                total_shares = prefix_shares[prefix]
+                res['indicators']['numero_papeis'] = total_shares
+                # Recalculate Market Cap if price is present
+                if res['price'] > 0:
+                    res['indicators']['market_cap'] = res['price'] * total_shares
+
     output_dir = os.path.join(os.path.dirname(__file__), '..', 'public', 'data')
     os.makedirs(output_dir, exist_ok=True)
     with open(os.path.join(output_dir, 'investments.json'), 'w', encoding='utf-8') as f:

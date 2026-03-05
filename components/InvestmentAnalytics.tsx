@@ -53,20 +53,48 @@ export default function InvestmentAnalytics() {
             }
 
             const data = dataWrap.results[0];
+            // Helper to extract raw values from Yahoo Finance objects or primitives
+            const getRaw = (val: any) => (val && typeof val === 'object' && 'raw' in val) ? val.raw : (val || 0);
+
+            // Heuristic for Brazilian stocks: Sum ON (3) and PN (4, 5, 6, 7, 8) classes
+            const prefix = b3Ticker.substring(0, 4);
+            const suffix = b3Ticker.substring(4);
+            const isOnPn = ['3', '4', '5', '6', '7', '8'].includes(suffix);
+
             let yfMetrics: any = {};
             let yfDividends: any[] = [];
+            let totalShares = 0;
 
             try {
+                // Fetch primary ticker
                 const { data: yfData, error } = await supabase.functions.invoke('yahoo-finance-proxy', {
                     body: { ticker: b3Ticker }
                 });
+
                 if (!error && yfData) {
                     yfMetrics = yfData.quoteSummary || {};
                     yfDividends = yfData.dividends || [];
+                    totalShares = getRaw(yfMetrics.defaultKeyStatistics?.sharesOutstanding);
+                }
+
+                // If it's ON/PN, try to fetch the most likely counterparty to sum shares
+                // (e.g. if 4, try 3; if 3, try 4)
+                if (isOnPn && ['3', '4'].includes(suffix)) {
+                    const otherSuffix = suffix === '3' ? '4' : '3';
+                    const { data: yfDataOther } = await supabase.functions.invoke('yahoo-finance-proxy', {
+                        body: { ticker: `${prefix}${otherSuffix}` }
+                    });
+                    if (yfDataOther) {
+                        const otherShares = getRaw(yfDataOther.quoteSummary?.defaultKeyStatistics?.sharesOutstanding);
+                        totalShares += otherShares;
+                    }
                 }
             } catch (e) {
-                console.warn("Could not fetch Yahoo Finance edge function", e);
+                console.warn("Could not fetch Yahoo Finance data", e);
             }
+
+            const yfFinancial = yfMetrics.financialData || {};
+            const yfStats = yfMetrics.defaultKeyStatistics || {};
 
             const brapiDividends = data.dividendsData?.cashDividends?.map((d: any) => ({
                 date: d.paymentDate,
@@ -75,9 +103,6 @@ export default function InvestmentAnalytics() {
             })) || [];
 
             const finalDividends = brapiDividends.length > 0 ? brapiDividends : yfDividends;
-
-            const yfFinancial = yfMetrics.financialData || {};
-            const yfStats = yfMetrics.defaultKeyStatistics || {};
 
             let dividendYieldComputed = 0;
             if (finalDividends.length > 0) {
@@ -95,21 +120,25 @@ export default function InvestmentAnalytics() {
                 }
             }
 
+            const shares = totalShares || getRaw(yfStats.sharesOutstanding);
+            const eps = getRaw(yfStats.trailingEps);
+            const payoutRatio = getRaw(yfStats.payoutRatio) || getRaw(yfMetrics.summaryDetail?.payoutRatio);
+
             const newStock: StockData = {
                 symbol: data.symbol,
                 name: data.longName || data.shortName || data.symbol,
                 price: data.regularMarketPrice || 0,
                 changesPercentage: data.regularMarketChangePercent || 0,
-                sharesOutstanding: yfStats.sharesOutstanding || 0,
+                sharesOutstanding: shares,
                 dividendYield: dividendYieldComputed || (data.dividendYield || 0),
-                peRatio: data.priceEarnings || yfStats.trailingPE || 0,
-                pbRatio: yfStats.priceToBook || 0,
-                roe: (yfFinancial.returnOnEquity || 0) * 100,
-                netIncome: (yfStats.trailingEps || 0) * (yfStats.sharesOutstanding || 0),
-                lpa: yfStats.trailingEps || 0,
-                vpa: yfStats.bookValue || 0,
+                peRatio: data.priceEarnings || getRaw(yfStats.trailingPE) || 0,
+                pbRatio: getRaw(yfStats.priceToBook) || 0,
+                roe: getRaw(yfFinancial.returnOnEquity) * 100,
+                netIncome: eps * shares,
+                lpa: eps,
+                vpa: getRaw(yfStats.bookValue) || 0,
                 dpa: (dividendYieldComputed / 100) * (data.regularMarketPrice || 0),
-                payout: (yfStats.payoutRatio || yfMetrics.summaryDetail?.payoutRatio || 0) * 100,
+                payout: payoutRatio * 100,
                 historicalDividends: finalDividends
             };
 
@@ -296,6 +325,10 @@ export default function InvestmentAnalytics() {
                                                     <div>
                                                         <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1">VPA</p>
                                                         <p className="text-xl font-black text-slate-900 dark:text-white">R$ {selectedStock.vpa.toFixed(2)}</p>
+                                                    </div>
+                                                    <div className="col-span-2 pt-2">
+                                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1">Quantidade de Ações</p>
+                                                        <p className="text-xl font-black text-slate-900 dark:text-white">{selectedStock.sharesOutstanding ? (selectedStock.sharesOutstanding >= 1e9 ? `${(selectedStock.sharesOutstanding / 1e9).toFixed(2)}B` : (selectedStock.sharesOutstanding >= 1e6 ? `${(selectedStock.sharesOutstanding / 1e6).toFixed(2)}M` : selectedStock.sharesOutstanding.toLocaleString('pt-BR'))) : '-'}</p>
                                                     </div>
                                                 </div>
                                                 <div className="pt-4 border-t border-slate-100 dark:border-slate-800">

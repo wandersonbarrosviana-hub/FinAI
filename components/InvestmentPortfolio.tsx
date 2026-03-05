@@ -54,93 +54,97 @@ export default function InvestmentPortfolio() {
 
     const fetchAssets = async (walletId: string) => {
         setLoading(true);
-        const { data: walletAssets, error } = await supabase
-            .from('wallet_assets')
-            .select('*')
-            .eq('wallet_id', walletId);
-
-        if (error) {
-            console.error('Error fetching assets:', error);
-            setLoading(false);
-            return;
-        }
-
-        if (!walletAssets || walletAssets.length === 0) {
-            setAssets([]);
-            setLoading(false);
-            return;
-        }
-
-        // Fetch current market data and historical data (for variation and dividends)
-        const activeAssets = walletAssets.filter(a => a.symbol);
-        if (activeAssets.length === 0) {
-            setAssets(walletAssets.map(a => ({ ...a, currentPrice: a.purchase_price, profitability: 0 })));
-            setLoading(false);
-            return;
-        }
-
-        const symbols = activeAssets.map(a => a.symbol).join(',');
         try {
-            // Request with range=5y and interval=1d for historical daily basis
-            const res = await fetch(`https://brapi.dev/api/quote/${symbols.trim()}?range=5y&interval=1d&modules=summaryProfile&token=eVP75WsHBzT8JMkb8KC94R`);
-            const marketData = await res.json();
+            const { data: walletAssets, error } = await supabase
+                .from('wallet_assets')
+                .select('*')
+                .eq('wallet_id', walletId);
 
-            const enrichedAssets = walletAssets.map(asset => {
-                const liveData = marketData.results?.find((r: any) => r.symbol === asset.symbol);
-                const currentPrice = liveData?.regularMarketPrice || asset.purchase_price;
-                const historicalData = liveData?.historicalDataPrice || [];
+            if (error) throw error;
 
-                // Find price at purchase date
+            if (!walletAssets || walletAssets.length === 0) {
+                setAssets([]);
+                setLoading(false);
+                return;
+            }
+
+            // Fetch current market data and historical analysis per asset via Yahoo Finance Proxy
+            const enrichedAssets = await Promise.all(walletAssets.map(async (asset) => {
+                let currentPrice = asset.purchase_price;
+                let assetDividends: any[] = [];
+                let historicalPrices: any[] = [];
+                let longName = asset.name || asset.symbol;
+
+                try {
+                    // Call our Yahoo Finance Proxy for robust data
+                    const { data: yfData, error: yfError } = await supabase.functions.invoke('yahoo-finance-proxy', {
+                        body: { ticker: asset.symbol }
+                    });
+
+                    if (!yfError && yfData) {
+                        const quoteSummary = yfData.quoteSummary || {};
+                        const priceData = quoteSummary.price || {};
+                        const summaryDetail = quoteSummary.summaryDetail || {};
+
+                        // Yahoo Finance 2 quoteSummary.price.regularMarketPrice can be a number or an object { raw, fmt }
+                        const rawPrice = typeof priceData.regularMarketPrice === 'object'
+                            ? priceData.regularMarketPrice.raw
+                            : priceData.regularMarketPrice;
+
+                        const rawAsk = typeof summaryDetail.ask === 'object' ? summaryDetail.ask.raw : summaryDetail.ask;
+                        const rawBid = typeof summaryDetail.bid === 'object' ? summaryDetail.bid.raw : summaryDetail.bid;
+
+                        currentPrice = rawPrice || rawAsk || rawBid || priceData.regularMarketPrice || asset.purchase_price;
+                        longName = priceData.longName || longName;
+                        assetDividends = yfData.dividends || [];
+                        historicalPrices = yfData.prices || [];
+                    }
+                } catch (e) {
+                    console.error(`Error fetching Yahoo data for ${asset.symbol}:`, e);
+                }
+
+                // Calculate Dividends paid AFTER purchase date
                 const purchaseDateStr = asset.purchase_date || asset.created_at;
-                const pDateObj = new Date(purchaseDateStr);
-                const pDateTrimmed = new Date(pDateObj.getTime() + pDateObj.getTimezoneOffset() * 60000).toISOString().split('T')[0];
-
-                // Try to find exact or closest price on purchase date
-                const purchaseDatePriceObj = historicalData.find((h: any) => {
-                    const hDate = new Date(h.date * 1000).toISOString().split('T')[0];
-                    return hDate === pDateTrimmed;
-                }) || historicalData.find((h: any) => {
-                    const hDate = new Date(h.date * 1000).toISOString().split('T')[0];
-                    return hDate > pDateTrimmed;
-                });
-
-                const priceAtPurchase = purchaseDatePriceObj?.adjustedClose || purchaseDatePriceObj?.close || asset.purchase_price;
-
-                // Dividends by PAYMENT DATE (strictly)
                 const purchaseDateTime = new Date(purchaseDateStr).getTime();
-                const relevantDividends = liveData?.dividendsData?.cashDividends
+
+                const relevantDividendsRate = assetDividends
                     ?.filter((d: any) => {
-                        const payDate = new Date(d.paymentDate).getTime();
-                        return payDate >= purchaseDateTime;
+                        const dDate = new Date(d.paymentDate || d.date).getTime();
+                        return dDate >= purchaseDateTime;
                     })
-                    ?.reduce((sum: number, d: any) => sum + (d.rate || 0), 0) || 0;
+                    ?.reduce((sum: number, d: any) => sum + (d.rate || d.dividends || 0), 0) || 0;
 
-                const totalDividends = relevantDividends * asset.quantity;
+                const totalDividendsValue = relevantDividendsRate * asset.quantity;
+
                 // Variation from purchase price (user input) to current price
-                const variation = (currentPrice - asset.purchase_price) * asset.quantity;
-                const totalReturn = variation + totalDividends - (asset.tax || 0);
-                const profitability = ((currentPrice + relevantDividends - asset.purchase_price) / asset.purchase_price) * 100;
+                const appreciationValue = (currentPrice - asset.purchase_price) * asset.quantity;
+                const totalReturn = appreciationValue + totalDividendsValue - (asset.tax || 0);
 
-                // Dividends list for sidebar
-                const assetDividends = liveData?.dividendsData?.cashDividends
-                    ?.filter((d: any) => new Date(d.paymentDate).getTime() >= purchaseDateTime) || [];
+                // Profitability = (Current Price + Accrued Dividends - Purchase Price) / Purchase Price
+                const profitabilityValue = asset.purchase_price > 0
+                    ? ((currentPrice + (totalDividendsValue / asset.quantity) - asset.purchase_price) / asset.purchase_price) * 100
+                    : 0;
+
+                const filteredDividendsForSidebar = assetDividends
+                    ?.filter((d: any) => new Date(d.paymentDate || d.date).getTime() >= purchaseDateTime)
+                    .sort((a: any, b: any) => new Date(b.paymentDate || b.date).getTime() - new Date(a.date).getTime());
 
                 return {
                     ...asset,
                     currentPrice,
-                    variation,
-                    totalDividends,
+                    variation: appreciationValue,
+                    totalDividends: totalDividendsValue,
                     totalReturn,
-                    profitability,
-                    name: liveData?.longName || asset.symbol,
-                    receivedDividends: assetDividends.map((d: any) => ({
+                    profitability: profitabilityValue,
+                    name: longName,
+                    receivedDividends: filteredDividendsForSidebar.map((d: any) => ({
                         ticker: asset.symbol,
-                        date: d.paymentDate,
-                        amount: d.rate * asset.quantity,
-                        type: d.type
+                        date: d.paymentDate || d.date,
+                        amount: (d.rate || d.dividends) * asset.quantity,
+                        type: d.type || 'Provento'
                     }))
                 };
-            });
+            }));
 
             setAssets(enrichedAssets);
 
@@ -151,10 +155,11 @@ export default function InvestmentPortfolio() {
 
             setAllDividends(consolidatedDivs);
         } catch (err) {
-            console.error('Error fetching market data:', err);
-            setAssets(walletAssets.map(a => ({ ...a, currentPrice: a.purchase_price, profitability: 0 })));
+            console.error('Error fetching assets:', err);
+            setError('Falha ao carregar ativos da carteira.');
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     };
 
     const createWallet = async () => {
@@ -225,14 +230,29 @@ export default function InvestmentPortfolio() {
         }
     };
 
-    const selectedWallet = wallets.find(w => w.id === selectedWalletId);
-
-    // Totals Calculation
     const totalInvested = assets.reduce((sum, a) => sum + (a.purchase_price * a.quantity) + (a.tax || 0), 0);
     const currentEquity = assets.reduce((sum, a) => sum + (a.currentPrice * a.quantity), 0);
-    const totalDividends = assets.reduce((sum, a) => sum + (a.totalDividends || 0), 0);
-    const totalVariation = currentEquity - totalInvested + totalDividends;
-    const totalProfitability = totalInvested > 0 ? (totalVariation / totalInvested) * 100 : 0;
+    const totalDividendsValue = assets.reduce((sum, a) => sum + (a.totalDividends || 0), 0);
+    const totalVar = currentEquity - totalInvested + totalDividendsValue;
+    const totalProfit = totalInvested > 0 ? (totalVar / totalInvested) * 100 : 0;
+
+    const formatCurrency = (value: number) => {
+        return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+    };
+
+    function StatsCard({ title, value, icon, color = 'text-slate-900 dark:text-white' }: { title: string, value: string, icon: React.ReactNode, color?: string }) {
+        return (
+            <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm">
+                <div className="flex items-center gap-3 mb-4">
+                    <div className="p-2 bg-slate-50 dark:bg-slate-950 rounded-xl">
+                        {icon}
+                    </div>
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{title}</span>
+                </div>
+                <p className={`text-xl font-black ${color}`}>{value}</p>
+            </div>
+        );
+    }
 
     return (
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
@@ -316,16 +336,16 @@ export default function InvestmentPortfolio() {
                         <StatsCard title="Patrimônio Atual" value={formatCurrency(currentEquity)} icon={<DollarSign className="text-emerald-500" />} />
                         <StatsCard
                             title="Lucro/Prejuízo Total"
-                            value={`${totalVariation >= 0 ? '+' : ''}${formatCurrency(totalVariation)}`}
-                            icon={<Activity className={`${totalVariation >= 0 ? 'text-emerald-500' : 'text-rose-500'}`} />}
-                            color={totalVariation >= 0 ? 'text-emerald-500' : 'text-rose-500'}
+                            value={`${totalVar >= 0 ? '+' : ''}${formatCurrency(totalVar)}`}
+                            icon={<Activity className={`${totalVar >= 0 ? 'text-emerald-500' : 'text-rose-500'}`} />}
+                            color={totalVar >= 0 ? 'text-emerald-500' : 'text-rose-500'}
                         />
-                        <StatsCard title="Proventos Recebidos" value={formatCurrency(totalDividends)} icon={<Calculator className="text-indigo-500" />} />
+                        <StatsCard title="Proventos Recebidos" value={formatCurrency(totalDividendsValue)} icon={<Calculator className="text-indigo-500" />} />
                         <StatsCard
                             title="Rentabilidade"
-                            value={`${totalProfitability.toFixed(2)}%`}
-                            icon={<TrendingUp className={`${totalProfitability >= 0 ? 'text-emerald-500' : 'text-rose-500'}`} />}
-                            color={totalProfitability >= 0 ? 'text-emerald-500' : 'text-rose-500'}
+                            value={`${totalProfit.toFixed(2)}%`}
+                            icon={<TrendingUp className={`${totalProfit >= 0 ? 'text-emerald-500' : 'text-rose-500'}`} />}
+                            color={totalProfit >= 0 ? 'text-emerald-500' : 'text-rose-500'}
                         />
                     </div>
 
@@ -519,24 +539,6 @@ export default function InvestmentPortfolio() {
                     </div>
                 </div>
             )}
-        </div>
-    );
-}
-
-const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
-};
-
-function StatsCard({ title, value, icon, color = 'text-slate-900 dark:text-white' }: { title: string, value: string, icon: React.ReactNode, color?: string }) {
-    return (
-        <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm">
-            <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 bg-slate-50 dark:bg-slate-950 rounded-xl">
-                    {icon}
-                </div>
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{title}</span>
-            </div>
-            <p className={`text-xl font-black ${color}`}>{value}</p>
         </div>
     );
 }
