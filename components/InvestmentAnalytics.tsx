@@ -397,8 +397,17 @@ export default function InvestmentAnalytics() {
                                                 </div>
                                                 <div className="grid grid-cols-2 gap-4">
                                                     <div>
-                                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1">Preço Teto (Bazin)</p>
-                                                        <p className="text-2xl font-black text-sky-600 dark:text-sky-400 tracking-tighter">R$ {selectedStock.bazinPrice.toFixed(2)}</p>
+                                                        <div className="flex items-center gap-2 mb-1">
+                                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Preço Teto (Bazin)</p>
+                                                            {selectedStock.price > 0 && selectedStock.bazinPrice > 0 && (
+                                                                <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-md ${selectedStock.bazinPrice > selectedStock.price ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400' : 'bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400'}`}>
+                                                                    {selectedStock.bazinPrice > selectedStock.price ? '+' : ''}{((selectedStock.bazinPrice / selectedStock.price - 1) * 100).toFixed(2)}%
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <p className={`text-2xl font-black tracking-tighter ${selectedStock.bazinPrice > selectedStock.price ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                                                            R$ {selectedStock.bazinPrice.toFixed(2)}
+                                                        </p>
                                                     </div>
                                                     <div>
                                                         <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1 text-right">D.Y. (12m)</p>
