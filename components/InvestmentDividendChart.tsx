@@ -119,9 +119,9 @@ const InvestmentDividendChart: React.FC<InvestmentDividendChartProps> = ({ divid
                                 position="insideBottom"
                                 content={(props: any) => {
                                     const { x, y, width, height, value } = props;
-                                    if (height < 20) return null;
+                                    if (height < 20 || view === 'monthly') return null;
                                     return (
-                                        <text x={x + width / 2} y={y + height - 10} fill="#FFF" fontSize={8} fontWeight={900} textAnchor="middle">
+                                        <text x={x + width / 2} y={y + height / 2 + 4} fill="#FFF" fontSize={9} fontWeight={900} textAnchor="middle">
                                             {value}%
                                         </text>
                                     );
@@ -130,6 +130,49 @@ const InvestmentDividendChart: React.FC<InvestmentDividendChartProps> = ({ divid
                         </Bar>
                     </BarChart>
                 </ResponsiveContainer>
+            </div>
+
+            {/* Tabela de Precedentes (Histórico Detalhado) */}
+            <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800">
+                <h4 className="text-xs font-black text-slate-800 dark:text-white uppercase tracking-widest mb-4">Pagamentos Detalhados</h4>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr className="border-b border-slate-200 dark:border-slate-700">
+                                <th className="py-3 px-4 text-[10px] font-black tracking-widest text-slate-400 uppercase">Tipo</th>
+                                <th className="py-3 px-4 text-[10px] font-black tracking-widest text-slate-400 uppercase">Data Com</th>
+                                <th className="py-3 px-4 text-[10px] font-black tracking-widest text-slate-400 uppercase">Pagamento</th>
+                                <th className="py-3 px-4 text-[10px] font-black tracking-widest text-slate-400 uppercase text-right">Valor</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                            {dividends.slice().sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map((d, index) => (
+                                <tr key={index} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                                    <td className="py-3 px-4 text-xs font-bold text-slate-600 dark:text-slate-300">
+                                        <span className={`inline-block px-2 py-0.5 rounded-md text-[9px] uppercase tracking-widest ${(d as any).type === 'JCP' ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400' :
+                                                (d as any).type === 'Rendimento' ? 'bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400' :
+                                                    'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400'
+                                            }`}>
+                                            {(d as any).type || 'Dividendo'}
+                                        </span>
+                                    </td>
+                                    <td className="py-3 px-4 text-xs font-bold text-slate-600 dark:text-slate-300">
+                                        -
+                                    </td>
+                                    <td className="py-3 px-4 text-xs font-bold text-slate-600 dark:text-slate-300">
+                                        {new Date(d.date).toLocaleDateString('pt-BR')}
+                                    </td>
+                                    <td className="py-3 px-4 text-sm font-black text-emerald-600 dark:text-emerald-400 text-right">
+                                        R$ {d.dividends.toFixed(4)}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                    {dividends.length === 0 && (
+                        <div className="py-8 text-center text-slate-400 text-xs font-medium">Nenhum histórico de pagamentos encontrado.</div>
+                    )}
+                </div>
             </div>
         </div>
     );
