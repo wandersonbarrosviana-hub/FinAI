@@ -16,6 +16,9 @@ interface StockData {
     lpa: number; // Lucro por Ação
     vpa: number; // Valor Patrimonial por Ação
     dpa: number; // Dividendo por Ação (12m)
+    dpa5yAvg: number; // Dividendo por Ação (Média 5 anos)
+    bazinPrice: number; // Preço Teto Bazin
+    ebitdaMargin: number; // Margem EBITDA
     payout: number; // Payout (%)
     name: string;
     changesPercentage: number;
@@ -105,15 +108,31 @@ export default function InvestmentAnalytics() {
             const finalDividends = brapiDividends.length > 0 ? brapiDividends : yfDividends;
 
             let dividendYieldComputed = 0;
+            let dpa5yAvg = 0;
+            let bazinPrice = 0;
             if (finalDividends.length > 0) {
                 const oneYearAgo = new Date();
                 oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+
+                const fiveYearsAgo = new Date();
+                fiveYearsAgo.setFullYear(fiveYearsAgo.getFullYear() - 5);
+
                 const ttmDividends = finalDividends
                     .filter((d: any) => {
                         const dDate = new Date(d.paymentDate || d.date);
                         return dDate >= oneYearAgo;
                     })
                     .reduce((sum: number, d: any) => sum + (d.dividends || d.rate || 0), 0);
+
+                const totalDividends5y = finalDividends
+                    .filter((d: any) => {
+                        const dDate = new Date(d.paymentDate || d.date);
+                        return dDate >= fiveYearsAgo;
+                    })
+                    .reduce((sum: number, d: any) => sum + (d.dividends || d.rate || 0), 0);
+
+                dpa5yAvg = totalDividends5y / 5;
+                bazinPrice = dpa5yAvg / 0.06;
 
                 if (data.regularMarketPrice > 0) {
                     dividendYieldComputed = (ttmDividends / data.regularMarketPrice) * 100;
@@ -138,6 +157,9 @@ export default function InvestmentAnalytics() {
                 lpa: eps,
                 vpa: getRaw(yfStats.bookValue) || 0,
                 dpa: (dividendYieldComputed / 100) * (data.regularMarketPrice || 0),
+                dpa5yAvg,
+                bazinPrice,
+                ebitdaMargin: (getRaw(yfFinancial.ebitdaMargins) * 100) || 0,
                 payout: payoutRatio * 100,
                 historicalDividends: finalDividends
             };
@@ -342,14 +364,18 @@ export default function InvestmentAnalytics() {
                                                     <Activity size={20} />
                                                     <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Eficiência</span>
                                                 </div>
-                                                <div className="grid grid-cols-2 gap-4">
+                                                <div className="grid grid-cols-3 gap-4">
                                                     <div>
                                                         <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1">ROE</p>
-                                                        <p className="text-xl font-black text-slate-900 dark:text-white">{selectedStock.roe.toFixed(2)}%</p>
+                                                        <p className="text-lg font-black text-slate-900 dark:text-white">{selectedStock.roe.toFixed(2)}%</p>
                                                     </div>
                                                     <div>
-                                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1">Payout</p>
-                                                        <p className="text-xl font-black text-slate-900 dark:text-white">{selectedStock.payout.toFixed(2)}%</p>
+                                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1">M. Ebitda</p>
+                                                        <p className="text-lg font-black text-slate-900 dark:text-white">{selectedStock.ebitdaMargin.toFixed(2)}%</p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1 text-right">Payout</p>
+                                                        <p className="text-lg font-black text-slate-900 dark:text-white text-right">{selectedStock.payout.toFixed(2)}%</p>
                                                     </div>
                                                 </div>
                                                 <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-between items-end">
@@ -367,15 +393,27 @@ export default function InvestmentAnalytics() {
                                             <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
                                                 <div className="flex items-center gap-3 text-emerald-500 mb-2">
                                                     <PieChart size={20} />
-                                                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Proventos</span>
+                                                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Proventos & Bazin</span>
                                                 </div>
-                                                <div>
-                                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1">DPA (12m)</p>
-                                                    <p className="text-2xl font-black text-slate-900 dark:text-white">R$ {selectedStock.dpa.toFixed(2)}</p>
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div>
+                                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1">Preço Teto (Bazin)</p>
+                                                        <p className="text-2xl font-black text-sky-600 dark:text-sky-400 tracking-tighter">R$ {selectedStock.bazinPrice.toFixed(2)}</p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1 text-right">D.Y. (12m)</p>
+                                                        <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400 tracking-tighter text-right">{selectedStock.dividendYield.toFixed(2)}%</p>
+                                                    </div>
                                                 </div>
-                                                <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
-                                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1">Dividend Yield (12m)</p>
-                                                    <p className="text-3xl font-black text-emerald-600 dark:text-emerald-400 tracking-tighter">{selectedStock.dividendYield.toFixed(2)}%</p>
+                                                <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+                                                    <div>
+                                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1">DPA (12m)</p>
+                                                        <p className="text-xl font-black text-slate-900 dark:text-white">R$ {selectedStock.dpa.toFixed(2)}</p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1 text-right">DPA (Média 5A)</p>
+                                                        <p className="text-xl font-black text-slate-900 dark:text-white text-right">R$ {selectedStock.dpa5yAvg.toFixed(2)}</p>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
