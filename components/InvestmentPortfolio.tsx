@@ -18,6 +18,7 @@ export default function InvestmentPortfolio() {
         symbol: '',
         quantity: '',
         purchase_price: '',
+        purchase_date: new Date().toISOString().split('T')[0],
         asset_type: 'acao' as 'acao' | 'fii',
         tax: '0'
     });
@@ -70,26 +71,51 @@ export default function InvestmentPortfolio() {
             return;
         }
 
-        // Fetch current market data for all symbols in the wallet
+        // Fetch current market data and historical data (for variation and dividends)
         const symbols = walletAssets.map(a => a.symbol).join(',');
         try {
-            const res = await fetch(`https://brapi.dev/api/quote/${symbols}?token=eVP75WsHBzT8JMkb8KC94R`);
+            // Request with range=5y and interval=1d for historical daily basis
+            const res = await fetch(`https://brapi.dev/api/quote/${symbols}?range=5y&interval=1d&modules=summaryProfile&token=eVP75WsHBzT8JMkb8KC94R`);
             const marketData = await res.json();
 
             const enrichedAssets = walletAssets.map(asset => {
                 const liveData = marketData.results?.find((r: any) => r.symbol === asset.symbol);
                 const currentPrice = liveData?.regularMarketPrice || asset.purchase_price;
+                const historicalData = liveData?.historicalDataPrice || [];
 
-                // Calculate Dividends paid AFTER asset creation
-                const purchaseDate = new Date(asset.created_at);
+                // Find price at purchase date
+                const purchaseDateStr = asset.purchase_date || asset.created_at;
+                const pDate = new Date(purchaseDateStr).toISOString().split('T')[0];
+
+                // Try to find exact or closest price on purchase date
+                const purchaseDatePriceObj = historicalData.find((h: any) => {
+                    const hDate = new Date(h.date * 1000).toISOString().split('T')[0];
+                    return hDate === pDate;
+                }) || historicalData.find((h: any) => {
+                    const hDate = new Date(h.date * 1000).toISOString().split('T')[0];
+                    return hDate > pDate;
+                });
+
+                const priceAtPurchase = purchaseDatePriceObj?.close || asset.purchase_price;
+
+                // Dividends by PAYMENT DATE (strictly)
+                const purchaseDateTime = new Date(purchaseDateStr).getTime();
                 const relevantDividends = liveData?.dividendsData?.cashDividends
-                    ?.filter((d: any) => new Date(d.paymentDate) >= purchaseDate)
+                    ?.filter((d: any) => {
+                        const payDate = new Date(d.paymentDate).getTime();
+                        return payDate >= purchaseDateTime;
+                    })
                     ?.reduce((sum: number, d: any) => sum + (d.rate || 0), 0) || 0;
 
                 const totalDividends = relevantDividends * asset.quantity;
+                // Variation from purchase price (user input) to current price
                 const variation = (currentPrice - asset.purchase_price) * asset.quantity;
                 const totalReturn = variation + totalDividends - (asset.tax || 0);
                 const profitability = ((currentPrice + relevantDividends - asset.purchase_price) / asset.purchase_price) * 100;
+
+                // Dividends list for sidebar
+                const assetDividends = liveData?.dividendsData?.cashDividends
+                    ?.filter((d: any) => new Date(d.paymentDate).getTime() >= purchaseDateTime) || [];
 
                 return {
                     ...asset,
@@ -153,6 +179,7 @@ export default function InvestmentPortfolio() {
                 symbol: assetForm.symbol.toUpperCase().trim(),
                 quantity: parseFloat(assetForm.quantity),
                 purchase_price: parseFloat(assetForm.purchase_price),
+                purchase_date: assetForm.purchase_date,
                 asset_type: assetForm.asset_type,
                 tax: parseFloat(assetForm.tax) || 0
             }]);
@@ -162,7 +189,7 @@ export default function InvestmentPortfolio() {
         } else {
             fetchAssets(selectedWalletId);
             setIsAddingAsset(false);
-            setAssetForm({ symbol: '', quantity: '', purchase_price: '', asset_type: 'acao', tax: '0' });
+            setAssetForm({ symbol: '', quantity: '', purchase_price: '', purchase_date: new Date().toISOString().split('T')[0], asset_type: 'acao', tax: '0' });
         }
     };
 
@@ -447,6 +474,15 @@ export default function InvestmentPortfolio() {
                                         type="number"
                                         value={assetForm.purchase_price}
                                         onChange={(e) => setAssetForm({ ...assetForm, purchase_price: e.target.value })}
+                                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border-transparent rounded-xl text-sm font-bold focus:ring-2 focus:ring-sky-500 outline-none"
+                                    />
+                                </div>
+                                <div className="col-span-2">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Data da Compra</label>
+                                    <input
+                                        type="date"
+                                        value={assetForm.purchase_date}
+                                        onChange={(e) => setAssetForm({ ...assetForm, purchase_date: e.target.value })}
                                         className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border-transparent rounded-xl text-sm font-bold focus:ring-2 focus:ring-sky-500 outline-none"
                                     />
                                 </div>

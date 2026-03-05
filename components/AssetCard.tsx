@@ -30,7 +30,12 @@ const AssetCard: React.FC<AssetCardProps> = ({ asset }) => {
 
             <div className="mb-8">
                 <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">Cotação Atual</p>
-                <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{formatCurrency(asset.price)}</p>
+                <div className="flex items-baseline gap-3">
+                    <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{formatCurrency(asset.price)}</p>
+                    <span className={`text-xs font-black ${asset.changesPercentage >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                        {asset.changesPercentage >= 0 ? '+' : ''}{asset.changesPercentage.toFixed(2)}% (12m)
+                    </span>
+                </div>
             </div>
 
             <div className="grid grid-cols-3 gap-2 border-t border-slate-50 dark:border-slate-800 pt-6">

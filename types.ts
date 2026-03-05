@@ -180,6 +180,7 @@ export interface InvestmentData {
   ticker: string;
   type: string;
   price: number;
+  changesPercentage?: number;
   name: string;
   segment: string;
   indicators: InvestmentIndicator;
@@ -294,6 +295,7 @@ export interface WalletAsset {
     symbol: string;
     quantity: number;
     purchase_price: number;
+    purchase_date?: string; // ISO format
     asset_type: 'acao' | 'fii';
     tax: number;
     created_at: string;

@@ -84,8 +84,11 @@ export default function InvestmentAnalytics() {
                 const oneYearAgo = new Date();
                 oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
                 const ttmDividends = finalDividends
-                    .filter((d: any) => new Date(d.date) >= oneYearAgo)
-                    .reduce((sum: number, d: any) => sum + (d.dividends || 0), 0);
+                    .filter((d: any) => {
+                        const dDate = new Date(d.paymentDate || d.date);
+                        return dDate >= oneYearAgo;
+                    })
+                    .reduce((sum: number, d: any) => sum + (d.dividends || d.rate || 0), 0);
 
                 if (data.regularMarketPrice > 0) {
                     dividendYieldComputed = (ttmDividends / data.regularMarketPrice) * 100;
@@ -106,7 +109,7 @@ export default function InvestmentAnalytics() {
                 lpa: yfStats.trailingEps || 0,
                 vpa: yfStats.bookValue || 0,
                 dpa: (dividendYieldComputed / 100) * (data.regularMarketPrice || 0),
-                payout: (yfStats.payoutRatio || 0) * 100,
+                payout: (yfStats.payoutRatio || yfMetrics.summaryDetail?.payoutRatio || 0) * 100,
                 historicalDividends: finalDividends
             };
 
