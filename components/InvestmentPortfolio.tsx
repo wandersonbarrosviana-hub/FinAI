@@ -92,18 +92,19 @@ export default function InvestmentPortfolio() {
 
                 // Find price at purchase date
                 const purchaseDateStr = asset.purchase_date || asset.created_at;
-                const pDate = new Date(purchaseDateStr).toISOString().split('T')[0];
+                const pDateObj = new Date(purchaseDateStr);
+                const pDateTrimmed = new Date(pDateObj.getTime() + pDateObj.getTimezoneOffset() * 60000).toISOString().split('T')[0];
 
                 // Try to find exact or closest price on purchase date
                 const purchaseDatePriceObj = historicalData.find((h: any) => {
                     const hDate = new Date(h.date * 1000).toISOString().split('T')[0];
-                    return hDate === pDate;
+                    return hDate === pDateTrimmed;
                 }) || historicalData.find((h: any) => {
                     const hDate = new Date(h.date * 1000).toISOString().split('T')[0];
-                    return hDate > pDate;
+                    return hDate > pDateTrimmed;
                 });
 
-                const priceAtPurchase = purchaseDatePriceObj?.close || asset.purchase_price;
+                const priceAtPurchase = purchaseDatePriceObj?.adjustedClose || purchaseDatePriceObj?.close || asset.purchase_price;
 
                 // Dividends by PAYMENT DATE (strictly)
                 const purchaseDateTime = new Date(purchaseDateStr).getTime();
