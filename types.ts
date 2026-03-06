@@ -261,6 +261,7 @@ export interface FinancialScore {
   stability_score: number;
   behavior_score: number;
   psychology_score: number;
+  investment_score?: number;
   month: string;
   updated_at: string;
 }
@@ -286,6 +287,7 @@ export interface Wallet {
     id: string;
     user_id: string;
     name: string;
+    account_id?: string; // Linked investment account
     created_at: string;
 }
 
@@ -295,8 +297,10 @@ export interface WalletAsset {
     symbol: string;
     quantity: number;
     purchase_price: number;
+    total_cost: number; // Real amount spent including taxes/fees
     purchase_date?: string; // ISO format
-    asset_type: 'acao' | 'fii';
+    asset_type: 'acao' | 'fii' | 'renda_fixa';
     tax: number;
+    account_id?: string; // ID of the account used to buy the asset
     created_at: string;
 }

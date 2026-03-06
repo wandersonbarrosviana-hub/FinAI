@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import { Transaction, Account } from './types';
+import { Transaction, Account, Budget, Goal, AdvancedAIInsights } from './types';
 import { FINAI_CONFIG } from './config';
 
 // Groq Config (Motor Único)
@@ -322,24 +322,12 @@ export const analyzeExpenseImage = async (base64Image: string): Promise<any> => 
 export const getAdvancedAIInsights = async (
     transactions: Transaction[],
     accounts: Account[],
-    budgets: any[],
-    goals: any[]
-): Promise<any> => {
+    budgets: Budget[],
+    goals: Goal[],
+    investments?: any[]
+): Promise<AdvancedAIInsights | null> => {
     const client = getGroqClient();
-    if (!client) {
-        console.error("[FinAI] Groq Client not found");
-        return null;
-    }
-
-    const context = {
-        total_balance: accounts.reduce((acc, a) => acc + (a.balance || 0), 0),
-        transactions: transactions.slice(0, 40).map(t => ({
-            description: t.description,
-            amount: t.amount,
-            category: t.category,
-            date: t.date
-        }))
-    };
+    if (!client) return null;
 
     const systemPrompt = `Você é o analista financeiro senior FinAI. Sua tarefa é unificar a visão de saúde financeira do usuário.
     REGRAS DE OURO:
@@ -356,33 +344,34 @@ export const getAdvancedAIInsights = async (
     5. PROJEÇÕES: 6 meses baseados na média real.
     6. IDIOMA: Português do Brasil. APENAS o JSON bruto.`;
 
-    const userPrompt = `DADOS FINANCEIROS PARA ANÁLISE:
-    ${JSON.stringify(context)}
+    const userPrompt = `Analise meus dados financeiros de ${new Date().toLocaleDateString('pt-BR')} e forneça insights estratégicos profundos em formato JSON:
+      
+      TRANSAÇÕES (últimas 50): ${JSON.stringify(transactions.slice(0, 50).map(t => ({ d: t.description, v: t.amount, t: t.type, c: t.category, dt: t.date })))}
+      CONTAS Correntes: ${JSON.stringify(accounts.map(a => ({ n: a.name, b: a.balance })))}
+      ORÇAMENTOS: ${JSON.stringify(budgets.map(b => ({ c: b.category, a: b.amount })))}
+      METAS: ${JSON.stringify(goals.map(g => ({ t: g.title, tg: g.target, c: g.current })))}
+      INVESTIMENTOS: ${investments ? JSON.stringify(investments.map(i => ({ s: i.symbol, q: i.quantity, p: i.purchase_price }))) : "Nenhum dado disponível"}
 
-    Gere o JSON seguindo este esquema rigoroso:
-    {
-      "healthScore": { 
-        "score": 0-100, 
-        "liquidity": 0-100, 
-        "reserve": 0-100, 
-        "debt": 0-100, 
-        "stability": 0-100, 
-        "message": "Resumo lógico da saúde financeira atual" 
-      },
-      "emotionalPatterns": { 
-        "peakDay": "Dia da Semana (ex: Sexta-feira)", 
-        "peakCategory": "Categoria de Despesa", 
-        "impulsivityScore": 0-100, 
-        "description": "Análise do comportamento de compra (ex: 'Picos de gastos no fim de semana em Lazer')", 
-        "highSpendingDays": [] 
-      },
-      "scenarios": [
-        { "description": "string", "action": "string", "impact": "string", "targetObjective": "string" }
-      ],
-      "projections": [
-        { "date": "YYYY-MM-DD", "amount": number }
-      ]
-    }`;
+      Gere o JSON seguindo este esquema rigoroso:
+      {
+        "healthScore": { 
+          "score": 0-100, 
+          "liquidity": 0-100, 
+          "reserve": 0-100, 
+          "debt": 0-100, 
+          "stability": 0-100, 
+          "message": "Resumo lógico da saúde financeira atual" 
+        },
+        "emotionalPatterns": { 
+          "peakDay": "string", 
+          "peakCategory": "string", 
+          "impulsivityScore": 0-100, 
+          "description": "string", 
+          "highSpendingDays": [{ "day": "string", "amount": 0, "isImpulsive": boolean }] 
+        },
+        "scenarios": [ { "description": "string", "action": "string", "impact": "string", "targetObjective": "string" } ],
+        "projections": [ { "date": "YYYY-MM-DD", "amount": number } ]
+      }`;
 
     try {
         console.log("[FinAI] Solicitando insights avançados (Modo Determinístico e Lógico)...");
@@ -403,12 +392,12 @@ export const getAdvancedAIInsights = async (
             rawParsed = JSON.parse(cleaned);
         } catch (parseError) {
             console.error("[FinAI] Falha grave no parsing do JSON da IA:", parseError);
-            console.log("[FinAI] Conteúdo que tentamos analisar:", cleaned);
+            // console.log("[FinAI] Conteúdo que tentamos analisar:", cleaned); // Removed as per instruction to only return new file content
             return null;
         }
 
         // Pós-processamento com validação rigorosa
-        const insights = {
+        const insights: AdvancedAIInsights = {
             healthScore: {
                 score: Math.min(100, Math.max(0, Number(rawParsed.healthScore?.score) ?? 0)),
                 liquidity: Number(rawParsed.healthScore?.liquidity) || 0,
@@ -421,7 +410,7 @@ export const getAdvancedAIInsights = async (
                 peakDay: String(rawParsed.emotionalPatterns?.peakDay || "Não identificado"),
                 peakCategory: String(rawParsed.emotionalPatterns?.peakCategory || "Variado"),
                 impulsivityScore: Number(rawParsed.emotionalPatterns?.impulsivityScore) || 0,
-                description: String(rawParsed.emotionalPatterns?.description || "Sem padrões claros detectados."),
+                description: String(rawParsed.emotionalPatterns?.description || "Sem padrões detectados."),
                 highSpendingDays: (rawParsed.emotionalPatterns?.highSpendingDays || []).map((d: any) => ({
                     day: String(d.day || ""),
                     amount: Number(d.amount) || 0,
@@ -437,7 +426,8 @@ export const getAdvancedAIInsights = async (
             projections: (rawParsed.projections || []).map((p: any) => ({
                 date: String(p.date || ""),
                 amount: Number(p.amount) || 0
-            }))
+            })),
+            updatedAt: new Date().toISOString()
         };
 
         console.log("[FinAI] Insights processados com sucesso.");

@@ -25,7 +25,15 @@ interface StockData {
     historicalDividends: any[]; // Histórico de 6 anos
 }
 
-export default function InvestmentAnalytics() {
+import { Account, Transaction, Wallet } from '../types';
+
+interface InvestmentAnalyticsProps {
+    accounts: Account[];
+    onAddTransaction: (data: Partial<Transaction>) => Promise<void>;
+    wallets: Wallet[];
+}
+
+export default function InvestmentAnalytics({ accounts, onAddTransaction, wallets }: InvestmentAnalyticsProps) {
     const [searchQuery, setSearchQuery] = useState('');
     const [loading, setLoading] = useState(false);
     const [stocks, setStocks] = useState<StockData[]>([]);
@@ -449,7 +457,7 @@ export default function InvestmentAnalytics() {
                     )}
                 </>
             ) : (
-                <InvestmentPortfolio />
+                <InvestmentPortfolio accounts={accounts} onAddTransaction={onAddTransaction} wallets={wallets} />
             )}
         </div>
     );

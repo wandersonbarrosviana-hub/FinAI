@@ -13,6 +13,14 @@ export const calculateFinancialScore = async (
     const now = new Date();
     const currentMonth = now.toISOString().slice(0, 7); // YYYY-MM
 
+    // 0. Buscar Investimentos
+    const { data: assets } = await supabase
+        .from('wallet_assets')
+        .select('quantity, purchase_price, symbol')
+        .eq('wallet_id', (await supabase.from('wallets').select('id').eq('user_id', userId)).data?.[0]?.id); // Simplificado para primeira carteira
+
+    const investmentValue = assets?.reduce((acc, a) => acc + (a.quantity * a.purchase_price), 0) || 0;
+
     // Buscar quiz se não fornecido
     let activeQuiz = quizResponses;
     if (!activeQuiz) {
@@ -25,19 +33,22 @@ export const calculateFinancialScore = async (
         if (quizData) activeQuiz = quizData as QuizResponse;
     }
 
-    // 1. ESTRUTURA (Max 250)
+    // 1. ESTRUTURA (Max 200) - Reduzi de 250
     const structureScore = calculateStructure(transactions, budgets);
 
-    // 2. ESTABILIDADE (Max 300)
-    const stabilityScore = calculateStability(accounts, debts, transactions);
+    // 2. ESTABILIDADE (Max 250) - Reduzi de 300
+    const stabilityScore = calculateStability(accounts, debts, transactions, investmentValue);
 
-    // 3. COMPORTAMENTO (Max 250)
+    // 3. COMPORTAMENTO (Max 200) - Reduzi de 250
     const behaviorScore = calculateBehavior(transactions);
 
-    // 4. PSICOLOGIA (Max 200)
+    // 4. INVESTIMENTO (Max 200) - NOVO
+    const investmentScore = calculateInvestmentPoints(assets || [], transactions, investmentValue);
+
+    // 5. PSICOLOGIA (Max 150) - Reduzi de 200
     const psychologyScore = calculatePsychology(activeQuiz);
 
-    const totalScore = Math.min(1000, structureScore + stabilityScore + behaviorScore + psychologyScore);
+    const totalScore = Math.min(1000, structureScore + stabilityScore + behaviorScore + investmentScore + psychologyScore);
 
     return {
         user_id: userId,
@@ -46,9 +57,32 @@ export const calculateFinancialScore = async (
         stability_score: Math.round(stabilityScore),
         behavior_score: Math.round(behaviorScore),
         psychology_score: Math.round(psychologyScore),
+        investment_score: Math.round(investmentScore), // Adicionado no types.ts previamente ou assumindo suporte
         month: currentMonth
     };
 };
+
+function calculateInvestmentPoints(assets: any[], transactions: Transaction[], totalInvested: number): number {
+    let score = 0;
+    
+    // Diversificação (Max 80)
+    const uniqueAssets = new Set(assets.map(a => a.symbol)).size;
+    score += Math.min(80, uniqueAssets * 10); // 8 ativos = 80 pts
+
+    // Aporte Mensal (Max 120)
+    const monthlyInvestments = transactions
+        .filter(t => t.category === 'Investimentos' && t.type === 'expense' && t.isPaid)
+        .reduce((acc, t) => acc + t.amount, 0);
+    
+    const income = transactions
+        .filter(t => t.type === 'income' && t.isPaid)
+        .reduce((acc, t) => acc + t.amount, 0) || 1;
+
+    const investRate = monthlyInvestments / income;
+    score += Math.min(120, investRate * 600); // 20% aporte = 120 pts
+
+    return score;
+}
 
 function calculateStructure(transactions: Transaction[], budgets: Budget[]): number {
     let score = 0;
@@ -83,19 +117,21 @@ function calculateStructure(transactions: Transaction[], budgets: Budget[]): num
     return score;
 }
 
-function calculateStability(accounts: Account[], debts: Debt[], transactions: Transaction[]): number {
+function calculateStability(accounts: Account[], debts: Debt[], transactions: Transaction[], investmentValue: number = 0): number {
     let score = 0;
 
-    const totalBalance = accounts.reduce((acc, a) => acc + a.balance, 0);
+    const liquidBalance = accounts.reduce((acc, a) => acc + a.balance, 0);
+    const totalReserve = liquidBalance + investmentValue;
+    
     const monthlyExpenses = transactions
         .filter(t => t.type === 'expense' && t.isPaid)
         .reduce((acc, t) => acc + t.amount, 0) || 1; // avoid div by 0
 
-    // Reserva (Max 150)
-    const monthsOfReserve = totalBalance / monthlyExpenses;
-    score += Math.min(150, monthsOfReserve * 25); // 6 meses = 150 pts
+    // Reserva (Max 120) - Ajustado peso
+    const monthsOfReserve = totalReserve / monthlyExpenses;
+    score += Math.min(120, monthsOfReserve * 20); // 6 meses = 120 pts
 
-    // Endividamento (Max 150)
+    // Endividamento (Max 130)
     const monthlyIncome = transactions
         .filter(t => t.type === 'income' && t.isPaid)
         .reduce((acc, t) => acc + t.amount, 0) || 1;
@@ -103,8 +139,8 @@ function calculateStability(accounts: Account[], debts: Debt[], transactions: Tr
     const monthlyDebtPayment = debts.reduce((acc, d) => acc + (d.installmentValue || 0), 0);
     const debtRatio = monthlyDebtPayment / monthlyIncome;
 
-    if (debtRatio <= 0.1) score += 150;
-    else score += Math.max(0, 150 - (debtRatio * 300)); // Perde muito se > 30%
+    if (debtRatio <= 0.1) score += 130;
+    else score += Math.max(0, 130 - (debtRatio * 250));
 
     return score;
 }

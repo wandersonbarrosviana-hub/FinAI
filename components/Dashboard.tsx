@@ -19,6 +19,7 @@ import TopSummaryCards from './TopSummaryCards';
 import SummaryDetailModal from './SummaryDetailModal';
 
 interface DashboardProps {
+  userId?: string;
   transactions: Transaction[];
   accounts: Account[];
   goals: Goal[];
@@ -30,14 +31,46 @@ interface DashboardProps {
   financialScore?: Partial<FinancialScore> | null;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, budgets, customBudgets = [], onAddClick, familyMembers, financialScore }) => {
+const Dashboard: React.FC<DashboardProps> = ({ userId, transactions, accounts, goals, budgets, customBudgets = [], onAddClick, familyMembers, financialScore }) => {
   const [showAllTransactions, setShowAllTransactions] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'intelligence'>('overview');
+  const [investmentEquity, setInvestmentEquity] = useState(0);
 
   // IA State Persistence
   const [aiInsights, setAiInsights] = useState<AdvancedAIInsights | null>(null);
   const [isAILoading, setIsAILoading] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
+
+  // Fetch Investment Equity
+  React.useEffect(() => {
+    const fetchInvestmentData = async () => {
+      if (!userId) return;
+      try {
+        const { data: assets, error } = await (await import('../supabaseClient')).supabase
+          .from('wallet_assets')
+          .select('symbol, quantity, purchase_price');
+
+        if (error) throw error;
+        if (!assets || assets.length === 0) {
+          setInvestmentEquity(0);
+          return;
+        }
+
+        // Para o Dashboard, vamos calcular inicialmente pelo preço de compra
+        // mas tentaremos buscar os preços reais se estivermos online
+        let totalVal = assets.reduce((acc, a) => acc + (a.quantity * a.purchase_price), 0);
+        setInvestmentEquity(totalVal);
+
+        // Otimização: Tentar buscar preços atuais de forma agrupada se possível
+        // Por agora, para não estourar rate-limits no dashboard, somamos o custo
+        // Em uma próxima etapa, poderíamos salvaguardar o valor atualizado no Supabase
+      } catch (err) {
+        console.error("Erro ao buscar equity de investimentos:", err);
+      }
+    };
+
+    fetchInvestmentData();
+  }, [userId]);
 
   // Chart Interaction State
   const [selectedChartData, setSelectedChartData] = useState<{
@@ -91,7 +124,12 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
     setIsAILoading(true);
     setAiError(null);
     try {
-      const data = await getAdvancedAIInsights(transactions, accounts, budgets, goals);
+      // Buscar ativos para dar contexto de investimento à IA
+      const { data: assets } = await (await import('../supabaseClient')).supabase
+        .from('wallet_assets')
+        .select('symbol, quantity, purchase_price');
+
+      const data = await getAdvancedAIInsights(transactions, accounts, budgets, goals, assets || []);
       if (data) setAiInsights(data);
       else setAiError("Erro ao gerar insights.");
     } catch (err: any) {
@@ -113,7 +151,7 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, accounts, goals, bu
   };
 
 
-  const totalBalance = accounts.reduce((acc, curr) => acc + curr.balance, 0);
+  const totalBalance = accounts.reduce((acc, curr) => acc + curr.balance, 0) + investmentEquity;
   const monthIncome = transactions
     .filter(t => t.type === 'income' && t.isPaid && !t.ignoreInTotals)
     .reduce((acc, curr) => acc + curr.amount, 0);

@@ -1,17 +1,29 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Plus, Trash2, TrendingUp, DollarSign, Calendar, Calculator, Info, Wallet as WalletIcon, ChevronRight, AlertCircle, ArrowUpRight, ArrowDownRight, Activity } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { Plus, Trash2, TrendingUp, DollarSign, Calendar, Calculator, Info, Wallet as WalletIcon, ChevronRight, AlertCircle, ArrowUpRight, ArrowDownRight, Activity, Settings as SettingsIcon, Filter } from 'lucide-react';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { supabase } from '../supabaseClient';
-import { Wallet, WalletAsset } from '../types';
+import { Wallet, WalletAsset, Account, Transaction } from '../types';
+import { db } from '../db';
 
-export default function InvestmentPortfolio() {
-    const [wallets, setWallets] = useState<Wallet[]>([]);
+interface PortfolioProps {
+    accounts: Account[];
+    onAddTransaction: (data: Partial<Transaction>) => Promise<void>;
+    wallets: Wallet[];
+}
+
+export default function InvestmentPortfolio({ accounts, onAddTransaction, wallets }: PortfolioProps) {
     const [selectedWalletId, setSelectedWalletId] = useState<string | null>(null);
     const [assets, setAssets] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [isCreatingWallet, setIsCreatingWallet] = useState(false);
     const [newWalletName, setNewWalletName] = useState('');
+    const [newWalletAccountId, setNewWalletAccountId] = useState('');
+    const [isEditingWallet, setIsEditingWallet] = useState(false);
+    const [editWalletName, setEditWalletName] = useState('');
+    const [editWalletAccountId, setEditWalletAccountId] = useState('');
     const [isAddingAsset, setIsAddingAsset] = useState(false);
     const [error, setError] = useState('');
+    const [assetFilter, setAssetFilter] = useState<'all' | 'acao' | 'fii' | 'renda_fixa'>('all');
 
     // Form states
     const [assetForm, setAssetForm] = useState({
@@ -20,13 +32,18 @@ export default function InvestmentPortfolio() {
         purchase_price: '',
         purchase_date: new Date().toISOString().split('T')[0],
         asset_type: 'acao' as 'acao' | 'fii',
-        tax: '0'
+        tax: '0',
+        account_id: ''
     });
     const [allDividends, setAllDividends] = useState<any[]>([]);
 
+    const selectedWallet = wallets.find(w => w.id === selectedWalletId);
+
     useEffect(() => {
-        fetchWallets();
-    }, []);
+        if (!selectedWalletId && wallets.length > 0) {
+            setSelectedWalletId(wallets[0].id);
+        }
+    }, [wallets, selectedWalletId]);
 
     useEffect(() => {
         if (selectedWalletId) {
@@ -34,23 +51,6 @@ export default function InvestmentPortfolio() {
         }
     }, [selectedWalletId]);
 
-    const fetchWallets = async () => {
-        setLoading(true);
-        const { data, error } = await supabase
-            .from('wallets')
-            .select('*')
-            .order('created_at', { ascending: true });
-
-        if (error) {
-            console.error('Error fetching wallets:', error);
-        } else {
-            setWallets(data || []);
-            if (data && data.length > 0 && !selectedWalletId) {
-                setSelectedWalletId(data[0].id);
-            }
-        }
-        setLoading(false);
-    };
 
     const fetchAssets = async (walletId: string) => {
         setLoading(true);
@@ -116,11 +116,37 @@ export default function InvestmentPortfolio() {
 
                 const totalDividendsValue = relevantDividendsRate * asset.quantity;
 
-                // Variation from purchase price (user input) to current price
+                // --- Novas Métricas de Dividendos (DY 12M, YoC, Bazin) ---
+                const now = new Date();
+                const twelveMonthsAgo = new Date();
+                twelveMonthsAgo.setMonth(now.getMonth() - 12);
+
+                const divLast12MonthsRaw = assetDividends
+                    ?.filter((d: any) => new Date(d.paymentDate || d.date).getTime() >= twelveMonthsAgo.getTime())
+                    ?.reduce((sum: number, d: any) => sum + (d.rate || d.dividends || 0), 0) || 0;
+
+                const dy12m = currentPrice > 0 ? (divLast12MonthsRaw / currentPrice) * 100 : 0;
+
+                const avgPricePaid = asset.total_cost / asset.quantity;
+                const yoc12m = avgPricePaid > 0 ? (divLast12MonthsRaw / avgPricePaid) * 100 : 0;
+
+                // Preço Justo Bazin (DPA Médio 5 anos / 0.06)
+                // Agrupar por ano para calcular a média
+                const dividendsByYear: Record<number, number> = {};
+                assetDividends?.forEach((d: any) => {
+                    const year = new Date(d.paymentDate || d.date).getFullYear();
+                    dividendsByYear[year] = (dividendsByYear[year] || 0) + (d.rate || d.dividends || 0);
+                });
+
+                const currentYear = now.getFullYear();
+                const last5Years = [currentYear - 1, currentYear - 2, currentYear - 3, currentYear - 4, currentYear - 5];
+                const dpaSum = last5Years.reduce((sum, year) => sum + (dividendsByYear[year] || 0), 0);
+                const avgDpa5y = dpaSum / 5;
+                const bazinFairPrice = avgDpa5y / 0.06;
+
                 const appreciationValue = (currentPrice - asset.purchase_price) * asset.quantity;
                 const totalReturn = appreciationValue + totalDividendsValue - (asset.tax || 0);
 
-                // Profitability = (Current Price + Accrued Dividends - Purchase Price) / Purchase Price
                 const profitabilityValue = asset.purchase_price > 0
                     ? ((currentPrice + (totalDividendsValue / asset.quantity) - asset.purchase_price) / asset.purchase_price) * 100
                     : 0;
@@ -132,11 +158,16 @@ export default function InvestmentPortfolio() {
                 return {
                     ...asset,
                     currentPrice,
+                    variationPercentage: avgPricePaid > 0 ? ((currentPrice - avgPricePaid) / avgPricePaid) * 100 : 0,
                     variation: appreciationValue,
                     totalDividends: totalDividendsValue,
                     totalReturn,
                     profitability: profitabilityValue,
+                    dy12m,
+                    yoc12m,
+                    bazinFairPrice,
                     name: longName,
+                    marketValue: currentPrice * asset.quantity,
                     receivedDividends: filteredDividendsForSidebar.map((d: any) => ({
                         ticker: asset.symbol,
                         date: d.paymentDate || d.date,
@@ -146,7 +177,13 @@ export default function InvestmentPortfolio() {
                 };
             }));
 
-            setAssets(enrichedAssets);
+            const totalPortfolioMarketValue = enrichedAssets.reduce((sum, a) => sum + a.marketValue, 0);
+            const assetsWithProportion = enrichedAssets.map(a => ({
+                ...a,
+                proportion: totalPortfolioMarketValue > 0 ? (a.marketValue / totalPortfolioMarketValue) * 100 : 0
+            }));
+
+            setAssets(assetsWithProportion);
 
             // Consolidate all dividends for the sidebar
             const consolidatedDivs = enrichedAssets
@@ -163,63 +200,187 @@ export default function InvestmentPortfolio() {
     };
 
     const createWallet = async () => {
-        if (!newWalletName.trim()) return;
+        if (!newWalletName) return;
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 
         const { data, error } = await supabase
             .from('wallets')
-            .insert([{ name: newWalletName, user_id: user.id }])
+            .insert([{
+                name: newWalletName,
+                user_id: user.id,
+                account_id: newWalletAccountId || null
+            }])
             .select();
 
         if (error) {
-            setError('Erro ao criar carteira.');
+            console.error('Create wallet error:', error);
+            if (error.message?.includes('account_id')) {
+                setError('Erro: A coluna "account_id" não existe na tabela "wallets". Execute o SQL da migração 20260305221000.');
+            } else {
+                setError('Erro ao criar carteira.');
+            }
         } else {
-            setWallets([...wallets, data[0]]);
+            // Atualizar Dexie localmente
+            if (data && data[0]) {
+                await db.wallets.put(data[0]);
+            }
             setSelectedWalletId(data[0].id);
             setNewWalletName('');
+            setNewWalletAccountId('');
             setIsCreatingWallet(false);
         }
+    };
+
+    const updateWallet = async () => {
+        if (!selectedWalletId || !editWalletName) return;
+        const { data, error } = await supabase
+            .from('wallets')
+            .update({
+                name: editWalletName,
+                account_id: editWalletAccountId || null
+            })
+            .eq('id', selectedWalletId)
+            .select();
+
+        if (error) {
+            console.error('Update wallet error:', error);
+            setError('Erro ao atualizar carteira.');
+        } else {
+            // Atualizar Dexie localmente para feedback instantâneo
+            if (data && data[0]) {
+                await db.wallets.put(data[0]);
+            }
+            setIsEditingWallet(false);
+        }
+    };
+
+    const startEditingWallet = () => {
+        if (!selectedWallet) return;
+        setEditWalletName(selectedWallet.name);
+        setEditWalletAccountId(selectedWallet.account_id || '');
+        setIsEditingWallet(true);
     };
 
     const addAsset = async () => {
         if (!selectedWalletId || !assetForm.symbol) return;
 
-        const { error } = await supabase
-            .from('wallet_assets')
-            .insert([{
-                wallet_id: selectedWalletId,
-                symbol: assetForm.symbol.toUpperCase().trim(),
-                quantity: parseFloat(assetForm.quantity),
-                purchase_price: parseFloat(assetForm.purchase_price),
-                purchase_date: assetForm.purchase_date,
-                asset_type: assetForm.asset_type,
-                tax: parseFloat(assetForm.tax) || 0
-            }]);
+        const quantity = parseFloat(assetForm.quantity);
+        const price = parseFloat(assetForm.purchase_price);
+        const tax = parseFloat(assetForm.tax) || 0;
+        const totalCost = (quantity * price) + tax;
+        const symbol = assetForm.symbol.toUpperCase().trim();
 
-        if (error) {
-            console.error('Add asset error:', error);
-            if (error.message?.includes('purchase_date')) {
-                setError('Erro: A coluna purchase_date não foi encontrada. Certifique-se de aplicar a migração SQL no seu painel Supabase.');
+        // 1. Verificar se o ativo já existe nesta carteira
+        const { data: existingAsset, error: fetchError } = await supabase
+            .from('wallet_assets')
+            .select('*')
+            .eq('wallet_id', selectedWalletId)
+            .eq('symbol', symbol)
+            .maybeSingle();
+
+        if (fetchError) {
+            console.error('Error checking existing asset:', fetchError);
+            setError('Erro ao verificar ativos na carteira.');
+            return;
+        }
+
+        let operationError;
+
+        if (existingAsset) {
+            const totalQty = existingAsset.quantity + quantity;
+            const newTotalCost = (existingAsset.total_cost || ((existingAsset.purchase_price * existingAsset.quantity) + (existingAsset.tax || 0))) + totalCost;
+            const newTotalTax = (existingAsset.tax || 0) + tax;
+            // Preço médio é apenas informativo agora, a base é o total_cost
+            const newAvgPrice = (newTotalCost - newTotalTax) / totalQty;
+
+            const { error } = await supabase
+                .from('wallet_assets')
+                .update({
+                    quantity: totalQty,
+                    purchase_price: newAvgPrice,
+                    total_cost: newTotalCost,
+                    tax: newTotalTax,
+                    purchase_date: assetForm.purchase_date,
+                    account_id: assetForm.account_id || existingAsset.account_id
+                })
+                .eq('id', existingAsset.id);
+
+            operationError = error;
+        } else {
+            // 3. Inserir novo se não existir
+            const { error } = await supabase
+                .from('wallet_assets')
+                .insert([{
+                    wallet_id: selectedWalletId,
+                    symbol,
+                    quantity,
+                    purchase_price: price,
+                    total_cost: totalCost,
+                    purchase_date: assetForm.purchase_date,
+                    asset_type: assetForm.asset_type,
+                    tax,
+                    account_id: assetForm.account_id || null
+                }]);
+
+            operationError = error;
+        }
+
+        if (operationError) {
+            console.error('Add asset error:', operationError);
+            const msg = operationError.message || '';
+            if (msg.includes('purchase_date')) {
+                setError('Erro: A coluna "purchase_date" não existe. Role o arquivo de migração 20260305000000 ou execute o SQL correspondente.');
+            } else if (msg.includes('account_id')) {
+                setError('Erro: A coluna "account_id" não existe. Execute o SQL da migração 20260305221000 no seu painel Supabase.');
             } else {
-                setError('Erro ao adicionar ativo. Verifique os dados ou o console.');
+                setError(`Erro ao adicionar ativo: ${operationError.message || 'Verifique o console'}`);
             }
         } else {
+            // Se uma conta foi selecionada, atualizar saldo e registrar transação
+            if (assetForm.account_id) {
+                const acc = accounts.find(a => a.id === assetForm.account_id);
+                if (acc) {
+                    // 1. Atualizar saldo local
+                    await db.accounts.update(acc.id, { balance: acc.balance - totalCost });
+
+                    // 2. Registrar transação no extrato financeiro
+                    await onAddTransaction({
+                        description: `Compra de Ativo: ${assetForm.symbol.toUpperCase()} (${quantity} un)`,
+                        amount: totalCost,
+                        type: 'expense',
+                        account: assetForm.account_id,
+                        category: 'Investimentos',
+                        subCategory: 'Ações/FIIs',
+                        date: assetForm.purchase_date,
+                        isPaid: true,
+                        notes: `Compra de investimentos vinculada à carteira.`
+                    });
+                }
+            }
+
             fetchAssets(selectedWalletId);
             setIsAddingAsset(false);
-            setAssetForm({ symbol: '', quantity: '', purchase_price: '', purchase_date: new Date().toISOString().split('T')[0], asset_type: 'acao', tax: '0' });
+            setAssetForm({
+                symbol: '',
+                quantity: '',
+                purchase_price: '',
+                purchase_date: new Date().toISOString().split('T')[0],
+                asset_type: 'acao',
+                tax: '0',
+                account_id: ''
+            });
         }
     };
 
     const deleteWallet = async (id: string) => {
         if (!confirm('Tem certeza que deseja excluir esta carteira e todos os seus ativos?')) return;
         const { error } = await supabase.from('wallets').delete().eq('id', id);
-        if (!error) {
-            const updated = wallets.filter(w => w.id !== id);
-            setWallets(updated);
-            if (selectedWalletId === id) {
-                setSelectedWalletId(updated.length > 0 ? updated[0].id : null);
-            }
+        if (error) {
+            console.error('Error deleting wallet:', error);
+            setError('Erro ao excluir carteira.');
+        } else if (selectedWalletId === id) {
+            setSelectedWalletId(null);
         }
     };
 
@@ -230,11 +391,37 @@ export default function InvestmentPortfolio() {
         }
     };
 
-    const totalInvested = assets.reduce((sum, a) => sum + (a.purchase_price * a.quantity) + (a.tax || 0), 0);
-    const currentEquity = assets.reduce((sum, a) => sum + (a.currentPrice * a.quantity), 0);
+    const investmentAccounts = accounts.filter(a => a.type === 'investment');
+
+    // Filtra o caixa específico desta carteira se houver vínculo
+    // Se a carteira não tiver uma conta vinculada, o caixa para esta carteira é 0.
+    const walletCash = selectedWallet?.account_id
+        ? (accounts.find(a => a.id === selectedWallet.account_id)?.balance || 0)
+        : 0;
+
+    const totalInvestedInAssets = assets.reduce((sum, a) => sum + (a.total_cost || ((a.purchase_price * a.quantity) + (a.tax || 0))), 0);
+    const currentEquityInAssets = assets.reduce((sum, a) => sum + (a.currentPrice * a.quantity), 0);
     const totalDividendsValue = assets.reduce((sum, a) => sum + (a.totalDividends || 0), 0);
-    const totalVar = currentEquity - totalInvested + totalDividendsValue;
-    const totalProfit = totalInvested > 0 ? (totalVar / totalInvested) * 100 : 0;
+
+    // Aportes = Valor efetivamente pago nos ativos (sem contar o caixa parado na conta)
+    const totalAportes = totalInvestedInAssets;
+
+    // Patrimônio = Valor mercado ativos + Saldo em conta (caixa da carteira)
+    const totalPatrimony = currentEquityInAssets + walletCash;
+
+    const totalVar = currentEquityInAssets - totalInvestedInAssets + totalDividendsValue;
+    const totalProfit = totalInvestedInAssets > 0 ? (totalVar / totalInvestedInAssets) * 100 : 0;
+
+    const allocationData = useMemo(() => {
+        const groups: Record<string, number> = {};
+        assets.forEach(a => {
+            const typeLabel = a.asset_type === 'acao' ? 'Ações' : a.asset_type === 'fii' ? 'FIIs' : 'Renda Fixa';
+            groups[typeLabel] = (groups[typeLabel] || 0) + (a.marketValue || 0);
+        });
+        return Object.entries(groups).map(([name, value]) => ({ name, value }));
+    }, [assets]);
+
+    const COLORS = ['#0ea5e9', '#6366f1', '#10b981', '#f59e0b', '#ef4444'];
 
     const formatCurrency = (value: number) => {
         return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -270,28 +457,87 @@ export default function InvestmentPortfolio() {
 
                 <div className="flex items-center gap-3">
                     {isCreatingWallet ? (
-                        <div className="flex items-center gap-2 animate-in slide-in-from-right-2">
-                            <input
-                                type="text"
-                                value={newWalletName}
-                                onChange={(e) => setNewWalletName(e.target.value)}
-                                placeholder="Nome da Carteira..."
-                                className="px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:ring-2 focus:ring-sky-500 outline-none"
-                            />
-                            <button onClick={createWallet} className="bg-sky-600 text-white p-2 rounded-xl hover:bg-sky-700">
-                                <Plus size={20} />
-                            </button>
-                            <button onClick={() => setIsCreatingWallet(false)} className="text-slate-400 hover:text-slate-600">
-                                Cancelar
-                            </button>
+                        <div className="flex flex-col md:flex-row items-end gap-3 p-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-3xl animate-in slide-in-from-right-2">
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Nome da Carteira</label>
+                                <input
+                                    type="text"
+                                    value={newWalletName}
+                                    onChange={(e) => setNewWalletName(e.target.value)}
+                                    placeholder="Ex: Ações Brasil"
+                                    className="px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:ring-2 focus:ring-sky-500 outline-none w-full md:w-48"
+                                />
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Vincular Conta (Opcional)</label>
+                                <select
+                                    value={newWalletAccountId}
+                                    onChange={(e) => setNewWalletAccountId(e.target.value)}
+                                    className="px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:ring-2 focus:ring-sky-500 outline-none w-full md:w-48"
+                                >
+                                    <option value="">Sem vínculo específico</option>
+                                    {investmentAccounts.map(acc => (
+                                        <option key={acc.id} value={acc.id}>{acc.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="flex gap-2">
+                                <button onClick={createWallet} className="bg-sky-600 text-white px-4 py-2 rounded-xl hover:bg-sky-700 font-bold text-sm">
+                                    Criar
+                                </button>
+                                <button onClick={() => setIsCreatingWallet(false)} className="text-slate-400 hover:text-slate-600 text-sm font-bold px-2">
+                                    X
+                                </button>
+                            </div>
+                        </div>
+                    ) : isEditingWallet ? (
+                        <div className="flex flex-col md:flex-row items-end gap-3 p-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-3xl animate-in slide-in-from-right-2">
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Editar Nome</label>
+                                <input
+                                    type="text"
+                                    value={editWalletName}
+                                    onChange={(e) => setEditWalletName(e.target.value)}
+                                    className="px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:ring-2 focus:ring-sky-500 outline-none w-full md:w-48"
+                                />
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Alterar Vínculo</label>
+                                <select
+                                    value={editWalletAccountId}
+                                    onChange={(e) => setEditWalletAccountId(e.target.value)}
+                                    className="px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:ring-2 focus:ring-sky-500 outline-none w-full md:w-48"
+                                >
+                                    <option value="">Sem vínculo específico</option>
+                                    {investmentAccounts.map(acc => (
+                                        <option key={acc.id} value={acc.id}>{acc.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="flex gap-2">
+                                <button onClick={updateWallet} className="bg-emerald-600 text-white px-4 py-2 rounded-xl hover:bg-emerald-700 font-bold text-sm">
+                                    Salvar
+                                </button>
+                                <button onClick={() => setIsEditingWallet(false)} className="text-slate-400 hover:text-slate-600 text-sm font-bold px-2">
+                                    X
+                                </button>
+                            </div>
                         </div>
                     ) : (
-                        <button
-                            onClick={() => setIsCreatingWallet(true)}
-                            className="flex items-center gap-2 px-5 py-2.5 bg-sky-600 text-white rounded-2xl text-sm font-bold shadow-lg shadow-sky-600/20 hover:bg-sky-700 transition-all"
-                        >
-                            <Plus size={18} /> Nova Carteira
-                        </button>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={startEditingWallet}
+                                className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-2xl text-sm font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
+                            >
+                                <SettingsIcon size={18} /> Editar Carteira
+                            </button>
+                            <button
+                                onClick={() => setIsCreatingWallet(true)}
+                                className="flex items-center gap-2 px-5 py-2.5 bg-sky-600 text-white rounded-2xl text-sm font-bold shadow-lg shadow-sky-600/20 hover:bg-sky-700 transition-all"
+                            >
+                                <Plus size={18} /> Nova Carteira
+                            </button>
+                        </div>
                     )}
                 </div>
             </div>
@@ -332,15 +578,29 @@ export default function InvestmentPortfolio() {
             ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                     {/* Market Summary Widgets */}
-                    <div className="lg:col-span-4 grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <StatsCard title="Patrimônio Atual" value={formatCurrency(currentEquity)} icon={<DollarSign className="text-emerald-500" />} />
+                    <div className="lg:col-span-4 grid grid-cols-1 md:grid-cols-5 gap-4">
+                        <StatsCard title="Patrimônio Atual" value={formatCurrency(totalPatrimony)} icon={<WalletIcon className="text-emerald-500" />} />
+                        <StatsCard title="Total Aportado" value={formatCurrency(totalAportes)} icon={<ArrowUpRight className="text-blue-500" />} />
                         <StatsCard
-                            title="Lucro/Prejuízo Total"
+                            title="Saldo em Conta"
+                            value={formatCurrency(walletCash)}
+                            icon={<DollarSign className="text-sky-500" />}
+                            color={!selectedWallet?.account_id ? 'text-slate-400' : 'text-slate-900 dark:text-white'}
+                        />
+                        {!selectedWallet?.account_id && (
+                            <div className="lg:col-span-1 p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/50 rounded-2xl flex items-center gap-3">
+                                <AlertCircle className="text-amber-500 shrink-0" size={20} />
+                                <p className="text-[11px] font-medium text-amber-700 dark:text-amber-400">
+                                    Esta carteira não está vinculada a nenhuma conta. Clique em <strong>Editar Carteira</strong> para sincronizar o saldo.
+                                </p>
+                            </div>
+                        )}
+                        <StatsCard
+                            title="L/P Total"
                             value={`${totalVar >= 0 ? '+' : ''}${formatCurrency(totalVar)}`}
                             icon={<Activity className={`${totalVar >= 0 ? 'text-emerald-500' : 'text-rose-500'}`} />}
                             color={totalVar >= 0 ? 'text-emerald-500' : 'text-rose-500'}
                         />
-                        <StatsCard title="Proventos Recebidos" value={formatCurrency(totalDividendsValue)} icon={<Calculator className="text-indigo-500" />} />
                         <StatsCard
                             title="Rentabilidade"
                             value={`${totalProfit.toFixed(2)}%`}
@@ -351,10 +611,39 @@ export default function InvestmentPortfolio() {
 
                     {/* Assets Table Area */}
                     <div className="lg:col-span-3 bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col">
-                        <div className="px-8 py-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                            <h3 className="font-black text-slate-900 dark:text-white flex items-center gap-2">
-                                <Activity size={18} className="text-sky-500" /> Ativos na Carteira
-                            </h3>
+                        <div className="px-8 py-6 border-b border-slate-100 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div className="flex items-center gap-4">
+                                <h3 className="font-black text-slate-900 dark:text-white flex items-center gap-2">
+                                    <Activity size={18} className="text-sky-500" /> Ativos
+                                </h3>
+                                {/* Filter Toggle */}
+                                <div className="flex bg-slate-100 dark:bg-slate-950 p-1 rounded-xl">
+                                    <button
+                                        onClick={() => setAssetFilter('all')}
+                                        className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all ${assetFilter === 'all' ? 'bg-white dark:bg-slate-800 text-sky-600 shadow-sm' : 'text-slate-400'}`}
+                                    >
+                                        TUDO
+                                    </button>
+                                    <button
+                                        onClick={() => setAssetFilter('acao')}
+                                        className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all ${assetFilter === 'acao' ? 'bg-white dark:bg-slate-800 text-sky-600 shadow-sm' : 'text-slate-400'}`}
+                                    >
+                                        AÇÕES
+                                    </button>
+                                    <button
+                                        onClick={() => setAssetFilter('fii')}
+                                        className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all ${assetFilter === 'fii' ? 'bg-white dark:bg-slate-800 text-sky-600 shadow-sm' : 'text-slate-400'}`}
+                                    >
+                                        FIIs
+                                    </button>
+                                    <button
+                                        onClick={() => setAssetFilter('renda_fixa')}
+                                        className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all ${assetFilter === 'renda_fixa' ? 'bg-white dark:bg-slate-800 text-sky-600 shadow-sm' : 'text-slate-400'}`}
+                                    >
+                                        RENDA FIXA
+                                    </button>
+                                </div>
+                            </div>
                             <button
                                 onClick={() => setIsAddingAsset(true)}
                                 className="flex items-center gap-2 text-xs font-black text-sky-600 dark:text-sky-400 uppercase tracking-widest hover:bg-sky-50 dark:hover:bg-sky-500/10 px-4 py-2 rounded-xl transition-colors"
@@ -368,49 +657,84 @@ export default function InvestmentPortfolio() {
                                 <thead>
                                     <tr className="bg-slate-50 dark:bg-slate-950/50 text-[10px] uppercase font-black text-slate-400 tracking-widest px-8">
                                         <th className="py-4 px-8">Ativo</th>
-                                        <th className="py-4 px-4">Qtd</th>
-                                        <th className="py-4 px-4">Preço Médio</th>
-                                        <th className="py-4 px-4">Cotação Atual</th>
-                                        <th className="py-4 px-4 text-right">Rentabilidade</th>
-                                        <th className="py-4 px-8 text-center">Ações</th>
+                                        <th className="py-4 px-4 text-center">Saldo</th>
+                                        <th className="py-4 px-4 text-center">Preço Médio / Atual</th>
+                                        <th className="py-4 px-4 text-center">Qtd</th>
+                                        <th className="py-4 px-4 text-center">Var / Rent%</th>
+                                        {assetFilter !== 'fii' && assetFilter !== 'renda_fixa' && (
+                                            <th className="py-4 px-4 text-center">P. Justo (Bazin)</th>
+                                        )}
+                                        <th className="py-4 px-4 text-center">DY / YoC (12M)</th>
+                                        <th className="py-4 px-4 text-right">Part. %</th>
+                                        <th className="py-4 px-8 text-center"></th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
                                     {assets.length === 0 ? (
                                         <tr>
-                                            <td colSpan={6} className="py-16 text-center text-slate-400 font-bold">
+                                            <td colSpan={9} className="py-16 text-center text-slate-400 font-bold">
                                                 Nenhum ativo cadastrado nesta carteira.
                                             </td>
                                         </tr>
                                     ) : (
-                                        assets.map((asset) => (
-                                            <tr key={asset.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors group">
-                                                <td className="py-5 px-8">
-                                                    <div>
-                                                        <p className="font-black text-slate-900 dark:text-white tracking-tight">{asset.symbol}</p>
-                                                        <p className="text-[10px] font-bold text-slate-400 uppercase truncate max-w-[150px]">{asset.name}</p>
-                                                    </div>
-                                                </td>
-                                                <td className="py-5 px-4 font-bold text-slate-700 dark:text-slate-300">{asset.quantity}</td>
-                                                <td className="py-5 px-4 font-bold text-slate-700 dark:text-slate-300">R$ {asset.purchase_price.toFixed(2)}</td>
-                                                <td className="py-5 px-4">
-                                                    <span className="font-bold text-slate-900 dark:text-white">R$ {asset.currentPrice?.toFixed(2)}</span>
-                                                </td>
-                                                <td className="py-5 px-4 text-right">
-                                                    <div className="flex flex-col items-end">
-                                                        <span className={`font-black text-sm ${asset.profitability >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
-                                                            {asset.profitability >= 0 ? '+' : ''}{asset.profitability?.toFixed(2)}%
-                                                        </span>
-                                                        <span className="text-[10px] font-bold text-slate-400">Total: {formatCurrency(asset.totalReturn)}</span>
-                                                    </div>
-                                                </td>
-                                                <td className="py-5 px-8 text-center">
-                                                    <button onClick={() => deleteAsset(asset.id)} className="p-2 text-slate-300 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-all">
-                                                        <Trash2 size={16} />
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        ))
+                                        assets
+                                            .filter(a => assetFilter === 'all' || a.asset_type === assetFilter)
+                                            .map((asset) => (
+                                                <tr key={asset.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors group">
+                                                    <td className="py-5 px-8">
+                                                        <div>
+                                                            <p className="font-black text-slate-900 dark:text-white tracking-tight leading-none mb-1">{asset.symbol}</p>
+                                                            <p className="text-[10px] font-bold text-slate-400 uppercase truncate max-w-[150px]">{asset.name}</p>
+                                                        </div>
+                                                    </td>
+                                                    <td className="py-5 px-4 text-center font-bold text-slate-900 dark:text-white">
+                                                        {formatCurrency(asset.marketValue)}
+                                                    </td>
+                                                    <td className="py-5 px-4 text-center">
+                                                        <div className="flex flex-col">
+                                                            <span className="text-xs font-bold text-slate-500">M: R$ {(asset.total_cost / asset.quantity).toFixed(2)}</span>
+                                                            <span className="text-sm font-black text-slate-900 dark:text-white">A: R$ {asset.currentPrice?.toFixed(2)}</span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="py-5 px-4 text-center font-bold text-slate-700 dark:text-slate-300">{asset.quantity}</td>
+                                                    <td className="py-5 px-4 text-center">
+                                                        <div className="flex flex-col items-center">
+                                                            <span className={`text-xs font-bold ${asset.variationPercentage >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                                                                {asset.variationPercentage >= 0 ? '+' : ''}{asset.variationPercentage?.toFixed(2)}%
+                                                            </span>
+                                                            <span className={`text-sm font-black ${asset.profitability >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                                                                {asset.profitability >= 0 ? '+' : ''}{asset.profitability?.toFixed(2)}%
+                                                            </span>
+                                                        </div>
+                                                    </td>
+                                                    {assetFilter !== 'fii' && assetFilter !== 'renda_fixa' && (
+                                                        <td className="py-5 px-4 text-center">
+                                                            {asset.asset_type === 'acao' ? (
+                                                                <div className="flex flex-col items-center">
+                                                                    <span className="text-sm font-black text-slate-900 dark:text-white">R$ {asset.bazinFairPrice?.toFixed(2)}</span>
+                                                                    <span className={`text-[9px] font-black px-2 py-0.5 rounded-full ${asset.currentPrice <= asset.bazinFairPrice ? 'bg-emerald-500/10 text-emerald-500' : 'bg-slate-100 text-slate-400'}`}>
+                                                                        {asset.currentPrice <= asset.bazinFairPrice ? 'DESCONTADO' : 'CARO'}
+                                                                    </span>
+                                                                </div>
+                                                            ) : <span className="text-slate-300">—</span>}
+                                                        </td>
+                                                    )}
+                                                    <td className="py-5 px-4 text-center">
+                                                        <div className="flex flex-col items-center">
+                                                            <span className="text-[10px] font-bold text-slate-400">DY: {asset.dy12m?.toFixed(2)}%</span>
+                                                            <span className="text-sm font-black text-sky-500">YoC: {asset.yoc12m?.toFixed(2)}%</span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="py-4 px-8 text-right font-black text-slate-900 dark:text-white">
+                                                        {asset.proportion?.toFixed(1)}%
+                                                    </td>
+                                                    <td className="py-5 px-8 text-center">
+                                                        <button onClick={() => deleteAsset(asset.id)} className="p-2 text-slate-300 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-all">
+                                                            <Trash2 size={16} />
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))
                                     )}
                                 </tbody>
                             </table>
@@ -445,6 +769,40 @@ export default function InvestmentPortfolio() {
                             </div>
                         </div>
 
+                        <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col h-[350px]">
+                            <h3 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-widest flex items-center gap-2 mb-6">
+                                <TrendingUp size={16} className="text-emerald-500" /> Alocação da Carteira
+                            </h3>
+                            <div className="flex-1 min-h-0">
+                                {allocationData.length > 0 ? (
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <PieChart>
+                                            <Pie
+                                                data={allocationData}
+                                                cx="50%"
+                                                cy="50%"
+                                                innerRadius={60}
+                                                outerRadius={80}
+                                                paddingAngle={5}
+                                                dataKey="value"
+                                            >
+                                                {allocationData.map((entry, index) => (
+                                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                                ))}
+                                            </Pie>
+                                            <Tooltip
+                                                contentStyle={{ borderRadius: '20px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                                                formatter={(value: number) => formatCurrency(value)}
+                                            />
+                                            <Legend verticalAlign="bottom" height={36} />
+                                        </PieChart>
+                                    </ResponsiveContainer>
+                                ) : (
+                                    <div className="h-full flex items-center justify-center text-slate-400 text-[10px] font-black uppercase">Sem dados de alocação</div>
+                                )}
+                            </div>
+                        </div>
+
                         <div className="bg-gradient-to-br from-sky-600 to-indigo-700 rounded-[2.5rem] p-8 text-white shadow-xl shadow-sky-600/20">
                             <Calculator size={32} className="mb-4 opacity-50" />
                             <h3 className="text-xl font-black tracking-tight mb-2">Simulador de Meta</h3>
@@ -470,16 +828,42 @@ export default function InvestmentPortfolio() {
                             </button>
                         </div>
                         <div className="p-8 space-y-5">
+                            <div className="col-span-2">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Pagar com Conta</label>
+                                <select
+                                    value={assetForm.account_id}
+                                    onChange={(e) => setAssetForm({ ...assetForm, account_id: e.target.value })}
+                                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border-transparent rounded-xl text-sm font-bold focus:ring-2 focus:ring-sky-500 outline-none"
+                                >
+                                    <option value="">Não descontar do saldo (Apenas registro)</option>
+                                    {investmentAccounts.length > 0 && (
+                                        <optgroup label="Contas de Investimento (Recomendado)">
+                                            {investmentAccounts.map(acc => (
+                                                <option key={acc.id} value={acc.id}>{acc.name} (R$ {acc.balance.toLocaleString('pt-BR')})</option>
+                                            ))}
+                                        </optgroup>
+                                    )}
+                                    {accounts.filter(a => a.type !== 'investment').length > 0 && (
+                                        <optgroup label="Outras Contas">
+                                            {accounts.filter(a => a.type !== 'investment').map(acc => (
+                                                <option key={acc.id} value={acc.id}>{acc.name} (R$ {acc.balance.toLocaleString('pt-BR')})</option>
+                                            ))}
+                                        </optgroup>
+                                    )}
+                                </select>
+                                <p className="text-[9px] text-slate-400 mt-2 font-medium">💡 Use dinheiro de contas do tipo 'Investimento' para comprar ativos. Você pode transferir saldo de sua conta corrente para elas no Dashboard.</p>
+                            </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="col-span-1">
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Tipo</label>
                                     <select
                                         value={assetForm.asset_type}
-                                        onChange={(e) => setAssetForm({ ...assetForm, asset_type: e.target.value as 'acao' | 'fii' })}
+                                        onChange={(e) => setAssetForm({ ...assetForm, asset_type: e.target.value as 'acao' | 'fii' | 'renda_fixa' })}
                                         className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border-transparent rounded-xl text-sm font-bold focus:ring-2 focus:ring-sky-500 outline-none"
                                     >
                                         <option value="acao">Ação</option>
                                         <option value="fii">FII</option>
+                                        <option value="renda_fixa">Renda Fixa</option>
                                     </select>
                                 </div>
                                 <div className="col-span-1">

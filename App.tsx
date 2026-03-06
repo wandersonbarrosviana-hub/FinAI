@@ -116,6 +116,7 @@ const App: React.FC = () => {
 
   const goals = useLiveQuery(() => db.goals.toArray()) || [];
   const tags = useLiveQuery(() => db.tags.toArray()) || [];
+  const wallets = useLiveQuery(() => db.wallets.toArray()) || [];
   const budgets = useLiveQuery(() => db.budgets.toArray()) || [];
   const customBudgets = useLiveQuery(() => db.customBudgets.toArray()) || [];
   const debts = useLiveQuery(() => db.debts.toArray()) || [];
@@ -273,7 +274,28 @@ const App: React.FC = () => {
       )
       .on(
         'postgres_changes',
+        { event: 'DELETE', schema: 'public', table: 'wallets' },
+        (payload) => {
+          const deletedId = payload.old?.id;
+          if (deletedId) {
+            console.log(`[FinAI] Realtime DELETE wallet: ${deletedId}`);
+            db.wallets.delete(deletedId);
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'transactions' },
+        () => user?.id && fetchData(user.id, true)
+      )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'wallets' },
+        () => user?.id && fetchData(user.id, true)
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'wallets' },
         () => user?.id && fetchData(user.id, true)
       )
       .on(
@@ -336,7 +358,7 @@ const App: React.FC = () => {
 
     try {
       if (isOnline) {
-        const [txRes, accRes, goalRes, tagRes, budRes, cbRes, familyRes, profileRes] = await Promise.all([
+        const [txRes, accRes, goalRes, tagRes, budRes, cbRes, familyRes, profileRes, walletRes] = await Promise.all([
           supabase.from('transactions').select('*').order('date', { ascending: false }),
           supabase.from('accounts').select('*'),
           supabase.from('goals').select('*'),
@@ -344,7 +366,8 @@ const App: React.FC = () => {
           supabase.from('budgets').select('*'),
           supabase.from('custom_budgets').select('*'),
           supabase.rpc('get_family_details', { current_user_id: userId }),
-          supabase.from('profiles').select('role, plan_type').eq('id', userId).single()
+          supabase.from('profiles').select('role, plan_type').eq('id', userId).single(),
+          supabase.from('wallets').select('*')
         ]);
 
         if (txRes.error) throw txRes.error;
@@ -357,6 +380,7 @@ const App: React.FC = () => {
         const tagData = tagRes.data || [];
         const budData = budRes.data || [];
         const cbData = cbRes.data || [];
+        const walletData = walletRes.data || [];
 
         // Set user role and plan from profile
         if (profileRes.data) {
@@ -423,13 +447,14 @@ const App: React.FC = () => {
           const serverCBIds = new Set(mappedCB.map((c: any) => c.id));
 
           // Find and delete local records no longer on server
-          const [localTxs, localAccs, localGoals, localTags, localBudgets, localCBs] = await Promise.all([
+          const [localTxs, localAccs, localGoals, localTags, localBudgets, localCBs, localWallets] = await Promise.all([
             db.transactions.toArray(),
             db.accounts.toArray(),
             db.goals.toArray(),
             db.tags.toArray(),
             db.budgets.toArray(),
-            db.customBudgets.toArray()
+            db.customBudgets.toArray(),
+            db.wallets.toArray()
           ]);
 
           const orphanTxIds = localTxs.filter(t => !serverTxIds.has(t.id)).map(t => t.id);
@@ -438,6 +463,8 @@ const App: React.FC = () => {
           const orphanTagIds = localTags.filter(t => !serverTagIds.has(t.id)).map(t => t.id);
           const orphanBudgetIds = localBudgets.filter(b => !serverBudgetIds.has(b.id)).map(b => b.id);
           const orphanCBIds = localCBs.filter(c => !serverCBIds.has(c.id)).map(c => c.id);
+          const serverWalletIds = new Set(walletData.map((w: any) => w.id));
+          const orphanWalletIds = localWallets.filter(w => !serverWalletIds.has(w.id)).map(w => w.id);
 
           if (orphanTxIds.length > 0) {
             console.log(`[FinAI] Reconcile: removing ${orphanTxIds.length} orphan transactions.`);
@@ -451,6 +478,7 @@ const App: React.FC = () => {
           if (orphanTagIds.length > 0) await db.tags.bulkDelete(orphanTagIds);
           if (orphanBudgetIds.length > 0) await db.budgets.bulkDelete(orphanBudgetIds);
           if (orphanCBIds.length > 0) await db.customBudgets.bulkDelete(orphanCBIds);
+          if (orphanWalletIds.length > 0) await db.wallets.bulkDelete(orphanWalletIds);
 
           // Upsert server data locally
           await db.transactions.bulkPut(mappedTxs);
@@ -459,6 +487,7 @@ const App: React.FC = () => {
           await db.tags.bulkPut(tagData);
           await db.budgets.bulkPut(budData);
           await db.customBudgets.bulkPut(mappedCB);
+          await db.wallets.bulkPut(walletData);
 
           // Buscar Financial Score
           const currentMonth = new Date().toISOString().slice(0, 7);
@@ -1509,6 +1538,7 @@ const App: React.FC = () => {
             {userRole === 'admin' && <div className={currentView === 'admin' ? '' : 'hidden'}><AdminPanel isOnline={isOnline} /></div>}
             <div className={currentView === 'dashboard' ? '' : 'hidden'}>
               <Dashboard
+                userId={user?.id}
                 transactions={filteredTransactions}
                 accounts={accounts}
                 onAddClick={() => setCurrentView('expenses')}
@@ -1525,6 +1555,7 @@ const App: React.FC = () => {
                 transactions={filteredTransactions}
                 accounts={accounts}
                 tags={tags}
+                wallets={wallets}
                 onAddTransaction={handleAddTransaction}
                 onDeleteTransaction={handleDeleteTransaction}
                 onUpdateTransaction={handleUpdateTransaction}
@@ -1652,7 +1683,11 @@ const App: React.FC = () => {
               <Settings user={user} onLogout={handleLogout} onExportData={handleExportData} onForceSync={() => user?.id && fetchData(user.id, true)} onResetData={handleResetData} />
             </div>
             <div className={currentView === 'investments' ? '' : 'hidden'}>
-              <Investments />
+              <Investments
+                accounts={accounts}
+                onAddTransaction={handleAddTransaction}
+                wallets={wallets}
+              />
             </div>
           </div>
         </div>

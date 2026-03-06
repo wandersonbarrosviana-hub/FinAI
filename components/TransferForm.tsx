@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
-import { Account, Transaction } from '../types';
-import { ArrowRightLeft, Calendar, DollarSign, Wallet, ArrowDownCircle } from 'lucide-react';
+import { Account, Transaction, Wallet as WalletType } from '../types';
+import { ArrowRightLeft, Calendar, DollarSign, Wallet, ArrowDownCircle, Target } from 'lucide-react';
 
 interface TransferFormProps {
     accounts: Account[];
@@ -14,9 +14,10 @@ interface TransferFormProps {
         category: string;
     }) => void;
     onCancel: () => void;
+    wallets: WalletType[];
 }
 
-const TransferForm: React.FC<TransferFormProps> = ({ accounts, onTransfer, onCancel }) => {
+const TransferForm: React.FC<TransferFormProps> = ({ accounts, onTransfer, onCancel, wallets }) => {
     const defaultAcc = accounts.find(a => a.isDefault);
     const [sourceAccountId, setSourceAccountId] = useState<string>(defaultAcc?.id || accounts[0]?.id || '');
     const [destinationAccountId, setDestinationAccountId] = useState<string>(() => {
@@ -95,9 +96,16 @@ const TransferForm: React.FC<TransferFormProps> = ({ accounts, onTransfer, onCan
                             onChange={e => setDestinationAccountId(e.target.value)}
                         >
                             <option value="">Selecione o destino...</option>
-                            {accounts.filter(a => a.id !== sourceAccountId).map(acc => (
-                                <option key={acc.id} value={acc.id}>{acc.name} (R$ {acc.balance.toFixed(2)})</option>
-                            ))}
+                            {accounts.filter(a => a.id !== sourceAccountId).map(acc => {
+                                const linkedWallet = wallets.find(w => w.account_id === acc.id);
+                                return (
+                                    <option key={acc.id} value={acc.id}>
+                                        {acc.name}
+                                        {linkedWallet ? ` (Carteira: ${linkedWallet.name})` : ''}
+                                        {acc.balance !== undefined ? ` - R$ ${acc.balance.toFixed(2)}` : ''}
+                                    </option>
+                                );
+                            })}
                         </select>
                         <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
                             <ArrowDownCircle size={14} />

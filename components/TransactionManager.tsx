@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import ExpenseManager from './ExpenseManager';
 import TransferForm from './TransferForm';
 import TransactionStatement from './TransactionStatement';
-import { Transaction, Account, Tag } from '../types';
+import { Transaction, Account, Tag, Wallet } from '../types';
 import { TrendingUp, TrendingDown, ArrowRightLeft, FileText } from 'lucide-react';
 
 interface TransactionManagerProps {
@@ -16,6 +16,7 @@ interface TransactionManagerProps {
     onTransfer: (data: any) => void;
     familyMembers?: Record<string, { name: string, avatar: string }>;
     onOpenAccountModal?: () => void;
+    wallets: Wallet[];
 }
 
 const TransactionManager: React.FC<TransactionManagerProps> = ({
@@ -27,7 +28,8 @@ const TransactionManager: React.FC<TransactionManagerProps> = ({
     onDeleteTransaction,
     onTransfer,
     familyMembers,
-    onOpenAccountModal
+    onOpenAccountModal,
+    wallets
 }) => {
     const [activeTab, setActiveTab] = useState<'income' | 'expense' | 'transfer' | 'statement'>('expense');
 
@@ -97,6 +99,7 @@ const TransactionManager: React.FC<TransactionManagerProps> = ({
                         </div>
                         <TransferForm
                             accounts={accounts}
+                            wallets={wallets}
                             onTransfer={(data) => {
                                 onTransfer(data);
                                 setActiveTab('statement'); // Redirect to statement after transfer
