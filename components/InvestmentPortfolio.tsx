@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Trash2, TrendingUp, DollarSign, Calendar, Calculator, Info, Wallet as WalletIcon, ChevronRight, AlertCircle, ArrowUpRight, ArrowDownRight, Activity, Settings as SettingsIcon, Filter } from 'lucide-react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { supabase } from '../supabaseClient';
@@ -13,7 +14,8 @@ interface PortfolioProps {
 
 export default function InvestmentPortfolio({ accounts, onAddTransaction, wallets }: PortfolioProps) {
     const [selectedWalletId, setSelectedWalletId] = useState<string | null>(null);
-    const [assets, setAssets] = useState<any[]>([]);
+    const [rawAssets, setRawAssets] = useState<any[]>([]);
+    const [marketDataCache, setMarketDataCache] = useState<Record<string, any>>({});
     const [loading, setLoading] = useState(false);
     const [isCreatingWallet, setIsCreatingWallet] = useState(false);
     const [newWalletName, setNewWalletName] = useState('');
@@ -35,7 +37,7 @@ export default function InvestmentPortfolio({ accounts, onAddTransaction, wallet
         tax: '0',
         account_id: ''
     });
-    const [allDividends, setAllDividends] = useState<any[]>([]);
+    const [gordonSettings, setGordonSettings] = useState({ requiredReturn: 9, expectedGrowth: 2 });
 
     const selectedWallet = wallets.find(w => w.id === selectedWalletId);
 
@@ -63,134 +65,35 @@ export default function InvestmentPortfolio({ accounts, onAddTransaction, wallet
             if (error) throw error;
 
             if (!walletAssets || walletAssets.length === 0) {
-                setAssets([]);
+                setRawAssets([]);
                 setLoading(false);
                 return;
             }
 
-            // Fetch current market data and historical analysis per asset via Yahoo Finance Proxy
-            const enrichedAssets = await Promise.all(walletAssets.map(async (asset) => {
-                let currentPrice = asset.purchase_price;
-                let assetDividends: any[] = [];
-                let historicalPrices: any[] = [];
-                let longName = asset.name || asset.symbol;
+            setRawAssets(walletAssets);
 
-                try {
-                    // Call our Yahoo Finance Proxy for robust data
-                    const { data: yfData, error: yfError } = await supabase.functions.invoke('yahoo-finance-proxy', {
-                        body: { ticker: asset.symbol }
-                    });
+            // Fetch market data for missing tickers
+            const missingTickers = walletAssets.filter(a => !marketDataCache[a.symbol]);
 
-                    if (!yfError && yfData) {
-                        const quoteSummary = yfData.quoteSummary || {};
-                        const priceData = quoteSummary.price || {};
-                        const summaryDetail = quoteSummary.summaryDetail || {};
+            if (missingTickers.length > 0) {
+                // Fetch each missing ticker (could be optimized further with Promise.all and a smarter proxy)
+                await Promise.all(missingTickers.map(async (asset) => {
+                    try {
+                        const { data: yfData, error: yfError } = await supabase.functions.invoke('yahoo-finance-proxy', {
+                            body: { ticker: asset.symbol }
+                        });
 
-                        // Yahoo Finance 2 quoteSummary.price.regularMarketPrice can be a number or an object { raw, fmt }
-                        const rawPrice = typeof priceData.regularMarketPrice === 'object'
-                            ? priceData.regularMarketPrice.raw
-                            : priceData.regularMarketPrice;
-
-                        const rawAsk = typeof summaryDetail.ask === 'object' ? summaryDetail.ask.raw : summaryDetail.ask;
-                        const rawBid = typeof summaryDetail.bid === 'object' ? summaryDetail.bid.raw : summaryDetail.bid;
-
-                        currentPrice = rawPrice || rawAsk || rawBid || priceData.regularMarketPrice || asset.purchase_price;
-                        longName = priceData.longName || longName;
-                        assetDividends = yfData.dividends || [];
-                        historicalPrices = yfData.prices || [];
+                        if (!yfError && yfData) {
+                            setMarketDataCache(prev => ({
+                                ...prev,
+                                [asset.symbol]: yfData
+                            }));
+                        }
+                    } catch (e) {
+                        console.error(`Error fetching Yahoo data for ${asset.symbol}:`, e);
                     }
-                } catch (e) {
-                    console.error(`Error fetching Yahoo data for ${asset.symbol}:`, e);
-                }
-
-                // Calculate Dividends paid AFTER purchase date
-                const purchaseDateStr = asset.purchase_date || asset.created_at;
-                const purchaseDateTime = new Date(purchaseDateStr).getTime();
-
-                const relevantDividendsRate = assetDividends
-                    ?.filter((d: any) => {
-                        const dDate = new Date(d.paymentDate || d.date).getTime();
-                        return dDate >= purchaseDateTime;
-                    })
-                    ?.reduce((sum: number, d: any) => sum + (d.rate || d.dividends || 0), 0) || 0;
-
-                const totalDividendsValue = relevantDividendsRate * asset.quantity;
-
-                // --- Novas Métricas de Dividendos (DY 12M, YoC, Bazin) ---
-                const now = new Date();
-                const twelveMonthsAgo = new Date();
-                twelveMonthsAgo.setMonth(now.getMonth() - 12);
-
-                const divLast12MonthsRaw = assetDividends
-                    ?.filter((d: any) => new Date(d.paymentDate || d.date).getTime() >= twelveMonthsAgo.getTime())
-                    ?.reduce((sum: number, d: any) => sum + (d.rate || d.dividends || 0), 0) || 0;
-
-                const dy12m = currentPrice > 0 ? (divLast12MonthsRaw / currentPrice) * 100 : 0;
-
-                const avgPricePaid = asset.total_cost / asset.quantity;
-                const yoc12m = avgPricePaid > 0 ? (divLast12MonthsRaw / avgPricePaid) * 100 : 0;
-
-                // Preço Justo Bazin (DPA Médio 5 anos / 0.06)
-                // Agrupar por ano para calcular a média
-                const dividendsByYear: Record<number, number> = {};
-                assetDividends?.forEach((d: any) => {
-                    const year = new Date(d.paymentDate || d.date).getFullYear();
-                    dividendsByYear[year] = (dividendsByYear[year] || 0) + (d.rate || d.dividends || 0);
-                });
-
-                const currentYear = now.getFullYear();
-                const last5Years = [currentYear - 1, currentYear - 2, currentYear - 3, currentYear - 4, currentYear - 5];
-                const dpaSum = last5Years.reduce((sum, year) => sum + (dividendsByYear[year] || 0), 0);
-                const avgDpa5y = dpaSum / 5;
-                const bazinFairPrice = avgDpa5y / 0.06;
-
-                const appreciationValue = (currentPrice - asset.purchase_price) * asset.quantity;
-                const totalReturn = appreciationValue + totalDividendsValue - (asset.tax || 0);
-
-                const profitabilityValue = asset.purchase_price > 0
-                    ? ((currentPrice + (totalDividendsValue / asset.quantity) - asset.purchase_price) / asset.purchase_price) * 100
-                    : 0;
-
-                const filteredDividendsForSidebar = assetDividends
-                    ?.filter((d: any) => new Date(d.paymentDate || d.date).getTime() >= purchaseDateTime)
-                    .sort((a: any, b: any) => new Date(b.paymentDate || b.date).getTime() - new Date(a.date).getTime());
-
-                return {
-                    ...asset,
-                    currentPrice,
-                    variationPercentage: avgPricePaid > 0 ? ((currentPrice - avgPricePaid) / avgPricePaid) * 100 : 0,
-                    variation: appreciationValue,
-                    totalDividends: totalDividendsValue,
-                    totalReturn,
-                    profitability: profitabilityValue,
-                    dy12m,
-                    yoc12m,
-                    bazinFairPrice,
-                    name: longName,
-                    marketValue: currentPrice * asset.quantity,
-                    receivedDividends: filteredDividendsForSidebar.map((d: any) => ({
-                        ticker: asset.symbol,
-                        date: d.paymentDate || d.date,
-                        amount: (d.rate || d.dividends) * asset.quantity,
-                        type: d.type || 'Provento'
-                    }))
-                };
-            }));
-
-            const totalPortfolioMarketValue = enrichedAssets.reduce((sum, a) => sum + a.marketValue, 0);
-            const assetsWithProportion = enrichedAssets.map(a => ({
-                ...a,
-                proportion: totalPortfolioMarketValue > 0 ? (a.marketValue / totalPortfolioMarketValue) * 100 : 0
-            }));
-
-            setAssets(assetsWithProportion);
-
-            // Consolidate all dividends for the sidebar
-            const consolidatedDivs = enrichedAssets
-                .flatMap(a => (a as any).receivedDividends || [])
-                .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-            setAllDividends(consolidatedDivs);
+                }));
+            }
         } catch (err) {
             console.error('Error fetching assets:', err);
             setError('Falha ao carregar ativos da carteira.');
@@ -198,6 +101,135 @@ export default function InvestmentPortfolio({ accounts, onAddTransaction, wallet
             setLoading(false);
         }
     };
+
+    const enrichedAssets = useMemo(() => {
+        const now = new Date();
+        const twelveMonthsAgo = new Date();
+        twelveMonthsAgo.setMonth(now.getMonth() - 12);
+
+        return rawAssets.map(asset => {
+            const yfData = marketDataCache[asset.symbol];
+            let currentPrice = asset.purchase_price;
+            let longName = asset.name || asset.symbol;
+            let assetDividends = [];
+
+            if (yfData) {
+                const quoteSummary = yfData.quoteSummary || {};
+                const priceData = quoteSummary.price || {};
+                const summaryDetail = quoteSummary.summaryDetail || {};
+
+                const rawPrice = typeof priceData.regularMarketPrice === 'object'
+                    ? priceData.regularMarketPrice.raw
+                    : priceData.regularMarketPrice;
+
+                const rawAsk = typeof summaryDetail.ask === 'object' ? summaryDetail.ask.raw : summaryDetail.ask;
+                const rawBid = typeof summaryDetail.bid === 'object' ? summaryDetail.bid.raw : summaryDetail.bid;
+
+                currentPrice = rawPrice || rawAsk || rawBid || priceData.regularMarketPrice || asset.purchase_price;
+                longName = priceData.longName || longName;
+                assetDividends = yfData.dividends || [];
+            }
+
+            const purchaseDateStr = asset.purchase_date || asset.created_at;
+            const purchaseDateTime = new Date(purchaseDateStr).getTime();
+
+            const processedDividends = (assetDividends || []).map((d: any) => {
+                const exDate = new Date(d.date || d.paymentDate);
+                const dateCom = new Date(exDate);
+                dateCom.setDate(exDate.getDate() - 1);
+                return {
+                    ...d,
+                    dateCom: dateCom.toISOString().split('T')[0],
+                    dateComTime: dateCom.getTime()
+                };
+            });
+
+            const relevantDividendsRate = processedDividends
+                ?.filter((d: any) => d.dateComTime >= purchaseDateTime)
+                ?.reduce((sum: number, d: any) => sum + (d.rate || d.dividends || 0), 0) || 0;
+
+            const totalDividendsValue = relevantDividendsRate * asset.quantity;
+
+            const divLast12MonthsRaw = assetDividends
+                ?.filter((d: any) => new Date(d.paymentDate || d.date).getTime() >= twelveMonthsAgo.getTime())
+                ?.reduce((sum: number, d: any) => sum + (d.rate || d.dividends || 0), 0) || 0;
+
+            const dy12m = currentPrice > 0 ? (divLast12MonthsRaw / currentPrice) * 100 : 0;
+            const avgPricePaid = asset.total_cost / asset.quantity;
+            const yoc12m = avgPricePaid > 0 ? (divLast12MonthsRaw / avgPricePaid) * 100 : 0;
+
+            const dividendsByYear: Record<number, number> = {};
+            assetDividends?.forEach((d: any) => {
+                const year = new Date(d.paymentDate || d.date).getFullYear();
+                dividendsByYear[year] = (dividendsByYear[year] || 0) + (d.rate || d.dividends || 0);
+            });
+
+            const currentYear = now.getFullYear();
+            const last5Years = [currentYear - 1, currentYear - 2, currentYear - 3, currentYear - 4, currentYear - 5];
+            const dpaSum = last5Years.reduce((sum, year) => sum + (dividendsByYear[year] || 0), 0);
+            const avgDpa5y = dpaSum / 5;
+            const bazinFairPrice = avgDpa5y / 0.06;
+
+            const divs12m = assetDividends?.filter((d: any) => new Date(d.paymentDate || d.date).getTime() >= twelveMonthsAgo.getTime()) || [];
+            const divLast12MonthsSum = divs12m.reduce((sum: number, d: any) => sum + (d.rate || d.dividends || 0), 0);
+            const avgMonthlyDiv = divs12m.length > 0 ? (divLast12MonthsSum / divs12m.length) : (divLast12MonthsSum / 12);
+            const expectedAnnualDiv = avgMonthlyDiv * 12;
+
+            const k = gordonSettings.requiredReturn / 100;
+            const g = gordonSettings.expectedGrowth / 100;
+            const gordonFairPrice = k > g ? expectedAnnualDiv / (k - g) : 0;
+
+            const appreciationValue = (currentPrice - asset.purchase_price) * asset.quantity;
+            const totalReturn = appreciationValue + totalDividendsValue - (asset.tax || 0);
+
+            const profitabilityValue = asset.purchase_price > 0
+                ? ((currentPrice + (totalDividendsValue / asset.quantity) - asset.purchase_price) / asset.purchase_price) * 100
+                : 0;
+
+            const filteredDividendsForSidebar = processedDividends
+                ?.filter((d: any) => d.dateComTime >= purchaseDateTime)
+                .sort((a: any, b: any) => b.dateComTime - a.dateComTime);
+
+            return {
+                ...asset,
+                currentPrice,
+                variationPercentage: avgPricePaid > 0 ? ((currentPrice - avgPricePaid) / avgPricePaid) * 100 : 0,
+                variation: appreciationValue,
+                totalDividends: totalDividendsValue,
+                totalReturn,
+                profitability: profitabilityValue,
+                dy12m,
+                yoc12m,
+                bazinFairPrice,
+                gordonFairPrice,
+                name: longName,
+                marketValue: currentPrice * asset.quantity,
+                receivedDividends: filteredDividendsForSidebar.map((d: any) => ({
+                    ticker: asset.symbol,
+                    date: d.dateCom,
+                    exDate: d.date || d.paymentDate,
+                    amount: (d.rate || d.dividends) * asset.quantity,
+                    type: d.type || 'Provento'
+                }))
+            };
+        });
+    }, [rawAssets, marketDataCache, gordonSettings]);
+
+    const finalAssets = useMemo(() => {
+        const totalPortfolioMarketValue = enrichedAssets.reduce((sum, a) => sum + a.marketValue, 0);
+        return enrichedAssets.map(a => ({
+            ...a,
+            proportion: totalPortfolioMarketValue > 0 ? (a.marketValue / totalPortfolioMarketValue) * 100 : 0
+        }));
+    }, [enrichedAssets]);
+
+    const allDividends = useMemo(() => {
+        return enrichedAssets
+            .flatMap(a => (a as any).receivedDividends || [])
+            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    }, [enrichedAssets]);
+
+    // Remove redundant fetch, it is already handled by dependency matching or explicit calls
 
     const createWallet = async () => {
         if (!newWalletName) return;
@@ -309,7 +341,7 @@ export default function InvestmentPortfolio({ accounts, onAddTransaction, wallet
             operationError = error;
         } else {
             // 3. Inserir novo se não existir
-            const { error } = await supabase
+            const { error, data } = await supabase
                 .from('wallet_assets')
                 .insert([{
                     wallet_id: selectedWalletId,
@@ -321,9 +353,15 @@ export default function InvestmentPortfolio({ accounts, onAddTransaction, wallet
                     asset_type: assetForm.asset_type,
                     tax,
                     account_id: assetForm.account_id || null
-                }]);
+                }])
+                .select()
+                .single();
 
             operationError = error;
+            if (!error && data) {
+                // Optimistic insert
+                setRawAssets(prev => [...prev, data]);
+            }
         }
 
         if (operationError) {
@@ -359,6 +397,22 @@ export default function InvestmentPortfolio({ accounts, onAddTransaction, wallet
                 }
             }
 
+            if (!existingAsset) {
+                // New asset was already added to rawAssets inside the else block above
+            } else {
+                const totalQty = existingAsset.quantity + quantity;
+                const newTotalCost = (existingAsset.total_cost || ((existingAsset.purchase_price * existingAsset.quantity) + (existingAsset.tax || 0))) + totalCost;
+                const newTotalTax = (existingAsset.tax || 0) + tax;
+
+                setRawAssets(prev => prev.map(a => a.id === existingAsset.id ? {
+                    ...a,
+                    quantity: totalQty,
+                    total_cost: newTotalCost,
+                    tax: newTotalTax,
+                    purchase_date: assetForm.purchase_date
+                } : a));
+            }
+
             fetchAssets(selectedWalletId);
             setIsAddingAsset(false);
             setAssetForm({
@@ -385,8 +439,11 @@ export default function InvestmentPortfolio({ accounts, onAddTransaction, wallet
     };
 
     const deleteAsset = async (id: string) => {
+        // Optimistic Update
+        setRawAssets(prev => prev.filter(a => a.id !== id));
+
         const { error } = await supabase.from('wallet_assets').delete().eq('id', id);
-        if (!error && selectedWalletId) {
+        if (error && selectedWalletId) {
             fetchAssets(selectedWalletId);
         }
     };
@@ -399,9 +456,9 @@ export default function InvestmentPortfolio({ accounts, onAddTransaction, wallet
         ? (accounts.find(a => a.id === selectedWallet.account_id)?.balance || 0)
         : 0;
 
-    const totalInvestedInAssets = assets.reduce((sum, a) => sum + (a.total_cost || ((a.purchase_price * a.quantity) + (a.tax || 0))), 0);
-    const currentEquityInAssets = assets.reduce((sum, a) => sum + (a.currentPrice * a.quantity), 0);
-    const totalDividendsValue = assets.reduce((sum, a) => sum + (a.totalDividends || 0), 0);
+    const totalInvestedInAssets = finalAssets.reduce((sum, a) => sum + (a.total_cost || ((a.purchase_price * a.quantity) + (a.tax || 0))), 0);
+    const currentEquityInAssets = finalAssets.reduce((sum, a) => sum + (a.currentPrice * a.quantity), 0);
+    const totalDividendsValue = finalAssets.reduce((sum, a) => sum + (a.totalDividends || 0), 0);
 
     // Aportes = Valor efetivamente pago nos ativos (sem contar o caixa parado na conta)
     const totalAportes = totalInvestedInAssets;
@@ -414,12 +471,12 @@ export default function InvestmentPortfolio({ accounts, onAddTransaction, wallet
 
     const allocationData = useMemo(() => {
         const groups: Record<string, number> = {};
-        assets.forEach(a => {
+        finalAssets.forEach(a => {
             const typeLabel = a.asset_type === 'acao' ? 'Ações' : a.asset_type === 'fii' ? 'FIIs' : 'Renda Fixa';
             groups[typeLabel] = (groups[typeLabel] || 0) + (a.marketValue || 0);
         });
         return Object.entries(groups).map(([name, value]) => ({ name, value }));
-    }, [assets]);
+    }, [finalAssets]);
 
     const COLORS = ['#0ea5e9', '#6366f1', '#10b981', '#f59e0b', '#ef4444'];
 
@@ -442,7 +499,12 @@ export default function InvestmentPortfolio({ accounts, onAddTransaction, wallet
     }
 
     return (
-        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="space-y-8"
+        >
             {/* Header & Wallet Management */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                 <div>
@@ -638,12 +700,44 @@ export default function InvestmentPortfolio({ accounts, onAddTransaction, wallet
                                     </button>
                                     <button
                                         onClick={() => setAssetFilter('renda_fixa')}
-                                        className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all ${assetFilter === 'renda_fixa' ? 'bg-white dark:bg-slate-800 text-sky-600 shadow-sm' : 'text-slate-400'}`}
+                                        className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all flex items-center gap-1.5 ${assetFilter === 'renda_fixa' ? 'bg-white dark:bg-slate-800 text-sky-600 shadow-sm' : 'text-slate-400'}`}
                                     >
                                         RENDA FIXA
+                                        <span className="text-[9px] bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-400 px-1.5 py-0.5 rounded-md leading-none">BETA</span>
                                     </button>
                                 </div>
                             </div>
+
+                            {assetFilter === 'fii' && (
+                                <div className="flex items-center gap-4 px-6 py-3 bg-indigo-50 dark:bg-indigo-900/10 rounded-3xl animate-in fade-in slide-in-from-right-4 mt-4 md:mt-0">
+                                    <SettingsIcon size={16} className="text-indigo-500" />
+                                    <div className="flex items-center gap-6">
+                                        <div className="flex flex-col">
+                                            <label className="text-[9px] font-black text-indigo-400 uppercase tracking-tighter mb-0.5">Retorno Exigido (%)</label>
+                                            <input
+                                                type="number"
+                                                value={gordonSettings.requiredReturn}
+                                                onChange={(e) => setGordonSettings({ ...gordonSettings, requiredReturn: parseFloat(e.target.value) || 0 })}
+                                                className="bg-transparent border-none p-0 text-sm font-black text-indigo-700 dark:text-indigo-400 focus:ring-0 w-16"
+                                            />
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <label className="text-[9px] font-black text-indigo-400 uppercase tracking-tighter mb-0.5">Crescimento (g) (%)</label>
+                                            <input
+                                                type="number"
+                                                value={gordonSettings.expectedGrowth}
+                                                onChange={(e) => setGordonSettings({ ...gordonSettings, expectedGrowth: parseFloat(e.target.value) || 0 })}
+                                                className="bg-transparent border-none p-0 text-sm font-black text-indigo-700 dark:text-indigo-400 focus:ring-0 w-16"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="ml-auto hidden sm:flex items-center gap-2">
+                                        <Info size={14} className="text-indigo-300" />
+                                        <span className="text-[9px] font-bold text-indigo-300 uppercase">Modelo de Gordon: D1 / (k - g)</span>
+                                    </div>
+                                </div>
+                            )}
+
                             <button
                                 onClick={() => setIsAddingAsset(true)}
                                 className="flex items-center gap-2 text-xs font-black text-sky-600 dark:text-sky-400 uppercase tracking-widest hover:bg-sky-50 dark:hover:bg-sky-500/10 px-4 py-2 rounded-xl transition-colors"
@@ -661,8 +755,11 @@ export default function InvestmentPortfolio({ accounts, onAddTransaction, wallet
                                         <th className="py-4 px-4 text-center">Preço Médio / Atual</th>
                                         <th className="py-4 px-4 text-center">Qtd</th>
                                         <th className="py-4 px-4 text-center">Var / Rent%</th>
-                                        {assetFilter !== 'fii' && assetFilter !== 'renda_fixa' && (
-                                            <th className="py-4 px-4 text-center">P. Justo (Bazin)</th>
+                                        {assetFilter === 'acao' && (
+                                            <th className="py-4 px-4 text-center">Preço Teto (Bazin)</th>
+                                        )}
+                                        {assetFilter === 'fii' && (
+                                            <th className="py-4 px-4 text-center">Preço Teto (Gordon)</th>
                                         )}
                                         <th className="py-4 px-4 text-center">DY / YoC (12M)</th>
                                         <th className="py-4 px-4 text-right">Part. %</th>
@@ -670,14 +767,14 @@ export default function InvestmentPortfolio({ accounts, onAddTransaction, wallet
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
-                                    {assets.length === 0 ? (
+                                    {finalAssets.length === 0 ? (
                                         <tr>
                                             <td colSpan={9} className="py-16 text-center text-slate-400 font-bold">
                                                 Nenhum ativo cadastrado nesta carteira.
                                             </td>
                                         </tr>
                                     ) : (
-                                        assets
+                                        finalAssets
                                             .filter(a => assetFilter === 'all' || a.asset_type === assetFilter)
                                             .map((asset) => (
                                                 <tr key={asset.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors group">
@@ -707,16 +804,24 @@ export default function InvestmentPortfolio({ accounts, onAddTransaction, wallet
                                                             </span>
                                                         </div>
                                                     </td>
-                                                    {assetFilter !== 'fii' && assetFilter !== 'renda_fixa' && (
+                                                    {assetFilter === 'acao' && (
                                                         <td className="py-5 px-4 text-center">
-                                                            {asset.asset_type === 'acao' ? (
-                                                                <div className="flex flex-col items-center">
-                                                                    <span className="text-sm font-black text-slate-900 dark:text-white">R$ {asset.bazinFairPrice?.toFixed(2)}</span>
-                                                                    <span className={`text-[9px] font-black px-2 py-0.5 rounded-full ${asset.currentPrice <= asset.bazinFairPrice ? 'bg-emerald-500/10 text-emerald-500' : 'bg-slate-100 text-slate-400'}`}>
-                                                                        {asset.currentPrice <= asset.bazinFairPrice ? 'DESCONTADO' : 'CARO'}
-                                                                    </span>
-                                                                </div>
-                                                            ) : <span className="text-slate-300">—</span>}
+                                                            <div className="flex flex-col items-center">
+                                                                <span className="text-sm font-black text-slate-900 dark:text-white">R$ {asset.bazinFairPrice?.toFixed(2)}</span>
+                                                                <span className={`text-[9px] font-black px-2 py-0.5 rounded-full ${asset.currentPrice <= asset.bazinFairPrice ? 'bg-emerald-500/10 text-emerald-500' : 'bg-slate-100 text-slate-400'}`}>
+                                                                    {asset.currentPrice <= asset.bazinFairPrice ? 'DESCONTADO' : 'CARO'}
+                                                                </span>
+                                                            </div>
+                                                        </td>
+                                                    )}
+                                                    {assetFilter === 'fii' && (
+                                                        <td className="py-5 px-4 text-center">
+                                                            <div className="flex flex-col items-center">
+                                                                <span className="text-sm font-black text-slate-900 dark:text-white">R$ {asset.gordonFairPrice?.toFixed(2)}</span>
+                                                                <span className={`text-[9px] font-black px-2 py-0.5 rounded-full ${asset.currentPrice <= asset.gordonFairPrice ? 'bg-emerald-500/10 text-emerald-500' : 'bg-slate-100 text-slate-400'}`}>
+                                                                    {asset.currentPrice <= asset.gordonFairPrice ? 'DESCONTADO' : 'CARO'}
+                                                                </span>
+                                                            </div>
                                                         </td>
                                                     )}
                                                     <td className="py-5 px-4 text-center">
@@ -745,11 +850,11 @@ export default function InvestmentPortfolio({ accounts, onAddTransaction, wallet
                     <div className="space-y-6">
                         <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-6 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col h-full max-h-[600px]">
                             <h3 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-widest flex items-center gap-2 mb-6">
-                                <Calendar size={16} className="text-indigo-500" /> Proventos Pagos
+                                <Calendar size={16} className="text-indigo-500" /> PROVENTOS
                             </h3>
                             <div className="space-y-4 overflow-y-auto pr-2 custom-scrollbar">
                                 {allDividends.length === 0 ? (
-                                    <p className="text-[10px] text-center text-slate-400 font-bold uppercase py-12">Nenhum provento recebido desde a compra.</p>
+                                    <p className="text-[10px] text-center text-slate-400 font-bold uppercase py-12">Nenhum provento recebido (Data-Com após compra).</p>
                                 ) : (
                                     allDividends.map((div, idx) => (
                                         <div key={idx} className="p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl flex items-center justify-between animate-in fade-in slide-in-from-right-2" style={{ animationDelay: `${idx * 50}ms` }}>
@@ -760,7 +865,7 @@ export default function InvestmentPortfolio({ accounts, onAddTransaction, wallet
                                                 <div>
                                                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-tight">{div.ticker} • {div.type}</p>
                                                     <p className="text-sm font-black text-slate-900 dark:text-white">{formatCurrency(div.amount)}</p>
-                                                    <p className="text-[10px] text-slate-400 font-bold">{new Date(div.date).toLocaleDateString('pt-BR')}</p>
+                                                    <p className="text-[10px] text-slate-400 font-bold">{new Date(div.date + 'T12:00:00').toLocaleDateString('pt-BR')}</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -785,6 +890,7 @@ export default function InvestmentPortfolio({ accounts, onAddTransaction, wallet
                                                 outerRadius={80}
                                                 paddingAngle={5}
                                                 dataKey="value"
+                                                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                                             >
                                                 {allocationData.map((entry, index) => (
                                                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -923,6 +1029,6 @@ export default function InvestmentPortfolio({ accounts, onAddTransaction, wallet
                     </div>
                 </div>
             )}
-        </div>
+        </motion.div>
     );
 }

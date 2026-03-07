@@ -64,10 +64,16 @@ serve(async (req) => {
       },
       payer_email: email || "usuario@finai.com.br",
       external_reference: userId,
-      status: "authorized"
+      status: "authorized",
+      // Adicionando metadados para facilitar identificação de PF se necessário no futuro
+      metadata: {
+        user_id: userId,
+        plan: plan,
+        cycle: billingCycle
+      }
     };
 
-    console.log("Payload MP:", JSON.stringify(payload));
+    console.log(`[MP-Checkout] Gerando assinatura para User: ${userId}, Plano: ${plan}, Valor: ${price}`);
 
     const mpResponse = await fetch("https://api.mercadopago.com/preapproval", {
       method: "POST",

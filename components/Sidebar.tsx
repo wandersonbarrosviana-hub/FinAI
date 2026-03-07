@@ -136,7 +136,9 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, isOpen, se
                       >
                         {item.label}
                         {(item as any).badge && (
-                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-sky-100 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400 uppercase tracking-wider leading-none shadow-sm ml-auto">
+                          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider leading-none shadow-sm ml-auto ${(item as any).badge === 'BETA'
+                            ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400'
+                            : 'bg-sky-100 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400'}`}>
                             {(item as any).badge}
                           </span>
                         )}

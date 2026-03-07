@@ -219,9 +219,12 @@ const PlansPage: React.FC<PlansPageProps> = ({ userPlan, onUpgradeSuccess }) => 
                             <>
                                 <button
                                     onClick={() => handleUpgrade('pro')}
-                                    className="w-full py-4 px-6 bg-slate-900 text-white text-[11px] font-black rounded-2xl uppercase tracking-widest hover:bg-slate-800 transition-colors shadow-lg shadow-slate-900/10"
+                                    className="w-full py-4 px-6 bg-slate-900 text-white text-[11px] font-black rounded-2xl uppercase tracking-widest hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/10 flex flex-col items-center gap-1"
                                 >
-                                    Assinar PRO via Pix / Cartão
+                                    <span>Assinar PRO</span>
+                                    <span className="text-[8px] opacity-60 flex items-center gap-2">
+                                        <Zap size={10} /> Pix ou Cartão
+                                    </span>
                                 </button>
                             </>
                         )}
@@ -278,9 +281,12 @@ const PlansPage: React.FC<PlansPageProps> = ({ userPlan, onUpgradeSuccess }) => 
                             <>
                                 <button
                                     onClick={() => handleUpgrade('premium')}
-                                    className="w-full py-4 px-6 bg-gradient-to-r from-amber-400 to-orange-500 text-white text-[11px] font-black rounded-2xl uppercase tracking-widest shadow-xl shadow-orange-500/30 hover:shadow-2xl transition-all"
+                                    className="w-full py-4 px-6 bg-gradient-to-r from-amber-400 to-orange-500 text-white text-[11px] font-black rounded-2xl uppercase tracking-widest shadow-xl shadow-orange-500/30 hover:shadow-2xl transition-all flex flex-col items-center gap-1"
                                 >
-                                    Assinar Premium via Pix / Cartão
+                                    <span>Assinar Premium</span>
+                                    <span className="text-[8px] opacity-80 flex items-center gap-2">
+                                        <Zap size={10} /> Pix ou Cartão (CPF)
+                                    </span>
                                 </button>
                             </>
                         )}
@@ -317,9 +323,15 @@ const PlansPage: React.FC<PlansPageProps> = ({ userPlan, onUpgradeSuccess }) => 
 
             {/* Satisfaction Banner */}
             <div className="bg-slate-50 rounded-[2.5rem] p-10 flex flex-col md:flex-row items-center justify-between gap-8 border border-slate-100">
-                <div className="space-y-1">
-                    <h3 className="text-2xl font-black text-slate-900 tracking-tight">Dúvidas sobre os novos planos?</h3>
-                    <p className="text-slate-500 font-medium">Nosso suporte está pronto para ajudar você a escolher a melhor opção.</p>
+                <div className="flex items-center gap-6">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Mercado_Libre_logo.svg/1200px-Mercado_Libre_logo.svg.png" alt="Mercado Pago" className="h-8 grayscale opacity-50" />
+                    <div className="space-y-1 text-center md:text-left">
+                        <h3 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+                            Pagamento 100% Seguro
+                            <ShieldCheck size={18} className="text-emerald-500" />
+                        </h3>
+                        <p className="text-slate-500 text-sm font-medium">Processado via Mercado Pago. Aceitamos CPF e garantimos sua privacidade.</p>
+                    </div>
                 </div>
                 <button className="px-10 py-4 bg-white border border-slate-200 text-slate-900 text-[11px] font-black rounded-2xl uppercase tracking-widest hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all shadow-sm">
                     Falar com Suporte

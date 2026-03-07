@@ -31,31 +31,43 @@ serve(async (req) => {
       const payment = await mpResponse.json();
 
       if (payment.status === 'approved') {
-        // A referência externa é o userID que passamos no checkout!
         const userId = payment.external_reference;
         if (userId) {
-          // Calcula o próximo mês
-          const nextMonth = new Date();
-          nextMonth.setMonth(nextMonth.getMonth() + 1);
+          console.log(`[MP-Webhook] Pagamento Aprovado para User: ${userId}. Ativando plano...`);
+          
+          // Calcula o próximo mês ou ano baseado na descrição ou metadados
+          const isAnnual = payment.description?.toLowerCase().includes('annual');
+          const nextPeriod = new Date();
+          if (isAnnual) {
+            nextPeriod.setFullYear(nextPeriod.getFullYear() + 1);
+          } else {
+            nextPeriod.setMonth(nextMonth.getMonth() + 1);
+          }
 
+          // 1. Atualiza user_subscriptions
           await supabaseAdmin
             .from('user_subscriptions')
             .update({
               status: 'active',
-              current_period_end: nextMonth.toISOString(),
+              current_period_end: nextPeriod.toISOString(),
               updated_at: new Date().toISOString()
             })
             .eq('user_id', userId);
 
-          // Atualiza na profile tabela para forçar o frontend a liberar
+          // 2. Atualiza profiles (fonte de verdade para UI)
           const isPremium = payment.description?.toLowerCase().includes('premium');
+          const newPlan = isPremium ? 'premium' : 'pro';
 
-          await supabaseAdmin
+          const { error: profileError } = await supabaseAdmin
             .from('profiles')
-            .update({ plan_type: isPremium ? 'premium' : 'pro' })
+            .update({ plan_type: newPlan })
             .eq('id', userId);
 
-          console.log(`Assinatura ativada (Plano ${isPremium ? 'Premium' : 'Pro'}) para o usuário ${userId}`);
+          if (profileError) {
+            console.error(`[MP-Webhook] Erro ao atualizar profile do user ${userId}:`, profileError);
+          } else {
+            console.log(`[MP-Webhook] Plano ${newPlan} ativado com sucesso para user ${userId}`);
+          }
         }
       }
     } else if (topic === "subscription_preapproval") {
