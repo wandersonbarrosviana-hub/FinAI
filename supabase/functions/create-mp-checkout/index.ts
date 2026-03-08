@@ -87,14 +87,16 @@ serve(async (req) => {
     const mpData = await mpResponse.json();
 
     if (!mpResponse.ok) {
-      console.error("Erro MP Detalhado:", JSON.stringify(mpData));
-      // Retornar o erro completo para visualização no alert do frontend
+      console.error(`[MP-Error] Status: ${mpResponse.status}`);
+      console.error(`[MP-Error] Body: ${JSON.stringify(mpData, null, 2)}`);
+      
       return new Response(JSON.stringify({
-        error: "Erro na API do Mercado Pago",
-        detail: mpData.message || mpData.error || mpData,
-        status_code: mpResponse.status
+        error: "Erro Mercado Pago",
+        detail: mpData.message || mpData.error || "Erro desconhecido",
+        status_code: mpResponse.status,
+        mp_data: mpData // Retornar dado bruto para facilitar debug no alert
       }), {
-        status: 200, // Força 200 para frontend ler JSON
+        status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
