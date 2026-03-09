@@ -43,6 +43,7 @@ import { Session } from '@supabase/supabase-js';
 import { db } from './db';
 import { useOfflineSync } from './useOfflineSync';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 
 const APP_VERSION = "1.2.0-PREMIUM-UI";
 
@@ -74,7 +75,24 @@ const App: React.FC = () => {
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const { isOnline, syncing, pendingCount, addToSyncQueue, clearSyncQueue, processSyncQueue } = useOfflineSync(user?.id);
+
+  // Sincronizar currentView com a URL ao carregar ou mudar de rota
+  useEffect(() => {
+    const path = location.pathname.replace('/', '') as ViewState;
+    if (path && path !== currentView) {
+      setCurrentView(path);
+    }
+  }, [location]);
+
+  // Função centralizada para navegação
+  const handleNavigate = (view: string) => {
+    setCurrentView(view as ViewState);
+    navigate(`/${view}`);
+  };
 
   // Fonte de dados Híbrida (Dexie + Fallback localStorage)
   // Merging Logic: Se o Dexie tem poucos itens, complementamos com o backup do localStorage
@@ -171,9 +189,9 @@ const App: React.FC = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const paymentStatus = urlParams.get('payment');
     if (paymentStatus === 'success') {
-      setCurrentView('payment-success');
+      handleNavigate('payment-success');
     } else if (paymentStatus === 'failure') {
-      setCurrentView('payment-failure');
+      handleNavigate('payment-failure');
     }
   }, []);
 
@@ -1457,7 +1475,7 @@ const App: React.FC = () => {
           </linearGradient>
         </defs>
       </svg>
-      <Sidebar currentView={currentView} onViewChange={setCurrentView} isOpen={sidebarOpen} setIsOpen={setSidebarOpen} onLogout={handleLogout} userRole={userRole} />
+      <Sidebar currentView={currentView} onViewChange={handleNavigate} isOpen={sidebarOpen} setIsOpen={setSidebarOpen} onLogout={handleLogout} userRole={userRole} />
       <main className={`flex-1 flex flex-col transition-[margin] duration-300 ease-in-out no-horizontal-scroll pb-24 md:pb-8 pt-safe mt-14 md:mt-0 px-4 md:px-0 ${sidebarOpen ? 'md:ml-64' : 'md:ml-20'}`}>
         {/* Header - White Glassmorphism */}
         {isSyncing && (
@@ -1543,163 +1561,188 @@ const App: React.FC = () => {
           </div>
         </header>
 
-        {/* Main Content Area - Safe Area Awareness */}
         <div className="flex-1 overflow-y-auto overflow-x-hidden p-3 md:p-6 relative scrollbar-hide pb-safe px-safe">
           <div className="max-w-[1440px] mx-auto w-full space-y-6">
-            {userRole === 'admin' && <div className={currentView === 'admin' ? '' : 'hidden'}><AdminPanel isOnline={isOnline} /></div>}
-            <div className={currentView === 'dashboard' ? '' : 'hidden'}>
-              <Dashboard
-                userId={user?.id}
-                transactions={filteredTransactions}
-                accounts={accounts}
-                onAddClick={() => setCurrentView('expenses')}
-                tags={tags}
-                goals={goals}
-                budgets={budgets}
-                customBudgets={customBudgets}
-                familyMembers={familyMembers}
-                financialScore={financialScore}
-              />
-            </div>
-            <div className={currentView === 'transactions' ? '' : 'hidden'}>
-              <TransactionManager
-                transactions={filteredTransactions}
-                accounts={accounts}
-                tags={tags}
-                wallets={wallets}
-                onAddTransaction={handleAddTransaction}
-                onDeleteTransaction={handleDeleteTransaction}
-                onUpdateTransaction={handleUpdateTransaction}
-                onTransfer={handleTransfer}
-                familyMembers={familyMembers}
-                onOpenAccountModal={() => setIsAccountModalOpen(true)}
-              />
-            </div>
-            <div className={currentView === 'debts' ? '' : 'hidden'}>
-              <DebtManager
-                debts={debts as any}
-                onAddDebt={handleAddDebt}
-                onUpdateDebt={handleUpdateDebt}
-                onDeleteDebt={handleDeleteDebt}
-                accounts={accounts}
-                onCreateExpense={async (data) => {
-                  await handleAddTransaction(data);
-                }}
-                monthlyIncome={filteredTransactions
-                  .filter(t => t.type === 'income' && t.date.startsWith(currentDate.toISOString().slice(0, 7)))
-                  .reduce((sum, t) => sum + t.amount, 0)}
-              />
-            </div>
-            <div className={currentView === 'reports' ? '' : 'hidden'}>
-              <Reports
-                transactions={transactions}
-                accounts={accounts}
-                currentDate={currentDate}
-                tags={tags}
-              />
-            </div>
-            <div className={currentView === 'financial-assessment' ? '' : 'hidden'}>
-              {user && (
-                <FinancialAssessment
-                  userId={user.id}
+            <Routes>
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+
+              <Route path="/dashboard" element={
+                <Dashboard
+                  userId={user?.id}
+                  transactions={filteredTransactions}
+                  accounts={accounts}
+                  onAddClick={() => handleNavigate('expenses')}
+                  tags={tags}
+                  goals={goals}
+                  budgets={budgets}
+                  customBudgets={customBudgets}
+                  familyMembers={familyMembers}
+                  financialScore={financialScore}
+                />
+              } />
+
+              <Route path="/transactions" element={
+                <TransactionManager
+                  transactions={filteredTransactions}
+                  accounts={accounts}
+                  tags={tags}
+                  wallets={wallets}
+                  onAddTransaction={handleAddTransaction}
+                  onDeleteTransaction={handleDeleteTransaction}
+                  onUpdateTransaction={handleUpdateTransaction}
+                  onTransfer={handleTransfer}
+                  familyMembers={familyMembers}
+                  onOpenAccountModal={() => setIsAccountModalOpen(true)}
+                />
+              } />
+
+              <Route path="/debts" element={
+                <DebtManager
+                  debts={debts as any}
+                  onAddDebt={handleAddDebt}
+                  onUpdateDebt={handleUpdateDebt}
+                  onDeleteDebt={handleDeleteDebt}
+                  accounts={accounts}
+                  onCreateExpense={async (data) => {
+                    await handleAddTransaction(data);
+                  }}
+                  monthlyIncome={filteredTransactions
+                    .filter(t => t.type === 'income' && t.date.startsWith(currentDate.toISOString().slice(0, 7)))
+                    .reduce((sum, t) => sum + t.amount, 0)}
+                />
+              } />
+
+              <Route path="/reports" element={
+                <Reports
                   transactions={transactions}
                   accounts={accounts}
-                  budgets={budgets}
-                  debts={debts}
+                  currentDate={currentDate}
+                  tags={tags}
                 />
-              )}
-            </div>
-            <div className={currentView === 'credit-cards' ? '' : 'hidden'}>
-              <CreditCardManager accounts={accounts.filter(a => a.isCredit)} transactions={transactions} onAddTransaction={handleAddTransaction} onAddAccount={handleAddAccount} />
-            </div>
-            <div className={currentView === 'budgets' ? '' : 'hidden'}>
-              <BudgetManager
-                transactions={filteredTransactions}
-                budgets={budgets}
-                currentMonth={activeMonthStr}
-                onUpdateBudget={handleUpdateBudget}
-                onAddBudget={handleAddBudget}
-              />
-            </div>
-            <div className={currentView === 'custom-budgets' ? '' : 'hidden'}>
-              <CustomBudgetManager
-                customBudgets={customBudgets}
-                transactions={filteredTransactions}
-                incomeProjected={filteredTransactions
-                  .filter(t => t.type === 'income')
-                  .reduce((sum, t) => sum + t.amount, 0)}
-                incomeEffective={filteredTransactions
-                  .filter(t => t.type === 'income' && t.isPaid)
-                  .reduce((sum, t) => sum + t.amount, 0)}
-                currentMonth={activeMonthStr}
-                onAddCustomBudget={handleAddCustomBudget}
-                onDeleteCustomBudget={handleDeleteCustomBudget}
-              />
-            </div>
-            <div className={currentView === 'goals' ? '' : 'hidden'}>
-              <GoalManager goals={goals} transactions={filteredTransactions} accounts={accounts} onAddGoal={handleAddGoal} onDeleteGoal={handleDeleteGoal} />
-            </div>
-            <div className={currentView === 'categories' ? '' : 'hidden'}>
-              <CategoryManager transactions={filteredTransactions} />
-            </div>
-            <div className={currentView === 'accounts' ? '' : 'hidden'}>
-              <AccountManager accounts={accounts} transactions={transactions} onAddAccount={handleAddAccount} onUpdateAccount={handleUpdateAccount} onDeleteAccount={handleDeleteAccount} />
-            </div>
-            <div className={currentView === 'retirement' ? '' : 'hidden'}>
-              <RetirementSimulator transactions={transactions} budgets={budgets} simulationParams={retirementParams} />
-            </div>
-            <div className={currentView === 'tags' ? '' : 'hidden'}>
-              <TagManager tags={tags} onAddTag={handleAddTag} onDeleteTag={handleDeleteTag} onUpdateTag={handleUpdateTag} />
-            </div>
-            <div className={currentView === 'payment-success' ? '' : 'hidden'}>
-              <PaymentSuccess onContinue={() => setCurrentView('dashboard')} />
-            </div>
-            <div className={currentView === 'payment-failure' ? '' : 'hidden'}>
-              <PaymentFailure onRetry={() => setCurrentView('plans')} onBack={() => setCurrentView('dashboard')} />
-            </div>
-            <div className={currentView === 'ai-assistant' ? '' : 'hidden'}>
-              <div className="p-4 md:p-8 overflow-y-auto scrollbar-hide text-slate-800 h-full flex flex-col">
-                <div className="max-w-4xl mx-auto w-full h-full">
-                  <div className="mb-6">
-                    <h2 className="text-2xl font-black text-slate-900 tracking-tight">Assistente Virtual</h2>
-                    <p className="text-slate-500 font-medium">Seu consultor financeiro pessoal 24/7</p>
-                  </div>
-                  <FinancialAssistant
-                    userName={user?.name || 'Investidor'}
+              } />
+
+              <Route path="/financial-assessment" element={
+                user ? (
+                  <FinancialAssessment
+                    userId={user.id}
                     transactions={transactions}
                     accounts={accounts}
-                    goals={goals}
                     budgets={budgets}
-                    onAddTransaction={handleAddTransaction}
-                    onOpenAccountModal={() => setIsAccountModalOpen(true)}
-                    userPlan={userPlan}
-                    userRole={userRole}
+                    debts={debts}
                   />
+                ) : <Navigate to="/dashboard" />
+              } />
+
+              <Route path="/credit-cards" element={
+                <CreditCardManager accounts={accounts.filter(a => a.isCredit)} transactions={transactions} onAddTransaction={handleAddTransaction} onAddAccount={handleAddAccount} />
+              } />
+
+              <Route path="/budgets" element={
+                <BudgetManager
+                  transactions={filteredTransactions}
+                  budgets={budgets}
+                  currentMonth={activeMonthStr}
+                  onUpdateBudget={handleUpdateBudget}
+                  onAddBudget={handleAddBudget}
+                />
+              } />
+
+              <Route path="/custom-budgets" element={
+                <CustomBudgetManager
+                  customBudgets={customBudgets}
+                  transactions={filteredTransactions}
+                  incomeProjected={filteredTransactions
+                    .filter(t => t.type === 'income')
+                    .reduce((sum, t) => sum + t.amount, 0)}
+                  incomeEffective={filteredTransactions
+                    .filter(t => t.type === 'income' && t.isPaid)
+                    .reduce((sum, t) => sum + t.amount, 0)}
+                  currentMonth={activeMonthStr}
+                  onAddCustomBudget={handleAddCustomBudget}
+                  onDeleteCustomBudget={handleDeleteCustomBudget}
+                />
+              } />
+
+              <Route path="/goals" element={
+                <GoalManager goals={goals} transactions={filteredTransactions} accounts={accounts} onAddGoal={handleAddGoal} onDeleteGoal={handleDeleteGoal} />
+              } />
+
+              <Route path="/categories" element={
+                <CategoryManager transactions={filteredTransactions} />
+              } />
+
+              <Route path="/accounts" element={
+                <AccountManager accounts={accounts} transactions={transactions} onAddAccount={handleAddAccount} onUpdateAccount={handleUpdateAccount} onDeleteAccount={handleDeleteAccount} />
+              } />
+
+              <Route path="/retirement" element={
+                <RetirementSimulator transactions={transactions} budgets={budgets} simulationParams={retirementParams} />
+              } />
+
+              <Route path="/tags" element={
+                <TagManager tags={tags} onAddTag={handleAddTag} onDeleteTag={handleDeleteTag} onUpdateTag={handleUpdateTag} />
+              } />
+
+              <Route path="/payment-success" element={<PaymentSuccess onContinue={() => handleNavigate('dashboard')} />} />
+              <Route path="/payment-failure" element={<PaymentFailure onRetry={() => handleNavigate('plans')} onBack={() => handleNavigate('dashboard')} />} />
+
+              <Route path="/ai-assistant" element={
+                <div className="p-4 md:p-8 overflow-y-auto scrollbar-hide text-slate-800 h-full flex flex-col">
+                  <div className="max-w-4xl mx-auto w-full h-full">
+                    <div className="mb-6">
+                      <h2 className="text-2xl font-black text-slate-900 tracking-tight">Assistente Virtual</h2>
+                      <p className="text-slate-500 font-medium">Seu consultor financeiro pessoal 24/7</p>
+                    </div>
+                    <FinancialAssistant
+                      userName={user?.name || 'Investidor'}
+                      transactions={transactions}
+                      accounts={accounts}
+                      goals={goals}
+                      budgets={budgets}
+                      onAddTransaction={handleAddTransaction}
+                      onOpenAccountModal={() => setIsAccountModalOpen(true)}
+                      userPlan={userPlan}
+                      userRole={userRole}
+                    />
+                  </div>
                 </div>
-              </div>
-            </div>
-            <div className={currentView === 'expenses' ? '' : 'hidden'}>
-              <ExpenseManager type="expense" transactions={filteredTransactions} onAddTransaction={handleAddTransaction} onDeleteTransaction={handleDeleteTransaction} onUpdateTransaction={handleUpdateTransaction} tags={tags} accounts={accounts} familyMembers={familyMembers} onOpenAccountModal={() => setIsAccountModalOpen(true)} />
-            </div>
-            <div className={currentView === 'income' ? '' : 'hidden'}>
-              <ExpenseManager type="income" transactions={filteredTransactions} allTransactions={transactions} onAddTransaction={handleAddTransaction} onDeleteTransaction={handleDeleteTransaction} onUpdateTransaction={handleUpdateTransaction} tags={tags} accounts={accounts} familyMembers={familyMembers} onOpenAccountModal={() => setIsAccountModalOpen(true)} />
-            </div>
-            <div className={currentView === 'plans' ? '' : 'hidden'}>
-              <PlansPage userPlan={userPlan} onUpgradeSuccess={() => fetchData(user!.id)} />
-            </div>
-            <div className={currentView === 'charts' ? '' : 'hidden'}>
-              <ChartsHub transactions={filteredTransactions} />
-            </div>
-            <div className={currentView === 'settings' ? '' : 'hidden'}>
-              <Settings user={user} onLogout={handleLogout} onExportData={handleExportData} onForceSync={() => user?.id && fetchData(user.id, true)} onResetData={handleResetData} />
-            </div>
-            <div className={currentView === 'investments' ? '' : 'hidden'}>
-              <Investments
-                accounts={accounts}
-                onAddTransaction={handleAddTransaction}
-                wallets={wallets}
-              />
-            </div>
+              } />
+
+              <Route path="/expenses" element={
+                <ExpenseManager type="expense" transactions={filteredTransactions} onAddTransaction={handleAddTransaction} onDeleteTransaction={handleDeleteTransaction} onUpdateTransaction={handleUpdateTransaction} tags={tags} accounts={accounts} familyMembers={familyMembers} onOpenAccountModal={() => setIsAccountModalOpen(true)} />
+              } />
+
+              <Route path="/income" element={
+                <ExpenseManager type="income" transactions={filteredTransactions} allTransactions={transactions} onAddTransaction={handleAddTransaction} onDeleteTransaction={handleDeleteTransaction} onUpdateTransaction={handleUpdateTransaction} tags={tags} accounts={accounts} familyMembers={familyMembers} onOpenAccountModal={() => setIsAccountModalOpen(true)} />
+              } />
+
+              <Route path="/plans" element={
+                <PlansPage userPlan={userPlan} onUpgradeSuccess={() => fetchData(user!.id)} />
+              } />
+
+              <Route path="/charts" element={
+                <ChartsHub transactions={filteredTransactions} />
+              } />
+
+              <Route path="/settings" element={
+                <Settings user={user} onLogout={handleLogout} onExportData={handleExportData} onForceSync={() => user?.id && fetchData(user.id, true)} onResetData={handleResetData} />
+              } />
+
+              <Route path="/investments" element={
+                <Investments
+                  accounts={accounts}
+                  onAddTransaction={handleAddTransaction}
+                  wallets={wallets}
+                />
+              } />
+
+              {userRole === 'admin' && (
+                <Route path="/admin" element={<AdminPanel isOnline={isOnline} />} />
+              )}
+
+              {/* Redirecionar rotas inválidas para o dashboard */}
+              <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            </Routes>
           </div>
         </div>
 
@@ -1708,7 +1751,7 @@ const App: React.FC = () => {
       {/* Bottom Navigation Bar for Mobile (PWA/APK Feel) */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-t border-slate-200 dark:border-slate-800 px-6 py-3 flex justify-between items-center z-[50] pb-safe">
         <button
-          onClick={() => setCurrentView('dashboard')}
+          onClick={() => handleNavigate('dashboard')}
           className={`flex flex-col items-center gap-1 transition-all ${currentView === 'dashboard' ? 'text-sky-600 dark:text-sky-400 scale-110' : 'text-slate-400'}`}
         >
           <div className={currentView === 'dashboard' ? 'icon-filled' : ''}>
@@ -1718,7 +1761,7 @@ const App: React.FC = () => {
         </button>
 
         <button
-          onClick={() => setCurrentView('transactions')}
+          onClick={() => handleNavigate('transactions')}
           className={`flex flex-col items-center gap-1 transition-all ${currentView === 'transactions' ? 'text-sky-600 dark:text-sky-400 scale-110' : 'text-slate-400'}`}
         >
           <div className={currentView === 'transactions' ? 'icon-filled' : ''}>
@@ -1728,14 +1771,14 @@ const App: React.FC = () => {
         </button>
 
         <button
-          onClick={() => setCurrentView('expenses')}
+          onClick={() => handleNavigate('expenses')}
           className="relative -top-6 bg-sky-600 dark:bg-sky-500 p-4 rounded-2xl shadow-lg shadow-sky-600/30 text-white active:scale-90 transition-transform border-4 border-white dark:border-slate-900"
         >
           <Plus size={24} strokeWidth={3} />
         </button>
 
         <button
-          onClick={() => setCurrentView('charts')}
+          onClick={() => handleNavigate('charts')}
           className={`flex flex-col items-center gap-1 transition-all ${currentView === 'charts' ? 'text-sky-600 dark:text-sky-400 scale-110' : 'text-slate-400'}`}
         >
           <div className={currentView === 'charts' ? 'icon-filled' : ''}>
