@@ -64,8 +64,7 @@ serve(async (req) => {
       },
       payer_email: email || "usuario@finai.com.br",
       external_reference: userId,
-      status: "authorized",
-      // Adicionando metadados para facilitar identificação de PF se necessário no futuro
+      // Status omitido para que o checkout do MP defina o estado inicial
       metadata: {
         user_id: userId,
         plan: plan,
@@ -89,12 +88,15 @@ serve(async (req) => {
     if (!mpResponse.ok) {
       console.error(`[MP-Error] Status: ${mpResponse.status}`);
       console.error(`[MP-Error] Body: ${JSON.stringify(mpData, null, 2)}`);
-      
+
+      const errorMessage = mpData.message || mpData.error || "Erro desconhecido";
+      const errorDetail = ` | Detalhes: ${JSON.stringify(mpData)}`;
+
       return new Response(JSON.stringify({
         error: "Erro Mercado Pago",
-        detail: mpData.message || mpData.error || "Erro desconhecido",
+        detail: `${errorMessage}${errorDetail}`,
         status_code: mpResponse.status,
-        mp_data: mpData // Retornar dado bruto para facilitar debug no alert
+        mp_data: mpData
       }), {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

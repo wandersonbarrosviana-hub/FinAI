@@ -48,9 +48,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOnline = true }) => {
         } catch (error) {
             console.error('Error fetching users:', error);
             // Silencioso em caso de erro de rede ou se não houver permissão real
-            if (navigator.onLine) {
-                alert('Erro ao carregar usuários. Verifique sua permissão de administrador.');
-            }
         } finally {
             setLoading(false);
         }

@@ -34,14 +34,14 @@ serve(async (req) => {
         const userId = payment.external_reference;
         if (userId) {
           console.log(`[MP-Webhook] Pagamento Aprovado para User: ${userId}. Ativando plano...`);
-          
+
           // Calcula o próximo mês ou ano baseado na descrição ou metadados
           const isAnnual = payment.description?.toLowerCase().includes('annual');
           const nextPeriod = new Date();
           if (isAnnual) {
             nextPeriod.setFullYear(nextPeriod.getFullYear() + 1);
           } else {
-            nextPeriod.setMonth(nextMonth.getMonth() + 1);
+            nextPeriod.setMonth(nextPeriod.getMonth() + 1);
           }
 
           // 1. Atualiza user_subscriptions

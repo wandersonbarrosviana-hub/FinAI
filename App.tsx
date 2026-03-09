@@ -226,7 +226,12 @@ const App: React.FC = () => {
         if (!session && navigator.onLine) {
           setSession(null);
           setUser(null);
+          setUserRole('user');
+          setUserPlan('free');
           localStorage.removeItem('finai_user_data');
+          localStorage.removeItem('finai_user_role');
+          localStorage.removeItem('finai_user_plan');
+          localStorage.removeItem('finai_admin_users_cache');
           db.syncQueue.count().then(count => {
             if (count === 0) {
               db.transactions.clear();
@@ -566,6 +571,12 @@ const App: React.FC = () => {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
+    localStorage.removeItem('finai_user_data');
+    localStorage.removeItem('finai_user_role');
+    localStorage.removeItem('finai_user_plan');
+    localStorage.removeItem('finai_admin_users_cache');
+    setUserRole('user');
+    setUserPlan('free');
   };
 
   const checkPendingInvites = async (email: string, userId: string) => {

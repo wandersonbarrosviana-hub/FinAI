@@ -59,26 +59,29 @@ const PlansPage: React.FC<PlansPageProps> = ({ userPlan, onUpgradeSuccess }) => 
                 return;
             }
 
-            // Chamada para a Edge Function do PayPal
-            const { data, error } = await supabase.functions.invoke('create-paypal-checkout', {
+            // Chamada para a Edge Function do Mercado Pago
+            const { data, error } = await supabase.functions.invoke('create-mp-checkout', {
                 body: {
                     plan: planId,
                     userId: user.id,
-                    email: user.email,
+                    email: user.email || 'usuario@finai.com.br',
                     billingCycle
                 }
             });
 
             if (error) {
-                console.error("Supabase EF Error:", error);
-                throw new Error("Erro de comunicação com o servidor de pagamentos.");
+                console.error("Supabase EF Error details:", error);
+                const errorMsg = error.message || JSON.stringify(error);
+                throw new Error(`Erro de comunicação com o servidor: ${errorMsg}`);
             }
 
             if (data?.init_point) {
-                // Redireciona o usuário para o PayPal
+                // Redireciona o usuário para o Mercado Pago
                 window.location.href = data.init_point;
             } else if (data?.error) {
-                throw new Error(data.error);
+                const detailedError = data.detail || "";
+                const mpData = data.mp_data ? ` | Detalhes: ${JSON.stringify(data.mp_data)}` : "";
+                throw new Error(`${data.error}${detailedError ? ': ' + detailedError : ''}${mpData}`);
             } else {
                 throw new Error("Resposta inválida do servidor.");
             }
@@ -223,7 +226,7 @@ const PlansPage: React.FC<PlansPageProps> = ({ userPlan, onUpgradeSuccess }) => 
                                 >
                                     <span>Assinar PRO</span>
                                     <span className="text-[8px] opacity-60 flex items-center gap-2">
-                                        <Zap size={10} /> PayPal ou Cartão
+                                        <Zap size={10} /> Mercado Pago ou Cartão
                                     </span>
                                 </button>
                             </>
@@ -285,7 +288,7 @@ const PlansPage: React.FC<PlansPageProps> = ({ userPlan, onUpgradeSuccess }) => 
                                 >
                                     <span>Assinar Premium</span>
                                     <span className="text-[8px] opacity-80 flex items-center gap-2">
-                                        <Zap size={10} /> PayPal ou Cartão
+                                        <Zap size={10} /> Mercado Pago ou Cartão
                                     </span>
                                 </button>
                             </>
@@ -324,13 +327,13 @@ const PlansPage: React.FC<PlansPageProps> = ({ userPlan, onUpgradeSuccess }) => 
             {/* Satisfaction Banner */}
             <div className="bg-slate-50 rounded-[2.5rem] p-10 flex flex-col md:flex-row items-center justify-between gap-8 border border-slate-100">
                 <div className="flex items-center gap-6">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" alt="PayPal" className="h-8 grayscale opacity-50" />
+                    <img src="https://logospng.org/download/mercado-pago/logo-mercado-pago-256.png" alt="Mercado Pago" className="h-8 grayscale opacity-50" />
                     <div className="space-y-1 text-center md:text-left">
                         <h3 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
                             Pagamento 100% Seguro
                             <ShieldCheck size={18} className="text-emerald-500" />
                         </h3>
-                        <p className="text-slate-500 text-sm font-medium">Processado via PayPal. Pagamento rápido e garantimos sua privacidade.</p>
+                        <p className="text-slate-500 text-sm font-medium">Processado via Mercado Pago. Pagamento rápido e garantimos sua privacidade.</p>
                     </div>
                 </div>
                 <button className="px-10 py-4 bg-white border border-slate-200 text-slate-900 text-[11px] font-black rounded-2xl uppercase tracking-widest hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all shadow-sm">
