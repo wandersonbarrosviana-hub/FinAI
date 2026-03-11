@@ -15,6 +15,9 @@ export default defineConfig(({ mode }) => {
       react(),
       VitePWA({
         registerType: 'autoUpdate',
+        strategies: 'injectManifest',
+        srcDir: 'public',
+        filename: 'sw.js',
         includeAssets: ['apple-touch-icon.png', 'logo.png'],
         manifest: {
           name: 'FinAI - Gerenciador Inteligente',

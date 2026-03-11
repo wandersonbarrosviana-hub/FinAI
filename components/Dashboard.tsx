@@ -344,6 +344,31 @@ const Dashboard: React.FC<DashboardProps> = ({ userId, transactions, accounts, g
         </button>
       </div>
 
+      {/* iOS/Web Push Prompt Banner */}
+      {('Notification' in window && Notification.permission !== 'granted' && Notification.permission !== 'denied') && (
+        <div className="bg-gradient-to-r from-sky-500 to-indigo-600 rounded-2xl p-4 sm:p-5 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-lg animate-in fade-in slide-in-from-top-4 relative overflow-hidden group">
+            <div className="absolute inset-0 bg-white/10 group-hover:bg-transparent transition-colors pointer-events-none"></div>
+            <div className="flex items-center gap-3 relative z-10">
+                <div className="p-2 bg-white/20 rounded-xl">
+                    <Sparkles size={20} className="text-yellow-300 animate-pulse" />
+                </div>
+                <div>
+                    <h4 className="font-bold text-lg">Ative os Alertas Inteligentes!</h4>
+                    <p className="text-sm text-sky-100 font-medium">Receba avisos antes do orçamento estourar. Vá em <span className="font-black bg-white/20 px-1.5 py-0.5 rounded uppercase tracking-wider text-[10px]">Configurações</span> para ativar.</p>
+                </div>
+            </div>
+            <button 
+               onClick={() => {
+                   // Apenas um atalho local. A inscrição real deve ocorrer nas configurações
+                   Notification.requestPermission();
+               }}
+               className="shrink-0 bg-white text-sky-600 px-5 py-2.5 rounded-xl font-black text-sm hover:scale-105 transition-transform shadow-md relative z-10"
+            >
+                Entendi
+            </button>
+        </div>
+      )}
+
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <button
           onClick={() => handleTabChange('overview')}

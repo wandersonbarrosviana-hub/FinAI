@@ -253,6 +253,16 @@ export interface SearchSuggestion {
   exchange?: string;
 }
 
+export interface UserSettings {
+  user_id: string;
+  push_subscription?: any; // JSON object from Push API
+  notifications_enabled: boolean;
+  budget_alert_threshold: number;
+  goal_alert_threshold: number;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface FinancialScore {
   id: string;
   user_id: string;

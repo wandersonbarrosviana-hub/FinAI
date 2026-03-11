@@ -37,9 +37,62 @@ interface SettingsProps {
 
 
 const Settings: React.FC<SettingsProps> = ({ user, onLogout, onExportData, onForceSync, onResetData }) => {
-    const [notifications, setNotifications] = useState(true);
+    const [notifications, setNotifications] = useState(false);
+    const [budgetThreshold, setBudgetThreshold] = useState(80);
+    const [goalThreshold, setGoalThreshold] = useState(80);
+    const [isSavingSettings, setIsSavingSettings] = useState(false);
+
     const [isResetModalOpen, setIsResetModalOpen] = useState(false);
     const [currentTheme, setCurrentTheme] = useState(() => localStorage.getItem('finai-theme') || 'ocean');
+
+    // Load user settings from Supabase
+    React.useEffect(() => {
+        const loadSettings = async () => {
+            if (!user.email) return;
+            const { supabase } = await import('../supabaseClient');
+            
+            // Get user_id first (we could also pass userId down instead of finding it via email)
+            const { data: profile } = await supabase.from('profiles').select('id').eq('email', user.email).single();
+            if (!profile) return;
+
+            const { data, error } = await supabase
+                .from('user_settings')
+                .select('*')
+                .eq('user_id', profile.id)
+                .single();
+            
+            if (data && !error) {
+                setNotifications(data.notifications_enabled);
+                setBudgetThreshold(data.budget_alert_threshold);
+                setGoalThreshold(data.goal_alert_threshold);
+            }
+        };
+        loadSettings();
+    }, [user.email]);
+
+    const saveSettings = async (updates: any) => {
+        setIsSavingSettings(true);
+        try {
+            const { supabase } = await import('../supabaseClient');
+            const { data: profile } = await supabase.from('profiles').select('id').eq('email', user.email).single();
+            if (!profile) return;
+
+            await supabase
+                .from('user_settings')
+                .update(updates)
+                .eq('user_id', profile.id);
+        } catch (e) {
+            console.error("Error saving settings:", e);
+        } finally {
+            setIsSavingSettings(false);
+        }
+    };
+
+    const handleToggleNotifications = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const enabled = e.target.checked;
+        setNotifications(enabled);
+        saveSettings({ notifications_enabled: enabled });
+    };
 
     const applyTheme = (themeId: string) => {
         const theme = THEMES.find(t => t.id === themeId) || THEMES[0];
@@ -91,23 +144,89 @@ const Settings: React.FC<SettingsProps> = ({ user, onLogout, onExportData, onFor
                     </h3>
 
                     <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
-
-
-                        {/* Notifications */}
-                        <div className="p-5 flex items-center justify-between border-b border-slate-50 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                            <div className="flex items-center gap-4">
-                                <div className="p-2 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 rounded-xl">
-                                    <Bell size={20} />
+                        {/* Notifications Intro */}
+                        <div className="p-5 flex flex-col border-b border-slate-50 dark:border-slate-800">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-4">
+                                    <div className="p-2 flex-shrink-0 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 rounded-xl">
+                                        <Bell size={20} />
+                                    </div>
+                                    <div>
+                                        <p className="font-bold text-slate-800 dark:text-slate-200">Notificações Inteligentes</p>
+                                        <p className="text-xs text-slate-400 dark:text-slate-500 font-medium">Receba avisos antes de estourar os limites</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <p className="font-bold text-slate-800 dark:text-slate-200">Notificações</p>
-                                    <p className="text-xs text-slate-400 dark:text-slate-500 font-medium">Alertas de contas e metas</p>
-                                </div>
+                                <label className="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" className="sr-only peer" checked={notifications} onChange={() => setNotifications(!notifications)} />
+                                    <div className="w-11 h-6 bg-slate-200 dark:bg-slate-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-sky-100 dark:peer-focus:ring-sky-900 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sky-600"></div>
+                                </label>
                             </div>
-                            <label className="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" className="sr-only peer" checked={notifications} onChange={() => setNotifications(!notifications)} />
-                                <div className="w-11 h-6 bg-slate-200 dark:bg-slate-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-sky-100 dark:peer-focus:ring-sky-900 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sky-600"></div>
-                            </label>
+                            
+                            {/* Sliders para alertas */}
+                            {notifications && (
+                                <div className="mt-6 space-y-5 animate-in fade-in slide-in-from-top-4 duration-300">
+                                    {/* Orçamentos */}
+                                    <div className="space-y-3">
+                                        <div className="flex justify-between items-end">
+                                            <label className="text-sm font-bold text-slate-700 dark:text-slate-300 w-full flex justify-between">
+                                                Me avise quando o orçamento atingir:
+                                                <span className="text-sky-600 font-black">{budgetThreshold}%</span>
+                                            </label>
+                                        </div>
+                                        <input 
+                                            type="range" min="50" max="100" step="5" 
+                                            value={budgetThreshold}
+                                            onChange={(e) => setBudgetThreshold(Number(e.target.value))}
+                                            onMouseUp={() => saveSettings({ budget_alert_threshold: budgetThreshold })}
+                                            onTouchEnd={() => saveSettings({ budget_alert_threshold: budgetThreshold })}
+                                            className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-sky-500"
+                                        />
+                                    </div>
+                                    {/* Metas */}
+                                    <div className="space-y-3">
+                                        <div className="flex justify-between items-end">
+                                            <label className="text-sm font-bold text-slate-700 dark:text-slate-300 w-full flex justify-between">
+                                                Me avise quando a meta atingir:
+                                                <span className="text-sky-600 font-black">{goalThreshold}%</span>
+                                            </label>
+                                        </div>
+                                        <input 
+                                            type="range" min="50" max="100" step="5" 
+                                            value={goalThreshold}
+                                            onChange={(e) => setGoalThreshold(Number(e.target.value))}
+                                            onMouseUp={() => saveSettings({ goal_alert_threshold: goalThreshold })}
+                                            onTouchEnd={() => saveSettings({ goal_alert_threshold: goalThreshold })}
+                                            className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-sky-500"
+                                        />
+                                    </div>
+                                    
+                                    <div className="pt-2">
+                                        <button 
+                                            onClick={async () => {
+                                                try {
+                                                    const reg = await navigator.serviceWorker.ready;
+                                                    // This uses a demo Public Key (VAPID). In production, it should be the one from Supabase Edge Functions / Backend
+                                                    const sub = await reg.pushManager.subscribe({
+                                                        userVisibleOnly: true,
+                                                        applicationServerKey: 'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuB2bSYzNn7kceZf9c3sLqGIf8' 
+                                                    });
+                                                    await saveSettings({ push_subscription: JSON.parse(JSON.stringify(sub)) });
+                                                    alert("Avisos ativados neste dispositivo com sucesso!");
+                                                } catch(e) {
+                                                    console.error(e);
+                                                    alert("Erro ao pedir permissão. Verifique as configurações do site no celular.");
+                                                }
+                                            }}
+                                            disabled={isSavingSettings}
+                                            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-slate-900 dark:bg-sky-600 text-white rounded-xl font-bold hover:bg-slate-800 dark:hover:bg-sky-500 transition-colors shadow-sm disabled:opacity-50"
+                                        >
+                                            <Smartphone size={18} />
+                                            {isSavingSettings ? "Salvando..." : "Ativar no Celular"}
+                                        </button>
+                                        <p className="text-[10px] text-center text-slate-400 mt-2">Para receber avisos com o app fechado</p>
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         {/* Currency (Fixed) */}

@@ -1,0 +1,16 @@
+{
+  "project_id": "YOUR_PROJECT_ID",
+  "triggers": [
+    {
+       "id": "financial_alerts_cron",
+       "trigger_type": "timer",
+       "trigger_config": {
+         "timer_expr": "0 8 * * *", 
+         "timer_action": "invoke_edge_function",
+         "timer_action_config": {
+            "function_name": "financial-alerts"
+         }
+       }
+    }
+  ]
+}
