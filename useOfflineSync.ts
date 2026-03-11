@@ -41,57 +41,99 @@ export const useOfflineSync = (userId: string | undefined) => {
 
             console.log(`[FinAI] Starting sync for ${pendingActions.length} items...`);
 
+            // 1. Agrupar Ações (Squashing): Remover repetidas.
+            // Apenas a última ação importa. Se um item foi deletado no final da fila, descartamos os updates.
+            const latestActionsMap = new Map<string, typeof pendingActions[0]>();
             for (const action of pendingActions) {
-                try {
-                    let success = false;
-                    let isGhost = false; // item whose local data no longer exists
+                const key = `${action.table}:${action.entityId}`;
+                const existing = latestActionsMap.get(key);
+                if (existing && existing.action === 'DELETE') continue; // Já será deletado de qualquer jeito
+                latestActionsMap.set(key, action);
+            }
 
-                    const syncPromise = (async () => {
-                        if (action.action === 'INSERT' || action.action === 'UPDATE') {
-                            const tableData = await (db as any)[action.table].get(action.entityId);
+            const resolvedEntityKeys = new Set<string>();
+            const upsertsByTable: Record<string, { entityId: string, payload: any }[]> = {};
+            const deletesByTable: Record<string, string[]> = {};
 
-                            // If local data is gone, this is a ghost item from before a reset → discard it
-                            if (!tableData) {
-                                console.warn(`[FinAI] Ghost item detected (${action.table}:${action.entityId}), discarding.`);
-                                isGhost = true;
-                                return false;
-                            }
-
-                            const dbPayload = mapToSupabaseFormat(action.table, tableData);
-                            const { error } = await supabase.from(action.table).upsert(dbPayload);
-                            if (!error) return true;
-                            console.error(`[FinAI] Supabase Error (${action.table}):`, error);
-                        } else if (action.action === 'DELETE') {
-                            const { error } = await supabase.from(action.table).delete().eq('id', action.entityId);
-                            // If row doesn't exist on server (already gone), treat as success
-                            if (!error || error.code === 'PGRST116') return true;
-                            console.error(`[FinAI] Delete Error (${action.table}):`, error);
-                        }
-                        return false;
-                    })();
-
-                    const result = await Promise.race([
-                        syncPromise,
-                        new Promise<boolean>(resolve => setTimeout(() => resolve(false), 15000))
-                    ]);
-
-                    // Remove item if synced successfully OR if it's a ghost (stale pre-reset data)
-                    if (result || isGhost) {
-                        await db.syncQueue.delete(action.id!);
-                        if (isGhost) {
-                            success = true; // count as resolved so we don't break
-                        } else {
-                            success = true;
-                        }
-                    } else {
-                        // Log the failure but CONTINUE to next item — don't block the whole queue
-                        console.warn(`[FinAI] Sync failed for ${action.table}:${action.entityId}. Continuing with next item.`);
+            // 2. Preparar payload validando fantasmas
+            for (const [key, typeofAction] of latestActionsMap.entries()) {
+                if (typeofAction.action === 'DELETE') {
+                    if (!deletesByTable[typeofAction.table]) deletesByTable[typeofAction.table] = [];
+                    deletesByTable[typeofAction.table].push(typeofAction.entityId);
+                } else {
+                    const tableData = await (db as any)[typeofAction.table].get(typeofAction.entityId);
+                    if (!tableData) {
+                        console.warn(`[FinAI] Ghost item detected (${key}), discarding.`);
+                        resolvedEntityKeys.add(key); // fantasma resolvido (pode limpar)
+                        continue;
                     }
-                } catch (e) {
-                    console.error(`[FinAI] Critical Sync Loop Error:`, e);
-                    // Don't break — continue processing remaining items
+                    const dbPayload = mapToSupabaseFormat(typeofAction.table, tableData);
+                    if (!upsertsByTable[typeofAction.table]) upsertsByTable[typeofAction.table] = [];
+                    upsertsByTable[typeofAction.table].push({ entityId: typeofAction.entityId, payload: dbPayload });
                 }
             }
+
+            const syncPromises: Promise<void>[] = [];
+
+            // 3. Processar UPSERTS de forma paralela usando Promise.all
+            for (const table of Object.keys(upsertsByTable)) {
+                syncPromises.push(
+                    (async () => {
+                        const items = upsertsByTable[table];
+                        // Divide em blocos caso haja limite gigante
+                        for (let i = 0; i < items.length; i += 500) {
+                            const chunk = items.slice(i, i + 500);
+                            const payloads = chunk.map(c => c.payload);
+
+                            const { error } = await supabase.from(table).upsert(payloads);
+                            if (!error) {
+                                chunk.forEach(c => resolvedEntityKeys.add(`${table}:${c.entityId}`));
+                            } else {
+                                console.error(`[FinAI] Bulk Upsert Error (${table}):`, error);
+                            }
+                        }
+                    })()
+                );
+            }
+
+            // 4. Processar DELETES via "in"
+            for (const table of Object.keys(deletesByTable)) {
+                syncPromises.push(
+                    (async () => {
+                        const ids = deletesByTable[table];
+                        for (let i = 0; i < ids.length; i += 200) {
+                            const chunk = ids.slice(i, i + 200);
+                            const { error } = await supabase.from(table).delete().in('id', chunk);
+                            // PGRST116 indicates 0 rows affected mostly which is totally fine on deletes
+                            if (!error || error.code === 'PGRST116') {
+                                chunk.forEach(id => resolvedEntityKeys.add(`${table}:${id}`));
+                            } else {
+                                console.error(`[FinAI] Bulk Delete Error (${table}):`, error);
+                            }
+                        }
+                    })()
+                );
+            }
+
+            // Esperar tudo rodar magicamente
+            await Promise.all(syncPromises);
+
+            // 5. Encerrar fila
+            const idsToDeleteFromQueue: number[] = [];
+            for (const action of pendingActions) {
+                const key = `${action.table}:${action.entityId}`;
+                if (resolvedEntityKeys.has(key) && action.id !== undefined) {
+                    idsToDeleteFromQueue.push(action.id);
+                }
+            }
+
+            if (idsToDeleteFromQueue.length > 0) {
+                await db.syncQueue.bulkDelete(idsToDeleteFromQueue);
+                console.log(`[FinAI] Sync success! Removed ${idsToDeleteFromQueue.length} items from queue.`);
+            }
+
+        } catch (e) {
+            console.error(`[FinAI] Critical Bulk Sync Error:`, e);
         } finally {
             setSyncing(false);
         }
